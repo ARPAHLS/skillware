@@ -68,6 +68,8 @@ cd skillware
 pip install -r requirements.txt
 ```
 
+> **Note**: Individual skills may have their own dependencies. The `SkillLoader` will check `manifest.yaml` and warn you if you are missing a required package (e.g., `requests`, `pandas`) when you try to load a skill.
+
 ### 2. Configure Environment
 
 Create a `.env` file with your keys:

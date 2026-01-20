@@ -27,12 +27,29 @@ class SkillLoader:
         if not os.path.exists(skill_path):
             raise FileNotFoundError(f"Skill not found at {skill_path}")
 
-        # Load Manifest
-        manifest = {}
-        manifest_path = os.path.join(skill_path, 'manifest.yaml')
-        if os.path.exists(manifest_path):
-            with open(manifest_path, 'r', encoding='utf-8') as f:
-                manifest = yaml.safe_load(f)
+            # Load Manifest
+            manifest = {}
+            manifest_path = os.path.join(skill_path, 'manifest.yaml')
+            if os.path.exists(manifest_path):
+                with open(manifest_path, 'r', encoding='utf-8') as f:
+                    manifest = yaml.safe_load(f)
+
+            # Check Dependencies
+            if 'requirements' in manifest:
+                missing = []
+                for req in manifest['requirements']:
+                    # Simple check for package name. Complex version parsing (>=1.0) 
+                    # requires packaging.utils or similar, but keeping it deps-free for now.
+                    # We strip version specifiers for the import check.
+                    pkg_name = req.split('>')[0].split('<')[0].split('=')[0].strip()
+                    if not importlib.util.find_spec(pkg_name):
+                        missing.append(req)
+                
+                if missing:
+                    raise ImportError(
+                        f"Skill '{manifest.get('name')}' requires missing packages: {', '.join(missing)}. "
+                        f"Please run: pip install {' '.join(missing)}"
+                    )
 
         # Load Instructions
         instructions = ""

@@ -24,3 +24,5 @@ env_vars:
   COINGECKO_API_KEY:
     description: "Optional API key for CoinGecko. If not provided, free tier is used (rate limited)."
     required: false
+requirements:
+  - requests

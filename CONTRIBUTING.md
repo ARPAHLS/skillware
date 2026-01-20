@@ -15,6 +15,7 @@ Defines the interface and constitution.
 *   **Must** have `name`, `version`, `description`.
 *   **Must** have a valid JSON Schema in `parameters`.
 *   **Must** include a `constitution` section defining safety boundaries.
+*   **Must** include a `requirements` list if external packages are needed (e.g. `requests`, `pandas`).
 
 ```yaml
 name: generic_hello
@@ -30,6 +31,10 @@ parameters:
 constitution: |
   1. Do not greet offensive names.
   2. Always maintain a polite tone.
+
+requirements:
+  - requests
+  - pandas
 ```
 
 ### 2. `skill.py` (The Logic)
