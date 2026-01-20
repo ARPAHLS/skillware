@@ -33,3 +33,19 @@ Skillware is not just a library of folders; it is an active runtime environment.
 | **Execution** | Manual / Script-based | **Managed Runtime** (Orchestrators) |
 | **Discovery** | File-system | **Semantic Registry** & Manifests |
 | **Philosophy** | "Here is how to teach Claude" | "**`pip install` for Agent Capabilities**" |
+
+### 4. Skillware vs. Antigravity (Agentic) Skills
+
+Users familiar with **Antigravity** (the Google DeepMind Agentic Coding assistant) may recognize the term "Skill" used for `SKILL.md` files. It is important to distinguish these two very different concepts.
+
+| Feature | Antigravity Skills (`SKILL.md`) | Skillware Skills (`manifest.yaml`) |
+| :--- | :--- | :--- |
+| **Audience** | **The Developer Agent** (e.g., Cursor, Windsurf, Antigravity) | **The Runtime Agent** (The AI serving your users) |
+| **Purpose** | **Procedural Memory**. "How do I run the tests in this specific repo?" "How do I deploy?" | **Functional Capability**. "Check this wallet address." "Search the web." "Parse this PDF." |
+| **Content** | Human-readable instructions & checklists for the AI to follow. | Python code, API wrappers, and strict JSON schemas. |
+| **Execution** | The Agent reads the doc and *chooses* which existing tools (terminal, editor) to use. | The Agent calls a specific *new tool* function defined by the Python code. |
+| **Analogy** | A **Recipe Book** for the Chef. | A **New Knife** or **Appliance** for the Chef. |
+
+**In short:**
+*   You write **Antigravity Skills** to teach your AI Assistant *how to code and maintain your project*.
+*   You use **Skillware** to give the AI Agent you are *building* new powers to interact with the world.
