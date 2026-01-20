@@ -72,11 +72,10 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 
-Create a `.env` file with your keys:
+Create a `.env` file with your keys (eg, Google Gemini API Key):
 
 ```ini
-ETHERSCAN_API_KEY="your_key" # Only if using crypto skills
-GOOGLE_API_KEY="your_key"    # Your LLM Provider
+GOOGLE_API_KEY="your_key"
 ```
 
 ### 3. "Hello World" (Gemini)
