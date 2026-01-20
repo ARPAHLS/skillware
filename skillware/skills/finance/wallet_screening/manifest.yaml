@@ -1,0 +1,26 @@
+name: wallet_screening
+version: 1.0.0
+description: |
+  A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). analyze transaction history for risk.
+parameters:
+  type: object
+  properties:
+    address:
+      type: string
+      description: The Ethereum wallet address to screen (starts with 0x).
+  required:
+    - address
+output:
+  type: object
+  description: A detailed JSON report containing risk assessment, sanctions hits, and transaction analysis.
+constitution: |
+  1. USER PRIVACY: Do not store or log the wallet address externally.
+  2. ACCURACY: Always warn the user that this is a risk assessment tool and not legal advice.
+  3. COMPLIANCE: If a wallet is sanctioned, clearly state the jurisdiction and reason.
+env_vars:
+  ETHERSCAN_API_KEY:
+    description: "API key for Etherscan to fetch transaction data."
+    required: true
+  COINGECKO_API_KEY:
+    description: "Optional API key for CoinGecko. If not provided, free tier is used (rate limited)."
+    required: false

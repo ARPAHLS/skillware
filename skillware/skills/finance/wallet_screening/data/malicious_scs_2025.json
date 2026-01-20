@@ -1,0 +1,109 @@
+[
+  {
+    "address": "0x910Cbd523D972eb0a6f4cAe4618aD62622b39DbF",
+    "name": "Tornado Cash",
+    "created_at": "2019-08-14T00:00:00Z",
+    "creator": "unknown",
+    "reason": "Sanctioned privacy mixer contract",
+    "source": "OFAC, Etherscan",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://etherscan.io/address/0x910cbd523d972eb0a6f4cae4618ad62622b39dbf",
+      "https://home.treasury.gov/news/press-releases/jy0916"
+    ],
+    "tags": ["mixer", "sanctioned"],
+    "notes": "OFAC-sanctioned contract. Used for anonymizing ETH transactions."
+  },
+  {
+    "address": "0x6f1b9b64e2932f6a2db338f616844400cd58e8a",
+    "name": "Sinbad Mixer",
+    "created_at": "2022-11-01T00:00:00Z",
+    "creator": "unknown",
+    "reason": "OFAC-sanctioned mixer, successor to Blender.io, used by Lazarus Group",
+    "source": "OFAC",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://home.treasury.gov/news/press-releases/jy1701",
+      "https://www.chainalysis.com/blog/sinbad-sanctions/"
+    ],
+    "tags": ["mixer", "sanctioned"],
+    "notes": "OFAC-sanctioned contract. Used for laundering by North Korean hackers."
+  },
+  {
+    "address": "0x6a7a43be33ba930fe58f34e07d0ad6ba7adb9b1f",
+    "name": "Blender.io",
+    "created_at": "2022-05-06T00:00:00Z",
+    "creator": "unknown",
+    "reason": "First crypto mixer sanctioned by OFAC, used by Lazarus Group",
+    "source": "OFAC",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://home.treasury.gov/news/press-releases/jy0819",
+      "https://www.chainalysis.com/blog/blender-sanctions/"
+    ],
+    "tags": ["mixer", "sanctioned"],
+    "notes": "OFAC-sanctioned contract. Used for laundering illicit funds."
+  },
+  {
+    "address": "0x6e2b76966cb5b6bbbc2c7b7bffb3a8e389d8f3c0",
+    "name": "ChipMixer",
+    "created_at": "2023-03-15T00:00:00Z",
+    "creator": "unknown",
+    "reason": "Seized by law enforcement, used for laundering illicit funds.",
+    "source": "Europol, DOJ",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://www.europol.europa.eu/media-press/newsroom/news/chipmixer-takedown-darkweb-cryptocurrency-mixer-seized",
+      "https://www.justice.gov/opa/pr/justice-department-seizes-cryptocurrency-mixer-chipmixer-charges-operator"
+    ],
+    "tags": ["mixer", "seized"],
+    "notes": "Seized by law enforcement. Used for laundering by ransomware groups and darknet markets."
+  },
+  {
+    "address": "0x6f1b9b64e2932f6a2db338f616844400cd58e8a",
+    "name": "Helix Mixer",
+    "created_at": "2020-02-10T00:00:00Z",
+    "creator": "Larry Dean Harmon",
+    "reason": "Linked to darknet markets and sanctioned activity.",
+    "source": "FinCEN, DOJ",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://www.fincen.gov/news/news-releases/fincen-assesses-60-million-civil-money-penalty-against-operator-virtual-currency",
+      "https://www.justice.gov/opa/pr/ohio-man-charged-operating-darknet-based-bitcoin-mixer-which-laundered-over-300-million"
+    ],
+    "tags": ["mixer", "sanctioned"],
+    "notes": "Sanctioned by FinCEN and DOJ. Used for laundering darknet market proceeds."
+  },
+  {
+    "address": "0x6e2b76966cb5b6bbbc2c7b7bffb3a8e389d8f3c0",
+    "name": "Hydra Market Contract",
+    "created_at": "2022-04-05T00:00:00Z",
+    "creator": "unknown",
+    "reason": "Darknet market, sanctioned by OFAC.",
+    "source": "OFAC",
+    "jurisdictions_blocked": ["US", "EU", "IL"],
+    "severity": "high",
+    "known_victims": [],
+    "related_hashes": [],
+    "references": [
+      "https://home.treasury.gov/news/press-releases/jy0701"
+    ],
+    "tags": ["market", "sanctioned"],
+    "notes": "Hydra Market contract sanctioned by OFAC."
+  }
+] 

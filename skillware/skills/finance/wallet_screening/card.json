@@ -1,0 +1,15 @@
+{
+  "name": "Wallet Audit",
+  "description": "Checks crypto wallets for sanctions and malicious activity.",
+  "icon": "shield-check",
+  "color": "indigo",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "summary.address", "label": "Address"},
+      {"key": "summary.sanctioned", "label": "Sanctioned", "type": "status_badge"},
+      {"key": "summary.malicious_interactions_count", "label": "Risky Interactions", "type": "count"},
+      {"key": "summary.pnl_eth", "label": "PnL (ETH)", "type": "currency"}
+    ]
+  }
+}

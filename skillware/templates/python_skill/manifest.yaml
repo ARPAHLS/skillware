@@ -1,0 +1,15 @@
+name: "my-awesome-skill"
+version: "0.1.0"
+description: "A short description of what this skill does."
+category: "utility"
+inputs:
+  param1:
+    type: "string"
+    description: "Description of the first parameter"
+outputs:
+  result:
+    type: "string"
+    description: "Description of the output"
+presentation:
+  icon: "star"
+  color: "#3498DB"
