@@ -75,9 +75,8 @@ pip install -r requirements.txt
 Create a `.env` file with your keys:
 
 ```ini
-ETHERSCAN_API_KEY="your_key"
-GOOGLE_API_KEY="your_key"
-ANTHROPIC_API_KEY="your_key"
+ETHERSCAN_API_KEY="your_key" # Only if using crypto skills
+GOOGLE_API_KEY="your_key"    # Your LLM Provider
 ```
 
 ### 3. "Hello World" (Gemini)
@@ -92,20 +91,21 @@ load_env_file()
 
 # 1. Load the Skill
 # The loader reads the code, manifest, and instructions automatically
-skill = SkillLoader.load_skill("finance/wallet_screening")
+skill_bundle = SkillLoader.load_skill("finance/wallet_screening")
 
-# 2. Configure the Agent
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+# 3. Model & Chat Setup
 model = genai.GenerativeModel(
-    'gemini-2.0-flash-exp',
-    # Auto-converts manifest to Gemini Tool format
-    tools=[SkillLoader.to_gemini_tool(skill)],
-    # Injects the "Mind" of the skill into the Agent
-    system_instruction=skill['instructions'] 
+    'gemini-2.5-flash',
+    tools=[SkillLoader.to_gemini_tool(skill_bundle)], # The "Adapter"
+    system_instruction=skill_bundle['instructions']   # The "Mind"
 )
-
-# 3. Execute
 chat = model.start_chat(enable_automatic_function_calling=True)
+
+# 4. Agent Loop
+# The Google SDK handles the "Loop" internally with enable_automatic_function_calling=True.
+# It calls the model -> sees tool call -> pauses -> YOU execute code -> sends result -> model replies.
+# Note: In a production loop, you would manually handle the `function_call` parts to keep control.
+
 response = chat.send_message("Screen wallet 0xd8dA... for risks.")
 print(response.text)
 ```
