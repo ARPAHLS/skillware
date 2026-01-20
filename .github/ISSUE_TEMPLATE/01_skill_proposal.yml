@@ -1,0 +1,53 @@
+name: "💡 New Skill Proposal"
+description: Propose a new capability for the Skillware registry.
+title: "[New Skill]: "
+labels: ["skill request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping expand the Skillware ecosystem!
+        Please review the [Contribution Guidelines](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md) first.
+
+  - type: input
+    id: skill_name
+    attributes:
+      label: Skill Name
+      description: e.g. `finance/stock_checker` or `os/file_manager`
+      placeholder: category/skill_name
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should this skill do?
+      description: Describe the capability. What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: inputs_outputs
+    attributes:
+      label: Ideal Inputs & Outputs
+      description: |
+        What arguments should it take? What JSON should it return?
+      placeholder: |
+        Input: {"ticker": "AAPL"}
+        Output: {"price": 150.00, "change": "+1.2%"}
+    validations:
+      required: true
+
+  - type: dropdown
+    id: models
+    attributes:
+      label: Targeted Models (if applicable)
+      description: Is this skill specific to a model or truly agnostic?
+      options:
+        - "Model Agnostic (All)"
+        - "Gemini 2.0"
+        - "Claude 3.5"
+        - "Local LLaMA"
+        - "Other"
+    validations:
+      required: true

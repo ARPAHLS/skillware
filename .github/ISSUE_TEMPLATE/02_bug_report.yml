@@ -1,0 +1,61 @@
+name: "🐛 Bug Report"
+description: Create a report to help us improve Skillware.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue!
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      options:
+        - "Core Framework (Loader/Env)"
+        - "Specific Skill (e.g. Wallet Screening)"
+        - "Documentation"
+        - "Examples"
+    validations:
+      required: true
+
+  - type: input
+    id: skill_name
+    attributes:
+      label: Skill Name (if applicable)
+      placeholder: finance/wallet_screening
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How do we trigger this bug?
+      placeholder: |
+        1. Loaded skill 'X'
+        2. Configured Gemini model
+        3. Sent prompt "..."
+        4. Crash
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: Paste the traceback or error message.
+      render: python
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, SDK versions.
+      placeholder: |
+        Windows 11
+        Python 3.12
+        google-generativeai 0.8.3

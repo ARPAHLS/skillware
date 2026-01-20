@@ -1,0 +1,18 @@
+name: "📚 Documentation Fix"
+description: Help us improve the docs.
+title: "[Docs]: "
+labels: ["documentation", "good first issue"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to be fixed?
+      description: Typos, unclear instructions, or broken links?
+    validations:
+      required: true
+
+  - type: input
+    id: page
+    attributes:
+      label: Affected Page
+      placeholder: docs/usage/gemini.md
