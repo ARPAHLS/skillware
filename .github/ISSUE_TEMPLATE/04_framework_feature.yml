@@ -1,0 +1,36 @@
+name: "🛠️ Framework Feature"
+description: Propose a change to the core Skillware engine (Loader, Envs, adapters).
+title: "[Feat]: "
+labels: ["enhancement", "core-framework"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for changes to `skillware/core/` (e.g., new model adapters, loader logic, security).
+        For new **Skills**, please use the "New Skill Proposal" template.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What do you want to add or change in the core framework?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why is this needed? (e.g. "To support OpenAI models")
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Idea
+      description: Do you have a plan for how to implement this in Python?
+      placeholder: |
+        I can add a `to_openai_tool` method in `loader.py` that maps...
+    validations:
+      required: false
