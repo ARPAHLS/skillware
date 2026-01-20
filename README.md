@@ -129,7 +129,7 @@ How does this differ from the Model Context Protocol (MCP) or Anthropic's Skills
 
 *   **Model Agnostic**: Native adapters for Gemini, Claude, and OpenAI.
 *   **Code-First**: Skills are executable Python packages, not just server specs.
-*   **Cognitive-First**: We treat *instructions* as a first-class citizen, equal to code.
+*   **Runtime-Focused**: Unlike "Agentic Coding" skills (recipes for an IDE), Skillware provides **tools for the Application** (knives for the chef).
 
 [Read the full comparison here](COMPARISON.md).
 

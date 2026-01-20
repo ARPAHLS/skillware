@@ -2,8 +2,6 @@
 
 Welcome to the Skillware project. We are building the definitive "App Store" for Agentic Capabilities.
 
-This repository follows strict professional standards ("Corpo-Professional") to ensure every skill is safe, reliable, and model-agnostic.
-
 ---
 
 ## 🏗️ The Skill Package Standard
@@ -66,11 +64,16 @@ This is the most critical file. It is the "driver" for the LLM.
 
 ## 🔄 The Pull Request Process
 
-1.  **Fork** the repository.
-2.  **Create** your skill folder: `skillware/skills/<category>/<your_skill>/`.
-3.  **Implement** the 4 required files.
-4.  **Add** a test script in `examples/` demonstrating it works with at least one model (Gemini or Claude).
-5.  **Submit** PR.
+1.  **Start with an Issue**:
+    *   For a new skill: Use the **Skill Proposal** template.
+    *   For a core change: Use the **Framework Feature** template.
+    *   For a major architectural change: Use the **RFC** template.
+    *   *Wait for approval/feedback before writing code.*
+2.  **Fork** the repository.
+3.  **Create** your skill folder: `skillware/skills/<category>/<your_skill>/`.
+4.  **Implement** the 4 required files (`manifest.yaml`, `skill.py`, `instructions.md`, `card.json`).
+5.  **Add** a test script in `examples/`.
+6.  **Submit** PR.
 
 ---
 
