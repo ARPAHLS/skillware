@@ -1,51 +1,60 @@
-# Skillware vs. Anthropic Skills
+# Comparison: Skillware vs. Others
 
-While both Skillware and [Anthropic's Skills](https://github.com/anthropics/skills) repository share the goal of empowering AI agents with modular capabilities, they differ fundamentally in scope, architecture, and intent.
+Skillware occupies a unique position in the AI ecosystem. It is often compared to **Antigravity Skills** (Agentic Coding) or **Anthropic's Skills** (Claude Reference). 
 
-Skillware is designed to be a comprehensive, model-agnostic **Framework**, whereas Anthropic's repository is a collection of reference implementations specifically for Claude.
+This document clarifies the differences, specifically focusing on **Model Agnosticism**, **Architecture**, and **Token Economy**.
 
-## Key Differences
+---
 
-### 1. Model Agnosticism
-*   **Anthropic Skills**: Optimized specifically for the Claude family of models. The prompts and structures are tuned for Claude's specific attention patterns and context window behavior.
-*   **Skillware**: Built from the ground up to be **Universal**.
-    *   **Any Model**: Works with OpenAI (GPT-4), Google (Gemini), Anthropic (Claude), LLaMA, and custom local models.
-    *   **Abstraction Layer**: We provide the "glue" code that adapts a skill's output to the specific formatting requirements of different models (e.g., function calling schemas vs. XML tools).
+## 1. Skillware vs. Anthropic Skills (Reference Implemenations)
 
-### 2. Cognitive Context & System Prompts
-Anthropic's approach relies heavily on `SKILL.md` for context. Skillware adopts and extends this:
-*   **Integrated Instruction Sets**: Every Skillware skill includes not just code, but also refined **Procedures** and **System Prompts**.
-*   **Context Injection**: When a skill is loaded, our orchestrator automatically appends the necessary instructions to the model's system prompt, ensuring the model knows *exactly* how and when to use the tool, regardless of its underlying architecture.
-*   **Safety "Constitution"**: We enforce safety rules (defined in the Manifest) at the prompt level, providing a layer of governance that travels with the skill.
+[Anthropic's Skills](https://github.com/anthropics/skills) repository is a collection of reference prompts and scripts optimized for Claude.
 
-### 3. Maps, Parsers, & Orchestration
-Skillware is not just a library of folders; it is an active runtime environment.
-*   **Orchestrators**: We provide the runtime logic to manage the lifecycle of a skill—from discovery to execution to cleanup.
-*   **Parsers**: Our framework handles the "messy middle" of parsing model outputs into structured data that the Python code can execute, handling edge cases and errors gracefully.
-*   **Cognitive Maps**: We map capabilities to semantic descriptions, allowing agents to "browse" for skills based on vague intent (e.g., "I need to analyze this dataset") rather than knowing exact function names.
+### Key Differences
+*   **Model Agnosticism**: Anthropic skills are hyper-tuned for Claude. Skillware is **Universal**. We provide the abstraction layer (Loader) that adapts a single skill to work with OpenAI, Gemini, Claude, and Llama functions transparently.
+*   **The "Managed" Runtime**: Anthropic skills are often standalone scripts. Skillware provides a `SkillLoader` that handles lifecycle, dependency checking (`requirements`), and error handling automatically.
 
-## Summary
+---
 
-| Feature | Anthropic Skills | ARPA Skillware |
-| :--- | :--- | :--- |
-| **Scope** | Reference Library | Full Application Framework |
-| **Target Model** | Claude Only | **Any LLM** (Model Agnostic) |
-| **Execution** | Manual / Script-based | **Managed Runtime** (Orchestrators) |
-| **Discovery** | File-system | **Semantic Registry** & Manifests |
-| **Philosophy** | "Here is how to teach Claude" | "**`pip install` for Agent Capabilities**" |
+## 2. Skillware vs. Antigravity ("Agentic" Skills)
 
-### 4. Skillware vs. Antigravity (Agentic) Skills
+Users familiar with **Antigravity** (Google DeepMind's Agentic Coding assistant) use `SKILL.md` files to teach their coding agent how to work in a specific repository.
 
-Users familiar with **Antigravity** (the Google DeepMind Agentic Coding assistant) may recognize the term "Skill" used for `SKILL.md` files. It is important to distinguish these two very different concepts.
+### Key Differences
+*   **Audience**: 
+    *   **Antigravity Skills** are for the **Developer Agent** (the one writing code in your IDE). They are "Procedural Memory" (e.g., "How to run the build script").
+    *   **Skillware Skills** are for the **Runtime Agent** (the application you are building). They are "Functional Capabilities" (e.g., "Check a crypto wallet").
+*   **Analogy**:
+    *   **Antigravity** is a **Recipe Book** (Instructions on how to cook).
+    *   **Skillware** is a **New Knife** (A tool to actually do the work).
 
-| Feature | Antigravity Skills (`SKILL.md`) | Skillware Skills (`manifest.yaml`) |
-| :--- | :--- | :--- |
-| **Audience** | **The Developer Agent** (e.g., Cursor, Windsurf, Antigravity) | **The Runtime Agent** (The AI serving your users) |
-| **Purpose** | **Procedural Memory**. "How do I run the tests in this specific repo?" "How do I deploy?" | **Functional Capability**. "Check this wallet address." "Search the web." "Parse this PDF." |
-| **Content** | Human-readable instructions & checklists for the AI to follow. | Python code, API wrappers, and strict JSON schemas. |
-| **Execution** | The Agent reads the doc and *chooses* which existing tools (terminal, editor) to use. | The Agent calls a specific *new tool* function defined by the Python code. |
-| **Analogy** | A **Recipe Book** for the Chef. | A **New Knife** or **Appliance** for the Chef. |
+---
 
-**In short:**
-*   You write **Antigravity Skills** to teach your AI Assistant *how to code and maintain your project*.
-*   You use **Skillware** to give the AI Agent you are *building* new powers to interact with the world.
+## 3. The Token Economy Advantage (Efficiency)
+
+A critical architectural decision in Skillware is the use of **Native, Hardcoded Functions** over "Code-Generation" skills.
+
+*   **The "Code Gen" Approach (Others)**: Some frameworks ask the LLM to write Python code on the fly to solve a problem (e.g., "Write a script to check this wallet").
+    *   ❌ **Expensive**: You pay output tokens for the code generation *every single time*.
+    *   ❌ **Slow**: Generating code takes time.
+    *   ❌ **Risky**: The generated code might have syntax errors or security flaws.
+
+*   **The Skillware Approach**: We provide **Pre-Compiled functions**.
+    *   ✅ **Cheap**: You only pay for the *logical* tokens ("Call function `check_wallet` with arg `0x123`"). The heavy lifting happens in pure Python (0 cost).
+    *   ✅ **Fast**: Instant execution.
+    *   ✅ **Safe**: The code is reviewable and static.
+
+---
+
+## Summary Comparison
+
+| Feature | **Antigravity Skills** | **Anthropic Skills** | **ARPA Skillware** |
+| :--- | :--- | :--- | :--- |
+| **Primary User** | The **Developer Agent** (IDE) | The **Claude Developer** | The **Runtime Agent** (End User) |
+| **Format** | `SKILL.md` (Text/Markdown) | JS/Python Reference Code | `manifest.yaml` + Python Module |
+| **Goal** | **Teach Procedure** ("How-to") | Show capabilities of Claude | **Install Capabilities** ("Can-do") |
+| **Execution** | Agent reads docs, drives IDE | Script-based / Manual | **Managed Runtime** (`SkillLoader`) |
+| **Token Cost** | **Standard** (RAG/Context) | **High** (Prompt engineering) | **Optimized** (Native Function calling) |
+| **Analogy** | 📖 **The Recipe** | 🧪 **The Experiment** | 🔪 **The Knife** |
+
+**Conclusion**: Use **Antigravity** to help you *build* your project. Use **Skillware** to give your project *superpowers* when it runs.
