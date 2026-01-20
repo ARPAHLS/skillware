@@ -1,0 +1,9 @@
+# Core Dependencies
+pyyaml
+python-dotenv
+requests
+
+# LLM SDKs (Optional but recommended for examples)
+google-generativeai
+anthropic
+openai
