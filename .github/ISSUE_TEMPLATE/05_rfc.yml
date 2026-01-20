@@ -1,0 +1,45 @@
+name: "📜 Request for Comments (RFC)"
+description: Start a discussion for a major architectural change or new standard.
+title: "[RFC]: "
+labels: ["discussion", "core-framework"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An RFC (Request for Comments) is for proposals that are too big for a simple feature request.
+        Use this to discuss:
+        - Changing core standards (e.g. how `manifest.yaml` works)
+        - Major refactors
+        - Adding support for entirely new platforms
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Brief explanation of the proposed change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why are we doing this? What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: detailed_design
+    attributes:
+      label: Detailed Design
+      description: Explain the design in detail. How will it work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: drawbacks
+    attributes:
+      label: Drawbacks
+      description: Why should we NOT do this?
+    validations:
+      required: false
