@@ -3,9 +3,19 @@
 </div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Agentic-Native-blue?style=flat-square" alt="Agentic Native">
-  <img src="https://img.shields.io/badge/Model-Agnostic-orange?style=flat-square" alt="Model Agnostic">
-  <img src="https://img.shields.io/badge/Status-Beta-yellow?style=flat-square" alt="Status">
+  <img src="https://img.shields.io/badge/License-MIT-efcefa?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Python-3.11+-bae6fd?style=flat-square" alt="Python Version">
+  <img src="https://img.shields.io/badge/PyPI-v0.1.0-bbf7d0?style=flat-square" alt="PyPI Version">
+</div>
+
+<div align="center">
+  <a href="#mission">Mission</a> •
+  <a href="#repository-structure">Architecture</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#comparison">Comparison</a> •
+  <a href="#contact">Contact</a>
 </div>
 
 ---
@@ -128,10 +138,17 @@ Skillware differs from the Model Context Protocol (MCP) or Anthropic's Skills re
 
 [Read the full comparison here](COMPARISON.md).
 
+## Contact
+
+For questions, suggestions, or contributions, please open an issue or reach out to us:
+
+*   **Email**: [skillware-os@arpacorp.net](mailto:skillware-os@arpacorp.net)
+*   **Issues**: [GitHub Issues](https://github.com/arpa/skillware/issues)
+
 ---
 
 <div align="center">
     <img src="assets/arpalogo.png" alt="ARPA Logo" width="50px" />
     <br/>
-    *Built by ARPA Hellenic Logical Systems*
+    Built & Maintained by ARPA Hellenic Logical Systems
 </div>
