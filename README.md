@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="assets/skillware_logo.png" alt="Skillware Logo" width="150px" />
-  <h1>Skillware</h1>
+  <img src="assets/skillware_logo.png" alt="Skillware Logo" width="400px" />
 </div>
 
 <div align="center">
@@ -130,4 +129,9 @@ Skillware differs from the Model Context Protocol (MCP) or Anthropic's Skills re
 [Read the full comparison here](COMPARISON.md).
 
 ---
-*Built by ARPA Hellenic Logical Systems*
+
+<div align="center">
+    <img src="assets/arpalogo.png" alt="ARPA Logo" width="50px" />
+    <br/>
+    *Built by ARPA Hellenic Logical Systems*
+</div>
