@@ -4,7 +4,7 @@ Welcome to the Skillware project. We are building the definitive "App Store" for
 
 ---
 
-## 🏗️ The Skill Package Standard
+## The Skill Package Standard
 
 Every new skill must reside in its own directory under `skillware/skills/<category>/<skill_name>/`. It **must** contain the following files:
 
@@ -53,7 +53,7 @@ This is the most critical file. It is the "driver" for the LLM.
 
 ---
 
-## 🚫 What to Avoid
+## What to Avoid
 
 *   **No "God Skills"**: Do not make one massive skill that does everything. Break it down.
 *   **No Hardcoded Models**: Do not put prompts inside `skill.py`. Put them in `instructions.md`.
@@ -62,14 +62,14 @@ This is the most critical file. It is the "driver" for the LLM.
 
 ---
 
-## 🔄 The Pull Request Process
+## The Pull Request Process
 
 1.  **Start with an Issue**:
     Please check [Existing Issues](https://github.com/ARPAHLS/skillware/issues) before starting.
-    *   **✨ New Skill**: Use `[Skill Proposal]` to request or propose a new capability.
-    *   **🛠️ Feature**: Use `[Framework Feature]` for changes to the core engine.
-    *   **🐛 Bug**: Use `[Bug Report]` for errors.
-    *   **📜 RFC**: Use `[Request for Comments]` for major architectural discussions.
+    *   **New Skill**: Use `[Skill Proposal]` to request or propose a new capability.
+    *   **Feature**: Use `[Framework Feature]` for changes to the core engine.
+    *   **Bug**: Use `[Bug Report]` for errors.
+    *   **RFC**: Use `[Request for Comments]` for major architectural discussions.
     
     [Open a New Issue Here](https://github.com/ARPAHLS/skillware/issues/new/choose) is the first step.
     *Wait for approval/feedback before writing code.*
@@ -81,7 +81,7 @@ This is the most critical file. It is the "driver" for the LLM.
 
 ---
 
-## 🛡️ Safety & Security
+## Safety & Security
 
 *   Skills that interact with real-world assets (wallets, email, etc.) must implement a "Dry Run" mode if possible.
 *   Sanitize all inputs in `skill.py` before passing to external APIs.

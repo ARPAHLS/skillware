@@ -6,7 +6,7 @@ This document clarifies the differences, specifically focusing on **Model Agnost
 
 ---
 
-## 1. Skillware vs. Anthropic Skills (Reference Implemenations)
+## 1. Skillware vs. Anthropic Skills (Reference Implementations)
 
 [Anthropic's Skills](https://github.com/anthropics/skills) repository is a collection of reference prompts and scripts optimized for Claude.
 
@@ -35,26 +35,26 @@ Users familiar with **Antigravity** (Google DeepMind's Agentic Coding assistant)
 A critical architectural decision in Skillware is the use of **Native, Hardcoded Functions** over "Code-Generation" skills.
 
 *   **The "Code Gen" Approach (Others)**: Some frameworks ask the LLM to write Python code on the fly to solve a problem (e.g., "Write a script to check this wallet").
-    *   ❌ **Expensive**: You pay output tokens for the code generation *every single time*.
-    *   ❌ **Slow**: Generating code takes time.
-    *   ❌ **Risky**: The generated code might have syntax errors or security flaws.
+    *   **Expensive**: You pay output tokens for the code generation *every single time*.
+    *   **Slow**: Generating code takes time.
+    *   **Risky**: The generated code might have syntax errors or security flaws.
 
 *   **The Skillware Approach**: We provide **Pre-Compiled functions**.
-    *   ✅ **Cheap**: You only pay for the *logical* tokens ("Call function `check_wallet` with arg `0x123`"). The heavy lifting happens in pure Python (0 cost).
-    *   ✅ **Fast**: Instant execution.
-    *   ✅ **Safe**: The code is reviewable and static.
+    *   **Cheap**: You only pay for the *logical* tokens ("Call function `check_wallet` with arg `0x123`"). The heavy lifting happens in pure Python (0 cost).
+    *   **Fast**: Instant execution.
+    *   **Safe**: The code is reviewable and static.
 
 ---
 
 ## Summary Comparison
 
-| Feature | **Antigravity Skills** | **Anthropic Skills** | **ARPA Skillware** |
+| Feature | Antigravity Skills | Anthropic Skills | ARPA Skillware |
 | :--- | :--- | :--- | :--- |
 | **Primary User** | The **Developer Agent** (IDE) | The **Claude Developer** | The **Runtime Agent** (End User) |
 | **Format** | `SKILL.md` (Text/Markdown) | JS/Python Reference Code | `manifest.yaml` + Python Module |
 | **Goal** | **Teach Procedure** ("How-to") | Show capabilities of Claude | **Install Capabilities** ("Can-do") |
 | **Execution** | Agent reads docs, drives IDE | Script-based / Manual | **Managed Runtime** (`SkillLoader`) |
 | **Token Cost** | **Standard** (RAG/Context) | **High** (Prompt engineering) | **Optimized** (Native Function calling) |
-| **Analogy** | 📖 **The Recipe** | 🧪 **The Experiment** | 🔪 **The Knife** |
+| **Analogy** | **The Recipe** | **The Experiment** | **The Knife** |
 
 **Conclusion**: Use **Antigravity** to help you *build* your project. Use **Skillware** to give your project *superpowers* when it runs.
