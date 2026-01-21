@@ -1,5 +1,7 @@
 <div align="center">
   <img src="assets/skillware_logo.png" alt="Skillware Logo" width="400px" />
+  <br/>
+  <b>A Python framework for modular, self-contained skill management for machines.</b>
 </div>
 
 <div align="center">
@@ -7,6 +9,8 @@
   <img src="https://img.shields.io/badge/Python-3.11+-bae6fd?style=flat-square" alt="Python Version">
   <img src="https://img.shields.io/badge/PyPI-v0.1.0-bbf7d0?style=flat-square" alt="PyPI Version">
 </div>
+
+<br/>
 
 <div align="center">
   <a href="#mission">Mission</a> •
