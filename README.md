@@ -1,9 +1,10 @@
 <div align="center">
   <img src="assets/skillware_logo.png" alt="Skillware Logo" width="400px" />
-  <br/>
+
   A Python framework for modular, self-contained skill management for machines.
-  <br/>
 </div>
+
+<br/>
 
 <div align="center">
   <img src="https://img.shields.io/badge/License-MIT-efcefa?style=flat-square" alt="License">
