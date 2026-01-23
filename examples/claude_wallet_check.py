@@ -1,5 +1,9 @@
 import os
 import json
+import sys
+# Add repo root to path to allow import of 'skillware'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import anthropic
 from skillware.core.loader import SkillLoader
 from skillware.core.env import load_env_file
