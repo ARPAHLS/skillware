@@ -47,7 +47,6 @@ This repository is organized into a core framework, a registry of skills, and do
 
 ```text
 Skillware/
-Skillware/
 ├── skillware/                  # Core Framework Package
 │   └── core/
 │       ├── base_skill.py       # Abstract Base Class for skills
