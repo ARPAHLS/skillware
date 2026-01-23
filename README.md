@@ -47,20 +47,23 @@ This repository is organized into a core framework, a registry of skills, and do
 
 ```text
 Skillware/
+Skillware/
 ├── skillware/                  # Core Framework Package
-│   ├── core/
-│   │   ├── base_skill.py       # Abstract Base Class for skills
-│   │   ├── loader.py           # Universal Skill Loader & Model Adapter
-│   │   └── env.py              # Environment Management
-│   └── skills/                 # Skill Registry (Domain-driven)
-│       └── finance/
-│           └── wallet_screening/ 
-│               ├── skill.py    # Logic
-│               ├── manifest.yaml # Metadata & Constitution
-│               ├── instructions.md # Cognitive Map
-│               ├── card.json   # UI Presentation
-│               ├── data/       # Integrated Knowledge Base
-│               └── maintenance/ # Maintenance Tools
+│   └── core/
+│       ├── base_skill.py       # Abstract Base Class for skills
+│       ├── loader.py           # Universal Skill Loader & Model Adapter
+│       └── env.py              # Environment Management
+├── skills/                     # Skill Registry (Domain-driven)
+│   └── finance/
+│       └── wallet_screening/ 
+│           ├── skill.py        # Logic
+│           ├── manifest.yaml   # Metadata & Constitution
+│           ├── instructions.md # Cognitive Map
+│           ├── card.json       # UI Presentation
+│           ├── data/           # Integrated Knowledge Base
+│           └── maintenance/    # Maintenance Tools
+├── templates/                  # New Skill Templates
+│   └── python_skill/           # Standard Python Skill Template
 ├── examples/                   # Reference Implementations
 │   ├── gemini_wallet_check.py  # Google Gemini Integration
 │   └── claude_wallet_check.py  # Anthropic Claude Integration

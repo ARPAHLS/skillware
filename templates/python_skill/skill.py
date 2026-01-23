@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from ...core.base_skill import BaseSkill
+from skillware.core.base_skill import BaseSkill
 
 class MyAwesomeSkill(BaseSkill):
     @property

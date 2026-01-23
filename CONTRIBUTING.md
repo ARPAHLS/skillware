@@ -6,7 +6,7 @@ Welcome to the Skillware project. We are building the definitive "App Store" for
 
 ## The Skill Package Standard
 
-Every new skill must reside in its own directory under `skillware/skills/<category>/<skill_name>/`. It **must** contain the following files:
+Every new skill must reside in its own directory under `skills/<category>/<skill_name>/`. It **must** contain the following files:
 
 ### 1. `manifest.yaml` (The Metadata)
 Defines the interface and constitution.
@@ -74,7 +74,7 @@ This is the most critical file. It is the "driver" for the LLM.
     [Open a New Issue Here](https://github.com/ARPAHLS/skillware/issues/new/choose) is the first step.
     *Wait for approval/feedback before writing code.*
 2.  **Fork** the repository.
-3.  **Create** your skill folder: `skillware/skills/<category>/<your_skill>/`.
+3.  **Create** your skill folder: `skills/<category>/<your_skill>/`.
 4.  **Implement** the 4 required files (`manifest.yaml`, `skill.py`, `instructions.md`, `card.json`).
 5.  **Add** a test script in `examples/`.
 6.  **Submit** PR.

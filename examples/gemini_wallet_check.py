@@ -12,7 +12,7 @@ load_env_file()
 
 # 1. Load the Skill dynamically
 # Adjust path to where the skill is located relative to this script
-SKILL_PATH = "skillware/skills/finance/wallet_screening"
+SKILL_PATH = "finance/wallet_screening"
 skill_bundle = SkillLoader.load_skill(SKILL_PATH)
 
 print(f"Loaded Skill: {skill_bundle['manifest']['name']}")
