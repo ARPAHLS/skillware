@@ -151,7 +151,7 @@ Skillware differs from the Model Context Protocol (MCP) or Anthropic's Skills re
 For questions, suggestions, or contributions, please open an issue or reach out to us:
 
 *   **Email**: [skillware-os@arpacorp.net](mailto:skillware-os@arpacorp.net)
-*   **Issues**: [GitHub Issues](https://github.com/arpa/skillware/issues)
+*   **Issues**: [GitHub Issues](https://github.com/arpahls/skillware/issues)
 
 ---
 
