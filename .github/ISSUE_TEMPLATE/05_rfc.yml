@@ -1,4 +1,4 @@
-name: "📜 Request for Comments (RFC)"
+name: "Request for Comments (RFC)"
 description: Start a discussion for a major architectural change or new standard.
 title: "[RFC]: "
 labels: ["discussion", "core-framework"]
