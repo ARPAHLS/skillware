@@ -20,10 +20,10 @@ Humans: Please describe what this PR does and why it's needed.
 
 ### Type of Change (Matches Issue Templates)
 
-- [ ] 🚀 **Skill Proposal**: New Skill (Contains `manifest.yaml`, `skill.py`, and `instructions.md`)
-- [ ] 🐛 **Bug Report Fix**: Non-breaking change which fixes an execution error or framework bug
-- [ ] 📖 **Doc Fix**: Documentation Update
-- [ ] 🧠 **Framework Feature / RFC Updates**: Core Framework Update (Changes to `base_skill.py`, `loader.py`, etc.)
+- [ ] **Skill Proposal**: New Skill (Contains `manifest.yaml`, `skill.py`, and `instructions.md`)
+- [ ] **Bug Report Fix**: Non-breaking change which fixes an execution error or framework bug
+- [ ] **Doc Fix**: Documentation Update
+- [ ] **Framework Feature / RFC Updates**: Core Framework Update (Changes to `base_skill.py`, `loader.py`, etc.)
 
 ## Checklist (all PRs)
 
