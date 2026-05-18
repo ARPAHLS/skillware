@@ -64,6 +64,22 @@ def test_registry_skills_declare_issuer():
         _assert_real_issuer(manifest.get("issuer"), f"{rel} manifest.yaml")
 
 
+def test_registry_skills_have_packaging_init_files():
+    """Each registry skill must be importable under the skills package for pip wheels."""
+    assert (SKILLS_ROOT / "__init__.py").is_file(), "skills/__init__.py is required for packaging"
+
+    for skill_dir in _discover_skill_dirs():
+        rel = skill_dir.relative_to(REPO_ROOT).as_posix()
+        assert (skill_dir / "__init__.py").is_file(), (
+            f"{rel}: add an empty __init__.py so non-Python assets ship in PyPI wheels"
+        )
+        category_dir = skill_dir.parent
+        assert (category_dir / "__init__.py").is_file(), (
+            f"{category_dir.relative_to(REPO_ROOT).as_posix()}: "
+            "add an empty __init__.py for the skill category package"
+        )
+
+
 def test_registry_card_issuer_matches_manifest_when_present():
     for skill_dir in _discover_skill_dirs():
         rel = skill_dir.relative_to(REPO_ROOT).as_posix()

@@ -229,6 +229,14 @@ The primary guide for the host LLM.
 - Unit tests for schema compliance and deterministic execution paths.
 - Run: `pytest skills/<category>/<skill_name>/test_skill.py`
 
+### Packaging (PyPI and `pip install`)
+
+Registry skills are shipped inside the `skillware` wheel. You do **not** edit `pyproject.toml` per skill. Instead:
+
+- Add an empty `__init__.py` in `skills/<category>/` when you introduce a **new category**, and in `skills/<category>/<skill_name>/` for each new skill directory (enforced by `tests/test_skill_issuer.py`).
+- Non-Python files (`manifest.yaml`, `instructions.md`, `card.json`, data files) are included automatically via `MANIFEST.in` and `[tool.setuptools.package-data]` (`skills = ["**/*"]`).
+- Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works from the repo root and, when changing the loader, from a clean `pip install` of the built wheel.
+
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).

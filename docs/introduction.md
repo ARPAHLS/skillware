@@ -52,7 +52,7 @@ Skillware/
 When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestration happens behind the scenes:
 
 ### Step 1: Discovery & Loading
-The loader scans the `skills/` directory structure. It mimics Python's import system but looking for Skillware bundles (directories with `manifest.yaml`).
+The loader resolves `category/skill_name` to a skill directory by checking, in order: an existing path on disk, roots in `SKILLWARE_SKILL_PATH`, a `skills/` folder in the current working directory (or its parents), then bundled skills installed with the package. Each bundle is a directory containing `manifest.yaml` and `skill.py`.
 *   It dynamically imports the `skill.py` module.
 *   It parses the `manifest.yaml` (including `issuer` for attribution, separate from tool-calling fields).
 *   It reads `instructions.md` and `card.json`.

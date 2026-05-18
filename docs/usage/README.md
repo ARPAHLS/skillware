@@ -2,6 +2,16 @@
 
 How to load Skillware skills and connect them to language models. Each guide covers one provider adapter in `SkillLoader`.
 
+## Finding skills on disk
+
+`SkillLoader.load_skill()` accepts an absolute path to a skill directory, or a registry id such as `compliance/tos_evaluator`. When the id is not already a path on disk, the loader searches in order:
+
+1. Roots listed in `SKILLWARE_SKILL_PATH` (OS path separator between multiple roots)
+2. A `skills/` directory in the current working directory or its parents
+3. Bundled skills installed with the `skillware` package (for example under `site-packages/skills/`)
+
+For pip-installed apps, keep project skills in `./skills/<category>/<name>/` or set `SKILLWARE_SKILL_PATH` to your skills root.
+
 | Provider | Adapter | Guide | Agent API key (typical) |
 | :--- | :--- | :--- | :--- |
 | Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` |

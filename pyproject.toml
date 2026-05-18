@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skillware"
-version = "0.2.6"
+version = "0.2.7"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
@@ -35,5 +35,13 @@ dev = [
     "black",
 ]
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 include = ["skillware*", "skills*"]
+
+# Non-Python skill assets (yaml, md, json, data/) ship via MANIFEST.in (graft skills)
+# and this wildcard. No per-skill entries needed when adding registry skills.
+[tool.setuptools.package-data]
+skills = ["**/*"]

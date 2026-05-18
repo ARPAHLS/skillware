@@ -107,7 +107,7 @@ load_env_file()
 
 # 1. Load the Skill from the Registry
 # The loader reads the code, manifest, and instructions automatically
-skill_bundle = SkillLoader.load_skill("category/skill_name")
+skill_bundle = SkillLoader.load_skill("category/skill_name")  # see docs/usage/README.md for path search order
 
 # 2. Model & Chat Setup
 model = genai.GenerativeModel(

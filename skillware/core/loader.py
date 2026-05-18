@@ -3,7 +3,11 @@ import re
 import yaml
 import json
 import importlib.util
-from typing import Dict, Any
+from pathlib import Path
+from typing import Dict, Any, List, Optional
+
+SKILLWARE_SKILL_PATH_ENV = "SKILLWARE_SKILL_PATH"
+_MAX_PARENT_WALK = 6
 
 
 class SkillLoader:
@@ -11,6 +15,84 @@ class SkillLoader:
     Utility to load skills dynamically or by path, bundling their
     manifests, instructions, and logic for LLM usage.
     """
+
+    @staticmethod
+    def _is_skill_dir(path: Path) -> bool:
+        return path.is_dir() and (path / "skill.py").is_file()
+
+    @staticmethod
+    def _bundled_skills_root() -> Path:
+        return Path(__file__).resolve().parent.parent.parent / "skills"
+
+    @staticmethod
+    def _env_skill_roots() -> List[Path]:
+        raw = os.environ.get(SKILLWARE_SKILL_PATH_ENV, "").strip()
+        if not raw:
+            return []
+        return [Path(entry).expanduser().resolve() for entry in raw.split(os.pathsep) if entry.strip()]
+
+    @staticmethod
+    def _cwd_skill_roots() -> List[Path]:
+        roots: List[Path] = []
+        current = Path.cwd().resolve()
+        for _ in range(_MAX_PARENT_WALK):
+            candidate = current / "skills"
+            if candidate.is_dir():
+                resolved = candidate.resolve()
+                if resolved not in roots:
+                    roots.append(resolved)
+            parent = current.parent
+            if parent == current:
+                break
+            current = parent
+        return roots
+
+    @staticmethod
+    def _resolve_skill_path(skill_path: str) -> Path:
+        """
+        Resolve a skill directory from an absolute path, a path relative to cwd,
+        or a registry skill id (category/skill_name).
+
+        Search order when the path is not an existing skill directory:
+        1. SKILLWARE_SKILL_PATH entries (os.pathsep-separated roots)
+        2. ./skills/ under cwd and parent directories
+        3. Bundled skills shipped with the skillware package
+        """
+        raw = skill_path.strip()
+        if not raw:
+            raise FileNotFoundError("Skill path must not be empty.")
+
+        direct = Path(raw)
+        if direct.exists():
+            resolved = direct.resolve()
+            if SkillLoader._is_skill_dir(resolved):
+                return resolved
+
+        skill_id = raw.replace("\\", "/").strip("/")
+        searched: List[str] = []
+
+        def try_roots(roots: List[Path]) -> Optional[Path]:
+            for root in roots:
+                attempt = (root / skill_id).resolve()
+                searched.append(str(attempt))
+                if SkillLoader._is_skill_dir(attempt):
+                    return attempt
+            return None
+
+        for roots in (
+            SkillLoader._env_skill_roots(),
+            SkillLoader._cwd_skill_roots(),
+            [SkillLoader._bundled_skills_root()],
+        ):
+            found = try_roots(roots)
+            if found is not None:
+                return found
+
+        raise FileNotFoundError(
+            f"Skill not found: {skill_id!r}. Searched:\n  "
+            + "\n  ".join(searched)
+            + f"\nSet {SKILLWARE_SKILL_PATH_ENV} or pass an absolute path to the skill directory."
+        )
 
     @staticmethod
     def load_skill(skill_path: str) -> Dict[str, Any]:
@@ -21,15 +103,8 @@ class SkillLoader:
         - instructions: The system prompt content
         - card: The UI card definition
         """
-        if not os.path.exists(skill_path):
-            # Try relative to repo root if absolute path fails
-            base_path = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "../../skills")
-            )
-            skill_path = os.path.join(base_path, skill_path)
-
-        if not os.path.exists(skill_path):
-            raise FileNotFoundError(f"Skill not found at {skill_path}")
+        resolved_path = SkillLoader._resolve_skill_path(skill_path)
+        skill_path = str(resolved_path)
 
         # Load Manifest
         manifest = {}

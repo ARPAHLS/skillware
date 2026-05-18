@@ -44,11 +44,11 @@ Enforces privacy, guardrails, and secure handling of sensitive data before it re
 
 ## Installing Skills
 
-Skills are included in the `skillware/skills` directory. To use them:
+Registry skills live under `skills/<category>/<skill_name>/` in the repository and in the PyPI package. After `pip install skillware`, load by ID from your project (`./skills/...`), via `SKILLWARE_SKILL_PATH`, or from the bundled registry copy under `site-packages/skills/`. See [Usage guides](../usage/README.md#finding-skills-on-disk).
 
 ```python
 from skillware.core.loader import SkillLoader
 
-# Load by ID (path relative to skills dir)
+# Load by registry ID (category/skill_name)
 skill = SkillLoader.load_skill("finance/wallet_screening")
 ```

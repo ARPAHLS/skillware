@@ -14,7 +14,7 @@ A productivity skill that fills AcroForm-based PDFs by mapping natural language 
 
 ## 📂 Internal Architecture
 
-The skill is self-contained in `skillware/skills/office/pdf_form_filler/`.
+The skill is self-contained in `skills/office/pdf_form_filler/`.
 
 ### 1. The Mind (`instructions.md`)
 The system prompt teaches the internal mapping engine to:

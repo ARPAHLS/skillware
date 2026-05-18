@@ -17,7 +17,7 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
 
 ## 📂 Internal Architecture
 
-The skill is self-contained in `skillware/skills/finance/wallet_screening/`.
+The skill is self-contained in `skills/finance/wallet_screening/`.
 
 ### 1. The Mind (`instructions.md`)
 The system prompt teaches the AI specifically to:

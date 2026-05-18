@@ -14,7 +14,7 @@ A specialized data engineering capability that combats "model collapse" by gener
 
 ## Internal Architecture
 
-The skill is located in `skillware/skills/data_engineering/synthetic_generator/`.
+The skill is located in `skills/data_engineering/synthetic_generator/`.
 
 ### 1. The Mind (`instructions.md`)
 The system instructions emphasize boundary-pushing data generation. It prohibits standard AI tropes and enforces schema obedience.
