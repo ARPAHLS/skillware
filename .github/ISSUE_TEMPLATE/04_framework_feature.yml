@@ -1,4 +1,4 @@
-name: "🛠️ Framework Feature"
+name: "Framework Feature"
 description: Propose a change to the core Skillware engine (Loader, Envs, adapters).
 title: "[Feat]: "
 labels: ["enhancement", "core-framework"]
