@@ -1,5 +1,4 @@
-from skillware.cli import _discover_skills
-import pytest
+from skillware.cli import _discover_skills, cmd_list
 
 
 def test_discover_skills_returns_skills(tmp_path):
@@ -30,11 +29,15 @@ def test_discover_skills_empty_directory(tmp_path):
     assert skills == []
 
 
-def test_discover_skills_nonexistent_path(tmp_path):
+def test_discover_skills_nonexistent_override_falls_back(tmp_path, monkeypatch):
+    # An override path that does not exist should be ignored
+    # and fall back to other roots without crashing
+    monkeypatch.chdir(tmp_path)
     fake_path = tmp_path / "nonexistent"
 
-    with pytest.raises(FileNotFoundError):
-        _discover_skills(fake_path)
+    # Should not raise, just return empty list since no roots have skills
+    skills = _discover_skills(fake_path)
+    assert skills == []
 
 
 def test_discover_skills_missing_optional_fields(tmp_path):
@@ -64,3 +67,61 @@ def test_discover_skills_ignores_deeply_nested_manifest(tmp_path):
     skills = _discover_skills(tmp_path)
 
     assert skills == []
+
+
+def test_discover_skills_includes_issuer(tmp_path):
+    # Manifest with issuer github handle
+    skill_dir = tmp_path / "office" / "pdf_form_filler"
+    skill_dir.mkdir(parents=True)
+
+    manifest = skill_dir / "manifest.yaml"
+    manifest.write_text(
+        "name: pdf_form_filler\n"
+        "version: 0.1.0\n"
+        "description: Fills PDF forms.\n"
+        "issuer:\n"
+        "  name: Ross Peili\n"
+        "  github: rosspeili\n"
+    )
+
+    skills = _discover_skills(tmp_path)
+
+    assert skills[0]["issuer"] == "rosspeili"
+
+
+def test_discover_skills_issuer_falls_back_to_name(tmp_path):
+    # Manifest with issuer name but no github handle
+    skill_dir = tmp_path / "office" / "pdf_form_filler"
+    skill_dir.mkdir(parents=True)
+
+    manifest = skill_dir / "manifest.yaml"
+    manifest.write_text(
+        "name: pdf_form_filler\n"
+        "version: 0.1.0\n"
+        "description: Fills PDF forms.\n"
+        "issuer:\n"
+        "  name: Ross Peili\n"
+    )
+
+    skills = _discover_skills(tmp_path)
+
+    assert skills[0]["issuer"] == "Ross Peili"
+
+
+def test_cmd_list_filter_by_category(tmp_path, monkeypatch, capsys):
+    # Only skills matching the category should appear
+    for category, name in [
+        ("office", "pdf_form_filler"),
+        ("finance", "wallet_screening"),
+    ]:
+        skill_dir = tmp_path / category / name
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "manifest.yaml").write_text(
+            f"name: {name}\nversion: 0.1.0\ndescription: Test.\n"
+        )
+
+    cmd_list(skills_root_override=tmp_path, category_filter="office")
+
+    captured = capsys.readouterr()
+    assert "office" in captured.out
+    assert "finance" not in captured.out

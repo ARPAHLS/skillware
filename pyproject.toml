@@ -24,7 +24,6 @@ dependencies = [
     "google-generativeai",
     "pymupdf",
     "beautifulsoup4",
-    "rich",
 ]
 requires-python = ">=3.10"
 
@@ -37,6 +36,9 @@ dev = [
     "pytest-mock",
     "flake8",
     "black",
+]
+cli = [
+    "rich",
 ]
 
 [tool.setuptools]
