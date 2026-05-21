@@ -2,7 +2,7 @@
 
 Welcome to the official catalog of Skillware capabilities.
 
-### Office
+## Office
 Skills for document processing, email automation, and productivity.
 
 | Skill | ID | Issuer | Description |
@@ -52,3 +52,7 @@ from skillware.core.loader import SkillLoader
 # Load by registry ID (category/skill_name)
 skill = SkillLoader.load_skill("finance/wallet_screening")
 ```
+
+---
+
+See [Usage guides](../usage/README.md) for provider adapters, [Agent loops](../usage/agent_loops.md) for the shared execute pattern, and [Testing](../TESTING.md) for running skill tests before opening a PR.

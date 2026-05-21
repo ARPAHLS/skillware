@@ -4,6 +4,8 @@
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 **Category**: Compliance
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 High-precision, local PII (Personally Identifiable Information) detection and redaction using the `micro-f1-mask` model. This skill acts as a "Privacy Firewall" at the edge, scrubbing sensitive data before it reaches high-latency cloud models.
 
 > [!WARNING]

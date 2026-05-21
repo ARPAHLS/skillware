@@ -3,16 +3,18 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 A productivity skill that fills AcroForm-based PDFs by mapping natural language instructions to detected form fields using semantic understanding.
 
-## 📋 Capabilities
+## Capabilities
 
 *   **Smart Field Detection**: Automatically identifies text fields, checkboxes, radio buttons, and dropdowns in standard PDFs.
 *   **Semantic Mapping**: Uses an internal LLM (Claude) to understand user instructions (e.g., "Sign me up for the newsletter") and map them to the correct field (e.g., `checkbox_subscribe_newsletter`).
 *   **Context Awareness**: Extracts nearby text labels to ensure accurate mapping, even if field names are obscure (e.g., `field_123` vs label "First Name").
 *   **Type Safety**: Automatically converts values to the correct format (booleans for checkboxes, specific options for dropdowns).
 
-## 📂 Internal Architecture
+## Internal Architecture
 
 The skill is self-contained in `skills/office/pdf_form_filler/`.
 
@@ -28,7 +30,7 @@ The system prompt teaches the internal mapping engine to:
 *   **LLM Integration**: Wraps the Anthropic SDK to perform the semantic reasoning step.
 *   **Validation**: Ensures values match the field type (e.g., selecting a valid option from a dropdown).
 
-## 💻 Integration Guide
+## Integration Guide
 
 ### Environment
 
@@ -136,7 +138,7 @@ client = OpenAI(
 
 `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "pdf_form_filler"`. See [Ollama usage](../usage/ollama.md).
 
-## 📊 Data Schema
+## Data Schema
 
 The skill returns a JSON object with the result of the operation.
 
@@ -152,7 +154,7 @@ The skill returns a JSON object with the result of the operation.
 }
 ```
 
-## ⚠️ Limitations
+## Limitations
 
 *   **AcroForms Only**: Does not support XFA forms or non-interactive "flat" PDFs.
 *   **LLM Dependency**: Requires an active internet connection and valid API key for the semantic mapping step.

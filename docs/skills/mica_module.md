@@ -3,6 +3,8 @@
 **ID**: `compliance/mica_module`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 A highly specialized, localized RAG (Retrieval-Augmented Generation) and policy enforcement engine for the Markets in Crypto-Assets (MiCA) regulation. It ensures any agent using it can understand, query, and enforce the entirety of MiCA with granular precision, acting as a strict compliance firewall.
 
 ## Capabilities
@@ -33,6 +35,14 @@ The system prompt teaches the main Agent to:
 | `GOOGLE_API_KEY` | Yes (evaluator / Gemini paths) | Google Generative AI used by the built-in evaluator and RAG flows |
 
 Configure values per [API keys for skills](../usage/api_keys.md).
+
+## Arguments
+
+| Argument | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `user_prompt` | string | Yes | - | The user's query regarding crypto-assets, e-money licenses, or MiCA rules. |
+| `run_evaluator` | boolean | No | `false` | Triggers the built-in Gemini evaluator node to grade the RAG context and flag regulatory holes. Adds a secondary API call. |
+| `evaluator_model` | string | No | `gemini-2.5-flash-lite` | The Gemini model used by the evaluator node. Can be swapped for a faster or more capable model without changing any other part of the skill. |
 
 ## Usage Examples
 

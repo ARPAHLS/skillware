@@ -3,9 +3,11 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 A rigorous compliance and risk assessment tool for Ethereum wallets. This skill ports logic from professional forensic tools into the modular Skillware format.
 
-## 📋 Capabilities
+## Capabilities
 
 *   **Sanctions Check**: Screens against **880+** bundled lists (OFAC, FBI, Israel NBCTF, etc.) via dynamic dataset loading.
 *   **Malicious Contract Detection**: Identifies interactions with known bad actors (Tornado Cash, Drainers).
@@ -15,7 +17,7 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
     *   Identifies top counterparties and "most interacted" wallets.
 *   **Risk Scoring**: Flags high-risk patterns based on transaction flow analysis.
 
-## 📂 Internal Architecture
+## Internal Architecture
 
 The skill is self-contained in `skills/finance/wallet_screening/`.
 
@@ -42,7 +44,7 @@ Tools to keep the knowledge fresh.
 *   `normalization_tool.py`: Ingests raw CSVs from authorities (FBI, Israel NBCTF) and converts them to the Skillware JSON schema.
 *   `normalize_uniswap_trm.py`: Converts Uniswap's blocked address list into our risk format.
 
-## 💻 Integration Guide
+## Integration Guide
 
 ### Environment
 
@@ -149,7 +151,7 @@ client = OpenAI(
 
 Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "wallet_screening"` in the JSON block. See [Ollama usage](../usage/ollama.md) and [agent loops](../usage/agent_loops.md).
 
-## 📊 Data Schema
+## Data Schema
 
 The skill returns a rich forensic report. Agents act on this data.
 
@@ -176,6 +178,14 @@ The skill returns a rich forensic report. Agents act on this data.
   }
 }
 ```
+
+## Limitations
+
+- **Ethereum only**: The skill screens Ethereum (EVM) addresses exclusively. Bitcoin, Solana, or other chain addresses are not supported and will fail address validation.
+- **Etherscan transaction cap**: Etherscan's `txlist` endpoint returns a maximum of 10,000 transactions per address. Wallets with very high transaction volume will have their older history silently truncated, which may affect PnL and counterparty calculations.
+- **Point-in-time sanctions data**: The bundled JSON lists (`entities.ftm.json`, `malicious_scs_2025.json`, and the normalized lists) reflect the state at the time of the last `maintenance/` run. They must be refreshed periodically to stay current.
+- **No ERC-20 or internal transaction coverage**: Only standard ETH transfers from the Etherscan `txlist` action are analyzed. ERC-20 token transfers, internal transactions, and NFT transfers are not included in financial flow calculations.
+- **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
 

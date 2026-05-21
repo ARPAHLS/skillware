@@ -4,6 +4,8 @@
 **Skill ID:** `data_engineering/synthetic_generator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 A specialized data engineering capability that combats "model collapse" by generating high-entropy, highly structured synthetic data intentionally designed to fine-tune other models.
 
 ## Capabilities

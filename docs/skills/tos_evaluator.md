@@ -4,6 +4,8 @@
 **Skill ID:** `compliance/tos_evaluator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+[Skill Library](README.md) · [Testing](../TESTING.md)
+
 A local-first compliance guardrail that checks whether an intended automated action appears permissible on a target website. It evaluates `robots.txt`, discovers candidate legal pages, extracts relevant clauses, and can optionally use a low-cost LLM to interpret ambiguous policy language.
 
 ## What It Checks
