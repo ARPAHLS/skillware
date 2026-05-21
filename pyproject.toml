@@ -24,8 +24,12 @@ dependencies = [
     "google-generativeai",
     "pymupdf",
     "beautifulsoup4",
+    "rich",
 ]
 requires-python = ">=3.10"
+
+[project.scripts]
+skillware = "skillware.cli:main"
 
 [project.optional-dependencies]
 dev = [
