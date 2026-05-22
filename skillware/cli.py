@@ -40,10 +40,10 @@ def _discover_skills(
 
     for root in roots:
         for manifest_path in root.glob("*/*/manifest.yaml"):
-            
+
             if not SkillLoader._is_skill_dir(manifest_path.parent):
                 continue
-            
+
             with open(manifest_path) as f:
                 data = yaml.safe_load(f) or {}
 
