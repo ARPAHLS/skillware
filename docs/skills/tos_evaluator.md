@@ -95,6 +95,7 @@ Sample user message: *Before crawling https://example.com/docs, check if automat
 ```python
 import os
 import google.genai as genai
+from google.genai import types
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
@@ -106,9 +107,14 @@ client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
 response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents="Check whether crawling https://example.com/docs is allowed.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=bundle["instructions"],
+    ),
 )
-# Pass tool in GenerateContentConfig.tools, then on function_call:
-# skill.execute(dict(part.function_call.args)), return function_response
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
 ```
 
 ### Claude

@@ -73,6 +73,7 @@ Sample user message: *Screen wallet `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045`
 ```python
 import os
 import google.genai as genai
+from google.genai import types
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
@@ -82,8 +83,18 @@ skill = bundle["module"].WalletScreeningSkill(
     config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
 )
 client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
-# Pass SkillLoader.to_gemini_tool(bundle) in GenerateContentConfig.tools when calling
-# client.models.generate_content(...), then on function_call (name wallet_screening): skill.execute(dict(part.function_call.args))
+tool = SkillLoader.to_gemini_tool(bundle)
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Screen wallet 0xd8dA... for sanctions and malicious contract interactions.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=bundle["instructions"],
+    ),
+)
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
 ```
 
 ### Claude

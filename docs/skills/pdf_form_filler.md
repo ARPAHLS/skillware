@@ -68,6 +68,7 @@ print(result["output_path"])
 ```python
 import os
 import google.genai as genai
+from google.genai import types
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
@@ -76,8 +77,18 @@ bundle = SkillLoader.load_skill("office/pdf_form_filler")
 skill = bundle["module"].PDFFormFillerSkill()
 client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
 # User: "Fill /path/to/form.pdf — name John Doe, check the terms box."
-# Pass SkillLoader.to_gemini_tool(bundle) in GenerateContentConfig.tools when calling
-# client.models.generate_content(...), then on function_call (name pdf_form_filler): skill.execute(dict(part.function_call.args))
+tool = SkillLoader.to_gemini_tool(bundle)
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Fill /path/to/form.pdf — name John Doe, check the terms box.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=bundle["instructions"],
+    ),
+)
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
 ```
 
 ### Claude

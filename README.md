@@ -99,6 +99,7 @@ GOOGLE_API_KEY="your_key"
 
 ```python
 import google.genai as genai
+from google.genai import types
 from skillware.core.loader import SkillLoader
 from skillware.core.env import load_env_file
 
@@ -120,6 +121,10 @@ system_instruction = skill_bundle['instructions']     # The "Mind"
 response = client.models.generate_content(
     model='gemini-2.5-flash',
     contents="Screen wallet 0xd8dA... for risks.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=system_instruction,
+    ),
 )
 print(response.text)
 ```

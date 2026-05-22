@@ -7,6 +7,7 @@ Skillware provides first-class support for Google's Gemini models via the `googl
 ```python
 from skillware.core.loader import SkillLoader
 import google.genai as genai
+from google.genai import types
 
 # Load & Convert
 skill = SkillLoader.load_skill("finance/wallet_screening")
@@ -15,8 +16,14 @@ tool = SkillLoader.to_gemini_tool(skill)
 # Initialize the google-genai client
 client = genai.Client()
 
-# Pass tool and skill['instructions'] through GenerateContentConfig when calling
-# client.models.generate_content(...).
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Screen wallet 0xd8dA... for risks.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=skill["instructions"],
+    ),
+)
 ```
 
 ## 🔍 How It Works
@@ -84,5 +91,8 @@ optimized_ctx_result = rewriter['module'].PromptRewriter().execute({
 response = client.models.generate_content(
     model='gemini-2.5-flash',
     contents="Summarize the optimized context.",
+    config=types.GenerateContentConfig(
+        system_instruction=sys_prompt,
+    ),
 )
 ```
