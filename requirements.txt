@@ -1,11 +1,11 @@
-# Core Dependencies
-pyyaml
-python-dotenv
-requests
-beautifulsoup4
-rich>=13.0
-
-# LLM SDKs (Optional but recommended for examples)
-google-generativeai
-anthropic
-openai
+# Development convenience — installs core + all optional extras for local work.
+# For production installs use pyproject.toml extras instead, e.g.:
+#   pip install skillware                  # core only
+#   pip install "skillware[cli]"           # + rich terminal
+#   pip install "skillware[gemini]"        # + Google Gemini SDK
+#   pip install "skillware[claude]"        # + Anthropic SDK
+#   pip install "skillware[openai]"        # + OpenAI SDK
+#   pip install "skillware[office]"        # + PyMuPDF
+#   pip install "skillware[all]"           # + all optional SDKs
+#   pip install "skillware[dev]"           # + testing and linting tools
+-e ".[dev,all]"
