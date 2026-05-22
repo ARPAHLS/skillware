@@ -75,7 +75,8 @@ python -m pytest skills/<category>/<skill_name>/test_skill.py
 
 Before pushing your code, run the following commands to ensure your changes are ready for review:
 
-1. `python -m black .` (Format code)
-2. `python -m flake8 .` (Check quality)
-3. `python -m pytest tests/` (Verify framework functionality)
-4. `python -m pytest skills/` (Verify all skills pass their local tests)
+1. `skillware list` (Verify install and path resolution are working)
+2. `python -m black .` (Format code)
+3. `python -m flake8 .` (Check quality)
+4. `python -m pytest tests/` (Verify framework functionality)
+5. `python -m pytest skills/` (Verify all skills pass their local tests)
