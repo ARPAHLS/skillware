@@ -59,7 +59,7 @@ Skillware/
 │           └── test_skill.py   # Unit tests & schema validation
 ├── skillware/                  # Core Framework Package
 │   ├── cli.py                  # Command-line interface
-|   └── core/
+│   └── core/
 │       ├── base_skill.py       # Abstract Base Class for skills
 │       ├── env.py              # Environment Management
 │       └── loader.py           # Universal Skill Loader & Model Adapter

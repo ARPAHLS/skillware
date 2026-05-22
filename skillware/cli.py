@@ -86,6 +86,9 @@ def cmd_list(
             "rich is required for the CLI. Install it with: pip install 'skillware[cli]'"
         )
 
+    if console is None:
+        console = Console()
+
     skills = _discover_skills(skills_root_override)
 
     if category_filter:
@@ -95,11 +98,8 @@ def cmd_list(
         skills = [s for s in skills if s["issuer"] == issuer_filter]
 
     if not skills:
-        print("No skills found.")
+        console.print("No skills found.")
         return
-
-    if console is None:
-        console = Console()
 
     table = Table()
 

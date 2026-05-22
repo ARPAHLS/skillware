@@ -60,3 +60,4 @@ To point the CLI at a persistent custom root, set the environment variable:
 
 Only skills with both `manifest.yaml` and `skill.py` present are shown —
 the same condition `SkillLoader` requires to load a skill successfully.
+
