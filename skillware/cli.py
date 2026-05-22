@@ -75,7 +75,7 @@ def cmd_list(
     skills_root_override: Optional[Path] = None,
     category_filter: Optional[str] = None,
     issuer_filter: Optional[str] = None,
-    console=None
+    console=None,
 ) -> None:
     """Print a formatted table of all available skills."""
     try:
@@ -100,7 +100,7 @@ def cmd_list(
 
     if console is None:
         console = Console()
-        
+
     table = Table()
 
     table.add_column("ID")

@@ -132,7 +132,7 @@ def test_cmd_list_filter_by_category(tmp_path):
     cmd_list(
         skills_root_override=tmp_path,
         category_filter="office",
-        console=Console(file=buf, force_terminal=False)
+        console=Console(file=buf, force_terminal=False),
     )
 
     output = buf.getvalue()
