@@ -94,7 +94,7 @@ Skillware is designed to be the "Standard Library" for all agents.
 
 | Platform | Integration Strategy |
 | :--- | :--- |
-| **Google Gemini** | Native `google.generativeai` support. Automatic type mapping. |
+| **Google Gemini** | Native `google-genai` support. Automatic type mapping. |
 | **Anthropic Claude** | Native `anthropic` support. XML/JSON handling. |
 | **Ollama** | Native `ollama` Python client support. Fully local JSON handling. |
 | **OpenAI GPT** | `to_openai_tool()`; Chat Completions tool calling. |

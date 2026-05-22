@@ -74,24 +74,16 @@ print(result["repository"]["readme_url"])
 
 ```python
 import os
-import google.generativeai as genai
+import google.genai as genai
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("dev_tools/issue_resolver")
 skill = bundle["module"].IssueResolverSkill()
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-model = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    tools=[SkillLoader.to_gemini_tool(bundle)],
-    system_instruction=bundle["instructions"],
-)
-chat = model.start_chat()
-response = chat.send_message(
-    "Analyse https://github.com/owner/repo/issues/42 and give me a resolution plan."
-)
-# On function_call (name dev_tools/issue_resolver): skill.execute(function_call.args)
+client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
+# Pass SkillLoader.to_gemini_tool(bundle) in GenerateContentConfig.tools when calling
+# client.models.generate_content(...), then on function_call (name dev_tools/issue_resolver): skill.execute(function_call.args)
 # Feed result back to the model; it then fetches the issue and produces the plan.
 ```
 

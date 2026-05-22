@@ -94,7 +94,7 @@ Sample user message: *Before crawling https://example.com/docs, check if automat
 
 ```python
 import os
-import google.generativeai as genai
+import google.genai as genai
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
@@ -102,17 +102,13 @@ load_env_file()
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
 skill = bundle["module"].TOSEvaluatorSkill()
 tool = SkillLoader.to_gemini_tool(bundle)
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-model = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    tools=[tool],
-    system_instruction=bundle["instructions"],
+client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Check whether crawling https://example.com/docs is allowed.",
 )
-chat = model.start_chat()
-response = chat.send_message(
-    "Check whether crawling https://example.com/docs is allowed."
-)
-# On function_call: skill.execute(dict(part.function_call.args)), return function_response
+# Pass tool in GenerateContentConfig.tools, then on function_call:
+# skill.execute(dict(part.function_call.args)), return function_response
 ```
 
 ### Claude

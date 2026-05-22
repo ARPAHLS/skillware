@@ -83,20 +83,16 @@ print(result["sanitized_text"])
 
 ```python
 import os
-import google.generativeai as genai
+import google.genai as genai
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
 bundle = SkillLoader.load_skill("compliance/pii_masker")
 skill = bundle["module"].PIIMaskerSkill()
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-model = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    tools=[SkillLoader.to_gemini_tool(bundle)],
-    system_instruction=bundle["instructions"],
-)
-# On function_call (name compliance/pii_masker): skill.execute(...) before sending user text upstream
+client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
+# Pass SkillLoader.to_gemini_tool(bundle) in GenerateContentConfig.tools when calling
+# client.models.generate_content(...), then on function_call (name compliance/pii_masker): skill.execute(...) before sending user text upstream
 ```
 
 ### Claude

@@ -98,7 +98,7 @@ GOOGLE_API_KEY="your_key"
 ### 3. Usage Example (Gemini)
 
 ```python
-import google.generativeai as genai
+import google.genai as genai
 from skillware.core.loader import SkillLoader
 from skillware.core.env import load_env_file
 
@@ -109,17 +109,18 @@ load_env_file()
 # The loader reads the code, manifest, and instructions automatically
 skill_bundle = SkillLoader.load_skill("category/skill_name")  # see docs/usage/README.md for path search order
 
-# 2. Model & Chat Setup
-model = genai.GenerativeModel(
-    'gemini-2.5-flash',
-    tools=[SkillLoader.to_gemini_tool(skill_bundle)], # The "Adapter"
-    system_instruction=skill_bundle['instructions']   # The "Mind"
-)
-chat = model.start_chat(enable_automatic_function_calling=True)
+# 2. Client & Tool Setup
+client = genai.Client()
+tool = SkillLoader.to_gemini_tool(skill_bundle)       # The "Adapter"
+system_instruction = skill_bundle['instructions']     # The "Mind"
 
 # 3. Agent Loop
-# The SDK handles the loop: model -> tool call -> execution -> result -> model reply.
-response = chat.send_message("Screen wallet 0xd8dA... for risks.")
+# Pass tool and system_instruction through google-genai's GenerateContentConfig,
+# then execute any returned function calls with skill_bundle["module"].execute(...).
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents="Screen wallet 0xd8dA... for risks.",
+)
 print(response.text)
 ```
 

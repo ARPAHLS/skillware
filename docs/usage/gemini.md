@@ -1,23 +1,22 @@
 # Integration Guide: Google Gemini
 
-Skillware provides first-class support for Google's Gemini models via the `google-generativeai` SDK.
+Skillware provides first-class support for Google's Gemini models via the `google-genai` SDK.
 
 ## ⚡ Quick Snippet
 
 ```python
 from skillware.core.loader import SkillLoader
-import google.generativeai as genai
+import google.genai as genai
 
 # Load & Convert
 skill = SkillLoader.load_skill("finance/wallet_screening")
 tool = SkillLoader.to_gemini_tool(skill)
 
-# Initialize
-model = genai.GenerativeModel(
-    'gemini-2.0-flash-exp',
-    tools=[tool],
-    system_instruction=skill['instructions']
-)
+# Initialize the google-genai client
+client = genai.Client()
+
+# Pass tool and skill['instructions'] through GenerateContentConfig when calling
+# client.models.generate_content(...).
 ```
 
 ## 🔍 How It Works
@@ -82,8 +81,8 @@ optimized_ctx_result = rewriter['module'].PromptRewriter().execute({
     "compression_aggression": "high"
 })
 
-model = genai.GenerativeModel(
-    'gemini-2.5-flash',
-    system_instruction=optimized_ctx_result["compressed_text"]
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents="Summarize the optimized context.",
 )
 ```
