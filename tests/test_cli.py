@@ -112,8 +112,11 @@ def test_discover_skills_issuer_falls_back_to_name(tmp_path):
     assert skills[0]["issuer"] == "Ross Peili"
 
 
-def test_cmd_list_filter_by_category(tmp_path, monkeypatch, capsys):
+def test_cmd_list_filter_by_category(tmp_path):
     # Only skills matching the category should appear
+    import io
+    from rich.console import Console
+
     for category, name in [
         ("office", "pdf_form_filler"),
         ("finance", "wallet_screening"),
@@ -125,8 +128,13 @@ def test_cmd_list_filter_by_category(tmp_path, monkeypatch, capsys):
             f"name: {name}\nversion: 0.1.0\ndescription: Test.\n"
         )
 
-    cmd_list(skills_root_override=tmp_path, category_filter="office")
+    buf = io.StringIO()
+    cmd_list(
+        skills_root_override=tmp_path,
+        category_filter="office",
+        console=Console(file=buf, force_terminal=False)
+    )
 
-    captured = capsys.readouterr()
-    assert "office" in captured.out
-    assert "finance" not in captured.out
+    output = buf.getvalue()
+    assert "office" in output
+    assert "finance" not in output
