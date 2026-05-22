@@ -44,7 +44,7 @@ def _discover_skills(
             if not SkillLoader._is_skill_dir(manifest_path.parent):
                 continue
 
-            with open(manifest_path) as f:
+            with open(manifest_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f) or {}
 
             skill_id = f"{manifest_path.parent.parent.name}/{manifest_path.parent.name}"
@@ -75,6 +75,7 @@ def cmd_list(
     skills_root_override: Optional[Path] = None,
     category_filter: Optional[str] = None,
     issuer_filter: Optional[str] = None,
+    console=None
 ) -> None:
     """Print a formatted table of all available skills."""
     try:
@@ -97,7 +98,9 @@ def cmd_list(
         print("No skills found.")
         return
 
-    console = Console()
+    if console is None:
+        console = Console()
+        
     table = Table()
 
     table.add_column("ID")
