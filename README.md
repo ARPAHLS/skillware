@@ -58,7 +58,8 @@ Skillware/
 │           ├── instructions.md # Cognitive map for the LLM
 │           └── test_skill.py   # Unit tests & schema validation
 ├── skillware/                  # Core Framework Package
-│   └── core/
+│   ├── cli.py                  # Command-line interface
+|   └── core/
 │       ├── base_skill.py       # Abstract Base Class for skills
 │       ├── env.py              # Environment Management
 │       └── loader.py           # Universal Skill Loader & Model Adapter
@@ -87,7 +88,16 @@ pip install -e .
 
 > **Note**: Individual skills may have their own dependencies. The `SkillLoader` validates `manifest.yaml` and warns of missing packages (e.g., `requests`, `pandas`) upon loading a skill.
 
-### 2. Configuration
+### 2. Verify your installation
+
+```bash
+pip install "skillware[cli]"
+skillware list
+```
+
+This prints a table of all locally available skills and confirms the install and path resolution are working.
+
+### 3. Configuration
 
 Create a `.env` file with your API keys (e.g., Google Gemini API Key):
 
@@ -95,7 +105,7 @@ Create a `.env` file with your API keys (e.g., Google Gemini API Key):
 GOOGLE_API_KEY="your_key"
 ```
 
-### 3. Usage Example (Gemini)
+### 4. Usage Example (Gemini)
 
 ```python
 import google.generativeai as genai
@@ -136,6 +146,7 @@ print(response.text)
 *   **[Usage Guide: Ollama](docs/usage/ollama.md)**: Native integration for local models via Ollama.
 *   **[API Keys for Skills](docs/usage/api_keys.md)**: Environment variables, cloud/CI setup, and security for skills that call external APIs.
 *   **[Skill Library](docs/skills/README.md)**: Available capabilities.
+*   **[CLI Reference](docs/usage/cli.md)**: Discover and inspect locally installed skills from the terminal.
 
 ## Contributing
 
