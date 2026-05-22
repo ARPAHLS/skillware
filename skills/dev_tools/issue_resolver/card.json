@@ -1,0 +1,33 @@
+{
+    "name": "Issue Resolver",
+    "description": "Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats.",
+    "issuer": {
+        "name": "Ross Peili",
+        "email": "vpeilivanidis@gmail.com",
+        "github": "rosspeili",
+        "org": "ARPAHLS"
+    },
+    "icon": "git-pull-request",
+    "color": "#6E57E0",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "issue.number",
+                "label": "Issue"
+            },
+            {
+                "key": "issue.repo",
+                "label": "Repository"
+            },
+            {
+                "key": "auth.token_provided",
+                "label": "Authenticated"
+            }
+        ]
+    }
+}

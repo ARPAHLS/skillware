@@ -40,6 +40,13 @@ Enforces privacy, guardrails, and secure handling of sensitive data before it re
 | **[MiCA Module](mica_module.md)** | `compliance/mica_module` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
 | **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
 
+## Dev Tools
+Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats. |
+
 ---
 
 ## Installing Skills

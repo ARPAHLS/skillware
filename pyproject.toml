@@ -8,7 +8,7 @@ version = "0.2.7"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
-  { name = "ARPA Hellenic Logic Systems", email = "skillware-os@arpacorp.net" },
+  { name = "ARPA Hellenic Logical Systems", email = "skillware-os@arpacorp.net" },
 ]
 urls = { "Homepage" = "https://arpacorp.net", "Repository" = "https://github.com/arpahls/skillware" }
 license = { file = "LICENSE" }

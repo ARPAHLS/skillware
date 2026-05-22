@@ -1,0 +1,55 @@
+name: "dev_tools/issue_resolver"
+version: "0.1.0"
+description: "Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+requirements: []
+env_vars:
+  GITHUB_TOKEN:
+    description: "Optional GitHub Personal Access Token. Raises the API rate limit from 60 to 5000 requests per hour. Required for private repositories."
+    required: false
+parameters:
+  type: object
+  properties:
+    issue_url:
+      type: string
+      description: "Full GitHub issue URL, e.g. https://github.com/owner/repo/issues/42"
+    extra_instructions:
+      type: string
+      description: "Optional free-text instructions appended to the analysis prompt. Use this to inject project-specific context, style constraints, or scope limits."
+    github_token:
+      type: string
+      description: "Optional GitHub Personal Access Token passed at runtime. Takes precedence over the GITHUB_TOKEN environment variable."
+  required:
+    - issue_url
+outputs:
+  issue_summary:
+    type: string
+    description: "Plain-language summary of what the issue is asking for, including unstated implications."
+  affected_files:
+    type: array
+    description: "Paths of files likely to be touched, including source, tests, docs, and CI."
+  implementation_plans:
+    type: array
+    description: "Up to three ranked approaches. Each entry contains: rank, title, approach, rationale, estimated_complexity."
+  recommended_plan:
+    type: integer
+    description: "Rank (1-based) of the recommended implementation plan."
+  caveats:
+    type: array
+    description: "Dependencies, breaking changes, security concerns, or out-of-scope items the implementing agent must be aware of."
+constitution: |
+  1. Read the full issue body, labels, and any linked comments or PRs before forming an opinion.
+  2. Inspect the repository README, CONTRIBUTING guide, and top-level directory structure to understand project conventions before proposing changes.
+  3. Never fabricate file paths; only list paths that can be confirmed from the repository structure you observed.
+  4. Rank implementation options honestly based on complexity, risk, and alignment with existing project patterns.
+  5. Surface caveats explicitly rather than burying them inside plan prose.
+  6. Keep output deterministic and JSON-serializable; do not embed conversational filler in structured fields.
+  7. Do not write or propose actual implementation code; this skill produces analysis and planning output only.
+  8. Respect any extra_instructions provided by the caller, but do not let them override points 1-7 of this constitution.
+presentation:
+  icon: "git-pull-request"
+  color: "#6E57E0"
