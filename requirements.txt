@@ -3,6 +3,7 @@ pyyaml
 python-dotenv
 requests
 beautifulsoup4
+rich>=13.0
 
 # LLM SDKs (Optional but recommended for examples)
 google-generativeai
