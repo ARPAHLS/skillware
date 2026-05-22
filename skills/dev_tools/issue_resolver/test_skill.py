@@ -114,7 +114,9 @@ def test_result_contains_issue_fields(skill):
     assert issue["owner"] == "ARPAHLS"
     assert issue["repo"] == "skillware"
     assert issue["number"] == "56"
-    assert "api.github.com" in issue["api_url"]
+    assert issue["api_url"].startswith(
+        "https://api.github.com/repos/ARPAHLS/skillware/issues/56"
+    )
     assert issue["url"] == VALID_URL
 
 
@@ -122,10 +124,16 @@ def test_result_contains_repository_fields(skill):
     """Ready result must include pre-computed repository URL fields."""
     result = skill.execute({"issue_url": VALID_URL})
     repo = result["repository"]
-    assert "github.com/ARPAHLS/skillware" in repo["html_url"]
-    assert "api.github.com" in repo["api_url"]
-    assert "README.md" in repo["readme_url"]
-    assert "tree" in repo["tree_api_url"]
+    assert repo["html_url"] == "https://github.com/ARPAHLS/skillware"
+    assert repo["api_url"].startswith("https://api.github.com/repos/ARPAHLS/skillware")
+    assert repo["readme_url"].startswith(
+        "https://raw.githubusercontent.com/ARPAHLS/skillware"
+    )
+    assert repo["readme_url"].endswith("README.md")
+    assert repo["tree_api_url"].startswith(
+        "https://api.github.com/repos/ARPAHLS/skillware"
+    )
+    assert "trees" in repo["tree_api_url"]
 
 
 def test_no_token_auth_note(skill):
