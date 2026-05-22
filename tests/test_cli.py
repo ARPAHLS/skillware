@@ -5,6 +5,7 @@ def test_discover_skills_returns_skills(tmp_path):
     # Create a fake skill directory structure
     skill_dir = tmp_path / "office" / "pdf_form_filler"
     skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
 
     manifest = skill_dir / "manifest.yaml"
     manifest.write_text(
@@ -44,6 +45,7 @@ def test_discover_skills_missing_optional_fields(tmp_path):
     # Manifest with only required fields, no version, description or requirements
     skill_dir = tmp_path / "office" / "minimal_skill"
     skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
 
     manifest = skill_dir / "manifest.yaml"
     manifest.write_text("name: minimal_skill\n")
@@ -73,6 +75,7 @@ def test_discover_skills_includes_issuer(tmp_path):
     # Manifest with issuer github handle
     skill_dir = tmp_path / "office" / "pdf_form_filler"
     skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
 
     manifest = skill_dir / "manifest.yaml"
     manifest.write_text(
@@ -93,6 +96,7 @@ def test_discover_skills_issuer_falls_back_to_name(tmp_path):
     # Manifest with issuer name but no github handle
     skill_dir = tmp_path / "office" / "pdf_form_filler"
     skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
 
     manifest = skill_dir / "manifest.yaml"
     manifest.write_text(
@@ -116,6 +120,7 @@ def test_cmd_list_filter_by_category(tmp_path, monkeypatch, capsys):
     ]:
         skill_dir = tmp_path / category / name
         skill_dir.mkdir(parents=True)
+        (skill_dir / "skill.py").touch()
         (skill_dir / "manifest.yaml").write_text(
             f"name: {name}\nversion: 0.1.0\ndescription: Test.\n"
         )
