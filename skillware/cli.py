@@ -9,7 +9,9 @@ from skillware.core.loader import SkillLoader
 def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
     """Return the list of roots to search for skills, mirrors SkillLoader resolution order."""
     if skills_root_override is not None:
-        return [skills_root_override]
+        if skills_root_override.exists():
+            return [skills_root_override]
+        return []
 
     roots = []
     seen = set()
@@ -38,8 +40,12 @@ def _discover_skills(
 
     for root in roots:
         for manifest_path in root.glob("*/*/manifest.yaml"):
+            
+            if not SkillLoader._is_skill_dir(manifest_path.parent):
+                continue
+            
             with open(manifest_path) as f:
-                data = yaml.safe_load(f)
+                data = yaml.safe_load(f) or {}
 
             skill_id = f"{manifest_path.parent.parent.name}/{manifest_path.parent.name}"
 
