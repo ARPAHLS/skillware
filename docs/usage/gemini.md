@@ -5,12 +5,16 @@ Skillware provides first-class support for Google's Gemini models via the `googl
 ## ⚡ Quick Snippet
 
 ```python
+import os
 from skillware.core.loader import SkillLoader
 import google.genai as genai
 from google.genai import types
 
 # Load & Convert
 skill = SkillLoader.load_skill("finance/wallet_screening")
+skill_instance = skill["module"].WalletScreeningSkill(
+    config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
+)
 tool = SkillLoader.to_gemini_tool(skill)
 
 # Initialize the google-genai client
@@ -24,6 +28,28 @@ response = client.models.generate_content(
         system_instruction=skill["instructions"],
     ),
 )
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill_instance.execute(dict(part.function_call.args))
+        follow_up = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                "Use this tool result to answer the original request.",
+                {
+                    "function_response": {
+                        "name": part.function_call.name,
+                        "response": {"result": result},
+                    }
+                },
+            ],
+            config=types.GenerateContentConfig(
+                tools=[tool],
+                system_instruction=skill["instructions"],
+            ),
+        )
+        print(follow_up.text)
+    else:
+        print(part.text)
 ```
 
 ## 🔍 How It Works
@@ -42,10 +68,9 @@ Gemini 1.5+ supports `system_instruction`. Skillware leverages this to inject th
 This is crucial. Without `system_instruction`, the model knows it *has* a tool, but it doesn't know the nuanced strategy of *when* to use it. By injecting the instructions, you effectively fine-tune the model's behavior for that specific capability during the session.
 
 ### 3. Function Calling Loop
-Gemini supports `enable_automatic_function_calling=True`.
-
-*   **Automatic**: The SDK handles the loop. It calls your python function and sends the result back.
-*   **Manual**: You receive a `Part` with `function_call`. You must execute the logic and send back a `FunctionResponse`.
+The `google-genai` SDK returns model parts that can include `function_call` requests.
+In a manual Skillware loop, execute the matching local skill with `skill.execute(dict(part.function_call.args))`, then send a `function_response` back to Gemini so the model can produce the final answer.
+If you use an automatic-calling helper in your own app, keep the same boundary: Skillware executes locally, and the tool result is returned to the model before you show a final response.
 
 ## 🛠️ Advanced: Manual Execution Loop
 
@@ -66,7 +91,7 @@ for part in response.candidates[0].content.parts:
         print(f"Model wants to call {fn.name} with {fn.args}")
 
         # 1. Execute Logic
-        result = my_skill.execute(dict(fn.args))
+        result = skill_instance.execute(dict(fn.args))
 
         # 2. Send Result
         follow_up = client.models.generate_content(

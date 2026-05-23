@@ -75,7 +75,7 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("office/pdf_form_filler")
 skill = bundle["module"].PDFFormFillerSkill()
-client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
+client = genai.Client()
 # User: "Fill /path/to/form.pdf — name John Doe, check the terms box."
 tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
@@ -89,6 +89,23 @@ response = client.models.generate_content(
 for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
+        follow_up = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                "Use this tool result to answer the original request.",
+                {
+                    "function_response": {
+                        "name": part.function_call.name,
+                        "response": {"result": result},
+                    }
+                },
+            ],
+            config=types.GenerateContentConfig(
+                tools=[tool],
+                system_instruction=bundle["instructions"],
+            ),
+        )
+        print(follow_up.text)
 ```
 
 ### Claude

@@ -98,6 +98,7 @@ GOOGLE_API_KEY="your_key"
 ### 3. Usage Example (Gemini)
 
 ```python
+import os
 import google.genai as genai
 from google.genai import types
 from skillware.core.loader import SkillLoader
@@ -108,7 +109,10 @@ load_env_file()
 
 # 1. Load the Skill from the Registry
 # The loader reads the code, manifest, and instructions automatically
-skill_bundle = SkillLoader.load_skill("category/skill_name")  # see docs/usage/README.md for path search order
+skill_bundle = SkillLoader.load_skill("finance/wallet_screening")
+skill = skill_bundle["module"].WalletScreeningSkill(
+    config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
+)
 
 # 2. Client & Tool Setup
 client = genai.Client()
@@ -116,17 +120,37 @@ tool = SkillLoader.to_gemini_tool(skill_bundle)       # The "Adapter"
 system_instruction = skill_bundle['instructions']     # The "Mind"
 
 # 3. Agent Loop
-# Pass tool and system_instruction through google-genai's GenerateContentConfig,
-# then execute any returned function calls with skill_bundle["module"].execute(...).
 response = client.models.generate_content(
-    model='gemini-2.5-flash',
+    model="gemini-2.5-flash",
     contents="Screen wallet 0xd8dA... for risks.",
     config=types.GenerateContentConfig(
         tools=[tool],
         system_instruction=system_instruction,
     ),
 )
-print(response.text)
+
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
+        follow_up = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                "Use this tool result to answer the original request.",
+                {
+                    "function_response": {
+                        "name": part.function_call.name,
+                        "response": {"result": result},
+                    }
+                },
+            ],
+            config=types.GenerateContentConfig(
+                tools=[tool],
+                system_instruction=system_instruction,
+            ),
+        )
+        print(follow_up.text)
+    else:
+        print(part.text)
 ```
 
 ## Documentation
