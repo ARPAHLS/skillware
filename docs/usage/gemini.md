@@ -52,9 +52,16 @@ Gemini supports `enable_automatic_function_calling=True`.
 If you need granular control (e.g., to sanitize inputs or show progress bars), use the manual loop:
 
 ```python
-response = chat.send_message("Scan wallet...")
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents="Scan wallet 0xd8dA... for risks.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=skill["instructions"],
+    ),
+)
 
-for part in response.parts:
+for part in response.candidates[0].content.parts:
     if fn := part.function_call:
         print(f"Model wants to call {fn.name} with {fn.args}")
 
@@ -62,16 +69,18 @@ for part in response.parts:
         result = my_skill.execute(dict(fn.args))
 
         # 2. Send Result
-        chat.send_message(
-            genai.prototypes.Part(
-                function_response=genai.prototypes.FunctionResponse(
-                    name=fn.name,
-                    response={'result': result}
-                )
-            )
+        follow_up = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                "Use this tool result to answer the original request.",
+                {"function_response": {"name": fn.name, "response": {"result": result}}},
+            ],
+            config=types.GenerateContentConfig(
+                tools=[tool],
+                system_instruction=skill["instructions"],
+            ),
         )
 ```
-*(Note: As of Gemini SDK v0.8+, the exact import for `FunctionResponse` may vary. Using a dictionary structure is often more robust.)*
 
 ## 🔗 Skill Chaining (Middleware)
 
@@ -92,7 +101,7 @@ response = client.models.generate_content(
     model='gemini-2.5-flash',
     contents="Summarize the optimized context.",
     config=types.GenerateContentConfig(
-        system_instruction=sys_prompt,
+        system_instruction=optimized_ctx_result["compressed_text"],
     ),
 )
 ```
