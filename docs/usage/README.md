@@ -25,7 +25,9 @@ To list all locally available skills from the terminal, see the [CLI reference](
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
 
-Shared patterns (load bundle, run `execute`, return tool results): [agent_loops.md](agent_loops.md).
+Shared patterns (load bundle, run `execute`, return tool results):
+[agent_loops.md](agent_loops.md). Runnable script inventory:
+[examples/README.md](../../examples/README.md).
 
 Contributors adding **Usage Examples** to skill catalog pages: [skill_usage_template.md](skill_usage_template.md).
 

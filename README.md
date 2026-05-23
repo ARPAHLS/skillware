@@ -47,7 +47,9 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md).
 
 ## Architecture
 
-This repository is organized into a core framework, a registry of skills, and documentation.
+This repository is organized into a core framework, a registry of skills, and
+documentation. Runnable provider scripts are indexed in
+[examples/README.md](examples/README.md).
 
 ```text
 Skillware/
