@@ -108,6 +108,10 @@ GOOGLE_API_KEY="your_key"
 ### 4. Usage Example (Gemini)
 
 ```python
+from google import genai
+```
+
+If the README contains a client creation pattern like `genai.configure(api_key=...)` followed by `genai.GenerativeModel(...)`, the full patch would be:
 import google.generativeai as genai
 from skillware.core.loader import SkillLoader
 from skillware.core.env import load_env_file
