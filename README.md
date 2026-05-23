@@ -41,28 +41,32 @@ A **Skill** in this framework provides everything an Agent needs to master a dom
 3.  **Governance**: Constitution and safety boundaries.
 4.  **Interface**: Standardized schemas for LLM tool calling.
 
+### Skill library
+
+Browse capabilities by category in the [Skill library](docs/skills/README.md) — `compliance/`, `data_engineering/`, `dev_tools/`, `finance/`, `office/`, and `optimization/`.
+
 ## Architecture
 
 This repository is organized into a core framework, a registry of skills, and documentation.
 
 ```text
 Skillware/
-├── docs/                       # Comprehensive Documentation & Usage Guides
-├── examples/                   # Reference Implementations
-│   └── basic_agent.py          # Example showing SkillLoader integration
+├── docs/                       # Introduction, testing, skill catalog, usage guides (docs/usage/)
+├── examples/                   # Provider reference scripts (Gemini, Claude, OpenAI, Ollama, ...)
 ├── skills/                     # Skill Registry
 │   └── category/               # Domain boundaries (e.g., finance)
 │       └── skill_name/         # The Skill bundle
 │           ├── manifest.yaml   # Definition, schema, and constitution
 │           ├── skill.py        # Executable Python logic
 │           ├── instructions.md # Cognitive map for the LLM
-│           └── test_skill.py   # Unit tests & schema validation
+│           ├── card.json       # Optional UI presentation metadata
+│           └── test_skill.py   # Unit tests and schema validation
 ├── skillware/                  # Core Framework Package
 │   ├── cli.py                  # Command-line interface
 │   └── core/
 │       ├── base_skill.py       # Abstract Base Class for skills
 │       ├── env.py              # Environment Management
-│       └── loader.py           # Universal Skill Loader & Model Adapter
+│       └── loader.py           # Universal Skill Loader and Model Adapter
 ├── templates/                  # Boilerplate templates for new skills
 │   └── python_skill/           # Standard template with required files
 └── tests/                      # Automated test suite
@@ -106,6 +110,8 @@ GOOGLE_API_KEY="your_key"
 ```
 
 ### 4. Usage Example (Gemini)
+
+This example requires the Google SDK optional extra: `pip install "skillware[gemini]"` (local dev: `pip install -e ".[gemini]"`). See the [Gemini usage guide](docs/usage/gemini.md) for setup details.
 
 ```python
 import os
@@ -163,20 +169,18 @@ for part in response.candidates[0].content.parts:
         print(part.text)
 ```
 
+For other providers and shared integration patterns, see the [usage guides index](docs/usage/README.md), [agent loops](docs/usage/agent_loops.md), [Gemini](docs/usage/gemini.md), [Claude](docs/usage/claude.md), [OpenAI](docs/usage/openai.md), [DeepSeek](docs/usage/deepseek.md), [Ollama](docs/usage/ollama.md), [API keys for skills](docs/usage/api_keys.md), and the [skill usage template](docs/usage/skill_usage_template.md) for contributors.
+
 ## Documentation
 
-*   **[Core Logic & Philosophy](docs/introduction.md)**: Details on how Skillware decouples Logic, Cognition, and Governance.
-*   **[Testing Guidelines](docs/TESTING.md)**: Instructions for validating skills and checking local coverage.
-*   **[Usage guides](docs/usage/README.md)**: Provider adapters and navigation to integration docs.
-*   **[Agent loops](docs/usage/agent_loops.md)**: Shared load, tool-call, and `execute` pattern across providers.
-*   **[Usage Guide: Gemini](docs/usage/gemini.md)**: Integration with Google's GenAI SDK.
-*   **[Usage Guide: Claude](docs/usage/claude.md)**: Integration with Anthropic's SDK.
-*   **[Usage Guide: OpenAI](docs/usage/openai.md)**: Integration with OpenAI Chat Completions tool calling.
-*   **[Usage Guide: DeepSeek](docs/usage/deepseek.md)**: Integration with the DeepSeek API via `to_deepseek_tool()`.
-*   **[Usage Guide: Ollama](docs/usage/ollama.md)**: Native integration for local models via Ollama.
-*   **[API Keys for Skills](docs/usage/api_keys.md)**: Environment variables, cloud/CI setup, and security for skills that call external APIs.
-*   **[Skill Library](docs/skills/README.md)**: Available capabilities.
-*   **[CLI Reference](docs/usage/cli.md)**: Discover and inspect locally installed skills from the terminal.
+| Topic | Link |
+| :--- | :--- |
+| Introduction | [docs/introduction.md](docs/introduction.md) |
+| Testing | [docs/TESTING.md](docs/TESTING.md) |
+| Skill library | [docs/skills/README.md](docs/skills/README.md) |
+| Usage guides | [index](docs/usage/README.md) — [Gemini](docs/usage/gemini.md) · [Claude](docs/usage/claude.md) · [OpenAI](docs/usage/openai.md) · [DeepSeek](docs/usage/deepseek.md) · [Ollama](docs/usage/ollama.md); [agent loops](docs/usage/agent_loops.md); [API keys](docs/usage/api_keys.md) |
+| CLI | [docs/usage/cli.md](docs/usage/cli.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) · [agent workflow](docs/contributing/ai_native_workflow.md) |
 
 ## Contributing
 
