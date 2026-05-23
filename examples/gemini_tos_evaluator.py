@@ -1,7 +1,7 @@
 import json
-import os
 
-import google.generativeai as genai
+import google.genai as genai
+from google.genai import types
 
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
@@ -14,23 +14,25 @@ print(f"Loaded Skill: {bundle['manifest']['name']}")
 TOSEvaluatorSkill = bundle["module"].TOSEvaluatorSkill
 tos_skill = TOSEvaluatorSkill()
 
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-tools = [SkillLoader.to_gemini_tool(bundle)]
+client = genai.Client()
+tool = SkillLoader.to_gemini_tool(bundle)
+system_instruction = bundle["instructions"]
 
-model = genai.GenerativeModel(
-    "gemini-2.5-flash-lite",
-    tools=tools,
-    system_instruction=bundle["instructions"],
-)
-
-chat = model.start_chat(enable_automatic_function_calling=True)
 user_query = (
     "Before scraping Hackernoon tagged AI pages, check whether automated crawling "
     "appears allowed for https://hackernoon.com/tagged/ai."
 )
 print(f"User: {user_query}")
 
-response = chat.send_message(user_query)
+response = client.models.generate_content(
+    model="gemini-2.5-flash-lite",
+    contents=user_query,
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=system_instruction,
+    ),
+)
+
 while response.candidates and response.candidates[0].content.parts:
     part = response.candidates[0].content.parts[0]
     if not part.function_call:
@@ -44,15 +46,21 @@ while response.candidates and response.candidates[0].content.parts:
     if fn_name == "compliance/tos_evaluator":
         result = tos_skill.execute(fn_args)
         print(json.dumps(result, indent=2))
-        response = chat.send_message(
-            [
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=[
+                "Use this tool result to answer the original request.",
                 {
                     "function_response": {
                         "name": fn_name,
                         "response": {"result": result},
                     }
-                }
-            ]
+                },
+            ],
+            config=types.GenerateContentConfig(
+                tools=[tool],
+                system_instruction=system_instruction,
+            ),
         )
     else:
         break

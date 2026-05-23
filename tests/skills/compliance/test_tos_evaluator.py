@@ -175,17 +175,20 @@ def test_tos_evaluator_llm_fallback_is_mockable(mock_get):
 
     bundle = SkillLoader.load_skill("compliance/tos_evaluator")
     mock_genai = MagicMock()
-    mock_model = MagicMock()
-    mock_model.generate_content.return_value.text = json.dumps(
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.text = json.dumps(
         {
             "verdict": "CAUTION",
             "confidence_score": 0.81,
             "rationale": "The clause conditions automation on prior written consent.",
         }
     )
-    mock_genai.GenerativeModel.return_value = mock_model
-    mock_genai.GenerationConfig.return_value = object()
+    mock_client.models.generate_content.return_value = mock_response
+    mock_genai.Client.return_value = mock_client
+    mock_types = MagicMock()
     bundle["module"].genai = mock_genai
+    bundle["module"].types = mock_types
     skill = bundle["module"].TOSEvaluatorSkill()
     with patch.dict("os.environ", {"GOOGLE_API_KEY": "test-key"}):
         result = skill.execute(

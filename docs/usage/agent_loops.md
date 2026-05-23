@@ -44,7 +44,7 @@ print(result)
 
 ## Reference scripts
 
-Full runnable loops live under `examples/` where listed. All [skill catalog pages](../skills/README.md) include compact **Usage Examples** per provider.
+Full runnable loops live under `examples/` where listed. Gemini reference scripts use the `google-genai` SDK (`import google.genai`). All [skill catalog pages](../skills/README.md) include compact **Usage Examples** per provider.
 
 | Skill | Gemini | Claude | OpenAI | DeepSeek | Ollama |
 | :--- | :--- | :--- | :--- | :--- | :--- |

@@ -38,19 +38,18 @@ class SyntheticGeneratorSkill(BaseSkill):
     def _call_gemini(
         self, prompt: str, temperature: float, model_name: str
     ) -> str:
-        import google.generativeai as genai
+        import google.genai as genai
+        from google.genai import types
+
         api_key = (
             self.config.get("GOOGLE_API_KEY")
             or os.environ.get("GOOGLE_API_KEY")
         )
-        if api_key:
-            genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(model_name)
-        response = model.generate_content(
-            prompt,
-            generation_config=genai.types.GenerationConfig(
-                temperature=temperature
-            )
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=temperature),
         )
         return response.text
 

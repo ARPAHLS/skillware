@@ -11,9 +11,11 @@ from bs4 import BeautifulSoup
 from skillware.core.base_skill import BaseSkill
 
 try:
-    import google.generativeai as genai
+    import google.genai as genai
+    from google.genai import types
 except ImportError:  # pragma: no cover - dependency is optional at runtime
     genai = None
+    types = None
 
 
 class TOSEvaluatorSkill(BaseSkill):
@@ -458,14 +460,13 @@ class TOSEvaluatorSkill(BaseSkill):
                 "status": "skipped",
                 "reason": f"Unsupported llm_provider '{normalized['llm_provider']}'.",
             }
-        if genai is None:
-            return {"status": "skipped", "reason": "google-generativeai is not installed."}
+        if genai is None or types is None:
+            return {"status": "skipped", "reason": "google-genai is not installed."}
 
         api_key = os.environ.get("GOOGLE_API_KEY")
         if not api_key:
             return {"status": "skipped", "reason": "GOOGLE_API_KEY is not configured."}
 
-        genai.configure(api_key=api_key)
         prompt = {
             "target_url": normalized["target_url"],
             "intended_action": normalized["intended_action"],
@@ -479,11 +480,13 @@ class TOSEvaluatorSkill(BaseSkill):
         }
 
         try:
-            model = genai.GenerativeModel(normalized["llm_model"])
-            response = model.generate_content(
-                json.dumps(prompt, ensure_ascii=True),
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json", temperature=0.0
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model=normalized["llm_model"],
+                contents=json.dumps(prompt, ensure_ascii=True),
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.0,
                 ),
             )
             parsed = json.loads(response.text)

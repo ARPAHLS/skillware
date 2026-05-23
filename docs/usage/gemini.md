@@ -2,6 +2,14 @@
 
 Skillware provides first-class support for Google's Gemini models via the `google-genai` SDK.
 
+## Install
+
+```bash
+pip install "skillware[gemini]"
+```
+
+This installs the [`google-genai`](https://pypi.org/project/google-genai/) package. Set `GOOGLE_API_KEY` in your environment or `.env` file before running Gemini examples.
+
 ## ⚡ Quick Snippet
 
 ```python

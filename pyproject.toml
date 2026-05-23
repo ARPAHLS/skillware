@@ -39,7 +39,7 @@ cli = [
     "rich>=13.0",
 ]
 gemini = [
-    "google-generativeai",
+    "google-genai",
 ]
 claude = [
     "anthropic",
@@ -52,7 +52,7 @@ office = [
 ]
 all = [
     "rich>=13.0",
-    "google-generativeai",
+    "google-genai",
     "anthropic",
     "openai",
     "pymupdf",

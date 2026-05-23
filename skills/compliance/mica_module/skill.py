@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Any, Dict, List
-import google.generativeai as genai
+
 from skillware.core.base_skill import BaseSkill
 
 
@@ -207,11 +207,43 @@ class MiCAModuleSkill(BaseSkill):
         """
 
         try:
-            model = genai.GenerativeModel(model_name)
-            resp = model.generate_content(
-                prompt_payload,
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json", temperature=0.0
+            import google.genai as genai
+            from google.genai import types
+        except ImportError:
+            return {
+                "policy_status": "CAUTION",
+                "gemini_evaluator_feedback": {
+                    "grade": "N/A",
+                    "holes_found": "google-genai is not installed.",
+                    "suggestion": "Proceed manually integrating the extracted logic.",
+                },
+                "final_context_for_agent": (
+                    f"Output your final answer seamlessly integrating and adhering to these MiCA rules:\n{context}"
+                ),
+            }
+
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            return {
+                "policy_status": "CAUTION",
+                "gemini_evaluator_feedback": {
+                    "grade": "N/A",
+                    "holes_found": "GOOGLE_API_KEY is not configured.",
+                    "suggestion": "Proceed manually integrating the extracted logic.",
+                },
+                "final_context_for_agent": (
+                    f"Output your final answer seamlessly integrating and adhering to these MiCA rules:\n{context}"
+                ),
+            }
+
+        try:
+            client = genai.Client(api_key=api_key)
+            resp = client.models.generate_content(
+                model=model_name,
+                contents=prompt_payload,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.0,
                 ),
             )
             return json.loads(resp.text)

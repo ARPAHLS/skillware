@@ -16,7 +16,7 @@ To list all locally available skills from the terminal, see the [CLI reference](
 
 | Provider | Adapter | Guide | Agent API key (typical) |
 | :--- | :--- | :--- | :--- |
-| Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` |
+| Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` (install `skillware[gemini]` for `google-genai`) |
 | Anthropic Claude | `to_claude_tool()` | [claude.md](claude.md) | `ANTHROPIC_API_KEY` |
 | OpenAI (ChatGPT) | `to_openai_tool()` | [openai.md](openai.md) | `OPENAI_API_KEY` |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |

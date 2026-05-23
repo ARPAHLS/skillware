@@ -21,7 +21,7 @@ parameters:
   required:
     - user_prompt
 requirements:
-  - google.generativeai
+  - google-genai
 constitution: |
   1. COMPLIANCE: Do not invent or hallucinate financial regulations. Base all enforcement strictly on the provided MiCA corpus blocks.
   2. FOCUS: Act exclusively as a compliance firewall and RAG engine; retrieve relevant chunks incrementally.

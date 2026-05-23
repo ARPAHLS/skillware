@@ -68,4 +68,4 @@ body:
       placeholder: |
         Windows 11
         Python 3.12
-        google-generativeai 0.8.3
+        google-genai 1.0.0
