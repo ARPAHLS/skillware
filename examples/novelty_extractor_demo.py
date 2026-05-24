@@ -4,6 +4,7 @@ Novelty Extractor Demo
 Demonstrates how to use the data_engineering/novelty_extractor skill to
 distill a large text corpus into high-signal content across multiple turns.
 """
+
 from skillware.core.loader import SkillLoader
 from skillware.core.env import load_env_file
 
@@ -26,10 +27,12 @@ def main():
     )
 
     print("\n--- Batch 1 ---")
-    result1 = skill.execute({
-        "dataset_chunk": corpus_batch_1,
-        "novelty_threshold": 0.85,
-    })
+    result1 = skill.execute(
+        {
+            "dataset_chunk": corpus_batch_1,
+            "novelty_threshold": 0.85,
+        }
+    )
 
     if "error" in result1:
         print(f"Failed: {result1['error']}")
@@ -48,11 +51,13 @@ def main():
     )
 
     print("\n--- Batch 2 (with baseline from Batch 1) ---")
-    result2 = skill.execute({
-        "dataset_chunk": corpus_batch_2,
-        "novelty_threshold": 0.85,
-        "baseline_chunks": result1["distilled_content"],
-    })
+    result2 = skill.execute(
+        {
+            "dataset_chunk": corpus_batch_2,
+            "novelty_threshold": 0.85,
+            "baseline_chunks": result1["distilled_content"],
+        }
+    )
 
     if "error" in result2:
         print(f"Failed: {result2['error']}")
@@ -63,7 +68,9 @@ def main():
     print(f"Compression ratio: {result2['compression_ratio']}")
     print(f"Redundant chunks dropped: {result2['redundant_chunks_dropped']}")
 
-    full_distilled = result1["distilled_content"] + "\n\n" + result2["distilled_content"]
+    full_distilled = (
+        result1["distilled_content"] + "\n\n" + result2["distilled_content"]
+    )
     print("\n--- Full distilled dataset ---")
     print(full_distilled)
 

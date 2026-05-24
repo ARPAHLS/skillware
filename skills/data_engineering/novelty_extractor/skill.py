@@ -26,7 +26,7 @@ class NoveltyExtractor(BaseSkill):
                 "chunks that carry new information above a configurable threshold."
             ),
         }
-    
+
     def _chunk_text(self, text: str, strategy: str) -> List[str]:
         """Split text into chunks using the given strategy."""
         strategies = {
@@ -43,8 +43,9 @@ class NoveltyExtractor(BaseSkill):
     def _chunk_by_sentence(self, text: str) -> List[str]:
         """Split text by period followed by whitespace."""
         import re
+
         return [c.strip() for c in re.split(r"(?<=[.!?])\s+", text) if c.strip()]
-    
+
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Filter dataset_chunk by semantic novelty."""
         try:
@@ -81,10 +82,7 @@ class NoveltyExtractor(BaseSkill):
                     seen_vectors.append(chunk_vector)
                     continue
 
-                similarities = [
-                    float(np.dot(chunk_vector, sv))
-                    for sv in seen_vectors
-                ]
+                similarities = [float(np.dot(chunk_vector, sv)) for sv in seen_vectors]
                 max_similarity = max(similarities)
 
                 if max_similarity < novelty_threshold:
@@ -94,7 +92,9 @@ class NoveltyExtractor(BaseSkill):
                     redundant_count += 1
 
             total = len(chunks)
-            compression = round((redundant_count / total) * 100, 1) if total > 0 else 0.0
+            compression = (
+                round((redundant_count / total) * 100, 1) if total > 0 else 0.0
+            )
 
             return {
                 "distilled_content": "\n\n".join(novel_chunks),
