@@ -1,0 +1,37 @@
+{
+  "name": "Novelty Extractor",
+  "description": "Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold.",
+  "icon": "filter",
+  "ui_schema": {
+    "dataset_chunk": {
+      "ui:widget": "textarea",
+      "ui:placeholder": "Paste your raw text dataset here..."
+    },
+    "novelty_threshold": {
+      "ui:widget": "range",
+      "ui:options": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.05
+      }
+    },
+    "baseline_chunks": {
+      "ui:widget": "textarea",
+      "ui:placeholder": "Optional. Paste distilled_content from a previous call here..."
+    },
+    "chunk_strategy": {
+      "ui:widget": "select",
+      "ui:options": {
+        "enumOptions": [
+          {"value": "paragraph", "label": "Paragraph"},
+          {"value": "sentence", "label": "Sentence"}
+        ]
+      }
+    }
+  },
+  "issuer": {
+    "name": "Martin Rizzo Lozano",
+    "email": "rizzolozanomartin@gmail.com",
+    "github": "rizzoMartin"
+  }
+}
