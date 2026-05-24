@@ -28,6 +28,10 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Sample user message: *Compress this prompt before the main model call: "Hello, could you please make sure to read this documentation..."*
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. The dedicated runnable example for this skill is `examples/prompt_compression_demo.py`; the provider sections below are catalog snippets rather than separate checked-in loop scripts.
+
 ### Direct execute
 
 ```python

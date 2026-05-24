@@ -48,6 +48,10 @@ Configure values per [API keys for skills](../usage/api_keys.md).
 
 Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.md) · [API keys](../usage/api_keys.md).
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. The runnable scripts currently checked in for this skill are `examples/mica_rag_flow.py`, `examples/mica_claude_flow.py`, and `examples/mica_ollama_flow.py`.
+
 | Provider | Reference script |
 | :--- | :--- |
 | Gemini / RAG | `examples/mica_rag_flow.py` |

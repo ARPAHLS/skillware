@@ -44,6 +44,10 @@ Configure values per [API keys for skills](../usage/api_keys.md).
 
 Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.md) · [API keys](../usage/api_keys.md).
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. The dedicated runnable scripts today are `examples/gemini_pdf_form_filler.py` and `examples/claude_pdf_form_filler.py`. The OpenAI, DeepSeek, and Ollama sections below are catalog snippets only unless separate runnable examples are added later.
+
 | Provider | Reference script |
 | :--- | :--- |
 | Gemini | `examples/gemini_pdf_form_filler.py` |

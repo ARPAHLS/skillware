@@ -63,10 +63,15 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Sample user message: *Screen wallet `0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045` for sanctions and malicious contract interactions.*
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. This page includes provider snippets, but the dedicated runnable flows today are `examples/gemini_wallet_check.py`, `examples/claude_wallet_check.py`, and the multi-skill Ollama harness `examples/ollama_skills_test.py`.
+
 | Provider | Reference script |
 | :--- | :--- |
 | Gemini | `examples/gemini_wallet_check.py` |
 | Claude | `examples/claude_wallet_check.py` |
+| Ollama (multi-skill harness) | `examples/ollama_skills_test.py` |
 
 ### Gemini
 

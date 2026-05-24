@@ -44,6 +44,10 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Sample user message: *Generate five high-entropy medical coding dispute samples with dual-insurance edge cases.*
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. The dedicated runnable example for this skill is `examples/build_dataset_demo.py`, which uses the skill's local execute path while configuring the internal generator with a Gemini backend.
+
 ### Direct execute
 
 ```python

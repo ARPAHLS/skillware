@@ -82,6 +82,10 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Sample user message: *Before crawling https://example.com/docs, check if automated indexing is allowed.*
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. This skill currently has dedicated runnable loops for every documented provider: `examples/gemini_tos_evaluator.py`, `examples/claude_tos_evaluator.py`, `examples/openai_tos_evaluator.py`, `examples/deepseek_tos_evaluator.py`, and `examples/ollama_tos_evaluator.py`.
+
 | Provider | Reference script |
 | :--- | :--- |
 | Gemini | `examples/gemini_tos_evaluator.py` |

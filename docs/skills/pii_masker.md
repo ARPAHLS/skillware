@@ -61,7 +61,9 @@ The `micro-f1-mask` model detects a variety of entities, including but not limit
 
 Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.md). Skill execution uses local Ollama (`arpacorp/micro-f1-mask`); no cloud agent key required for the masker itself.
 
-Reference flow: `examples/pii_guardrail_flow.py`.
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. The dedicated runnable example for this skill is `examples/pii_guardrail_flow.py`, which demonstrates the local execute path rather than a full provider loop.
 
 Sample user message: *Mask PII in: "Hello John Doe, your wallet 0xabc123 has been verified."*
 

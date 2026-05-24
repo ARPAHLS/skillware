@@ -53,6 +53,10 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Sample user message: *Analyse issue #56 in ARPAHLS/skillware and produce a resolution plan.*
 
+### Runnable examples
+
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. Runnable example: pending — `dev_tools/issue_resolver` does not yet have a dedicated script under `examples/`, so the provider sections below remain catalog snippets until issue #118 lands.
+
 ### Direct execute
 
 ```python
