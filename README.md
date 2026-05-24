@@ -19,6 +19,7 @@
   <a href="#architecture">Architecture</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
+  <a href="CHANGELOG.md">Changelog</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#comparison">Comparison</a> •
   <a href="#contact">Contact</a>
