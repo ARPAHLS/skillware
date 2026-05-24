@@ -1,0 +1,45 @@
+name: "data_engineering/novelty_extractor"
+version: "0.1.0"
+description: "Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold."
+issuer:
+  name: Martin Rizzo Lozano
+  email: rizzolozanomartin@gmail.com
+  github: rizzoMartin
+  org: ""
+parameters:
+  type: object
+  properties:
+    dataset_chunk:
+      type: string
+      description: "Raw text to filter. Will be split into chunks before embedding."
+    novelty_threshold:
+      type: number
+      description: "Similarity ceiling (0.0-1.0). Chunks with max cosine similarity below this value are kept. Lower = stricter filtering."
+    baseline_chunks:
+      type: string
+      description: "Optional. Previously seen text to compare against. Pass distilled_content from a prior call to filter across turns."
+    chunk_strategy:
+      type: string
+      description: "How to split dataset_chunk before embedding. 'paragraph' (default) or 'sentence'."
+  required:
+    - dataset_chunk
+    - novelty_threshold
+outputs:
+  distilled_content:
+    type: string
+    description: "Novel chunks joined by newline."
+  compression_ratio:
+    type: string
+    description: "Percentage of input chunks that were dropped."
+  redundant_chunks_dropped:
+    type: integer
+    description: "Number of chunks discarded as redundant."
+requirements:
+  - fastembed
+  - numpy
+constitution: |
+  1. STATELESS: Do not retain any state between calls. All context must be passed explicitly via baseline_chunks.
+  2. DETERMINISM: Given the same inputs, always return the same outputs.
+  3. PRIVACY: Do not log, store, or transmit any content from dataset_chunk or baseline_chunks.
+  4. SCOPE: Only filter for semantic novelty. Do not summarize, rewrite, or alter the content of kept chunks.
+  5. TRANSPARENCY: Always report compression_ratio and redundant_chunks_dropped so the caller can audit the filtering.
