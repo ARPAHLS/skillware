@@ -32,6 +32,7 @@ Skills tailored for generating, parsing, and orchestrating large datasets for ma
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
 | **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
+| **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | [@rizzoMartin](https://github.com/rizzoMartin) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 
 ## Compliance
 Enforces privacy, guardrails, and secure handling of sensitive data before it reaches external endpoints.
