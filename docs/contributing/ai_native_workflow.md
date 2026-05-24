@@ -88,7 +88,7 @@ You must:
 
 | If the issue involves... | You must also inspect |
 | :--- | :--- |
-| New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present |
+| New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
 | Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/` |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
@@ -237,7 +237,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 
 - Fix broken links when you move files
 - Link to [TESTING.md](../TESTING.md) instead of duplicating long command lists
-- Provider integration: [Usage guides index](../usage/README.md) and [agent loops](../usage/agent_loops.md). Per-skill copy-paste examples belong on `docs/skills/<skill_name>.md`, not repeated in full on every provider guide.
+- Provider integration: [Usage guides index](../usage/README.md), [agent loops](../usage/agent_loops.md), and [examples/README.md](../../examples/README.md) for runnable script inventory. Per-skill copy-paste examples belong on `docs/skills/<skill_name>.md`, not repeated in full on every provider guide.
 
 ### Conduct
 
@@ -261,6 +261,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes
 - [ ] `SkillLoader.load_skill("<category>/<skill_name>")` works or deps are documented
+- [ ] `examples/README.md` updated if a new or changed script lives under `examples/`
 - [ ] No placeholders under `skills/`
 - [ ] PR skill section completed
 
@@ -268,6 +269,7 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] All issue acceptance criteria met
 - [ ] Links valid
+- [ ] `examples/README.md` row added or updated if the issue touches runnable examples
 - [ ] No emojis; tone matches repo
 - [ ] No unrelated code changes
 - [ ] PR marked as documentation; skill checklist omitted unless `docs/skills/` or skill **Usage Examples** changed (then apply the Usage Examples bullet above)

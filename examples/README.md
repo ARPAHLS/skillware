@@ -20,7 +20,7 @@ with editable install: `pip install -e ".[gemini]"`.
 
 | Script | Skill ID | Provider | Required extra | Required env vars | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `build_dataset_demo.py` | `data_engineering/synthetic_generator` | Gemini | `[gemini]` | `GOOGLE_API_KEY` | Generates a JSONL synthetic dataset with the synthetic generator skill. |
+| `build_dataset_demo.py` | `data_engineering/synthetic_generator` | Local execute (Gemini backend) | `[gemini]` | `GOOGLE_API_KEY` | Generates a JSONL synthetic dataset with the synthetic generator skill. |
 | `claude_pdf_form_filler.py` | `office/pdf_form_filler` | Claude | `[claude]`, `[office]` | `ANTHROPIC_API_KEY` | Uses Claude with the PDF form filler skill to map instructions to fields. |
 | `claude_tos_evaluator.py` | `compliance/tos_evaluator` | Claude | `[claude]` | `ANTHROPIC_API_KEY` | Runs a Claude tool loop for website automation policy review. |
 | `claude_wallet_check.py` | `finance/wallet_screening` | Claude | `[claude]` | `ANTHROPIC_API_KEY`, `ETHERSCAN_API_KEY` | Screens an Ethereum wallet and returns the result through a Claude tool loop. |

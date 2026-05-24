@@ -151,7 +151,8 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 1. Copy or align with `templates/python_skill/`.
 2. Create `skills/<category>/<skill_name>/` with the full bundle (see [Skill Package Standard](#skill-package-standard)).
 3. Add `docs/skills/<skill_name>.md` and a row in [docs/skills/README.md](docs/skills/README.md).
-4. Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works or document required packages and environment variables.
+4. When adding or renaming a runnable script under `examples/`, update [examples/README.md](examples/README.md) in the same PR.
+5. Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works or document required packages and environment variables.
 
 ---
 
