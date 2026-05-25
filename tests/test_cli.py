@@ -1,4 +1,4 @@
-from skillware.cli import _discover_skills, cmd_list
+from skillware.cli import _discover_skills, cmd_list, cmd_interactive, _short_description
 
 
 def test_discover_skills_returns_skills(tmp_path):
@@ -138,3 +138,64 @@ def test_cmd_list_filter_by_category(tmp_path):
     output = buf.getvalue()
     assert "office" in output
     assert "finance" not in output
+
+def test_short_description_uses_short_description_field():
+    """short_description field takes priority over description."""
+    data = {
+        "short_description": "Short one.",
+        "description": "This is a much longer description that should not appear.",
+    }
+    assert _short_description(data) == "Short one."
+
+
+def test_short_description_truncates_at_80_chars():
+    """short_description longer than 80 chars should be truncated with ..."""
+    data = {"short_description": "A" * 90}
+    result = _short_description(data)
+    assert len(result) == 83  # 80 + "..."
+    assert result.endswith("...")
+
+
+def test_short_description_falls_back_to_first_sentence():
+    """Without short_description, use first sentence of description."""
+    data = {"description": "First sentence. Second sentence follows."}
+    assert _short_description(data) == "First sentence."
+
+
+def test_short_description_empty_manifest():
+    """Empty manifest should return empty string."""
+    assert _short_description({}) == ""
+
+
+def test_cmd_interactive_exits_on_q(monkeypatch):
+    """Entering q should exit cleanly."""
+    import io
+    from rich.console import Console
+
+    monkeypatch.setattr("builtins.input", lambda _: "q")
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert "Bye" in buf.getvalue()
+
+
+def test_cmd_interactive_exits_on_empty(monkeypatch):
+    """Pressing enter without input should exit cleanly."""
+    import io
+    from rich.console import Console
+
+    monkeypatch.setattr("builtins.input", lambda _: "")
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert "Bye" in buf.getvalue()
+
+
+def test_cmd_interactive_unknown_command(monkeypatch):
+    """Unknown command should print error then exit on q."""
+    import io
+    from rich.console import Console
+
+    responses = iter(["unknown_cmd", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert "Unknown command" in buf.getvalue()
