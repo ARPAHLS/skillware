@@ -11,6 +11,16 @@ The CLI depends on `rich` for terminal output. Install it with the `cli` extra:
 
     pip install "skillware[cli]"
 
+## Interactive menu
+
+Running `skillware` with no arguments launches an ASCII splash screen and an
+interactive numbered menu:
+
+    skillware
+
+The menu accepts both number input (`1`) and command name (`list`). Press `q`
+or Enter to exit cleanly.
+
 ## Commands
 
 ### skillware list
@@ -21,10 +31,10 @@ Print a table of all locally available skills.
 
 Sample output:
 
-    ID                           VERSION  CATEGORY    ISSUER      DESCRIPTION                        REQUIREMENTS
-    compliance/pii_masker        0.1.0    compliance  rosspeili   High-precision PII detection...    requests
-    finance/wallet_screening     1.0.0    finance     rosspeili   Crypto wallet screening tool...    requests
-    office/pdf_form_filler       0.1.0    office      rosspeili   Fills PDF forms from natural...    pymupdf, anthropic
+    ID                           VERSION  CATEGORY    ISSUER      DESCRIPTION                                       REQUIREMENTS
+    compliance/pii_masker        0.1.0    compliance  rosspeili   Detects and redacts PII locally using Ollama.     requests
+    finance/wallet_screening     1.0.0    finance     rosspeili   Screens Ethereum wallets against OFAC sanctions.  requests
+    office/pdf_form_filler       0.1.0    office      rosspeili   Fills PDF forms from natural language.            pymupdf, anthropic
 
 #### Flags
 
@@ -60,4 +70,26 @@ To point the CLI at a persistent custom root, set the environment variable:
 
 Only skills with both `manifest.yaml` and `skill.py` present are shown —
 the same condition `SkillLoader` requires to load a skill successfully.
+
+## Color theme
+
+The CLI uses a pastel color palette consistent with the project's visual identity:
+
+| Element | Color | Hex |
+| :--- | :--- | :--- |
+| Table headers and borders | Lavender | `#C7CEEA` |
+| Category column | Peach | `#FFDAC1` |
+| Skill ID column | Mint | `#B5EAD7` |
+| Splash screen | Lavender | `#C7CEEA` |
+| Interactive menu | Peach | `#FFDAC1` |
+
+## short_description field
+
+Skill manifests can include a `short_description` field (max 80 chars) for
+a concise one-line summary shown in `skillware list`:
+
+    short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
+
+If `short_description` is absent, the CLI falls back to the first sentence
+of `description`, truncated to 80 characters.
 
