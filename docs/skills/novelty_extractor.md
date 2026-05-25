@@ -4,7 +4,7 @@
 **Skill ID:** `data_engineering/novelty_extractor`
 **Issuer:** [@rizzoMartin](https://github.com/rizzoMartin)
 
-[Skill Library](README.md) · [Testing](../TESTING.md)
+[Skill Library](README.md) - [Testing](../TESTING.md)
 
 A data engineering skill that filters large text datasets by semantic novelty,
 retaining only chunks that carry genuinely new information above a configurable
@@ -59,7 +59,7 @@ This skill requires no API keys or environment variables.
 
 ## Usage Examples
 
-Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.md).
+Guides: [Usage index](../usage/README.md) - [Agent loops](../usage/agent_loops.md).
 
 Sample user message: *Filter this dataset and keep only the chunks that contain new information.*
 
