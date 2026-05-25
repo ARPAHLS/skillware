@@ -1,4 +1,9 @@
-from skillware.cli import _discover_skills, cmd_list, cmd_interactive, _short_description
+from skillware.cli import (
+    _discover_skills,
+    cmd_list,
+    cmd_interactive,
+    _short_description,
+)
 
 
 def test_discover_skills_returns_skills(tmp_path):
@@ -138,6 +143,7 @@ def test_cmd_list_filter_by_category(tmp_path):
     output = buf.getvalue()
     assert "office" in output
     assert "finance" not in output
+
 
 def test_short_description_uses_short_description_field():
     """short_description field takes priority over description."""

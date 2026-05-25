@@ -5,13 +5,13 @@ from typing import List, Dict, Any, Optional
 
 from skillware.core.loader import SkillLoader
 
-TABLE_STYLE     = "bold #C7CEEA"    # lavender  - headers
-CATEGORY_STYLE  = "bold #FFDAC1"    # peach     - category column
-ID_STYLE        = "#B5EAD7"       # mint      - skill ID column
-BORDER_STYLE    = "#C7CEEA"       # lavender  - table border
+TABLE_STYLE = "bold #C7CEEA"  # lavender  - headers
+CATEGORY_STYLE = "bold #FFDAC1"  # peach     - category column
+ID_STYLE = "#B5EAD7"  # mint      - skill ID column
+BORDER_STYLE = "#C7CEEA"  # lavender  - table border
 
-SPLASH_STYLE    = "#C7CEEA"       # lavender  - swillware splash color
-MENU_STYLE      = "#FFDAC1"       # peach     - menu category
+SPLASH_STYLE = "#C7CEEA"  # lavender  - swillware splash color
+MENU_STYLE = "#FFDAC1"  # peach     - menu category
 
 
 def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
@@ -36,6 +36,7 @@ def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
 
     return roots
 
+
 def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
     """Return short_description if present, else first sentence of description truncated."""
     short = data.get("short_description", "").strip()
@@ -51,7 +52,7 @@ def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
         if idx != -1:
             desc = desc[: idx + 1]
             break
-    
+
     return desc[:max_len] + ("..." if len(desc) > max_len else "")
 
 
@@ -129,17 +130,15 @@ def cmd_list(
         return
 
     table = Table(
-        box=box.SIMPLE_HEAVY,
-        border_style=BORDER_STYLE,
-        header_style=TABLE_STYLE
+        box=box.SIMPLE_HEAVY, border_style=BORDER_STYLE, header_style=TABLE_STYLE
     )
 
-    table.add_column("ID",              style=ID_STYLE,     no_wrap=True)
-    table.add_column("VERSION",         style="dim")
-    table.add_column("CATEGORY",        style=CATEGORY_STYLE)
-    table.add_column("ISSUER",          style="dim")
+    table.add_column("ID", style=ID_STYLE, no_wrap=True)
+    table.add_column("VERSION", style="dim")
+    table.add_column("CATEGORY", style=CATEGORY_STYLE)
+    table.add_column("ISSUER", style="dim")
     table.add_column("DESCRIPTION")
-    table.add_column("REQUIREMENTS",    style="dim")
+    table.add_column("REQUIREMENTS", style="dim")
 
     for skill in skills:
         table.add_row(
@@ -153,6 +152,7 @@ def cmd_list(
 
     console.print(table)
 
+
 def cmd_interactive(console=None, parser=None) -> None:
     """Launch ASCII splash screen and interactive menu."""
     try:
@@ -162,17 +162,17 @@ def cmd_interactive(console=None, parser=None) -> None:
         raise SystemExit(
             "rich is required for the CLI. Install it with: pip install 'skillware[cli]'"
         )
-    
+
     import importlib.metadata
 
     if console is None:
         console = Console()
-    
+
     try:
         version = importlib.metadata.version("skillware")
     except importlib.metadata.PackageNotFoundError:
         version = "dev"
-    
+
     splash = r"""
   ███████╗██╗  ██╗██╗██╗     ██╗    ██╗ █████╗ ██████╗ ███████╗
   ██╔════╝██║ ██╔╝██║██║     ██║    ██║██╔══██╗██╔══██╗██╔════╝
@@ -180,7 +180,7 @@ def cmd_interactive(console=None, parser=None) -> None:
   ╚════██║██╔═██╗ ██║██║     ██║███╗██║██╔══██║██╔══██╗██╔══╝
   ███████║██║  ██╗██║███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
   ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝"""
-    
+
     console.print(Text(splash, style=SPLASH_STYLE))
     console.print(
         Text(
@@ -222,7 +222,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         if choice in ("q", ""):
             console.print("  Bye.", style="dim")
             return
-        
+
         command = commands.get(choice)
 
         if command == "list":
@@ -236,11 +236,14 @@ def cmd_interactive(console=None, parser=None) -> None:
             if parser:
                 parser.print_help()
             else:
-                console.print("  Run 'skillware --help' for usage information.", style="dim")
+                console.print(
+                    "  Run 'skillware --help' for usage information.", style="dim"
+                )
         else:
             console.print(f"  Unknown command: '{choice}'", style="dim #FF9AA2")
 
         console.print()
+
 
 def main() -> None:
     """CLI entry point."""
