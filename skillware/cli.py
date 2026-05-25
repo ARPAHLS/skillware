@@ -28,6 +28,24 @@ def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
 
     return roots
 
+def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
+    """Return short_description if present, else first sentence of description truncated."""
+    short = data.get("short_description", "").strip()
+    if short:
+        return short[:max_len] + ("..." if len(short) > max_len else "")
+
+    desc = data.get("description", "").strip()
+
+    seps = [".", "!", "?"]
+
+    for sep in seps:
+        idx = desc.find(sep)
+        if idx != -1:
+            desc = desc[: idx + 1]
+            break
+    
+    return desc[:max_len] + ("..." if len(desc) > max_len else "")
+
 
 def _discover_skills(
     skills_root_override: Optional[Path] = None,
@@ -62,7 +80,7 @@ def _discover_skills(
                     "category": manifest_path.parent.parent.name,
                     "name": manifest_path.parent.name,
                     "version": data.get("version", "?").strip(),
-                    "description": data.get("description", "").strip(),
+                    "description": _short_description(data),
                     "requirements": ", ".join(data.get("requirements") or []).strip(),
                     "issuer": issuer.get("github") or issuer.get("name") or "",
                 }
