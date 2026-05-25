@@ -10,6 +10,9 @@ CATEGORY_STYLE  = "bold #FFDAC1"    # peach     - category column
 ID_STYLE        = "#B5EAD7"       # mint      - skill ID column
 BORDER_STYLE    = "#C7CEEA"       # lavender  - table border
 
+SPLASH_STYLE    = "#C7CEEA"       # lavender  - swillware splash color
+MENU_STYLE      = "#FFDAC1"       # peach     - menu category
+
 
 def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
     """Return the list of roots to search for skills, mirrors SkillLoader resolution order."""
@@ -150,6 +153,95 @@ def cmd_list(
 
     console.print(table)
 
+def cmd_interactive(console=None, parser=None) -> None:
+    """Launch ASCII splash screen and interactive menu."""
+    try:
+        from rich.console import Console
+        from rich.text import Text
+    except ImportError:
+        raise SystemExit(
+            "rich is required for the CLI. Install it with: pip install 'skillware[cli]'"
+        )
+    
+    import importlib.metadata
+
+    if console is None:
+        console = Console()
+    
+    try:
+        version = importlib.metadata.version("skillware")
+    except importlib.metadata.PackageNotFoundError:
+        version = "dev"
+    
+    splash = r"""
+  ███████╗██╗  ██╗██╗██╗     ██╗    ██╗ █████╗ ██████╗ ███████╗
+  ██╔════╝██║ ██╔╝██║██║     ██║    ██║██╔══██╗██╔══██╗██╔════╝
+  ███████╗█████╔╝ ██║██║     ██║ █╗ ██║███████║██████╔╝█████╗
+  ╚════██║██╔═██╗ ██║██║     ██║███╗██║██╔══██║██╔══██╗██╔══╝
+  ███████║██║  ██╗██║███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
+  ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝"""
+    
+    console.print(Text(splash, style=SPLASH_STYLE))
+    console.print(
+        Text(
+            f"  Skill Management Framework - v{version}\n",
+            style=f"dim {SPLASH_STYLE}",
+        )
+    )
+
+    menu = [
+        ("1", "list", "discover and display all locally installed skills"),
+        ("2", "paths", "show and repair skill directory resolution paths"),
+        ("3", "test", "run test_skill.py for one or all skills"),
+        ("4", "help", "usage guide for any command"),
+    ]
+
+    for num, name, desc in menu:
+        console.print(f"    [{num}] {name:<10}— {desc}", style=MENU_STYLE)
+
+    console.print()
+
+    commands = {
+        "1": "list",
+        "list": "list",
+        "2": "paths",
+        "paths": "paths",
+        "3": "test",
+        "test": "test",
+        "4": "help",
+        "help": "help",
+    }
+
+    while True:
+        try:
+            choice = input("  > ").strip().lower()
+        except (KeyboardInterrupt, EOFError):
+            console.print("\n  Bye.", style="dim")
+            return
+
+        if choice in ("q", ""):
+            console.print("  Bye.", style="dim")
+            return
+        
+        command = commands.get(choice)
+
+        if command == "list":
+            cmd_list()
+        elif command in ("paths", "test"):
+            console.print(
+                f"  '{command}' is not yet implemented. Coming in a future release.",
+                style="dim",
+            )
+        elif command == "help":
+            if parser:
+                parser.print_help()
+            else:
+                console.print("  Run 'skillware --help' for usage information.", style="dim")
+        else:
+            console.print(f"  Unknown command: '{choice}'", style="dim #FF9AA2")
+
+        console.print()
+
 def main() -> None:
     """CLI entry point."""
     parser = argparse.ArgumentParser(prog="skillware")
@@ -182,7 +274,7 @@ def main() -> None:
             issuer_filter=args.issuer,
         )
     else:
-        parser.print_help()
+        cmd_interactive(parser=parser)
 
 
 if __name__ == "__main__":
