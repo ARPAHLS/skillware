@@ -5,6 +5,11 @@ from typing import List, Dict, Any, Optional
 
 from skillware.core.loader import SkillLoader
 
+TABLE_STYLE     = "bold #C7CEEA"    # lavender  - headers
+CATEGORY_STYLE  = "bold #FFDAC1"    # peach     - category column
+ID_STYLE        = "#B5EAD7"       # mint      - skill ID column
+BORDER_STYLE    = "#C7CEEA"       # lavender  - table border
+
 
 def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
     """Return the list of roots to search for skills, mirrors SkillLoader resolution order."""
@@ -99,6 +104,7 @@ def cmd_list(
     try:
         from rich.table import Table
         from rich.console import Console
+        from rich import box
     except ImportError:
         raise SystemExit(
             "rich is required for the CLI. Install it with: pip install 'skillware[cli]'"
@@ -119,14 +125,18 @@ def cmd_list(
         console.print("No skills found.")
         return
 
-    table = Table()
+    table = Table(
+        box=box.SIMPLE_HEAVY,
+        border_style=BORDER_STYLE,
+        header_style=TABLE_STYLE
+    )
 
-    table.add_column("ID")
-    table.add_column("VERSION")
-    table.add_column("CATEGORY")
-    table.add_column("ISSUER")
+    table.add_column("ID",              style=ID_STYLE,     no_wrap=True)
+    table.add_column("VERSION",         style="dim")
+    table.add_column("CATEGORY",        style=CATEGORY_STYLE)
+    table.add_column("ISSUER",          style="dim")
     table.add_column("DESCRIPTION")
-    table.add_column("REQUIREMENTS")
+    table.add_column("REQUIREMENTS",    style="dim")
 
     for skill in skills:
         table.add_row(
@@ -139,7 +149,6 @@ def cmd_list(
         )
 
     console.print(table)
-
 
 def main() -> None:
     """CLI entry point."""
