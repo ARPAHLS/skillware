@@ -1,6 +1,7 @@
 name: compliance/mica_module
 version: 0.1.0
 description: A highly specialized, localized RAG and policy enforcement engine for the Markets in Crypto-Assets (MiCA) regulation.
+short_description: "Local RAG and policy enforcement engine for MiCA regulation."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

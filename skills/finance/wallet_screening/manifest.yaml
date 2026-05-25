@@ -2,6 +2,7 @@ name: wallet_screening
 version: 1.0.0
 description: |
   A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). analyze transaction history for risk.
+short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

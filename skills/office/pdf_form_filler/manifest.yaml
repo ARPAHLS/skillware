@@ -1,6 +1,7 @@
 name: pdf_form_filler
 version: 0.1.0
 description: Fills PDF forms based on natural language instructions.
+short_description: "Fills PDF forms from natural language instructions using Claude."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

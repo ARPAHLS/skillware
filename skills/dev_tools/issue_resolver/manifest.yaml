@@ -1,6 +1,7 @@
 name: "dev_tools/issue_resolver"
 version: "0.1.0"
 description: "Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats."
+short_description: "Analyzes a GitHub issue and produces a ranked implementation plan."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

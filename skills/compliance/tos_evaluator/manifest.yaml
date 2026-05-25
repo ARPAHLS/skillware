@@ -1,6 +1,7 @@
 name: "compliance/tos_evaluator"
 version: "0.1.0"
 description: "Evaluates whether an intended automated website action appears permissible by checking robots.txt, discovered legal pages, and optional low-cost LLM review for ambiguous policy language."
+short_description: "Evaluates whether an automated web action is permitted by site policy."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
