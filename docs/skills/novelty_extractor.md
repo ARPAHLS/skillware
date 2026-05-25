@@ -162,6 +162,7 @@ openai_tool = SkillLoader.to_openai_tool(bundle)
 ### DeepSeek
 
 ```python
+import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
