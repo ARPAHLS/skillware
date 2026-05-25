@@ -51,11 +51,16 @@ have runnable examples. Gemini reference scripts use the `google-genai` SDK
 (`import google.genai`). All [skill catalog pages](../skills/README.md)
 include compact **Usage Examples** per provider.
 
-| Skill | Gemini | Claude | OpenAI | DeepSeek | Ollama |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `compliance/tos_evaluator` | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
-| `finance/wallet_screening` | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | (catalog page) |
-| `office/pdf_form_filler` | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | (catalog page) |
-| `compliance/mica_module` | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
-| `compliance/pii_masker` | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| Other skills | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+`Local execute / mixed` means the checked-in script is not a single-provider
+agent loop. It either calls `skill.execute(...)` directly or loads multiple
+skills in one harness.
+
+| Skill | Local execute / mixed | Gemini | Claude | OpenAI | DeepSeek | Ollama |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
+| `finance/wallet_screening` | - | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `office/pdf_form_filler` | - | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
+| `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `optimization/prompt_rewriter` | `prompt_compression_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

@@ -29,6 +29,7 @@ Humans: Please describe what this PR does and why it's needed.
 
 - [ ] My code follows the **Agent Code of Conduct**.
 - [ ] I have run `python -m flake8 .` and `pytest tests/` locally (or the subset relevant to this change).
+- [ ] `examples/README.md` is updated if this PR adds, renames, or removes a runnable script under `examples/`.
 
 ## New or updated skill (complete only if this PR adds or changes a skill under `skills/`)
 

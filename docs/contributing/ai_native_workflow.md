@@ -90,7 +90,7 @@ You must:
 | :--- | :--- |
 | New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
-| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/` |
+| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/` |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
 
