@@ -37,6 +37,8 @@ with editable install: `pip install -e ".[gemini]"`.
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | base install only | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_compression_demo.py` | `optimization/prompt_rewriter` | Local execute | base install only | None | Demonstrates prompt compression without a provider loop. |
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | base install only | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |
+| `gemini_novelty_extractor.py` | `data_engineering/novelty_extractor` | Gemini | `[gemini]` | `GOOGLE_API_KEY` | Runs the novelty extractor with a Gemini function-calling loop. |
+| `ollama_novelty_extractor.py` | `data_engineering/novelty_extractor` | Ollama | No Skillware extra; install `ollama` separately | None | Runs the novelty extractor with local Ollama prompt-mode calls. |
 
 ## Skills Without Runnable Examples
 
