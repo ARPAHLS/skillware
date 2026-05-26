@@ -1,6 +1,7 @@
 name: "my-awesome-skill"
 version: "0.1.0"
 description: "A short description of what this skill does."
+short_description: "One-line summary for skillware list (~80 chars)."
 issuer:
   name: Your Name
   email: you@example.com

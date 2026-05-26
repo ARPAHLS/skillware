@@ -101,7 +101,7 @@ pip install "skillware[cli]"
 skillware list
 ```
 
-This prints a table of all locally available skills and confirms the install and path resolution are working.
+This prints a table of all locally available skills and confirms the install and path resolution are working. Running `skillware` with no arguments opens the interactive menu.
 
 ### 3. Configuration
 

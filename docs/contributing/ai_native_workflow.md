@@ -253,6 +253,7 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
 - [ ] `manifest.yaml`: `name`, `version`, `description`, `parameters`, `constitution`, real `issuer`
+- [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
 - [ ] `skill.py`: deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
 - [ ] `card.json`: `issuer` matches manifest
