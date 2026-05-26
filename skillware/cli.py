@@ -130,7 +130,10 @@ def cmd_list(
         return
 
     table = Table(
-        box=box.SIMPLE_HEAVY, border_style=BORDER_STYLE, header_style=TABLE_STYLE, expand=True
+        box=box.SIMPLE_HEAVY,
+        border_style=BORDER_STYLE,
+        header_style=TABLE_STYLE,
+        expand=True,
     )
 
     table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
@@ -152,11 +155,13 @@ def cmd_list(
 
     console.print(table)
 
+
 def _print_menu(console, menu) -> None:
     for num, name, desc in menu:
         console.print(f"    [{num}] {name:<20}— {desc}", style=MENU_STYLE)
 
     console.print()
+
 
 def cmd_interactive(console=None, parser=None) -> None:
     """Launch ASCII splash screen and interactive menu."""
@@ -194,7 +199,12 @@ def cmd_interactive(console=None, parser=None) -> None:
         )
     )
 
-    console.print(Text("  https://skillware.site  ·  https://github.com/arpahls/skillware\n", style=f"dim {SPLASH_STYLE}"))
+    console.print(
+        Text(
+            "  https://skillware.site  ·  https://github.com/arpahls/skillware\n",
+            style=f"dim {SPLASH_STYLE}",
+        )
+    )
 
     menu = [
         ("1", "list", "discover and display all locally installed skills"),

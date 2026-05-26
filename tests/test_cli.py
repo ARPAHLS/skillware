@@ -195,6 +195,7 @@ def test_cmd_interactive_unknown_command(monkeypatch):
     cmd_interactive(console=Console(file=buf, force_terminal=False))
     assert "Unknown command" in buf.getvalue()
 
+
 def test_cmd_interactive_list_dispatch(tmp_path, monkeypatch):
     """Entering 1 or list should dispatch to cmd_list."""
     import io
