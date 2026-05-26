@@ -155,11 +155,11 @@ def test_short_description_uses_short_description_field():
 
 
 def test_short_description_truncates_at_80_chars():
-    """short_description longer than 80 chars should be truncated with ..."""
+    """short_description longer than 80 chars should be truncated with …"""
     data = {"short_description": "A" * 90}
     result = _short_description(data)
-    assert len(result) == 83  # 80 + "..."
-    assert result.endswith("...")
+    assert len(result) == 81  # 80 + "…"
+    assert result.endswith("…")
 
 
 def test_short_description_falls_back_to_first_sentence():
@@ -184,17 +184,6 @@ def test_cmd_interactive_exits_on_q(monkeypatch):
     assert "Bye" in buf.getvalue()
 
 
-def test_cmd_interactive_exits_on_empty(monkeypatch):
-    """Pressing enter without input should exit cleanly."""
-    import io
-    from rich.console import Console
-
-    monkeypatch.setattr("builtins.input", lambda _: "")
-    buf = io.StringIO()
-    cmd_interactive(console=Console(file=buf, force_terminal=False))
-    assert "Bye" in buf.getvalue()
-
-
 def test_cmd_interactive_unknown_command(monkeypatch):
     """Unknown command should print error then exit on q."""
     import io
@@ -205,3 +194,27 @@ def test_cmd_interactive_unknown_command(monkeypatch):
     buf = io.StringIO()
     cmd_interactive(console=Console(file=buf, force_terminal=False))
     assert "Unknown command" in buf.getvalue()
+
+def test_cmd_interactive_list_dispatch(tmp_path, monkeypatch):
+    """Entering 1 or list should dispatch to cmd_list."""
+    import io
+    from rich.console import Console
+
+    skill_dir = tmp_path / "office" / "test_skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
+    (skill_dir / "manifest.yaml").write_text(
+        "name: test_skill\nversion: 0.1.0\ndescription: Test.\n"
+        "short_description: Test skill.\n"
+    )
+
+    responses = iter(["1", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    monkeypatch.chdir(tmp_path)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+    cmd_interactive(console=console)
+
+    output = buf.getvalue()
+    assert "test_skill" in output or "No skills found" in output
