@@ -10,7 +10,7 @@ CATEGORY_STYLE = "bold #FFDAC1"  # peach     - category column
 ID_STYLE = "#B5EAD7"  # mint      - skill ID column
 BORDER_STYLE = "#C7CEEA"  # lavender  - table border
 
-SPLASH_STYLE = "#C7CEEA"  # lavender  - swillware splash color
+SPLASH_STYLE = "#C7CEEA"  # lavender  - sKillware splash color
 MENU_STYLE = "#FFDAC1"  # peach     - menu category
 
 
@@ -41,7 +41,7 @@ def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
     """Return short_description if present, else first sentence of description truncated."""
     short = data.get("short_description", "").strip()
     if short:
-        return short[:max_len] + ("..." if len(short) > max_len else "")
+        return short[:max_len] + ("…" if len(short) > max_len else "")
 
     desc = data.get("description", "").strip()
 
@@ -53,7 +53,7 @@ def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
             desc = desc[: idx + 1]
             break
 
-    return desc[:max_len] + ("..." if len(desc) > max_len else "")
+    return desc[:max_len] + ("…" if len(desc) > max_len else "")
 
 
 def _discover_skills(
@@ -130,15 +130,15 @@ def cmd_list(
         return
 
     table = Table(
-        box=box.SIMPLE_HEAVY, border_style=BORDER_STYLE, header_style=TABLE_STYLE
+        box=box.SIMPLE_HEAVY, border_style=BORDER_STYLE, header_style=TABLE_STYLE, expand=True
     )
 
-    table.add_column("ID", style=ID_STYLE, no_wrap=True)
-    table.add_column("VERSION", style="dim")
-    table.add_column("CATEGORY", style=CATEGORY_STYLE)
-    table.add_column("ISSUER", style="dim")
-    table.add_column("DESCRIPTION")
-    table.add_column("REQUIREMENTS", style="dim")
+    table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
+    table.add_column("VERSION", style="dim", no_wrap=True, ratio=1)
+    table.add_column("CATEGORY", style=CATEGORY_STYLE, no_wrap=True, ratio=1)
+    table.add_column("ISSUER", style="dim", no_wrap=True, ratio=1)
+    table.add_column("DESCRIPTION", ratio=3)
+    table.add_column("REQUIREMENTS", style="dim", ratio=2)
 
     for skill in skills:
         table.add_row(
@@ -152,6 +152,11 @@ def cmd_list(
 
     console.print(table)
 
+def _print_menu(console, menu) -> None:
+    for num, name, desc in menu:
+        console.print(f"    [{num}] {name:<20}— {desc}", style=MENU_STYLE)
+
+    console.print()
 
 def cmd_interactive(console=None, parser=None) -> None:
     """Launch ASCII splash screen and interactive menu."""
@@ -184,22 +189,19 @@ def cmd_interactive(console=None, parser=None) -> None:
     console.print(Text(splash, style=SPLASH_STYLE))
     console.print(
         Text(
-            f"  Skill Management Framework - v{version}\n",
+            f"  Skill Management Framework — v{version}",
             style=f"dim {SPLASH_STYLE}",
         )
     )
 
+    console.print(Text("  https://skillware.site  ·  https://github.com/arpahls/skillware\n", style=f"dim {SPLASH_STYLE}"))
+
     menu = [
         ("1", "list", "discover and display all locally installed skills"),
-        ("2", "paths", "show and repair skill directory resolution paths"),
-        ("3", "test", "run test_skill.py for one or all skills"),
+        ("2", "paths (soon, #81)", "show and repair skill directory resolution paths"),
+        ("3", "test (soon, #83)", "run test_skill.py for one or all skills"),
         ("4", "help", "usage guide for any command"),
     ]
-
-    for num, name, desc in menu:
-        console.print(f"    [{num}] {name:<10}— {desc}", style=MENU_STYLE)
-
-    console.print()
 
     commands = {
         "1": "list",
@@ -212,6 +214,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         "help": "help",
     }
 
+    _print_menu(console, menu)
+
     while True:
         try:
             choice = input("  > ").strip().lower()
@@ -219,14 +223,14 @@ def cmd_interactive(console=None, parser=None) -> None:
             console.print("\n  Bye.", style="dim")
             return
 
-        if choice in ("q", ""):
+        if choice == "q":
             console.print("  Bye.", style="dim")
             return
 
         command = commands.get(choice)
 
         if command == "list":
-            cmd_list()
+            cmd_list(console=console)
         elif command in ("paths", "test"):
             console.print(
                 f"  '{command}' is not yet implemented. Coming in a future release.",
@@ -243,6 +247,7 @@ def cmd_interactive(console=None, parser=None) -> None:
             console.print(f"  Unknown command: '{choice}'", style="dim #FF9AA2")
 
         console.print()
+        _print_menu(console, menu)
 
 
 def main() -> None:
