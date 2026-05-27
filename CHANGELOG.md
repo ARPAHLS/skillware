@@ -4,13 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Contributors add user-facing entries under `[Unreleased]` in the same PR. Maintainers rename that section to a version and date when cutting a PyPI release. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-27
+
 ### Added
-- **`finance/wallet_screening`**: Added FTM publicKey matching and an ETH sanctions index (#128).
+- **Changelog**: Added root `CHANGELOG.md` following Keep a Changelog, with retrospective release history from v0.2.0 and a README nav link (#108).
+- **`finance/wallet_screening`**: FTM publicKey matching and an ETH sanctions index (#128).
 
 ### Changed
-- **CLI**: Implemented a visual redesign for `skillware list`, including a new splash screen, menu loop, and table layout (#129).
+- **CLI**: Visual redesign for `skillware list`, including pastel table, `short_description` column, interactive splash, and menu (#129).
+- **CLI**: Interactive polish - splash footer links, menu re-loop, stub labels for #81 / #83, width-aware table, shared terminal context (#130, #131).
+- **Contributing**: Aligned Code of Conduct, CONTRIBUTING, agent workflow, and PR template for CHANGELOG maintenance and co-authoring rules (#124).
+- **Documentation**: README documentation table and `docs/introduction.md` link to `CHANGELOG.md`; contributor template documents optional `short_description` (#130).
 
 ## [0.3.1] - 2026-05-25
 
@@ -63,7 +71,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - **Documentation:** Added contributor notes for PyPI packaging in `CONTRIBUTING.md` and the skill template README.
 
 ### Fixed
-- **Skill Loader:** Fixed skill resolution paths after `pip install` (#13). `SkillLoader.load_skill()` no longer restricts searches to `site-packages/skills/`. It now falls back through the following order: 
+- **Skill Loader:** Fixed skill resolution paths after `pip install` (#13). `SkillLoader.load_skill()` no longer restricts searches to `site-packages/skills/`. It now falls back through the following order:
   1. An existing path on disk (absolute or relative)
   2. Roots defined in the `SKILLWARE_SKILL_PATH` environment variable
   3. A local `skills/` folder in the current working directory (searching up to six parent directories)
@@ -104,7 +112,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 - **Testing:** Added central tests (`tests/skills/compliance/test_tos_evaluator.py`) and local skill tests.
 - **Documentation:** Added dedicated skill documentation (`docs/skills/tos_evaluator.md`) and updated the central skill catalog.
 - **Examples:** Added integration scripts (`examples/gemini_tos_evaluator.py`, `examples/claude_tos_evaluator.py`, `examples/ollama_tos_evaluator.py`).
-- **Dependencies:** Added `beautifulsoup4` (`bs4` in the manifest) to the project for deterministic HTML parsing 
+- **Dependencies:** Added `beautifulsoup4` (`bs4` in the manifest) to the project for deterministic HTML parsing.
 
 ## [0.2.4] - 2026-04-11
 
@@ -123,7 +131,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Added
 - **Zero-Latency PII Masker Skill:** Introduces the `compliance/pii_masker` component to act as a "Privacy Firewall", intercepting and scrubbing sensitive metadata (Names, Emails, Physical Addresses, Crypto Wallets) locally before external LLM dispatch.
 - **Ollama Edge Interoperability:** Leverages the 270M parameter `arpacorp/micro-f1-mask` structure for optimized, offline processing.
-- **Dynamic Modalities:** Added three processing modes for the masker: 
+- **Dynamic Modalities:** Added three processing modes for the masker:
   - `mask`: Preserves contextual entity tags (e.g., `[PERSON_1]`).
   - `redact`: Completely overwrites tokens with localized constants (`xxxx`).
   - `remove`: Intelligently drops strings from the payload to decrease token size.

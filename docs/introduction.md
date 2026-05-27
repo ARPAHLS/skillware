@@ -105,6 +105,7 @@ Skillware is designed to be the "Standard Library" for all agents.
 **Next Steps:**
 *   Explore the [Skill Library](skills/README.md)
 *   Browse the [Runnable Examples Index](../examples/README.md)
+*   View the [Changelog](../CHANGELOG.md) for release history
 *   Read [How to Contribute](../CONTRIBUTING.md) (skills, docs, framework, and bugs)
 *   If you are a contributing agent, follow the [Agent Contribution Workflow](contributing/ai_native_workflow.md)
 

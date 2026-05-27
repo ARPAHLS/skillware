@@ -91,6 +91,7 @@ You must:
 | New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
 | Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/` |
+| Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
 
@@ -158,8 +159,9 @@ Run a **pre-PR audit** on yourself:
 
 1. Map every acceptance criterion in the issue to a file or test in your diff.
 2. Complete the [verification checklist](#verification-checklists-by-contribution-type) for your contribution type.
-3. Run `flake8` and `pytest`; report actual command output to your operator—do not claim success without evidence.
-4. Draft PR template answers: check only boxes that apply; fill the skill section only if `skills/` changed.
+3. If the change is user-visible, confirm [CHANGELOG.md](../../CHANGELOG.md) has entries under `[Unreleased]` (same rule as [CONTRIBUTING.md](../../CONTRIBUTING.md)).
+4. Run `flake8` and `pytest`; report actual command output to your operator—do not claim success without evidence.
+5. Draft PR template answers: check only boxes that apply; fill the skill section only if `skills/` changed.
 
 If anything fails, return to Stage 4, fix, and audit again.
 
@@ -183,6 +185,7 @@ Commit message rules you must follow:
 - Imperative mood (`Add`, `Fix`, `Document`)
 - No emojis
 - Issue references when appropriate (`Fixes #57`, `Refs #12`)
+- Do not add AI tools or agents in `Co-authored-by:` trailers (see [Code of Conduct — Contribution process](../../CODE_OF_CONDUCT.md#contribution-process))
 - Prefer scoped `git add` over blind `git add -A` when the diff is mixed
 
 Confirm the diff contains no credentials or accidental large binaries before you ask for a push.
@@ -241,7 +244,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 
 ### Conduct
 
-- Follow the [Agent Code of Conduct](../../CODE_OF_CONDUCT.md)
+- Follow the [Agent Code of Conduct](../../CODE_OF_CONDUCT.md), including [contribution process and co-authoring rules](../../CODE_OF_CONDUCT.md#contribution-process)
 
 ---
 
@@ -265,12 +268,14 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `examples/README.md` updated if a new or changed script lives under `examples/`
 - [ ] No placeholders under `skills/`
 - [ ] PR skill section completed
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` when the skill or its user-facing docs change (unless the issue says otherwise)
 
 ### Documentation only
 
 - [ ] All issue acceptance criteria met
 - [ ] Links valid
 - [ ] `examples/README.md` row added or updated if the issue touches runnable examples
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` when the change is user-visible
 - [ ] No emojis; tone matches repo
 - [ ] No unrelated code changes
 - [ ] PR marked as documentation; skill checklist omitted unless `docs/skills/` or skill **Usage Examples** changed (then apply the Usage Examples bullet above)
@@ -282,6 +287,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `pytest tests/` passes
 - [ ] Usage docs updated if API changed
 - [ ] No undeclared breaking changes
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` when behavior changes
 
 ### Bug fix
 
@@ -289,6 +295,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] Minimal fix
 - [ ] Regression test when feasible
 - [ ] `flake8` and `pytest` pass
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` when the fix is user-visible
 
 ### Good first issue
 
@@ -325,6 +332,7 @@ Run this internal dialogue before you hand off to your operator.
 - Does the PR description explain why?
 - Did I link the issue with `Fixes` or `Refs`?
 - Are PR template checkboxes accurate—not copy-pasted unchecked defaults?
+- Is `CHANGELOG.md` updated under `[Unreleased]` when the change is user-visible?
 
 ---
 

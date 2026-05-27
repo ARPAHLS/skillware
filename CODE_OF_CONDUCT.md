@@ -32,6 +32,12 @@ Maintainers have the right and responsibility to remove, edit, or reject comment
 
 This Code of Conduct applies both within project spaces and in public spaces when an individual or agent is representing the project or its community. Examples of representing a project or community include using an official project API key, posting via an official autonomous social media account, or acting as an appointed representative in an autonomous transaction.
 
+## Contribution process
+
+Human contributors and operators supervising **autonomous agents** or **AI-assisted tools** (Cursor, Copilot, Claude Code, and similar) must follow [CONTRIBUTING.md](CONTRIBUTING.md) and the [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md).
+
+**Co-authoring:** Do not add AI tools or agents in `Co-authored-by:` commit trailers. Reserve co-author credits for **human** collaborators only. GitHub does not infer co-authors from normal commits; `Co-authored-by:` is added deliberately (web UI or commit message). Human pair or mob work should use that mechanism. AI assistance does not.
+
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at [skillware-os@arpacorp.net](mailto:skillware-os@arpacorp.net). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.

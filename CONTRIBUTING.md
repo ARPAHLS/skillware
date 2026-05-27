@@ -105,7 +105,8 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - Change only what the issue requires. Avoid unrelated refactors or drive-by edits.
 - Do not bump the package version in `pyproject.toml` unless the issue or a maintainer explicitly requests it (skill-only PRs typically do not version the framework).
-- For user-facing changes, add entries under `[Unreleased]` in `CHANGELOG.md` in the same PR. Do not add version headers or publish releases; maintainers cut releases.
+- When a PR changes **user-visible behavior** (framework features, new or changed skills, breaking fixes, CLI or documentation users rely on), add entries under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) in the same PR (Keep a Changelog sections: Added / Changed / Fixed / Removed). Do not add version headers or publish releases; maintainers cut releases.
+- Skill-only PRs that will not ship in the next PyPI release may omit a CHANGELOG entry; ask on the issue or use maintainer judgment.
 
 ### Tests and CI
 
@@ -143,9 +144,10 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
    pytest tests/test_skill_issuer.py
    ```
 
-5. **Commit** — Clear imperative message, no emojis; include issue reference when appropriate.
-6. **Push** to your fork and open a PR into `ARPAHLS/skillware` `main`.
-7. **CI** — Ensure checks pass; address review feedback on the same branch.
+5. **Commit** — Clear imperative message, no emojis; include issue reference when appropriate. Do not add AI tools in `Co-authored-by:` trailers (see [Agent Code of Conduct](CODE_OF_CONDUCT.md#contribution-process)).
+6. **Changelog** — If the PR is user-visible, add lines under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) before opening the PR.
+7. **Push** to your fork and open a PR into `ARPAHLS/skillware` `main`.
+8. **CI** — Ensure checks pass; address review feedback on the same branch.
 
 ### Skill-specific steps (in addition to the above)
 
@@ -168,7 +170,8 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 **Required fields and sections:**
 
 - `name`, `version`, `description`
-- `issuer` — see [Issuer attribution](#issuer-attribution)
+- `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
+- `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
 - `parameters` — valid JSON Schema for LLM tool calling
 - `constitution` — safety boundaries enforced at the prompt level
 - `requirements` — when external packages are needed (for example `requests`, `pandas`)
@@ -314,6 +317,7 @@ Skill IDs follow `category/skill_name` and should match the path under `skills/`
 | [docs/skills/README.md](docs/skills/README.md) | Published skill catalog |
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |
+| [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
 | [Security policy](SECURITY.md) | Reporting vulnerabilities |
 
 ---

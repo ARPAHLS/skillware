@@ -29,6 +29,7 @@ Humans: Please describe what this PR does and why it's needed.
 
 - [ ] My code follows the **Agent Code of Conduct**.
 - [ ] I have run `python -m flake8 .` and `pytest tests/` locally (or the subset relevant to this change).
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` if this PR changes user-visible behavior.
 - [ ] `examples/README.md` is updated if this PR adds, renames, or removes a runnable script under `examples/`.
 
 ## New or updated skill (complete only if this PR adds or changes a skill under `skills/`)
@@ -40,6 +41,7 @@ Skip this section for framework-only, documentation-only, or other PRs that do n
 - [ ] Skill lives at `skills/<category>/<skill_name>/` (copied from `templates/python_skill/` or equivalent).
 - [ ] `manifest.yaml` has `name`, `version`, `description`, valid `parameters`, and `constitution`.
 - [ ] `manifest.yaml` includes `issuer` with real `name` and `email` (not template placeholders).
+- [ ] Optional: `short_description` in manifest (~80 chars) for `skillware list`.
 - [ ] Optional: `issuer.github` and `issuer.org` set when applicable.
 - [ ] `requirements` and `env_vars` are documented when the skill needs them.
 

@@ -179,6 +179,7 @@ For other providers and shared integration patterns, see the [usage guides index
 | Topic | Link |
 | :--- | :--- |
 | Introduction | [docs/introduction.md](docs/introduction.md) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | Testing | [docs/TESTING.md](docs/TESTING.md) |
 | Skill library | [docs/skills/README.md](docs/skills/README.md) |
 | Usage guides | [index](docs/usage/README.md) — [Gemini](docs/usage/gemini.md) · [Claude](docs/usage/claude.md) · [OpenAI](docs/usage/openai.md) · [DeepSeek](docs/usage/deepseek.md) · [Ollama](docs/usage/ollama.md); [agent loops](docs/usage/agent_loops.md); [API keys](docs/usage/api_keys.md) |
