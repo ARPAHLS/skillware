@@ -2,9 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+- **`finance/wallet_screening`**: Added FTM publicKey matching and an ETH sanctions index (#128).
+
+### Changed
+- **CLI**: Implemented a visual redesign for `skillware list`, including a new splash screen, menu loop, and table layout (#129).
+
+## [0.3.1] - 2026-05-25
+
+### Added
+- **Novelty Extractor Skill**: Introduced the `data_engineering/novelty_extractor` skill (#116, fixes #24).
+- **Examples Index**: Added `examples/README.md` to serve as the canonical index of runnable provider scripts (#107).
+
+### Changed
+- **SDK Migration**: Migrated framework and examples from `google-generativeai` to the new `google-genai` SDK (#97) and updated all usage documentation snippets (#92).
+- **Documentation**: Improved README navigation and overall skill catalog discoverability (#98).
+- **Documentation**: Cross-linked runnable examples directly on skill catalog pages (#121) and synced `agent_loops.md` with the central examples index (#122).
 
 ## [0.2.9] - 2026-05-22
 
@@ -17,12 +34,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Leaner Core Install:** Removed heavy SDKs (`anthropic`, `google-generativeai`, `pymupdf`, `openai`) from the default installation, reducing core requirements to just `requests`, `pyyaml`, `python-dotenv`, and `beautifulsoup4` (#87).
 - **Dependency Management:** Consolidated dependency management entirely into `pyproject.toml`.
 - **Requirements File:** Transformed `requirements.txt` into a dev-convenience pointer (running `pip install -e ".[dev,all]"`) rather than a duplicate flat dependency list.
-
-### Fixed
-- (None)
-
-### Removed
-- (None)
 
 ## [0.2.8] - 2026-05-22
 
@@ -42,9 +53,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - **Metadata:** Corrected the author name in `pyproject.toml` from `ARPA Hellenic Logic Systems` to `ARPA Hellenic Logical Systems`.
 
-### Removed
-- (None)
-
 ## [0.2.7] - 2026-05-18
 
 ### Added
@@ -54,9 +62,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Documentation:** Added a "Finding skills on disk" usage guide.
 - **Documentation:** Added contributor notes for PyPI packaging in `CONTRIBUTING.md` and the skill template README.
 
-### Changed
-- (None)
-
 ### Fixed
 - **Skill Loader:** Fixed skill resolution paths after `pip install` (#13). `SkillLoader.load_skill()` no longer restricts searches to `site-packages/skills/`. It now falls back through the following order: 
   1. An existing path on disk (absolute or relative)
@@ -64,9 +69,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   3. A local `skills/` folder in the current working directory (searching up to six parent directories)
   4. Bundled registry skills shipped with the package
   *(Note: If nothing matches, the error now explicitly lists the paths that were tried).*
-
-### Removed
-- (None)
 
 ## [0.2.6] - 2026-05-17
 
@@ -89,12 +91,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Contributing:** Restructured `CONTRIBUTING.md` for contribution types and skill standards (#64).
 - **Contributing:** Aligned the Usage Examples requirement in CONTRIBUTING and agent workflow (#71).
 
-### Fixed
-- (None)
-
-### Removed
-- (None)
-
 ## [0.2.5] - 2026-04-28
 
 ### Added
@@ -108,16 +104,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Testing:** Added central tests (`tests/skills/compliance/test_tos_evaluator.py`) and local skill tests.
 - **Documentation:** Added dedicated skill documentation (`docs/skills/tos_evaluator.md`) and updated the central skill catalog.
 - **Examples:** Added integration scripts (`examples/gemini_tos_evaluator.py`, `examples/claude_tos_evaluator.py`, `examples/ollama_tos_evaluator.py`).
-- **Dependencies:** Added `beautifulsoup4` (`bs4` in the manifest) to the project dependencies for deterministic HTML parsing.
-
-### Changed
-- (None)
-
-### Fixed
-- (None)
-
-### Removed
-- (None)
+- **Dependencies:** Added `beautifulsoup4` (`bs4` in the manifest) to the project for deterministic HTML parsing 
 
 ## [0.2.4] - 2026-04-11
 
@@ -153,14 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Zero-Dependency Entropy Scoring:** Added a new `zlib` compression ratio heuristic to natively validate lexical entropy and block boilerplate outputs without heavy NLP dependencies.
 - **New Documentation:** Launched the `Data Engineering` category in the central skill registry along with comprehensive integration guides and integration scripts (`examples/build_dataset_demo.py`).
 
-### Changed
-- (None)
-
 ### Fixed
 - **Bug Fixes:** Addressed all `flake8` PEP8 linting issues across the module.
-
-### Removed
-- (None)
 
 ## [0.2.1] - 2026-03-21
 ### Added
@@ -175,9 +156,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - **CI/CD Alignment:** Fixed linting and formatting issues to ensure 100% `flake8` compliance in core registry files.
-
-### Removed
-- (None)
 
 ## [0.2.0] - 2026-03-21
 - Consolidated and rolled forward into `v0.2.1`.

@@ -105,6 +105,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - Change only what the issue requires. Avoid unrelated refactors or drive-by edits.
 - Do not bump the package version in `pyproject.toml` unless the issue or a maintainer explicitly requests it (skill-only PRs typically do not version the framework).
+- For user-facing changes, add entries under `[Unreleased]` in `CHANGELOG.md` in the same PR. Do not add version headers or publish releases; maintainers cut releases.
 
 ### Tests and CI
 
