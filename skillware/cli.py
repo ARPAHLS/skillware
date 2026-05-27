@@ -10,7 +10,7 @@ CATEGORY_STYLE = "bold #FFDAC1"  # peach     - category column
 ID_STYLE = "#B5EAD7"  # mint      - skill ID column
 BORDER_STYLE = "#C7CEEA"  # lavender  - table border
 
-SPLASH_STYLE = "#C7CEEA"  # lavender  - sKillware splash color
+SPLASH_STYLE = "#C7CEEA"  # lavender  - skillware splash color
 MENU_STYLE = "#FFDAC1"  # peach     - menu category
 
 

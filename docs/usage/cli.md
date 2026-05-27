@@ -18,8 +18,19 @@ interactive numbered menu:
 
     skillware
 
-The menu accepts both number input (`1`) and command name (`list`). Press `q`
-or Enter to exit cleanly.
+The splash displays the current version and links to the project site and
+repository. The menu accepts both number input (`1`) and command name (`list`).
+After each command completes, the menu re-prints automatically. Press `q` or
+`Ctrl+C` to exit.
+
+Available commands:
+
+| Input | Command | Status |
+| :--- | :--- | :--- |
+| `1` / `list` | List all locally installed skills | Available |
+| `2` / `paths` | Show and repair skill directory resolution paths | Coming in #81 |
+| `3` / `test` | Run test_skill.py for one or all skills | Coming in #83 |
+| `4` / `help` | Print usage information | Available |
 
 ## Commands
 

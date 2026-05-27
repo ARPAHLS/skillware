@@ -218,4 +218,4 @@ def test_cmd_interactive_list_dispatch(tmp_path, monkeypatch):
     cmd_interactive(console=console)
 
     output = buf.getvalue()
-    assert "test_skill" in output or "No skills found" in output
+    assert "test_skill" in output
