@@ -2,12 +2,17 @@
 
 ## Supported Versions
 
-Use the latest version of Skillware to ensure you have the latest security patches.
+Use a current Skillware release to receive security fixes. We patch vulnerabilities only for supported versions.
 
-| Version | Supported |
-| ------- | --------- |
-| 0.2.x   | Yes       |
-| < 0.1.0   | No        |
+| Installed version | Security support | CLI advisory |
+| :--- | :--- | :--- |
+| **>= 0.3.1** | Supported. Security reports accepted and patched here. | Silent |
+| **0.2.6 – 0.3.0** | No security fixes. Upgrade recommended. | Silent (no upgrade spam) |
+| **< 0.2.6** (e.g. 0.2.5) | Unsupported. | One dim stderr message at CLI startup (in releases that ship this check) |
+
+Thresholds are defined in `skillware/version_policy.py` (`MIN_SECURITY_SUPPORTED`, `MIN_UNSUPPORTED`) and bumped by maintainers when support windows change.
+
+**Note:** PyPI releases are immutable. Users on very old wheels will not see the CLI advisory until they upgrade to a release that includes this logic at least once. That is expected for OSS packaging.
 
 ## Reporting a Vulnerability
 

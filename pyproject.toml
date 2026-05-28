@@ -22,6 +22,7 @@ dependencies = [
     "pyyaml",
     "python-dotenv",
     "beautifulsoup4",
+    "packaging",
 ]
 requires-python = ">=3.10"
 

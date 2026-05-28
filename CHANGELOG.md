@@ -9,9 +9,14 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ## [Unreleased]
 
 ### Added
+- **Version policy**: `skillware/version_policy.py` with supported-version thresholds; CLI prints one dim stderr advisory only for installs below `0.2.6` (#132).
+- **Tests**: `tests/test_version_policy.py` for advisory thresholds, opt-out, and CLI hook (#132).
 - **Documentation**: Added [docs/vision.md](docs/vision.md) with project story, roadmap, and agent discoverability (#133).
 
 ### Changed
+- **SECURITY.md**: Supported-version table aligned with `>= 0.3.1` security support and unsupported `< 0.2.6` band (#132).
+- **CLI**: Calls version advisory once at `main()` startup, not on menu re-loops (#132).
+- **Dependencies**: Added `packaging` for semver comparisons (#132).
 - **Documentation**: README Mission links to vision.md; wallet screening comparison table lives in COMPARISON.md; docs table and cross-links updated (#133).
 
 ## [0.3.2] - 2026-05-27

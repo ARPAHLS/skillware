@@ -11,6 +11,21 @@ The CLI depends on `rich` for terminal output. Install it with the `cli` extra:
 
     pip install "skillware[cli]"
 
+## Version advisory
+
+On CLI startup, Skillware checks the installed package version **once per process**.
+If you are on an **unsupported** release (below `0.2.6`, for example `0.2.5`), a single
+dim message is printed to stderr suggesting an upgrade to `>= 0.3.1`. Current and
+recent installs (`0.2.6` and above) stay silent so normal use is not spammed.
+
+Library use (`import skillware`, `SkillLoader`) never prints this message.
+
+To disable the check in CI or automation:
+
+    export SKILLWARE_NO_VERSION_CHECK=1
+
+See [SECURITY.md](../../SECURITY.md) for the full supported-version policy.
+
 ## Interactive menu
 
 Running `skillware` with no arguments launches an ASCII splash screen and an

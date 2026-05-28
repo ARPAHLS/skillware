@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 from skillware.core.loader import SkillLoader
+from skillware.version_policy import emit_upgrade_advisory
 
 TABLE_STYLE = "bold #C7CEEA"  # lavender  - headers
 CATEGORY_STYLE = "bold #FFDAC1"  # peach     - category column
@@ -262,6 +263,8 @@ def cmd_interactive(console=None, parser=None) -> None:
 
 def main() -> None:
     """CLI entry point."""
+    emit_upgrade_advisory()
+
     parser = argparse.ArgumentParser(prog="skillware")
     subparsers = parser.add_subparsers(dest="command")
 
