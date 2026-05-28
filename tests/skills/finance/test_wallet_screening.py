@@ -162,3 +162,91 @@ def test_sanctions_index_real_ftm_publickey_vector():
     assert len(hits) >= 1
     assert hits[0]["__source_file__"] == "entities.ftm.json"
     assert SANCTIONED_ETH in hits[0].get("properties", {}).get("publicKey", [])
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+def test_tx_risk_detects_uniswap_trm_counterparty(mock_get):
+    skill = get_skill()
+    skill.etherscan_api_key = "dummy_key"
+    trm_addr = "0x009988Ff77eEaa00051238ee32C48f10a174933E"
+    skill.malicious_contracts = []
+    skill.additional_datasets = [
+        {
+            "address": trm_addr,
+            "name": "TRM Test Address",
+            "reason": "Scam (High)",
+            "severity": "high",
+            "__source_file__": "normalized_uniswap_trm.json",
+        }
+    ]
+    skill._build_sanctions_index()
+    skill._build_tx_risk_index()
+
+    mock_eth_balance = MagicMock()
+    mock_eth_balance.json.return_value = {"status": "1", "result": "0"}
+    mock_txs = MagicMock()
+    mock_txs.json.return_value = {
+        "status": "1",
+        "result": [
+            {
+                "from": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+                "to": trm_addr,
+                "value": "10000000000000000",
+                "isError": "0",
+                "gasUsed": "21000",
+                "gasPrice": "1000000000",
+                "hash": "0xtesthashtrm",
+            }
+        ],
+    }
+    mock_price = MagicMock()
+    mock_price.json.return_value = {"ethereum": {"usd": 2000.0, "eur": 1800.0}}
+
+    def get_side_effect(url, **kwargs):
+        params = kwargs.get("params") or {}
+        if params.get("action") == "balance":
+            return mock_eth_balance
+        if params.get("action") == "txlist":
+            return mock_txs
+        return mock_price
+
+    mock_get.side_effect = get_side_effect
+    result = skill.execute({"address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"})
+
+    assert result["summary"]["malicious_interaction_count"] == 1
+    interaction = result["risk_details"]["malicious_interactions"][0]
+    assert interaction["other_party"] == trm_addr.lower()
+    assert interaction["source_file"] == "normalized_uniswap_trm.json"
+    assert "normalized_uniswap_trm.json" in interaction["sources"]
+
+
+def test_tx_risk_index_merges_core_and_additional_sources():
+    skill = get_skill()
+    core_addr = "0x1111111111111111111111111111111111111111"
+    trm_addr = "0x2222222222222222222222222222222222222222"
+    skill.malicious_contracts = [
+        {
+            "address": core_addr,
+            "name": "Core Mixer",
+            "severity": "high",
+            "jurisdictions_blocked": ["US"],
+        }
+    ]
+    skill.additional_datasets = [
+        {
+            "address": trm_addr,
+            "name": "TRM Scam Address",
+            "reason": "Scam (Critical)",
+            "severity": "critical",
+            "__source_file__": "normalized_uniswap_trm.json",
+        }
+    ]
+    skill._build_tx_risk_index()
+
+    core_entries = skill._lookup_tx_risk_entries(core_addr)
+    trm_entries = skill._lookup_tx_risk_entries(trm_addr)
+
+    assert len(core_entries) == 1
+    assert core_entries[0]["contract_name"] == "Core Mixer"
+    assert len(trm_entries) == 1
+    assert trm_entries[0]["source_file"] == "normalized_uniswap_trm.json"

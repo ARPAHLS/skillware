@@ -38,6 +38,9 @@ class WalletScreeningSkill(BaseSkill):
         # ETH address -> sanctions records (built once; O(1) lookup per screen)
         self._sanctions_index: Dict[str, List[Dict]] = {}
         self._build_sanctions_index()
+        # ETH address -> tx risk records (core malicious + normalized lists)
+        self._tx_risk_index: Dict[str, List[Dict]] = {}
+        self._build_tx_risk_index()
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -138,9 +141,7 @@ class WalletScreeningSkill(BaseSkill):
         """Normalize and validate an Ethereum address (EIP-55 checksum not required)."""
         if not isinstance(address, str):
             return None
-        cleaned = address.strip().translate(
-            {ord(c): None for c in _ZERO_WIDTH_CHARS}
-        )
+        cleaned = address.strip().translate({ord(c): None for c in _ZERO_WIDTH_CHARS})
         if not cleaned.lower().startswith("0x"):
             return None
         normalized = "0x" + cleaned[2:].lower()
@@ -213,6 +214,53 @@ class WalletScreeningSkill(BaseSkill):
             return []
         return list(self._sanctions_index.get(normalized, []))
 
+    @staticmethod
+    def _severity_rank(value: str) -> int:
+        order = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+        return order.get(str(value).lower(), 0)
+
+    def _record_to_tx_risk_entry(self, record: Dict) -> Dict[str, Any]:
+        return {
+            "contract_name": record.get("name")
+            or record.get("label")
+            or record.get("caption")
+            or "Unknown",
+            "severity": (record.get("severity") or "high").lower(),
+            "category": record.get("category") or record.get("reason") or "malicious",
+            "source_file": record.get("__source_file__", "malicious_scs_2025.json"),
+            "jurisdictions": record.get("jurisdictions_blocked", []),
+        }
+
+    def _build_tx_risk_index(self) -> None:
+        """Index normalized ETH addresses used for tx-level risk screening."""
+        index: Dict[str, List[Dict]] = {}
+        for record in self.malicious_contracts:
+            if not isinstance(record, dict):
+                continue
+            for addr in self._eth_addresses_from_record(record):
+                index.setdefault(addr, []).append(self._record_to_tx_risk_entry(record))
+
+        for record in self.additional_datasets:
+            if not isinstance(record, dict):
+                continue
+            source = str(record.get("__source_file__", "")).lower()
+            if (
+                "uniswap_trm" not in source
+                and "trm" not in source
+                and "malicious" not in source
+            ):
+                continue
+            for addr in self._eth_addresses_from_record(record):
+                index.setdefault(addr, []).append(self._record_to_tx_risk_entry(record))
+
+        self._tx_risk_index = index
+
+    def _lookup_tx_risk_entries(self, address: str) -> List[Dict]:
+        normalized = self.normalize_eth_address(address)
+        if not normalized:
+            return []
+        return list(self._tx_risk_index.get(normalized, []))
+
     def _get_price(self, url: str, currency: str) -> float:
         try:
             resp = requests.get(url, timeout=10)
@@ -271,8 +319,6 @@ class WalletScreeningSkill(BaseSkill):
         counterparty_counts = {}
         malicious_interactions = []
 
-        malicious_map = {c["address"].lower(): c for c in self.malicious_contracts}
-
         for tx in txs:
             from_addr = tx.get("from", "").lower()
             to_addr = tx.get("to", "").lower() if tx.get("to") else ""
@@ -300,21 +346,34 @@ class WalletScreeningSkill(BaseSkill):
 
             # Malicious Check
             other_party = None
-            if to_addr and to_addr in malicious_map:
-                other_party = to_addr
-            elif from_addr and from_addr in malicious_map:
-                other_party = from_addr
+            tx_risk_entries: List[Dict] = []
+            if to_addr:
+                tx_risk_entries = self._lookup_tx_risk_entries(to_addr)
+                if tx_risk_entries:
+                    other_party = to_addr
+            if not tx_risk_entries and from_addr:
+                tx_risk_entries = self._lookup_tx_risk_entries(from_addr)
+                if tx_risk_entries:
+                    other_party = from_addr
 
-            if other_party:
-                contract_info = malicious_map[other_party]
+            if other_party and tx_risk_entries:
+                primary = max(
+                    tx_risk_entries,
+                    key=lambda item: self._severity_rank(item.get("severity", "")),
+                )
+                sources = sorted(
+                    {entry.get("source_file", "Unknown") for entry in tx_risk_entries}
+                )
                 malicious_interactions.append(
                     {
                         "tx_hash": tx.get("hash"),
                         "other_party": other_party,
                         "direction": "out" if from_addr == wallet_addr else "in",
-                        "contract_name": contract_info.get("name"),
-                        "severity": contract_info.get("severity"),
-                        "jurisdictions": contract_info.get("jurisdictions_blocked", []),
+                        "contract_name": primary.get("contract_name"),
+                        "severity": primary.get("severity"),
+                        "jurisdictions": primary.get("jurisdictions", []),
+                        "source_file": primary.get("source_file"),
+                        "sources": sources,
                         "value_eth": value_eth,
                     }
                 )
