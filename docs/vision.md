@@ -36,7 +36,7 @@ Consider screening an Ethereum wallet for sanctions exposure and risky counterpa
 
 The [`finance/wallet_screening`](../skills/finance/wallet_screening/) skill packages all of that. Bundled JSON datasets sit beside the Python runner. Optional Etherscan access enriches live chain data. The agent receives a tool schema plus `instructions.md` that teach it how to interpret the JSON verdict.
 
-Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the table under [Comparison](../README.md#comparison) in the README.
+Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
 
 ---
 
@@ -58,29 +58,51 @@ New contributors should not need to reverse-engineer the repo to find the right 
 
 ## Roadmap in four phases
 
-This is direction, not a delivery schedule. Future phases are roadmap items.
+Skillware follows one thread: modular capability you can install, trust, and extend across models, machines, and people.
 
-### 1. Now: modular skills for existing LLMs
+### v0: Modular Agent Skills
 
-Ship a growing public registry, a stable loader, model adapters, tests, and docs. Make it trivial to install a skill and call it from any major LLM runtime. **You are here.**
+**Self-contained, deterministic skills for any LLM or agent**
 
-### 2. Next: ultimate skills with industry partners
+**In short:** A public registry, a stable loader, model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.3.x).
 
-Co-develop deeper skills with domain partners: compliance, finance, robotics vendors, and similar. Higher assurance data, shared maintenance, and production-grade bundles beyond community contributions alone.
+**Example:** Your agent runs `pip install skillware`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
 
-### 3. World skills: robots, drones, appliances
+---
 
-Extend the same bundle model to physical systems. A skill becomes a portable contract between an agent and a device or simulation, not only a Python function behind an API.
+### v1: Ultimate skills
 
-### 4. Brain skills: BCI-scale skill delivery
+**Partner-grade bundles with verified data and shared maintenance**
 
-Long-term vision: deliver procedural capability at the edge of human-machine interfaces. Same modular idea, different execution surface. Research and partnership territory.
+**In short:** Co-develop deeper skills with industry partners in compliance, finance, supply chain & logistics, manufacturing, among other domains. Higher-assurance datasets, SLAs, and production ownership beyond community contributions alone.
+
+**Example:** An OEM and a plant operator co-maintain a skill chain for production lines: ingest IoT telemetry, normalize units, flag anomalies, and alert on silo levels, line stoppages, and vendor price shifts. Live feeds, audit logs, and signed releases ship inside the bundle. The same skill ids run in staging and on the floor. Logic, governance, and data provenance stay aligned because the bundle is the contract, not a patchwork of prompts and ad-hoc integrations.
+
+---
+
+### v2: World skills
+
+**Skills for robots, UAVs and drones, appliances, and the physical world**
+
+**In short:** Extend the bundle model beyond Python-in-a-process. A skill becomes a portable contract between an agent and a device, sensor mesh, or simulation.
+
+**Example:** At home, a fridge skill uses vision to notice you are low on milk, checks vendor skills for a three-day discount at store X, and suggests pickup after your gym slot tomorrow. A drone skill inspects a roof or field boundary from a live feed. Same installable idea, different surfaces and devices.
+
+---
+
+### v3: Brain skills
+
+**Procedural delivery at the edge of human-machine interfaces**
+
+**In short:** Long-term research and partnership territory. Deliver practice, language, and job skills through interfaces where cognition and execution meet, not only through chat or APIs.
+
+**Example:** A learner installs a language or trade skill and receives structured procedural capability: pronunciation drills, safety checks on a lathe, or clinical triage steps under supervision. Decades of practice compressed into a governed bundle the interface can invoke step by step. Same modular philosophy as v0, a different execution surface.
 
 ---
 
 ## Where we are today
 
-Honest snapshot as of the v0.3.x line:
+Honest snapshot for **v0** (current v0.3.x line):
 
 - **Registry**: Skills under `skills/` with docs in [docs/skills/](skills/README.md).
 - **Loader**: Dynamic import, dependency checks, and adapters for major LLM tool formats.

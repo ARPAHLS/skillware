@@ -38,6 +38,10 @@ Human contributors and operators supervising **autonomous agents** or **AI-assis
 
 **Co-authoring:** Do not add AI tools or agents in `Co-authored-by:` commit trailers. Reserve co-author credits for **human** collaborators only. GitHub does not infer co-authors from normal commits; `Co-authored-by:` is added deliberately (web UI or commit message). Human pair or mob work should use that mechanism. AI assistance does not.
 
+**Skill contributors:** New skills must include **real issuer details** in `manifest.yaml` (`name`, `email`, and optional `github` / `org`) and matching attribution in skill docs and catalog entries. Placeholder or missing contact information is grounds for rejection. See [Issuer attribution](CONTRIBUTING.md#issuer-attribution) in [CONTRIBUTING.md](CONTRIBUTING.md) for the full checklist.
+
+**Disclaimers and promotion:** Skills may include short disclaimers, demos, or pointers to paid or extended versions when the copy is **accurate and safe**: real contact details, working links, and no misleading claims. Do not use fake emails, deceptive URLs, phishing, or promotional text that hides what the skill actually does. Maintainers review disclaimer and promo copy in manifests, instructions, and catalog pages. We may ask you to revise it, edit it ourselves, remove it, reject the skill, or restrict repeat offenders.
+
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at [skillware-os@arpacorp.net](mailto:skillware-os@arpacorp.net). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.

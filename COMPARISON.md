@@ -6,6 +6,21 @@ This document clarifies how Skillware compares to other common approaches for eq
 
 ---
 
+## Wallet screening: same task, different approaches
+
+**Screening an Ethereum wallet for sanctions and risk** — qualitative comparison across four methods:
+
+| Method | Speed | Cost | Accuracy | Reliability | Security | Setup |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Skillware** (`wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install skillware` |
+| **Prompt + web search** | Minutes | High tokens | Low (misses on-chain signals) | Varies per run | Generated code and scraping | Prompt engineering |
+| **MCP / multi-agent** | Minutes+ | Tokens + infra | Medium (tool-dependent) | Server/agent-dependent | Many moving parts | Deploy servers |
+| **Native APIs** (Chainalysis, TRM) | Sseconds | High (enterprise) | High | SLA-backed | Vendor-controlled | Contracts |
+
+Skill detail: [wallet_screening.md](docs/skills/wallet_screening.md). Multi-layer screening runs locally in one call via [`finance/wallet_screening`](skills/finance/wallet_screening/).
+
+---
+
 ## 1. Skillware vs. Model Context Protocol (MCP)
 
 The [Model Context Protocol](https://github.com/modelcontextprotocol) (MCP) is an open standard that connects AI models to data sources and tools via a client-server architecture.
