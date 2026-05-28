@@ -16,6 +16,7 @@
 
 <div align="center">
   <a href="#mission">Mission</a> •
+  <a href="docs/vision.md">Vision</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
@@ -33,7 +34,7 @@
 
 ## Mission
 
-The AI ecosystem is fragmented. Developers often re-invent tool definitions, system prompts, and safety rules for every project. **Skillware** supplies a standard to package capabilities into self-contained units that work across **Gemini**, **Claude**, **Ollama**, **GPT**, and **Llama**.
+The AI ecosystem is fragmented. Developers often re-invent tool definitions, system prompts, and safety rules for every project. **Skillware** supplies a standard to package capabilities into self-contained, installable units that work across **Gemini**, **Claude**, **Ollama**, **GPT**, and **Llama**. For the full story and roadmap, see **[docs/vision.md](docs/vision.md)**.
 
 A **Skill** in this framework provides everything an Agent needs to master a domain:
 
@@ -179,6 +180,7 @@ For other providers and shared integration patterns, see the [usage guides index
 | Topic | Link |
 | :--- | :--- |
 | Introduction | [docs/introduction.md](docs/introduction.md) |
+| Vision | [docs/vision.md](docs/vision.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | Testing | [docs/TESTING.md](docs/TESTING.md) |
 | Skill library | [docs/skills/README.md](docs/skills/README.md) |
@@ -198,6 +200,17 @@ We are building the "App Store" for Agents and require professional, robust, and
 * **[Pull request template](.github/PULL_REQUEST_TEMPLATE.md)** — Checklists for skills, docs, and framework changes (complete only the sections that apply).
 
 ## Comparison
+
+**Screening an Ethereum wallet for sanctions and risk** — same task, different approaches:
+
+| Method | Speed | Cost | Accuracy | Reliability | Security | Setup |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Skillware** (`wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install skillware` |
+| **Prompt + web search** | Minutes | High tokens | Low (misses on-chain signals) | Varies per run | Generated code and scraping | Prompt engineering |
+| **MCP / multi-agent** | Slow | Tokens + infra | Medium (tool-dependent) | Server/agent-dependent | Many moving parts | Deploy servers |
+| **Native APIs** (Chainalysis, TRM) | Fast | High (enterprise) | High | SLA-backed | Vendor-controlled | Contracts |
+
+Skill detail: [wallet_screening](docs/skills/wallet_screening.md) · Full comparison: [COMPARISON.md](COMPARISON.md)
 
 Skillware differs from the Model Context Protocol (MCP) or Anthropic's Skills repository in the following ways:
 

@@ -103,6 +103,7 @@ Skillware is designed to be the "Standard Library" for all agents.
 
 ---
 **Next Steps:**
+*   Read the [Vision](vision.md) (story, roadmap, and where we are today)
 *   Explore the [Skill Library](skills/README.md)
 *   Browse the [Runnable Examples Index](../examples/README.md)
 *   View the [Changelog](../CHANGELOG.md) for release history

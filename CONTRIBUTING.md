@@ -314,6 +314,7 @@ Skill IDs follow `category/skill_name` and should match the path under `skills/`
 | [TESTING.md](docs/TESTING.md) | Black, Flake8, Pytest, local CI parity |
 | [Agent Code of Conduct](CODE_OF_CONDUCT.md) | Behavioral expectations for humans and agents |
 | [docs/introduction.md](docs/introduction.md) | Architecture: Mind, Body, Conscience |
+| [docs/vision.md](docs/vision.md) | Project story, roadmap, and agent discoverability |
 | [docs/skills/README.md](docs/skills/README.md) | Published skill catalog |
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |

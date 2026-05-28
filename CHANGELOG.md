@@ -8,6 +8,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+- **Documentation**: Added [docs/vision.md](docs/vision.md) with project story, roadmap, and agent discoverability (#133).
+
+### Changed
+- **Documentation**: README Mission links to vision.md; Comparison section adds wallet screening table; docs table and cross-links updated (#133).
+
 ## [0.3.2] - 2026-05-27
 
 ### Added

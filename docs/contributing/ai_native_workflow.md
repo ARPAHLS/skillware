@@ -339,6 +339,7 @@ Run this internal dialogue before you hand off to your operator.
 ## Related documents
 
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — contribution hub and skill standard
+- [Vision](../vision.md) — project story and roadmap
 - [TESTING.md](../TESTING.md) — Black, Flake8, Pytest
 - [Usage guides](../usage/README.md) — provider adapters (`to_gemini_tool`, `to_openai_tool`, etc.)
 - [Agent loops](../usage/agent_loops.md) — shared load / execute / tool-result pattern

@@ -1,6 +1,6 @@
 # Comparison: Skillware vs. Alternatives
 
-Skillware is a Python framework that decouples AI tool logic, cognition, and governance into self-contained, installable modules called **Skills**.
+Skillware is a Python framework that decouples AI tool logic, cognition, and governance into self-contained, installable modules called **Skills**. For the project story and roadmap, see [docs/vision.md](docs/vision.md).
 
 This document clarifies how Skillware compares to other common approaches for equipping AI agents with tools, including **Model Context Protocol (MCP)**, **Anthropic Skills**, **LangChain Tools**, **AutoGen**, and others.
 
