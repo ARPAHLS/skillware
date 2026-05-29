@@ -23,6 +23,7 @@ with editable install: `pip install -e ".[gemini]"`.
 | `build_dataset_demo.py` | `data_engineering/synthetic_generator` | Local execute (Gemini backend) | `[gemini]` | `GOOGLE_API_KEY` | Generates a JSONL synthetic dataset with the synthetic generator skill. |
 | `claude_pdf_form_filler.py` | `office/pdf_form_filler` | Claude | `[claude]`, `[office]` | `ANTHROPIC_API_KEY` | Uses Claude with the PDF form filler skill to map instructions to fields. |
 | `claude_tos_evaluator.py` | `compliance/tos_evaluator` | Claude | `[claude]` | `ANTHROPIC_API_KEY` | Runs a Claude tool loop for website automation policy review. |
+| `claude_issue_resolver.py` | `dev_tools/issue_resolver` | Claude | `[claude]` | `ANTHROPIC_API_KEY`; optional `GITHUB_TOKEN` | Claude loop for GitHub issue analysis; fetches issue data after `prepare` (sample: issue #123). |
 | `claude_wallet_check.py` | `finance/wallet_screening` | Claude | `[claude]` | `ANTHROPIC_API_KEY`, `ETHERSCAN_API_KEY` | Screens an Ethereum wallet and returns the result through a Claude tool loop. |
 | `deepseek_tos_evaluator.py` | `compliance/tos_evaluator` | DeepSeek | `[openai]` | `DEEPSEEK_API_KEY` | Uses the OpenAI-compatible DeepSeek API for terms-of-service evaluation. |
 | `gemini_pdf_form_filler.py` | `office/pdf_form_filler` | Gemini | `[gemini]`, `[office]` | `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY` | Uses Gemini as the agent while the PDF skill calls Anthropic for form filling. |
@@ -39,15 +40,8 @@ with editable install: `pip install -e ".[gemini]"`.
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | `pip install fastembed numpy` | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |
 | `gemini_novelty_extractor.py` | `data_engineering/novelty_extractor` | Gemini | `[gemini]`, `pip install fastembed numpy` | `GOOGLE_API_KEY` | Runs the novelty extractor with a Gemini function-calling loop. |
 | `ollama_novelty_extractor.py` | `data_engineering/novelty_extractor` | Ollama | `pip install fastembed numpy`; install `ollama` separately | None | Runs the novelty extractor with local Ollama prompt-mode calls. |
-
-## Skills Without Runnable Examples
-
-The catalog also includes skills that do not yet have a dedicated runnable
-script under `examples/`:
-
-| Skill ID | Status |
-| :--- | :--- |
-| `dev_tools/issue_resolver` | No runnable example yet. The skill has `skills/dev_tools/issue_resolver/test_skill.py`, but no provider or local workflow script in `examples/`. |
+| `gemini_issue_resolver.py` | `dev_tools/issue_resolver` | Gemini | `[gemini]` | `GOOGLE_API_KEY`; optional `GITHUB_TOKEN` | Gemini loop for GitHub issue analysis; fetches issue data after `prepare` (sample: issue #123). |
+| `ollama_issue_resolver.py` | `dev_tools/issue_resolver` | Ollama | No Skillware extra; install `ollama` separately | optional `GITHUB_TOKEN`; `OLLAMA_MODEL` (default `gemma4:e2b`) | Ollama prompt-mode loop for GitHub issue analysis (sample: issue #123). |
 
 ## Notes
 

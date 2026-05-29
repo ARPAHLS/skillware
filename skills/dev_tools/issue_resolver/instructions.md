@@ -2,7 +2,9 @@
 
 You are using the `dev_tools/issue_resolver` skill.
 
-Load this skill when the user provides a GitHub issue URL and asks you to understand, plan, or begin resolving it. The skill applies to any public GitHub repository. It is model-agnostic and does not assume any particular project's conventions.
+Load this skill when the user provides a **GitHub issue URL** and asks you to understand, plan, or resolve it. The skill applies to any public or authenticated GitHub repository. It is model-agnostic and does not assume any particular project's conventions, language, or directory layout.
+
+The skill does **not** call GitHub, run git, or write code. It returns URLs, ordered stage checklists with conditional rules, and commit-message gates. **You** fetch issue data, inspect the repository, and execute each stage with your own tools.
 
 ## When to use this skill
 
@@ -10,64 +12,37 @@ Load this skill when the user provides a GitHub issue URL and asks you to unders
 - The user asks you to analyse an issue, understand its scope, or produce an implementation plan.
 - The user wants to know which files will be affected before any code is written.
 - The user wants ranked options and a recommended approach before committing to implementation.
+- The user wants end-to-end guidance through verify, commit, and pull request — with gates before each advance.
 
-## Workflow you must follow after receiving the skill payload
+## Skill actions
 
-The skill's `execute()` call returns a `status: ready` payload containing pre-computed URLs. Use those URLs with your available tools to carry out the following stages in order. Do not skip stages.
+Call `execute()` with an `action`:
 
-### Stage 1 — Fetch the issue
+| action | When |
+|--------|------|
+| `prepare` (default) | Start: requires `issue_url`; returns GitHub API and raw content URLs |
+| `workflow_overview` | List all stages in order |
+| `stage_checklist` | Requires `stage`; returns steps and conditionals for that stage |
+| `validate_commit_message` | Requires `message`; gate before commit |
 
-Using the `issue.api_url` from the payload:
+## Workflow you must follow
 
-1. Fetch the issue via the GitHub API. If `auth.token_provided` is true, include the `Authorization: Bearer <token>` header.
-2. Extract: title, body, labels, state, assignees, milestone.
-3. Fetch any linked comments (`issue.api_url/comments`) and skim for decisions, constraints, or acceptance criteria that are not in the body.
-4. Check for linked pull requests or referenced issues in the body.
+1. Call `prepare` with the issue URL.
+2. Call `workflow_overview` or proceed directly to stages in order.
+3. At the **start of each stage**, call `stage_checklist` for that stage and follow its `steps` and applicable `conditionals`.
+4. Do not advance while blockers remain or required conditionals for this repository are unaddressed.
 
-### Stage 2 — Understand the repository
+**Stage order (mandatory):**
 
-Using the `repository` URLs from the payload:
+`discover_issue` → `discover_repository` → `analyze` → `plan` → `implement` → `verify` → `pre_commit` → `commit` → `pull_request`
 
-1. Fetch and read `repository.readme_url`. Identify: project purpose, tech stack, install instructions, any stated conventions.
-2. Fetch and read `repository.contributing_url` if it exists (do not fail if it returns 404). Identify: contribution workflow, code style, PR requirements, any skill or module standards.
-3. Fetch the directory tree via `repository.tree_api_url`. Identify the top-level structure: key source directories, test directories, docs directories, CI configuration, and any existing analogues to what the issue requests.
-4. If the issue references specific files or directories, fetch and inspect their current contents.
+Per-stage steps and conditionals live in the skill (`stage_checklist` responses), not in this file. Apply only conditionals that match what you observed in **discover_repository**; skip irrelevant ones and document ambiguous skips.
 
-### Stage 3 — Analyse
+**Key rules:**
 
-Produce a structured internal analysis covering:
-
-- **Problem statement**: what the issue is actually asking for, including unstated implications.
-- **Acceptance criteria**: verifiable bullets extracted or inferred from the issue body and comments.
-- **Affected files**: every path likely to change — source, tests, documentation, CI, changelogs, configuration. Only list paths you have confirmed exist or have strong reason to expect.
-- **Ripple effects**: downstream files, dependent modules, or external consumers that may be affected even if not directly changed.
-- **Options**: up to three distinct implementation approaches with honest trade-off analysis (complexity, risk, alignment with project conventions, reversibility).
-- **Recommendation**: one approach with a clear rationale.
-- **Out of scope**: what you will not do in this resolution cycle and why.
-- **Caveats**: required dependencies, breaking changes, security concerns, or prerequisites.
-
-### Stage 4 — Produce the resolution plan
-
-Format your output as a structured plan. Present it clearly to the user before writing any code. Include:
-
-1. Issue summary (2-4 sentences).
-2. Acceptance criteria (bulleted list).
-3. Affected files table (path, change type: new / modify / delete, rationale).
-4. Implementation options (ranked 1-3, each with title, approach, rationale, estimated complexity: low / medium / high).
-5. Recommended option with rationale.
-6. Caveats (bulleted list).
-7. Out of scope (bulleted list).
-
-Wait for explicit user approval of the plan before proceeding to implementation.
-
-### Stage 5 — Implementation (only after approval)
-
-Proceed only if the user explicitly approves a plan option. Then:
-
-- Implement only what the approved plan describes. Do not refactor unrelated code.
-- Follow project conventions observed in Stage 2.
-- After implementing, verify your work against every acceptance criterion.
-- Report verification results to the user with evidence.
+- Wait for explicit user approval after **plan** before **implement**.
+- If verification fails, return to **implement**; do not advance to **pre_commit**.
+- Call `validate_commit_message` before commit; do not commit until it returns `"ok": true` and the operator authorized push.
 
 ## Handling the extra_instructions field
 
@@ -75,18 +50,18 @@ If `extra_instructions` is present in the payload, treat it as caller-supplied c
 
 ## Handling missing repository files
 
-- If `README.md` returns 404, note the absence and proceed.
-- If `CONTRIBUTING.md` returns 404, note the absence and rely on directory structure and code conventions instead.
+- If `README.md` returns 404, note the absence and proceed using the tree and code.
+- If `CONTRIBUTING.md` returns 404, note the absence and rely on directory structure, CI, and code conventions instead.
 - If the repository is private and no token is provided, report the authentication requirement clearly and stop.
 
-## Output contract
+## Plan output contract
 
-When presenting the plan, populate these fields so callers can parse them programmatically if needed:
+When presenting the plan (stage **plan**), populate these fields so callers can parse them programmatically if needed:
 
 ```json
 {
   "issue_summary": "string",
-  "affected_files": ["path/to/file", "..."],
+  "affected_files": ["path/to/file"],
   "implementation_plans": [
     {
       "rank": 1,
@@ -97,8 +72,9 @@ When presenting the plan, populate these fields so callers can parse them progra
     }
   ],
   "recommended_plan": 1,
-  "caveats": ["string", "..."]
+  "caveats": ["string"],
+  "out_of_scope": ["string"]
 }
 ```
 
-Do not include emojis in any output field.
+Do not include emojis in any structured output field.

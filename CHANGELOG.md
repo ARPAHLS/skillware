@@ -8,12 +8,17 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-05-29
+
 ### Added
+- **`dev_tools/issue_resolver`**: GitHub issue workflow with sequential stage checklists, conditional verify/commit gates, and commit-message validation (#143).
+- **Examples**: `gemini_issue_resolver.py`, `claude_issue_resolver.py`, and `ollama_issue_resolver.py` for `dev_tools/issue_resolver` (#118).
 - **Version policy**: `skillware/version_policy.py` with supported-version thresholds; CLI prints one dim stderr advisory only for installs below `0.2.6` (#132).
 - **Tests**: `tests/test_version_policy.py` for advisory thresholds, opt-out, and CLI hook (#132).
 - **Documentation**: Added [docs/vision.md](docs/vision.md) with project story, roadmap, and agent discoverability (#133).
 
 ### Changed
+- **`finance/wallet_screening`**: Unified TRM/scam transaction risk index for analysis (#140).
 - **SECURITY.md**: Supported-version table aligned with `>= 0.3.1` security support and unsupported `< 0.2.6` band (#132).
 - **CLI**: Calls version advisory once at `main()` startup, not on menu re-loops (#132).
 - **Dependencies**: Added `packaging` for semver comparisons (#132).

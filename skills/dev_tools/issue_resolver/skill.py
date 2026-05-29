@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import re
 from typing import Any, Dict
@@ -5,18 +6,48 @@ from typing import Any, Dict
 from skillware.core.base_skill import BaseSkill
 
 
+def _import_workflow():
+    try:
+        from . import workflow as wf  # type: ignore[import-not-found]
+    except ImportError:
+        wf_path = os.path.join(os.path.dirname(__file__), "workflow.py")
+        spec = importlib.util.spec_from_file_location(
+            "issue_resolver_workflow", wf_path
+        )
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load workflow module from {wf_path}")
+        wf = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(wf)
+    return wf
+
+
+_wf = _import_workflow()
+WORKFLOW_VERSION = _wf.WORKFLOW_VERSION
+get_stage_checklist = _wf.get_stage_checklist
+get_workflow_overview = _wf.get_workflow_overview
+validate_commit_message = _wf.validate_commit_message
+
+
 class IssueResolverSkill(BaseSkill):
     """
-    Parses and validates inputs for the Issue Resolver skill, then returns a
-    structured prompt payload the calling agent uses to perform analysis.
+    Universal GitHub issue resolution assistant for any repository.
 
-    The skill itself does not call the GitHub API or write code. It normalises
-    inputs, resolves credentials, builds a deterministic analysis context, and
-    hands control back to the agent's own reasoning and tool-use capabilities.
+    The skill does not call GitHub, run git, or write code. It returns
+    deterministic workflow payloads, stage checklists with conditional logic,
+    and commit-message gates for the calling agent to execute in order.
     """
 
     _GITHUB_ISSUE_RE = re.compile(
         r"https?://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/issues/(?P<number>\d+)"
+    )
+
+    _VALID_ACTIONS = frozenset(
+        {
+            "prepare",
+            "workflow_overview",
+            "stage_checklist",
+            "validate_commit_message",
+        }
     )
 
     @property
@@ -30,11 +61,6 @@ class IssueResolverSkill(BaseSkill):
         return {}
 
     def _parse_issue_url(self, url: str) -> Dict[str, str]:
-        """
-        Extracts owner, repo, and issue number from a GitHub issue URL.
-        Returns a dict with keys: owner, repo, number, api_url, raw_url.
-        Raises ValueError if the URL does not match the expected pattern.
-        """
         match = self._GITHUB_ISSUE_RE.match(url.strip())
         if not match:
             raise ValueError(
@@ -55,10 +81,6 @@ class IssueResolverSkill(BaseSkill):
         }
 
     def _resolve_token(self, params: Dict[str, Any]) -> str:
-        """
-        Returns the GitHub token to use, preferring the runtime parameter over
-        the environment variable. Returns an empty string if neither is set.
-        """
         token = (params.get("github_token") or "").strip()
         if not token:
             token = (
@@ -66,20 +88,18 @@ class IssueResolverSkill(BaseSkill):
             )
         return token
 
-    def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Validates inputs and returns a structured analysis context.
+    def _action(self, params: Dict[str, Any]) -> str:
+        action = (params.get("action") or "prepare").strip().lower()
+        if action not in self._VALID_ACTIONS:
+            return "__invalid__"
+        return action
 
-        The returned dict contains everything the calling agent needs to begin
-        the resolution workflow using its own tools (HTTP fetching, file
-        inspection, reasoning). The agent should follow the instructions in
-        instructions.md when interpreting this payload.
-        """
+    def _prepare(self, params: Dict[str, Any]) -> Dict[str, Any]:
         issue_url = (params.get("issue_url") or "").strip()
         if not issue_url:
             return {
                 "status": "error",
-                "message": "issue_url is required and must not be empty.",
+                "message": "issue_url is required for action prepare.",
             }
 
         try:
@@ -102,6 +122,8 @@ class IssueResolverSkill(BaseSkill):
 
         return {
             "status": "ready",
+            "action": "prepare",
+            "workflow_version": WORKFLOW_VERSION,
             "issue": {
                 "url": parsed["raw_url"],
                 "api_url": parsed["api_url"],
@@ -131,8 +153,55 @@ class IssueResolverSkill(BaseSkill):
             },
             "extra_instructions": extra_instructions or None,
             "next_step": (
-                "Follow the workflow in instructions.md. Fetch the issue, "
-                "read the repository context, then produce the structured "
-                "resolution plan as described."
+                "Call action workflow_overview or stage_checklist for discover_issue. "
+                "Follow instructions.md stages in order; do not skip gates."
             ),
         }
+
+    def _stage_checklist(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        stage = (params.get("stage") or "").strip().lower()
+        if not stage:
+            return {
+                "status": "error",
+                "message": "stage is required for action stage_checklist.",
+            }
+        payload = get_stage_checklist(stage)
+        if payload is None:
+            return {
+                "status": "error",
+                "message": f"Unknown stage {stage!r}. Call workflow_overview for valid names.",
+            }
+        payload["action"] = "stage_checklist"
+        return payload
+
+    def _validate_commit_message(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        message = params.get("message")
+        if message is None or not str(message).strip():
+            return {
+                "status": "error",
+                "message": "message is required for action validate_commit_message.",
+            }
+        allow = bool(params.get("allow_ai_coauthor", False))
+        result = validate_commit_message(str(message), allow_ai_coauthor=allow)
+        result["action"] = "validate_commit_message"
+        return result
+
+    def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        action = self._action(params)
+        if action == "__invalid__":
+            allowed = ", ".join(sorted(self._VALID_ACTIONS))
+            return {
+                "status": "error",
+                "message": f"Unknown action. Supported actions: {allowed}.",
+            }
+        if action == "prepare":
+            return self._prepare(params)
+        if action == "workflow_overview":
+            overview = get_workflow_overview()
+            overview["action"] = "workflow_overview"
+            return overview
+        if action == "stage_checklist":
+            return self._stage_checklist(params)
+        if action == "validate_commit_message":
+            return self._validate_commit_message(params)
+        return {"status": "error", "message": "Unhandled action."}

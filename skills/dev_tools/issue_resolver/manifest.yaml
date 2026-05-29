@@ -1,7 +1,7 @@
 name: "dev_tools/issue_resolver"
-version: "0.1.0"
-description: "Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats."
-short_description: "Analyzes a GitHub issue and produces a ranked implementation plan."
+version: "0.2.0"
+description: "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, returns GitHub API endpoints, and provides sequential stage checklists with conditional verify, commit, and pull request gates."
+short_description: "GitHub issue resolver: URL prep, staged checklists, and commit-message gate."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
@@ -15,42 +15,49 @@ env_vars:
 parameters:
   type: object
   properties:
+    action:
+      type: string
+      description: "Workflow action: prepare (default), workflow_overview, stage_checklist, validate_commit_message."
+      enum:
+        - prepare
+        - workflow_overview
+        - stage_checklist
+        - validate_commit_message
     issue_url:
       type: string
-      description: "Full GitHub issue URL, e.g. https://github.com/owner/repo/issues/42"
+      description: "Required for action prepare. Full GitHub issue URL."
+    stage:
+      type: string
+      description: "Required for action stage_checklist. One of discover_issue, discover_repository, analyze, plan, implement, verify, pre_commit, commit, pull_request."
+    message:
+      type: string
+      description: "Required for action validate_commit_message. Proposed git commit message body."
+    allow_ai_coauthor:
+      type: boolean
+      description: "When true, allow Co-authored-by trailers that credit AI tools. Default false."
     extra_instructions:
       type: string
-      description: "Optional free-text instructions appended to the analysis prompt. Use this to inject project-specific context, style constraints, or scope limits."
+      description: "Optional caller context. Supplements but does not override the workflow or constitution."
     github_token:
       type: string
-      description: "Optional GitHub Personal Access Token passed at runtime. Takes precedence over the GITHUB_TOKEN environment variable."
-  required:
-    - issue_url
+      description: "Optional GitHub token at runtime. Takes precedence over GITHUB_TOKEN env var."
+  required: []
 outputs:
-  issue_summary:
+  status:
     type: string
-    description: "Plain-language summary of what the issue is asking for, including unstated implications."
-  affected_files:
-    type: array
-    description: "Paths of files likely to be touched, including source, tests, docs, and CI."
-  implementation_plans:
-    type: array
-    description: "Up to three ranked approaches. Each entry contains: rank, title, approach, rationale, estimated_complexity."
-  recommended_plan:
-    type: integer
-    description: "Rank (1-based) of the recommended implementation plan."
-  caveats:
-    type: array
-    description: "Dependencies, breaking changes, security concerns, or out-of-scope items the implementing agent must be aware of."
+    description: "ready, rejected, or error."
+  workflow_version:
+    type: string
+    description: "Workflow schema version (0.2)."
 constitution: |
-  1. Read the full issue body, labels, and any linked comments or PRs before forming an opinion.
-  2. Inspect the repository README, CONTRIBUTING guide, and top-level directory structure to understand project conventions before proposing changes.
-  3. Never fabricate file paths; only list paths that can be confirmed from the repository structure you observed.
-  4. Rank implementation options honestly based on complexity, risk, and alignment with existing project patterns.
-  5. Surface caveats explicitly rather than burying them inside plan prose.
-  6. Keep output deterministic and JSON-serializable; do not embed conversational filler in structured fields.
-  7. Do not write or propose actual implementation code; this skill produces analysis and planning output only.
-  8. Respect any extra_instructions provided by the caller, but do not let them override points 1-7 of this constitution.
+  1. Apply to any public or authenticated GitHub repository; do not assume Skillware or fixed directory layouts.
+  2. Follow workflow stages in order; use stage_checklist conditionals that apply to the target repository.
+  3. Never fabricate file paths; list only paths confirmed from the issue or repository tree.
+  4. Wait for explicit approval after plan before implementation.
+  5. Run validate_commit_message before commit unless the operator explicitly skips commit stages.
+  6. Keep skill output deterministic and JSON-serializable; the skill does not call GitHub, run git, or write code.
+  7. Respect extra_instructions unless they conflict with points 1-6.
+  8. Do not add AI agent Co-authored-by trailers in commit messages unless allow_ai_coauthor is true.
 presentation:
   icon: "git-pull-request"
   color: "#6E57E0"

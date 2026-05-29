@@ -43,6 +43,7 @@ def test_manifest_name(skill, manifest):
 def test_manifest_version(skill, manifest):
     """Skill internal manifest version must match manifest.yaml."""
     assert skill.manifest["version"] == manifest["version"]
+    assert manifest["version"] == "0.2.0"
 
 
 def test_manifest_has_real_issuer(manifest):
@@ -68,10 +69,13 @@ def test_card_issuer_matches_manifest(manifest, card):
 
 
 def test_missing_issue_url_returns_error(skill):
-    """execute() must return a structured error when issue_url is absent."""
+    """prepare requires issue_url."""
     result = skill.execute({})
     assert result["status"] == "error"
     assert "issue_url" in result["message"].lower()
+
+    result = skill.execute({"action": "prepare"})
+    assert result["status"] == "error"
 
 
 def test_empty_issue_url_returns_error(skill):
@@ -183,3 +187,60 @@ def test_next_step_present(skill):
     assert "next_step" in result
     assert isinstance(result["next_step"], str)
     assert len(result["next_step"]) > 0
+
+
+def test_prepare_includes_workflow_version(skill):
+    result = skill.execute({"issue_url": VALID_URL})
+    assert result["workflow_version"] == "0.2"
+    assert result["action"] == "prepare"
+
+
+def test_workflow_overview(skill):
+    result = skill.execute({"action": "workflow_overview"})
+    assert result["status"] == "ready"
+    assert result["action"] == "workflow_overview"
+    assert len(result["stage_order"]) == 9
+    assert result["stage_order"][0] == "discover_issue"
+
+
+def test_stage_checklist_discover_issue(skill):
+    result = skill.execute({"action": "stage_checklist", "stage": "discover_issue"})
+    assert result["status"] == "ready"
+    assert result["stage"] == "discover_issue"
+    assert result["steps"]
+    assert result["conditionals"]
+    assert result["next_stage"] == "discover_repository"
+
+
+def test_stage_checklist_unknown_stage(skill):
+    result = skill.execute({"action": "stage_checklist", "stage": "not_a_stage"})
+    assert result["status"] == "error"
+
+
+def test_validate_commit_message_rejects_ai_coauthor(skill):
+    result = skill.execute(
+        {
+            "action": "validate_commit_message",
+            "message": "Fix bug\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+        }
+    )
+    assert result["status"] == "rejected"
+    assert result["ok"] is False
+    assert result["violations"]
+
+
+def test_validate_commit_message_accepts_clean_message(skill):
+    result = skill.execute(
+        {
+            "action": "validate_commit_message",
+            "message": "Fix null handling in parser\n\nFixes #143",
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["ok"] is True
+    assert result["violations"] == []
+
+
+def test_unknown_action(skill):
+    result = skill.execute({"action": "fly"})
+    assert result["status"] == "error"

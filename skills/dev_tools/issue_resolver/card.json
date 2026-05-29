@@ -1,6 +1,6 @@
 {
     "name": "Issue Resolver",
-    "description": "Analyzes any GitHub issue against its target repository and produces a structured resolution plan with ranked implementation options, affected files, and caveats.",
+    "description": "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, returns GitHub API endpoints, and provides sequential stage checklists with verify, commit, and pull request gates.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",

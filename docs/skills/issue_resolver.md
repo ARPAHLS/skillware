@@ -6,16 +6,21 @@
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-A universal developer-tools skill that accepts any GitHub issue URL and produces a structured resolution plan — issue summary, affected files, ranked implementation options, and caveats — before a single line of code is written.
+A developer-tools skill that accepts any **GitHub issue URL** and guides the calling agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written.
 
-The skill is designed to work with **any public GitHub repository**. It imposes no project-specific assumptions; instead it reads the target repository's README, CONTRIBUTING guide, and directory structure at runtime to ground its analysis in actual conventions. Project-specific context can be injected via the optional `extra_instructions` parameter.
+The skill is designed to work with **any public or authenticated GitHub repository**. It imposes no project-specific assumptions; the agent reads the target repository's README, CONTRIBUTING guide, and directory structure at runtime to ground analysis in actual conventions. Project-specific context can be injected via the optional `extra_instructions` parameter.
+
+The skill itself does **not** call GitHub, run git, or write code. It validates the issue URL, returns pre-computed GitHub API endpoints, and supplies ordered **stage checklists** with **conditional rules** (`If this repo has X, do Y`) that the agent executes with its own tools.
 
 ## Capabilities
 
-- **Universal repository support**: Works with any public GitHub repository. No hardcoded project assumptions.
-- **Structured resolution plans**: Produces up to three ranked implementation options with rationale, estimated complexity, and a recommended winner.
-- **Affected file mapping**: Lists every path likely to change — source, tests, documentation, CI configuration — without fabricating paths that do not exist in the repository.
+- **Universal GitHub repository support**: Works with any public GitHub repository (private repos require `GITHUB_TOKEN`). No hardcoded project paths.
+- **Structured resolution plans**: Guides the agent to produce up to three ranked implementation options with rationale, estimated complexity, and a recommended winner.
+- **Affected file mapping**: Directs the agent to list every path likely to change — source, tests, documentation, CI configuration — without fabricating paths that do not exist in the repository.
 - **Ripple-effect analysis**: Surfaces downstream files and dependent modules that may be affected even if not directly modified.
+- **Sequential workflow gates**: Nine ordered stages from issue discovery through pull request, with `stage_checklist` payloads per stage.
+- **Conditional verification**: Each stage includes rules such as run tests if the repo has them, update release notes if the project maintains them, or infer conventions from README when CONTRIBUTING is missing.
+- **Commit-message validation**: `validate_commit_message` rejects AI co-author trailers by default before commit.
 - **Caller-injectable context**: The `extra_instructions` field lets any caller inject project-specific style rules, scope constraints, or workflow requirements without modifying the skill.
 - **Graceful authentication**: Operates without a token against public repositories (subject to GitHub's 60 req/hr unauthenticated limit) and upgrades to 5000 req/hr when `GITHUB_TOKEN` is provided.
 
@@ -23,19 +28,20 @@ The skill is designed to work with **any public GitHub repository**. It imposes 
 
 The skill lives in `skills/dev_tools/issue_resolver/`.
 
-### The Body (`skill.py`)
+### The Body (`skill.py` + `workflow.py`)
 
-A thin, deterministic input layer. It validates the issue URL against the GitHub URL pattern, normalises the token source (runtime parameter takes precedence over environment variable), pre-computes all GitHub API and raw content URLs the agent will need, and returns a `status: ready` payload. It makes no network calls and has no runtime dependencies beyond the Python standard library and `PyYAML`.
+A thin, deterministic action router. It validates the issue URL against the GitHub URL pattern, normalises the token source (runtime parameter takes precedence over environment variable), pre-computes all GitHub API and raw content URLs the agent will need, and returns stage checklists and commit gates on demand. It makes no network calls and has no runtime dependencies beyond the Python standard library and `PyYAML`.
+
+| action | Purpose |
+|--------|---------|
+| `prepare` | Validate issue URL; return GitHub API and raw content URLs |
+| `workflow_overview` | Ordered list of all workflow stages |
+| `stage_checklist` | Steps and conditionals for one stage |
+| `validate_commit_message` | Pre-commit message gate |
 
 ### The Mind (`instructions.md`)
 
-A precise five-stage workflow the calling agent executes using its own tool-use capabilities:
-
-1. Fetch the issue (body, labels, comments, linked PRs).
-2. Understand the repository (README, CONTRIBUTING, directory tree, relevant existing files).
-3. Analyse (problem statement, acceptance criteria, affected files, ripple effects, options).
-4. Produce and present the resolution plan. Wait for user approval.
-5. Implement only after explicit approval, constrained to the approved plan.
+Agent-facing rules: when to use the skill, how to call each action, mandatory stage order, gate rules, and the structured **plan** output contract. Detailed steps and conditionals for each stage are returned at runtime by `stage_checklist` (defined in `workflow.py`).
 
 ## Integration Guide
 
@@ -55,7 +61,15 @@ Sample user message: *Analyse issue #56 in ARPAHLS/skillware and produce a resol
 
 ### Runnable examples
 
-See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. Runnable example: pending — `dev_tools/issue_resolver` does not yet have a dedicated script under `examples/`, so the provider sections below remain catalog snippets until issue #118 lands.
+| Script | Provider | Env vars |
+| :--- | :--- | :--- |
+| [`gemini_issue_resolver.py`](../../examples/gemini_issue_resolver.py) | Gemini | `GOOGLE_API_KEY`; optional `GITHUB_TOKEN` |
+| [`claude_issue_resolver.py`](../../examples/claude_issue_resolver.py) | Claude | `ANTHROPIC_API_KEY`; optional `GITHUB_TOKEN` |
+| [`ollama_issue_resolver.py`](../../examples/ollama_issue_resolver.py) | Ollama | optional `GITHUB_TOKEN`; local Ollama (`gemma4:e2b` or `qwen3.5:4b`) |
+
+All three scripts use [issue #123](https://github.com/ARPAHLS/skillware/issues/123) as the sample issue. After `prepare`, the example script fetches issue and README content from GitHub and returns it to the model — demonstrating that the skill returns URLs and checklists, not a finished plan.
+
+See [examples/README.md](../../examples/README.md) and [Agent loops](../usage/agent_loops.md) for the full inventory.
 
 ### Direct execute
 
@@ -87,12 +101,14 @@ load_env_file()
 bundle = SkillLoader.load_skill("dev_tools/issue_resolver")
 skill = bundle["module"].IssueResolverSkill()
 client = genai.Client()
-tool = SkillLoader.to_gemini_tool(bundle)
+tool_decl = SkillLoader.to_gemini_tool(bundle)
+tool_decl["name"] = SkillLoader._sanitize_function_tool_name("dev_tools/issue_resolver")
+gemini_tool = types.Tool(function_declarations=[tool_decl])
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-2.5-flash-lite",
     contents="Analyze https://github.com/owner/repo/issues/123 and propose a fix plan.",
     config=types.GenerateContentConfig(
-        tools=[tool],
+        tools=[gemini_tool],
         system_instruction=bundle["instructions"],
     ),
 )
@@ -100,7 +116,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             contents=[
                 "Use this tool result to answer the original request.",
                 {
@@ -111,7 +127,7 @@ for part in response.candidates[0].content.parts:
                 },
             ],
             config=types.GenerateContentConfig(
-                tools=[tool],
+                tools=[gemini_tool],
                 system_instruction=bundle["instructions"],
             ),
         )
@@ -201,21 +217,42 @@ response = client.chat.completions.create(
 
 ## Data Schema
 
-### Input
+### Input (action prepare)
 
 ```json
 {
+  "action": "prepare",
   "issue_url": "https://github.com/owner/repo/issues/42",
-  "extra_instructions": "Optional. Project-specific context or scope constraints.",
-  "github_token": "Optional. Runtime token; overrides GITHUB_TOKEN env var."
+  "extra_instructions": "Optional caller context."
 }
 ```
 
-### Output (status: ready)
+### Input (stage checklist)
+
+```json
+{
+  "action": "stage_checklist",
+  "stage": "verify"
+}
+```
+
+### Input (commit validation)
+
+```json
+{
+  "action": "validate_commit_message",
+  "message": "Fix parser edge case\n\nFixes #42",
+  "allow_ai_coauthor": false
+}
+```
+
+### Output (status: ready — prepare)
 
 ```json
 {
   "status": "ready",
+  "action": "prepare",
+  "workflow_version": "0.2",
   "issue": {
     "url": "https://github.com/owner/repo/issues/42",
     "api_url": "https://api.github.com/repos/owner/repo/issues/42",
@@ -235,7 +272,7 @@ response = client.chat.completions.create(
     "note": "No GITHUB_TOKEN configured. Unauthenticated rate limit applies (60 req/hr)."
   },
   "extra_instructions": null,
-  "next_step": "Follow the workflow in instructions.md. Fetch the issue, read the repository context, then produce the structured resolution plan as described."
+  "next_step": "Call action workflow_overview or stage_checklist for discover_issue. Follow instructions.md stages in order; do not skip gates."
 }
 ```
 
@@ -250,10 +287,13 @@ response = client.chat.completions.create(
 
 ## Limitations
 
+- **Agent-driven execution**: The skill returns checklists and gates; the agent must fetch GitHub data, run tests, git, and open pull requests.
 - **Public repositories only (without token)**: Private repositories require a `GITHUB_TOKEN` with appropriate read access.
-- **Analysis, not implementation**: The skill produces planning output. Writing code is the responsibility of the calling agent, which should follow the plan only after user approval.
-- **Rate limits**: Without a token, the GitHub API allows 60 unauthenticated requests per hour per IP. Large repositories with many referenced files may approach this limit during Stage 2 analysis.
-- **Repository tree size**: Very large repositories (tens of thousands of files) may return truncated tree responses from the GitHub API. The agent should note truncation and inspect directories selectively.
+- **Planning quality depends on the agent**: The skill does not produce the resolution plan itself; the calling model must follow `instructions.md` and use repository context it fetches.
+- **Rate limits**: Without a token, the GitHub API allows 60 unauthenticated requests per hour per IP. Large repositories with many referenced files may approach this limit during repository discovery.
+- **Repository tree size**: Very large repositories may return truncated tree responses from the GitHub API. The agent should note truncation and inspect directories selectively.
+
+Skill history and version notes: [CHANGELOG.md](../../CHANGELOG.md) (#56, #143).
 
 ---
 
