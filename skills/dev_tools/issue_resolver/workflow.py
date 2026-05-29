@@ -189,13 +189,22 @@ AI_COAUTHOR_PATTERNS: Tuple[re.Pattern[str], ...] = (
 )
 
 CO_AUTHOR_LINE = re.compile(r"^Co-authored-by:\s*(.+)$", re.I | re.M)
-EMOJI_PATTERN = re.compile(
-    "["
-    "\U0001F300-\U0001FAFF"
-    "\U00002600-\U000027BF"
-    "\U0001F600-\U0001F64F"
-    "]+"
+
+# Explicit code-point ranges (avoids CodeQL py/overly-large-range on wide regex spans).
+_EMOJI_RANGES: Tuple[Tuple[int, int], ...] = (
+    (0x1F300, 0x1F5FF),  # Misc Symbols and Pictographs
+    (0x1F600, 0x1F64F),  # Emoticons
+    (0x1F680, 0x1F6FF),  # Transport and Map
+    (0x1F900, 0x1F9FF),  # Supplemental Symbols and Pictographs
+    (0x2600, 0x26FF),  # Misc symbols
+    (0x2700, 0x27BF),  # Dingbats
 )
+
+
+def _contains_emoji(text: str) -> bool:
+    return any(
+        start <= ord(char) <= end for char in text for start, end in _EMOJI_RANGES
+    )
 
 
 def get_stage_checklist(stage: str) -> Optional[Dict[str, Any]]:
@@ -259,7 +268,7 @@ def validate_commit_message(
         subject = msg.splitlines()[0].strip()
         if not subject:
             violations.append("Commit subject line is empty.")
-        if EMOJI_PATTERN.search(subject):
+        if _contains_emoji(subject):
             violations.append("Commit subject must not contain emojis.")
 
         for match in CO_AUTHOR_LINE.finditer(msg):
