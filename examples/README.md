@@ -22,6 +22,7 @@ with editable install: `pip install -e ".[gemini]"`.
 
 | Script | Skill ID | Provider | Required extra | Required env vars | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| `mental_coach_demo.py` | `wellness/mental_coach` | Local execute | base install only | None | Demonstrates coaching, crisis escalation, and blocked clinical paths locally. |
 | `build_dataset_demo.py` | `data_engineering/synthetic_generator` | Local execute (Gemini backend) | `[gemini]` | `GOOGLE_API_KEY` | Generates a JSONL synthetic dataset with the synthetic generator skill. |
 | `claude_pdf_form_filler.py` | `office/pdf_form_filler` | Claude | `[claude]`, `[office]` | `ANTHROPIC_API_KEY` | Uses Claude with the PDF form filler skill to map instructions to fields. |
 | `claude_tos_evaluator.py` | `compliance/tos_evaluator` | Claude | `[claude]` | `ANTHROPIC_API_KEY` | Runs a Claude tool loop for website automation policy review. |

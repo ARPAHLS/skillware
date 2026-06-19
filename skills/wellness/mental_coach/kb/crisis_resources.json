@@ -1,0 +1,219 @@
+{
+  "_meta": {
+    "file": "crisis_resources.json",
+    "skill": "wellness/mental_coach",
+    "version": "0.2-verified",
+    "language_scope": "EN (v0.1). Non-English input -> CAUTION + resources.",
+    "verified_on": "2026-06-18",
+    "recheck_cadence": "Re-verify every release and at least quarterly.",
+    "usage_notes": [
+      "Always surface the jurisdiction's emergency number AND at least one 24/7 helpline.",
+      "Where the national listening line is NOT 24/7 (e.g. IT), the 24/7 fallback is the emergency number (112).",
+      "is_24_7=false lines must never be presented as the sole crisis resource."
+    ]
+  },
+  "US": {
+    "emergency": {
+      "name": "Emergency services",
+      "contact": "911",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "988 Suicide & Crisis Lifeline",
+        "channel": "call / text / chat",
+        "contact": "call or text 988 · chat 988lifeline.org",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "suicidal crisis, mental-health or substance-use distress; also for those worried about someone",
+        "source_url": "https://988lifeline.org",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      },
+      {
+        "name": "Crisis Text Line",
+        "channel": "text",
+        "contact": "text HOME to 741741",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "any crisis, text-based",
+        "source_url": "https://www.crisistextline.org",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "UK": {
+    "emergency": {
+      "name": "Emergency services",
+      "contact": "999",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "Samaritans",
+        "channel": "call",
+        "contact": "116 123 (free)",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "anyone in distress or despair, including suicidal thoughts",
+        "source_url": "https://www.samaritans.org",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      },
+      {
+        "name": "Shout",
+        "channel": "text",
+        "contact": "text SHOUT to 85258",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "anyone in crisis who prefers text",
+        "source_url": "https://giveusashout.org",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "FR": {
+    "emergency": {
+      "name": "Urgences (UE) / SAMU",
+      "contact": "112 (UE) · 15 (SAMU)",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "3114 - Numero national de prevention du suicide",
+        "channel": "call",
+        "contact": "3114 (gratuit)",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "personnes en detresse / idees suicidaires, proches, professionnels",
+        "source_url": "https://3114.fr",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "DE": {
+    "emergency": {
+      "name": "Notruf (EU)",
+      "contact": "112",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "TelefonSeelsorge",
+        "channel": "call / chat",
+        "contact": "0800 111 0 111 or 0800 111 0 222 · chat online.telefonseelsorge.de",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "free, anonymous emotional support incl. suicidal thoughts",
+        "source_url": "https://www.telefonseelsorge.de",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "ES": {
+    "emergency": {
+      "name": "Emergencias (UE)",
+      "contact": "112",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "Linea 024 de atencion a la conducta suicida",
+        "channel": "call",
+        "contact": "024 (gratuito)",
+        "hours": "24/7",
+        "is_24_7": true,
+        "scope": "personas con ideacion / conducta suicida y sus allegados",
+        "source_url": "https://www.sanidad.gob.es/linea024/home.htm",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "IT": {
+    "emergency": {
+      "name": "Emergenze (UE)",
+      "contact": "112",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "Telefono Amico Italia",
+        "channel": "call",
+        "contact": "02 2327 2327",
+        "hours": "every day 10:00-24:00",
+        "is_24_7": false,
+        "scope": "emotional support / distress",
+        "source_url": "https://www.telefonoamico.it",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      },
+      {
+        "name": "Samaritans Onlus",
+        "channel": "call",
+        "contact": "800 86 00 22 (also 06 77208977)",
+        "hours": "every day 13:00-22:00",
+        "is_24_7": false,
+        "scope": "crisis, loneliness, suicidal thoughts",
+        "source_url": "https://www.samaritansonlus.org",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "EU": {
+    "emergency": {
+      "name": "European emergency number",
+      "contact": "112",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "Find a Helpline (directory)",
+        "channel": "web",
+        "contact": "https://findahelpline.com",
+        "hours": "directory",
+        "is_24_7": true,
+        "scope": "locate the country-specific crisis line within the EU",
+        "source_url": "https://findahelpline.com",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  },
+  "GLOBAL": {
+    "emergency": {
+      "name": "Local emergency services",
+      "contact": "your local emergency number",
+      "is_24_7": true
+    },
+    "helplines": [
+      {
+        "name": "Find a Helpline (international directory)",
+        "channel": "web",
+        "contact": "https://findahelpline.com",
+        "hours": "directory",
+        "is_24_7": true,
+        "scope": "locates verified country-specific crisis lines worldwide",
+        "source_url": "https://findahelpline.com",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      },
+      {
+        "name": "IASP Crisis Centre directory",
+        "channel": "web",
+        "contact": "https://www.iasp.info/resources/Crisis_Centres/",
+        "hours": "directory",
+        "is_24_7": true,
+        "scope": "International Association for Suicide Prevention crisis-centre listing",
+        "source_url": "https://www.iasp.info/resources/Crisis_Centres/",
+        "needs_verification": false,
+        "last_checked": "2026-06-18"
+      }
+    ]
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "_meta": {
+    "file": "corpus.json",
+    "skill": "wellness/mental_coach",
+    "purpose": "Public grounding KB with generic, publicly-citable coaching content.",
+    "version": "0.1-seed",
+    "language_scope": "EN (EU + North America launch markets)",
+    "content_policy": "All `text` fields are ORIGINAL PARAPHRASED SUMMARIES of public sources (no verbatim copying). `source_url` is provided for grounding and citation. Re-verify each release; some public pages change or note reduced update frequency.",
+    "verified_on": "2026-06-18",
+    "recheck_cadence": "Re-verify wording against source_url every release."
+  },
+  "chunks": [
+    {
+      "chunk_id": "scope-coaching-vs-therapy-0001",
+      "source_doc": "ICF Core Competencies (International Coaching Federation)",
+      "section": "Demonstrates ethical practice",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "information"
+      ],
+      "framework": "scope",
+      "tags": [
+        "scope",
+        "coaching",
+        "boundary",
+        "referral"
+      ],
+      "text": "Coaching and psychoeducation are future-focused, growth-oriented forms of support for generally well-functioning people. They are distinct from psychotherapy and do not diagnose conditions or treat mental illness. Recognized coaching standards require keeping this distinction clear and referring people to qualified professionals when clinical support is needed.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://coachingfederation.org/credentialing/icf-core-competencies",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "self-care-not-cure-0002",
+      "source_doc": "NIMH - Caring for Your Mental Health",
+      "section": "Self-care",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "information",
+        "coaching"
+      ],
+      "framework": "scope",
+      "tags": [
+        "self-care",
+        "limits",
+        "treatment"
+      ],
+      "text": "Self-care can help maintain wellbeing and manage mild symptoms, but it is not a cure for mental illness and does not replace professional treatment when that is needed.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.nimh.nih.gov/health/topics/caring-for-your-mental-health",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "when-to-seek-help-0003",
+      "source_doc": "NIMH - Caring for Your Mental Health",
+      "section": "When to seek professional help",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "information"
+      ],
+      "framework": "help-seeking",
+      "tags": [
+        "seek-help",
+        "professional",
+        "primary-care"
+      ],
+      "text": "Consider seeking professional help if severe or distressing symptoms persist for two weeks or more. A useful first step is talking with a primary care provider, who can refer you to a qualified mental health professional.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.nimh.nih.gov/health/topics/caring-for-your-mental-health",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "urgent-help-uk-0004",
+      "source_doc": "NHS - Mental health",
+      "section": "Urgent help",
+      "jurisdiction": "UK",
+      "session_modes": [
+        "information"
+      ],
+      "framework": "help-seeking",
+      "tags": [
+        "urgent",
+        "uk",
+        "nhs-111",
+        "emergency"
+      ],
+      "text": "In England, urgent mental health support is available through NHS 111. If someone's life is at immediate risk, call 999 or go to A&E.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true,
+        "notes": "Pairs with crisis_resources.json UK entries."
+      },
+      "source_url": "https://www.nhs.uk/mental-health/",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "mental-health-continuum-0005",
+      "source_doc": "WHO - Mental health fact sheet",
+      "section": "Concept",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "information"
+      ],
+      "framework": "psychoeducation",
+      "tags": [
+        "definition",
+        "continuum",
+        "who"
+      ],
+      "text": "Mental health is more than the absence of illness. It exists on a continuum that differs between people and over time, shaped by individual, social, and structural factors, and many mental health conditions can be treated effectively.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.who.int/news-room/fact-sheets/detail/mental-health-strengthening-our-response",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "wellbeing-basics-0006",
+      "source_doc": "NIMH - Caring for Your Mental Health; NHS - Self-help",
+      "section": "Everyday wellbeing",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "coaching",
+        "information"
+      ],
+      "framework": "wellbeing",
+      "tags": [
+        "sleep",
+        "exercise",
+        "nutrition",
+        "connection"
+      ],
+      "text": "Everyday practices that support wellbeing for many people include regular physical activity, balanced meals and staying hydrated, a consistent sleep routine, and staying socially connected. This is general guidance, not treatment.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.nimh.nih.gov/health/topics/caring-for-your-mental-health",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "mindfulness-general-0007",
+      "source_doc": "NHS - Mindfulness",
+      "section": "Mindfulness",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "coaching",
+        "information"
+      ],
+      "framework": "wellbeing",
+      "tags": [
+        "mindfulness",
+        "stress",
+        "present-moment"
+      ],
+      "text": "Paying attention to the present moment can improve wellbeing for some people and may help with everyday stress. It does not suit everyone and is not a substitute for professional treatment.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.nhs.uk/mental-health/self-help/tips-and-support/mindfulness/",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    },
+    {
+      "chunk_id": "service-disclaimer-0008",
+      "source_doc": "NIMH - Help for Mental Illnesses",
+      "section": "Informational use",
+      "jurisdiction": "GLOBAL",
+      "session_modes": [
+        "information",
+        "coaching"
+      ],
+      "framework": "scope",
+      "tags": [
+        "disclaimer",
+        "informational",
+        "referral"
+      ],
+      "text": "This service provides general support and information only. It does not diagnose conditions, provide treatment, or give personal medical advice. For concerns about your health, consult a qualified professional.",
+      "safety": {
+        "suppress_in_crisis": true,
+        "requires_disclaimer": true
+      },
+      "source_url": "https://www.nimh.nih.gov/health/find-help",
+      "visibility": "public",
+      "version": "0.1",
+      "updated": "2026-06-18"
+    }
+  ]
+}

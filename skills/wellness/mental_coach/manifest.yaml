@@ -1,0 +1,66 @@
+name: wellness/mental_coach
+version: 0.1.0
+description: >
+  Deterministic wellness coaching firewall with crisis triage, non-clinical scope
+  limits, grounded KB retrieval, and optional scope evaluation for host agents.
+short_description: "Crisis triage and grounded coaching guardrails for wellness support."
+issuer:
+  name: Masa
+  email: 38236772+mrmasa88@users.noreply.github.com
+  github: mrmasa88
+  org: AO
+category: wellness
+parameters:
+  type: object
+  properties:
+    user_prompt:
+      type: string
+      description: User message or coaching request to evaluate.
+    user_jurisdiction:
+      type: string
+      description: Jurisdiction for crisis resources (US, EU, UK, FR, DE, ES, IT, GLOBAL, or unknown).
+    session_mode:
+      type: string
+      description: coaching, information, or crisis_check.
+      enum:
+        - coaching
+        - information
+        - crisis_check
+    run_evaluator:
+      type: boolean
+      description: Optional LLM scope audit (secondary call) when enabled.
+    evaluator_model:
+      type: string
+      description: Model for optional evaluator (default gemini-2.5-flash-lite).
+    max_chunks:
+      type: integer
+      description: Maximum KB chunks to retrieve (cap 15).
+  required:
+    - user_prompt
+outputs:
+  policy_status:
+    type: string
+    description: OK, CAUTION, ESCALATE, or BLOCKED.
+  scope:
+    type: string
+    description: coaching, crisis_referral, or blocked.
+  final_context_for_agent:
+    type: string
+    description: Grounded instructions and context for the host agent.
+requirements:
+  - pyyaml
+  - google-genai
+constitution: |
+  1. NON-CLINICAL: Do not diagnose, prescribe, interpret clinical records, or claim therapy.
+  2. CRISIS FIRST: Run deterministic crisis triage before retrieval; escalate on danger signals.
+  3. GROUNDED: Coaching content must come from retrieved, cited KB chunks only.
+  4. CONSERVATIVE: Bias toward over-escalation; false positives are acceptable, false negatives are not.
+  5. EN-FIRST v0.1: Non-English input routes to CAUTION with resources rather than silent pass-through.
+  6. PRIVACY: Do not persist user-specific data in skill outputs.
+env_vars:
+  GOOGLE_API_KEY:
+    description: Optional. Required only when run_evaluator is enabled with Gemini.
+    required: false
+presentation:
+  icon: heart
+  color: "#2563eb"

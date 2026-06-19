@@ -1,0 +1,25 @@
+{
+  "name": "Mental Coach",
+  "description": "Wellness coaching guardrail with crisis triage and grounded KB retrieval.",
+  "issuer": {
+    "name": "Masa",
+    "email": "38236772+mrmasa88@users.noreply.github.com",
+    "github": "mrmasa88",
+    "org": "AO"
+  },
+  "icon": "heart",
+  "color": "blue",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "policy_status",
+        "label": "Policy Status"
+      },
+      {
+        "key": "scope",
+        "label": "Scope"
+      }
+    ]
+  }
+}

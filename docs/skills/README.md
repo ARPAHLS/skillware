@@ -56,6 +56,13 @@ Skills that assist developers in understanding codebases, planning changes, and 
 | :--- | :--- | :--- | :--- |
 | **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
+## Wellness
+Supportive coaching guardrails, crisis triage, and grounded psychoeducation for host agents.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval (#148). |
+
 ---
 
 ## Installing Skills
