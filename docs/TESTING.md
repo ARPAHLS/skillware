@@ -64,6 +64,17 @@ pip install -r requirements.txt
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.
 
+## Two-tier skill test convention
+
+Skills use a two-tier layout inside the broader test model above. Use these tiers when adding or moving skill tests so future contributors can find coverage quickly.
+
+| Tier | Location | Purpose | Rules |
+| :--- | :--- | :--- | :--- |
+| **Tier 1 — skill-local bundle test** | `skills/<category>/<skill_name>/test_skill.py` | Self-contained contract tests for the skill bundle. | Import the skill class directly, verify manifest integrity, validate inputs, and exercise deterministic output schema. Keep tests offline; mock external calls and avoid live APIs. |
+| **Tier 2 — maintainer integration test** | `tests/skills/<category>/test_<skill_name>.py` | Clone-only regression depth through the framework loader path. | Load the skill with `SkillLoader.load_skill("<category>/<skill_name>")`, use shared `tests/conftest.py` fixtures when useful, and mock providers or external services. |
+
+Keep top-level `tests/test_*.py` files for framework behavior only: loader, CLI, issuer rules, version policy, and other cross-cutting checks. Skill-specific integration tests belong under `tests/skills/<category>/`.
+
 ## 1. Code Formatting (Black)
 
 We use **Black** as our uncompromising code formatter. It ensures that all code looks the same, regardless of who wrote it, eliminating discussions about style.
