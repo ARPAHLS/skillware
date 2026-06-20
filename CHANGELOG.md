@@ -8,6 +8,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Fixed
+- **`finance/wallet_screening`**: Align examples and docs with `finance/wallet_screening` manifest tool name; fix `gemini_wallet_check.py` and `claude_wallet_check.py` to match tool name dynamically from manifest; correct `card.json` UI fields to match actual skill output schema; update `instructions.md`, provider snippets, Data Schema, and usage docs (#173).
+
 ## [0.3.6] - 2026-06-15
 
 ### Added
