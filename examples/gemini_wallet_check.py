@@ -21,6 +21,8 @@ wallet_skill = WalletScreeningSkill(
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(skill_bundle)
 system_instruction = skill_bundle["instructions"]
+# Derive the tool name from the manifest so this stays correct if the name changes
+TOOL_NAME = skill_bundle["manifest"]["name"]
 
 user_query = (
     "Can you screen this wallet for me? 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
@@ -45,7 +47,7 @@ while response.candidates and response.candidates[0].content.parts:
 
         print(f"Agent wants to call: {fn_name}")
 
-        if fn_name == "wallet_screening":
+        if fn_name == TOOL_NAME:
             print("Executing skill locally...")
             api_result = wallet_skill.execute(fn_args)
 

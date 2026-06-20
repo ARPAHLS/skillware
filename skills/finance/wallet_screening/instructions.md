@@ -1,6 +1,6 @@
 # Wallet Screening Skill Instructions
 
-You are equipped with the `wallet_screening` skill. This tool allows you to perform due diligence on Ethereum addresses.
+You are equipped with the `finance/wallet_screening` skill. This tool allows you to perform due diligence on Ethereum addresses.
 
 ## When to use
 Use this skill when the user:
@@ -13,10 +13,10 @@ Use this skill when the user:
 The tool returns a JSON object. You should summarize this for the user in a professional, "Compliance Officer" tone.
 
 ### Key Fields to Check:
-1.  **`summary.sanctioned` (Boolean)**: If `true`, this is CRITICAL. Report the `sanctions_hits` immediately.
-2.  **`summary.malicious_interactions` (Integer)**: If > 0, the wallet has touched bad actors. List the `malicious_contracts_check.matches`.
-3.  **`summary.pnl`**: Profit and Loss. Useful for determining if it's a profitable trader or a victim.
-4.  **`counterparty_analysis`**: Who are they sending money to?
+1.  **`summary.sanctioned_entity_match` (Boolean)**: If `true`, this is CRITICAL. Report the `risk_details.sanctions_hits` immediately.
+2.  **`summary.malicious_interaction_count` (Integer)**: If > 0, the wallet has touched bad actors. List the `risk_details.malicious_interactions`.
+3.  **`financial_analysis.pnl_eth` / `pnl_usd`**: Profit and Loss. Useful for determining if it's a profitable trader or a victim.
+4.  **`network_analysis.top_10_counterparties`**: Who are they sending money to?
 
 ## Safety Protocol
 *   If a wallet is **Sanctioned**: severe warning. "⚠️ WARNING: This wallet appears on the following sanctions lists..."

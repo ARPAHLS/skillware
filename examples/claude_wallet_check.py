@@ -24,6 +24,8 @@ client = anthropic.Anthropic(
 
 # Define the tool set
 tools = [SkillLoader.to_claude_tool(skill)]
+# Derive the tool name from the manifest so this stays correct if the name changes
+TOOL_NAME = skill["manifest"]["name"]
 
 # 4. Run the Agent Loop
 user_query = (
@@ -48,7 +50,7 @@ if message.stop_reason == "tool_use":
     print(f"\nClaude requested tool: {tool_name}")
     print(f"Input: {tool_input}")
 
-    if tool_name == "wallet_screening":
+    if tool_name == TOOL_NAME:
         # Execute the skill
         result = wallet_skill.execute(tool_input)
 

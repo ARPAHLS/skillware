@@ -80,7 +80,7 @@ if tool_match:
     fn_name = tool_call.get("tool")
     fn_args = tool_call.get("arguments", {})
 
-    if fn_name == "finance/wallet_screening":
+    if fn_name == skill_bundle["manifest"]["name"]:
         print(f"⚙️ Executing skill '{fn_name}' locally...")
         api_result = wallet_skill.execute(fn_args)
 
