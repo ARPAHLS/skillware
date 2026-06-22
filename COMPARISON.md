@@ -14,7 +14,7 @@ This document clarifies how Skillware compares to other common approaches for eq
 
 | Method | Speed | Cost | Accuracy | Reliability | Security | Setup |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Skillware** (`wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install skillware` |
+| **Skillware** (`finance/wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install skillware` |
 | **Prompt + web search** | Minutes | High tokens | Low (misses on-chain signals) | Varies per run | Generated code and scraping | Prompt engineering |
 | **MCP / multi-agent** | Minutes+ | Tokens + infra | Medium (tool-dependent) | Server/agent-dependent | Many moving parts | Deploy servers |
 | **Native APIs** (Chainalysis, TRM) | Sseconds | High (enterprise) | High | SLA-backed | Vendor-controlled | Contracts |
@@ -99,7 +99,7 @@ Frameworks like Google DeepMind's **Antigravity** use `SKILL.md` files to provid
 A critical architectural distinction is how Skillware treats logic execution versus "code generation."
 
 *   **The Code-Generation Approach**: Many platforms prompt the LLM to write code on the fly to solve a requested problem. This is expensive (you pay for output tokens every time), slow, and risky (the LLM executes unreviewed code).
-*   **The Skillware Approach**: Skillware relies on **Pre-Compiled Logic**. The logical system decides *which* tool to call (e.g., wallet_screening) and passes arguments. The heavy lifting happens deterministically in the Python `BaseSkill` implementation. This results in **zero-cost logic execution**, instant processing, and static, auditable code boundaries. In contrast, hosts using Agent Skills load full SKILL.md instruction context into the model at runtime and may rely on the host to generate or run code; Skillware keeps reasoning in `instructions.md` but executes work in pre-reviewed `skill.execute()`.
+*   **The Skillware Approach**: Skillware relies on **Pre-Compiled Logic**. The logical system decides *which* tool to call (e.g., `finance/wallet_screening`) and passes arguments. The heavy lifting happens deterministically in the Python `BaseSkill` implementation. This results in **zero-cost logic execution**, instant processing, and static, auditable code boundaries. In contrast, hosts using Agent Skills load full SKILL.md instruction context into the model at runtime and may rely on the host to generate or run code; Skillware keeps reasoning in `instructions.md` but executes work in pre-reviewed `skill.execute()`.
 
 ---
 

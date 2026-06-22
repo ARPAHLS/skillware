@@ -7,6 +7,8 @@ import os
 import sys
 from typing import Any, Dict, List, Optional
 
+import yaml
+
 from skillware.core.base_skill import BaseSkill
 
 _SKILL_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,14 +35,11 @@ class MentalCoachSkill(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {
-            "name": "wellness/mental_coach",
-            "version": "0.1.0",
-            "description": (
-                "Deterministic wellness coaching firewall with crisis triage, "
-                "scope limits, and grounded KB retrieval."
-            ),
-        }
+        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.yaml")
+        if os.path.exists(manifest_path):
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f)
+        return {}
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         user_prompt = (params.get("user_prompt") or "").strip()

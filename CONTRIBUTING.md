@@ -312,6 +312,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
 | `office` | Documents, productivity | `pdf_form_filler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
+| `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
 Skill IDs follow `category/skill_name` and should match the path under `skills/`.
 

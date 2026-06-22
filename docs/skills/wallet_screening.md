@@ -89,6 +89,8 @@ skill = bundle["module"].WalletScreeningSkill(
 )
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
+# Use the manifest name so the match stays correct if the name ever changes
+tool_name = bundle["manifest"]["name"]
 response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents="Screen wallet 0xd8dA... for sanctions and malicious contract interactions.",
@@ -98,7 +100,7 @@ response = client.models.generate_content(
     ),
 )
 for part in response.candidates[0].content.parts:
-    if part.function_call:
+    if part.function_call and part.function_call.name == tool_name:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -134,7 +136,8 @@ skill = bundle["module"].WalletScreeningSkill(
 )
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use (name wallet_screening): skill.execute(tool_use.input), return tool_result
+# On tool_use, match name against bundle["manifest"]["name"] (finance/wallet_screening):
+# skill.execute(tool_use.input), return tool_result
 ```
 
 ### OpenAI
@@ -152,7 +155,7 @@ skill = bundle["module"].WalletScreeningSkill(
 )
 openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"] (wallet_screening)
+# Match tool_call.function.name to openai_tool["function"]["name"] (finance_wallet_screening)
 ```
 
 ### DeepSeek
@@ -174,11 +177,12 @@ client = OpenAI(
     base_url="https://api.deepseek.com",
 )
 # chat.completions.create(model="deepseek-chat", tools=[deepseek_tool], ...)
+# Match tool_call.function.name to deepseek_tool["function"]["name"] (finance_wallet_screening)
 ```
 
 ### Ollama
 
-Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "wallet_screening"` in the JSON block. See [Ollama usage](../usage/ollama.md) and [agent loops](../usage/agent_loops.md).
+Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/wallet_screening"` in the JSON block. See [Ollama usage](../usage/ollama.md) and [agent loops](../usage/agent_loops.md).
 
 ## Data Schema
 
@@ -186,14 +190,31 @@ The skill returns a rich forensic report. Agents act on this data.
 
 ```json
 {
+  "metadata": {
+    "screening_time": "2025-01-01T00:00:00",
+    "wallet_address": "0xd8dA...",
+    "data_sources_count": 3
+  },
   "summary": {
-    "address": "0xd8dA...",
     "risk_flag": true,
     "sanctioned_entity_match": false,
     "malicious_interaction_count": 3,
-    "pnl_usd": 4500.50
+    "balance_eth": 1.5,
+    "balance_usd": 3000.0,
+    "total_transactions": 42
+  },
+  "financial_analysis": {
+    "value_in_eth": 10.0,
+    "value_in_usd": 20000.0,
+    "value_out_eth": 8.5,
+    "value_out_usd": 17000.0,
+    "gas_paid_eth": 0.02,
+    "pnl_eth": -1.52,
+    "pnl_usd": -3040.0,
+    "pnl_percent": -15.2
   },
   "risk_details": {
+    "sanctions_hits": [],
     "malicious_interactions": [
       {
         "tx_hash": "0xabc...",
@@ -203,7 +224,8 @@ The skill returns a rich forensic report. Agents act on this data.
     ]
   },
   "network_analysis": {
-    "most_interacted_wallet": ["0x123...", 45]
+    "most_interacted_wallet": ["0x123...", 45],
+    "top_10_counterparties": [["0x123...", 45]]
   }
 }
 ```

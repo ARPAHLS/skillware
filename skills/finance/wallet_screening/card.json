@@ -12,10 +12,10 @@
   "ui_schema": {
     "type": "card",
     "fields": [
-      {"key": "summary.address", "label": "Address"},
-      {"key": "summary.sanctioned", "label": "Sanctioned", "type": "status_badge"},
-      {"key": "summary.malicious_interactions_count", "label": "Risky Interactions", "type": "count"},
-      {"key": "summary.pnl_eth", "label": "PnL (ETH)", "type": "currency"}
+      {"key": "metadata.wallet_address", "label": "Address"},
+      {"key": "summary.sanctioned_entity_match", "label": "Sanctioned", "type": "status_badge"},
+      {"key": "summary.malicious_interaction_count", "label": "Risky Interactions", "type": "count"},
+      {"key": "financial_analysis.pnl_eth", "label": "PnL (ETH)", "type": "currency"}
     ]
   }
 }

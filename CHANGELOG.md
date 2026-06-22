@@ -12,7 +12,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **`wellness/mental_coach`**: Deterministic wellness coaching firewall with crisis triage, hard scope limits, embedded public KB, optional Gemini scope evaluator, and catalog documentation (#148).
 
 ### Changed
+- **Tests**: Moved `tests/test_mica_module.py` to `tests/skills/compliance/test_mica_module.py` so maintainer skill tests follow the `tests/skills/<category>/` layout; `tests/` root is framework-only (#86).
 - **`wellness/mental_coach`**: Set real issuer contact email and add health disclaimer on the catalog page (PR #174 follow-up).
+
+### Fixed
+- **`finance/wallet_screening`**: Align examples and docs with `finance/wallet_screening` manifest tool name; fix `gemini_wallet_check.py` and `claude_wallet_check.py` to match tool name dynamically from manifest; correct `card.json` UI fields to match actual skill output schema; update `instructions.md`, provider snippets, Data Schema, and usage docs (#173).
 
 ## [0.3.6] - 2026-06-15
 

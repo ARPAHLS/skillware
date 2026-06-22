@@ -50,7 +50,7 @@ OpenAI function names must match `[a-zA-Z0-9_-]` and are limited to 64 character
 | Manifest `name` | OpenAI `function.name` |
 | :--- | :--- |
 | `compliance/tos_evaluator` | `compliance_tos_evaluator` |
-| `wallet_screening` | `wallet_screening` |
+| `finance/wallet_screening` | `finance_wallet_screening` |
 
 In your tool loop, compare `tool_call.function.name` to `tool["function"]["name"]` from `to_openai_tool()`, not necessarily the raw manifest string.
 
