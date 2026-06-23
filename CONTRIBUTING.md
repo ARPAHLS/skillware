@@ -257,6 +257,7 @@ The primary guide for the host LLM.
 - Ships inside the skill bundle via `pip install skillware`.
 - Run: `pytest skills/<category>/<skill_name>/test_skill.py`
 - Optional extra depth for maintainers: `tests/skills/<category>/test_<skill_name>.py` — see [TESTING.md](docs/TESTING.md).
+- Mock network calls and first-run model downloads in bundle tests.
 
 ### Packaging (PyPI and `pip install`)
 

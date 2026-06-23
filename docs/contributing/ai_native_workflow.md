@@ -262,6 +262,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
 - [ ] `card.json`: `issuer` matches manifest
 - [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py`
+- [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
 - [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md`
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes

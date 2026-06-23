@@ -34,7 +34,9 @@ pip install -r requirements.txt
 - Offline and mockable: manifest consistency, validation, deterministic `execute()` paths — no live network.
 - Run locally: `pytest skills/<category>/<skill_name>/test_skill.py` or `pytest skills/`.
 - Install packages from the skill's `manifest.yaml` `requirements` when they are not already satisfied by `[all]`.
-
+- Bundle tests run in CI on every pull request and must not make live HTTP requests, use API keys, or download models.
+- Mock HTTP clients, LLM clients, embedding loaders, and model download paths such as HuggingFace, Ollama, `fastembed`, and similar integrations.
+- Real inference belongs in maintainer tests under `tests/skills/` or in local/manual runs, not in bundle CI gates.
 ### Framework test
 
 - Core engine health: loader, CLI, issuer rules, version policy.
