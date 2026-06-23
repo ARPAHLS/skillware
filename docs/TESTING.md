@@ -37,6 +37,7 @@ pip install -r requirements.txt
 - Bundle tests run in CI on every pull request and must not make live HTTP requests, use API keys, or download models.
 - Mock HTTP clients, LLM clients, embedding loaders, and model download paths such as HuggingFace, Ollama, `fastembed`, and similar integrations.
 - Real inference belongs in maintainer tests under `tests/skills/` or in local/manual runs, not in bundle CI gates.
+
 ### Framework test
 
 - Core engine health: loader, CLI, issuer rules, version policy.

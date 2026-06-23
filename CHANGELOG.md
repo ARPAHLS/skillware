@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Documentation
+
+- Clarified that bundle tests must mock network calls and model downloads in CI.
+
 ## [0.3.7] - 2026-06-22
 
 ### Added
