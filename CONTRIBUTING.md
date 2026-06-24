@@ -252,7 +252,7 @@ The primary guide for the host LLM.
 
 ### 5. `test_skill.py` (bundle test)
 
-- **Required** for every new registry skill (template: `templates/python_skill/test_skill.py`).
+- **Required** for every new registry skill (template: `templates/python_skill/test_skill.py`; enforced by `tests/test_skill_issuer.py`).
 - Unit tests for schema compliance and deterministic execution paths (offline; mock externals).
 - Ships inside the skill bundle via `pip install skillware`.
 - Run: `pytest skills/<category>/<skill_name>/test_skill.py`

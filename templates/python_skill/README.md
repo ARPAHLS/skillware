@@ -10,7 +10,7 @@ Starter bundle under `skills/<category>/<skill_name>/`. Copy this template from 
 4. **`skill.py`**: Implement deterministic logic; no LLM-generated code in the skill body.
 5. **`instructions.md`**: Tell the agent when and how to use the tool.
 6. **`card.json`**: Mirror `issuer` from the manifest; customize UI fields.
-7. **`test_skill.py`**: Bundle test (required); offline, mock external services, including HTTP clients, LLM APIs, embedding/model loaders, and any first-run model downloads; run `pytest skills/<category>/<skill_name>/test_skill.py`. See [TESTING.md](../../docs/TESTING.md).
+7. **`test_skill.py`**: Bundle test (required; enforced by `tests/test_skill_issuer.py`); offline, mock external services, including HTTP clients, LLM APIs, embedding/model loaders, and any first-run model downloads; run `pytest skills/<category>/<skill_name>/test_skill.py`. See [TESTING.md](../../docs/TESTING.md).
 8. **`docs/skills/<skill_name>.md`**: Catalog page with **ID**, **Issuer**, and **Usage Examples** (all providers; see `docs/usage/skill_usage_template.md`).
 9. **`docs/skills/README.md`**: Add a row to the skill library table.
 

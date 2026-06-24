@@ -41,6 +41,7 @@ pip install -r requirements.txt
 ### Framework test
 
 - Core engine health: loader, CLI, issuer rules, version policy.
+- `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, and presence of `test_skill.py` in every skill bundle.
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 

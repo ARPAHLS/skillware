@@ -64,6 +64,17 @@ def test_registry_skills_declare_issuer():
         _assert_real_issuer(manifest.get("issuer"), f"{rel} manifest.yaml")
 
 
+def test_registry_skills_have_bundle_test():
+    """Every registry skill must ship a co-located bundle test (RFC #156)."""
+    for skill_dir in _discover_skill_dirs():
+        rel = skill_dir.relative_to(REPO_ROOT).as_posix()
+        assert (
+            skill_dir / "test_skill.py"
+        ).is_file(), (
+            f"{rel}: add test_skill.py (bundle test required for every registry skill)"
+        )
+
+
 def test_registry_skills_have_packaging_init_files():
     """Each registry skill must be importable under the skills package for pip wheels."""
     assert (
