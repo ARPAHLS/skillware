@@ -4,6 +4,25 @@ Skillware maintains high standards for code quality and reliability. Before subm
 
 Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **example**. Use that vocabulary consistently in docs and PRs.
 
+## Status (testing architecture)
+
+Tracked under [RFC #156](https://github.com/ARPAHLS/skillware/issues/156). As of **0.3.7**, the target CI shape is in place:
+
+| Phase | Status | Notes |
+| :--- | :---: | :--- |
+| Bundle tests in CI (`pytest skills/`) | Done | Since 0.3.6 ([#159](https://github.com/ARPAHLS/skillware/issues/159)) |
+| Full registry `test_skill.py` backfill | Done | Since 0.3.6 ([#158](https://github.com/ARPAHLS/skillware/issues/158)) |
+| Docs: four-layer model in TESTING / CONTRIBUTING / ai_native_workflow | Done | ([#106](https://github.com/ARPAHLS/skillware/issues/106)) |
+| `[all]` extras for bundle-test runtime deps | Done | `pyproject.toml` + CONTRIBUTING convention |
+| Maintainer tests under `tests/skills/` | Done | Layout ([#86](https://github.com/ARPAHLS/skillware/issues/86)); still optional per skill |
+| Issuer enforces `test_skill.py` on every registry skill | Done | Since 0.3.7 ([#160](https://github.com/ARPAHLS/skillware/issues/160)) |
+| Bundle tests must mock network / model downloads in CI | Done | ([#170](https://github.com/ARPAHLS/skillware/issues/170)) |
+| CLI `skillware test` for bundle discovery | Open | ([#83](https://github.com/ARPAHLS/skillware/issues/83)) |
+
+**CI today** (every PR): `black --check`, `flake8`, `pytest skills/`, `pytest tests/`. Bundle tests are **not** local-only; they gate merge the same as framework and maintainer tests.
+
+Broader post-release doc alignment (README badges, category tables, `.env.example`) is tracked separately in ([#154](https://github.com/ARPAHLS/skillware/issues/154)) — not duplicated here.
+
 ## Quick Setup
 
 Install lint tools, pytest, and optional skill runtime deps in one go (matches GitHub Actions CI):

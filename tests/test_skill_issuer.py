@@ -65,7 +65,7 @@ def test_registry_skills_declare_issuer():
 
 
 def test_registry_skills_have_bundle_test():
-    """Every registry skill must ship a co-located bundle test (RFC #156)."""
+    """Every registry skill must ship a co-located bundle test (#156 / #160)."""
     for skill_dir in _discover_skill_dirs():
         rel = skill_dir.relative_to(REPO_ROOT).as_posix()
         assert (
