@@ -76,8 +76,8 @@ Available commands:
 | Input | Command | Status |
 | :--- | :--- | :--- |
 | `1` / `list` | List all locally installed skills | Available |
-| `2` / `paths` | Show and repair skill directory resolution paths | Coming in #81 |
-| `3` / `test` | Run test_skill.py for one or all skills | Coming in #83 |
+| `2` / `paths` | Show and repair skill directory resolution paths | Coming soon |
+| `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `4` / `help` | Print rich-formatted help with commands, flags, and examples | Available |
 
 ## Commands
@@ -113,6 +113,31 @@ Sample output:
 
     # Use a custom skills directory
     skillware list --skills-root /path/to/my/skills
+
+### skillware test
+
+Run skill **bundle tests** (`test_skill.py`) via pytest. Uses the same skill roots as `skillware list` (`SKILLWARE_SKILL_PATH`, `--skills-root`, cwd `skills/`, bundled registry).
+
+Requires pytest (`pip install -e ".[dev]"` or `pip install -e ".[dev,all]"`).
+
+    skillware test
+    skillware test finance/wallet_screening
+    skillware test --category compliance
+    skillware test --verbose
+    skillware test office/pdf_form_filler --no-header
+
+#### Arguments and flags
+
+| Input | Description |
+| :--- | :--- |
+| *(no args)* | Run bundle tests under all resolved skill roots |
+| `<category>/<skill_name>` | Run one skill's `test_skill.py` |
+| `--category <name>` | Run all bundle tests in a category directory |
+| `--skills-root <path>` | Override the skills directory for this command |
+| `-v` / `--verbose` | Pass `-v` to pytest |
+| `--no-header` | Pass `--no-header` to pytest |
+
+Exit code matches pytest (non-zero on failures or missing test paths).
 
 ## Path resolution
 

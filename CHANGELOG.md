@@ -15,6 +15,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Documentation**: Added a **Status** section to [TESTING.md](docs/TESTING.md) summarizing the current testing model and planned CLI work (#179).
 - **Documentation**: Post-release alignment — category tables, Python 3.10+ badge, dev install (`[dev,all]` vs `[dev]`), README configuration via `.env.example`, DeFi env vars in `.env.example`, framework env vars in [api_keys.md](docs/usage/api_keys.md) (#154).
 
+### Added
+
+- **CLI**: `skillware test` runs bundle tests via pytest — all roots, by skill ID, or by `--category`; supports `-v` and `--no-header` (#83).
+
 ## [0.3.7] - 2026-06-22
 
 ### Added

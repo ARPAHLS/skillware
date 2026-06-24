@@ -14,7 +14,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Bundle tests mock network and model downloads in CI | Done |
 | Maintainer tests under `tests/skills/` (optional per skill) | Done |
 | `[all]` extra covers bundle-test runtime deps | Done |
-| CLI `skillware test` for bundle discovery | Planned |
+| CLI `skillware test` for bundle discovery | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, and `pytest tests/`. Bundle tests gate merge the same as framework and maintainer tests.
 

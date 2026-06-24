@@ -1,7 +1,9 @@
 from skillware.cli import (
     _discover_skills,
+    _resolve_pytest_targets,
     cmd_list,
     cmd_interactive,
+    cmd_test,
     _short_description,
     cmd_help,
 )
@@ -279,3 +281,122 @@ def test_version_flag(capsys):
 
     captured = capsys.readouterr()
     assert "skillware" in captured.out.lower()
+
+
+def _make_bundle(tmp_path, category, name, with_test=True):
+    skill_dir = tmp_path / category / name
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
+    (skill_dir / "manifest.yaml").write_text(
+        f"name: {name}\nversion: 0.1.0\ndescription: Test.\n"
+    )
+    if with_test:
+        (skill_dir / "test_skill.py").touch()
+    return skill_dir
+
+
+def test_resolve_pytest_targets_skill_id(tmp_path):
+    _make_bundle(tmp_path, "office", "pdf_form_filler")
+    targets, error = _resolve_pytest_targets(
+        skills_root_override=tmp_path,
+        skill_id="office/pdf_form_filler",
+    )
+    assert error is None
+    assert targets == [tmp_path / "office" / "pdf_form_filler" / "test_skill.py"]
+
+
+def test_resolve_pytest_targets_category(tmp_path):
+    _make_bundle(tmp_path, "office", "pdf_form_filler")
+    _make_bundle(tmp_path, "finance", "wallet_screening")
+    targets, error = _resolve_pytest_targets(
+        skills_root_override=tmp_path,
+        category="office",
+    )
+    assert error is None
+    assert targets == [tmp_path / "office"]
+
+
+def test_resolve_pytest_targets_all_roots(tmp_path):
+    _make_bundle(tmp_path, "office", "pdf_form_filler")
+    targets, error = _resolve_pytest_targets(skills_root_override=tmp_path)
+    assert error is None
+    assert targets == [tmp_path]
+
+
+def test_resolve_pytest_targets_missing_skill(tmp_path):
+    targets, error = _resolve_pytest_targets(
+        skills_root_override=tmp_path,
+        skill_id="office/missing",
+    )
+    assert targets == []
+    assert "No bundle test found" in error
+
+
+def test_resolve_pytest_targets_skill_id_and_category_conflict():
+    targets, error = _resolve_pytest_targets(
+        skill_id="office/pdf_form_filler",
+        category="office",
+    )
+    assert targets == []
+    assert "not both" in error
+
+
+def test_cmd_test_invokes_pytest(tmp_path, monkeypatch):
+    import sys
+
+    _make_bundle(tmp_path, "office", "pdf_form_filler")
+    captured = {}
+
+    def fake_run(cmd, check=False):
+        captured["cmd"] = cmd
+
+        class Result:
+            returncode = 0
+
+        return Result()
+
+    monkeypatch.setattr("skillware.cli.subprocess.run", fake_run)
+
+    rc = cmd_test(
+        skills_root_override=tmp_path,
+        skill_id="office/pdf_form_filler",
+    )
+    assert rc == 0
+    assert captured["cmd"][0] == sys.executable
+    assert captured["cmd"][1:3] == ["-m", "pytest"]
+    assert (
+        str(tmp_path / "office" / "pdf_form_filler" / "test_skill.py")
+        in captured["cmd"]
+    )
+
+
+def test_cmd_test_verbose_flag(tmp_path, monkeypatch):
+    _make_bundle(tmp_path, "office", "pdf_form_filler")
+    captured = {}
+
+    def fake_run(cmd, check=False):
+        captured["cmd"] = cmd
+
+        class Result:
+            returncode = 0
+
+        return Result()
+
+    monkeypatch.setattr("skillware.cli.subprocess.run", fake_run)
+
+    cmd_test(
+        skills_root_override=tmp_path,
+        skill_id="office/pdf_form_filler",
+        verbose=True,
+        no_header=True,
+    )
+    assert "-v" in captured["cmd"]
+    assert "--no-header" in captured["cmd"]
+
+
+def test_cmd_test_missing_bundle_returns_nonzero(tmp_path):
+    rc = cmd_test(
+        skills_root_override=tmp_path,
+        skill_id="office/missing",
+    )
+    assert rc == 1

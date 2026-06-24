@@ -1,7 +1,9 @@
 import argparse
+import subprocess
+import sys
 import yaml
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from rich.table import Table
 from rich.console import Console
@@ -106,6 +108,92 @@ def _discover_skills(
     return skills
 
 
+def _resolve_pytest_targets(
+    skills_root_override: Optional[Path] = None,
+    skill_id: Optional[str] = None,
+    category: Optional[str] = None,
+) -> Tuple[List[Path], Optional[str]]:
+    """Build pytest path arguments for bundle tests (skills/**/test_skill.py)."""
+    if skill_id and category:
+        return [], "Use either a skill ID or --category, not both."
+
+    roots = _get_skill_roots(skills_root_override)
+    if not roots:
+        return [], "No skill roots found. Check --skills-root or SKILLWARE_SKILL_PATH."
+
+    if skill_id:
+        parts = skill_id.split("/")
+        if len(parts) != 2 or not all(parts):
+            return (
+                [],
+                f"Invalid skill ID '{skill_id}'. Expected category/skill_name.",
+            )
+
+        category_name, skill_name = parts
+        searched: List[Path] = []
+        for root in roots:
+            test_path = root / category_name / skill_name / "test_skill.py"
+            searched.append(test_path)
+            if test_path.is_file():
+                return [test_path], None
+
+        lines = [f"No bundle test found for '{skill_id}'."]
+        for path in searched:
+            lines.append(f"  looked for: {path}")
+        return [], "\n".join(lines)
+
+    if category:
+        targets: List[Path] = []
+        searched: List[Path] = []
+        for root in roots:
+            category_dir = root / category
+            searched.append(category_dir)
+            if category_dir.is_dir():
+                targets.append(category_dir)
+
+        if targets:
+            return targets, None
+
+        lines = [f"No skills directory found for category '{category}'."]
+        for path in searched:
+            lines.append(f"  looked for: {path}")
+        return [], "\n".join(lines)
+
+    return roots, None
+
+
+def cmd_test(
+    skills_root_override: Optional[Path] = None,
+    skill_id: Optional[str] = None,
+    category: Optional[str] = None,
+    verbose: bool = False,
+    no_header: bool = False,
+    console=None,
+) -> int:
+    """Run bundle tests via pytest. Returns pytest's exit code."""
+    if console is None:
+        console = Console(stderr=True)
+
+    targets, error = _resolve_pytest_targets(
+        skills_root_override=skills_root_override,
+        skill_id=skill_id,
+        category=category,
+    )
+    if error:
+        console.print(error, style="bold #FF9AA2")
+        return 2 if skill_id and category else 1
+
+    pytest_args = [sys.executable, "-m", "pytest"]
+    if verbose:
+        pytest_args.append("-v")
+    if no_header:
+        pytest_args.append("--no-header")
+    pytest_args.extend(str(path) for path in targets)
+
+    result = subprocess.run(pytest_args, check=False)
+    return result.returncode
+
+
 def cmd_list(
     skills_root_override: Optional[Path] = None,
     category_filter: Optional[str] = None,
@@ -173,13 +261,16 @@ def cmd_help(console=None) -> None:
     console.print("  skillware list --category <n> — filter by category")
     console.print("  skillware list --issuer <h>   — filter by issuer")
     console.print("  skillware list --skills-root  — override skills directory")
+    console.print("  skillware test                — run all bundle tests")
+    console.print("  skillware test <category/name> — run one skill bundle test")
+    console.print("  skillware test --category <n> — run tests for a category")
     console.print("  skillware --version           — print installed version")
     console.print()
 
     console.print(Text("Commands", style=f"bold {TABLE_STYLE}"))
     console.print("  list      available now", style=ID_STYLE)
-    console.print("  paths     coming in #81", style="dim")
-    console.print("  test      coming in #83", style="dim")
+    console.print("  test      available now", style=ID_STYLE)
+    console.print("  paths     coming soon", style="dim")
     console.print()
 
     console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
@@ -192,8 +283,8 @@ def cmd_help(console=None) -> None:
 
     console.print(Text("Examples", style=f"bold {TABLE_STYLE}"))
     console.print("  skillware list --category compliance", style=MENU_STYLE)
-    console.print("  skillware list --issuer rosspeili", style=MENU_STYLE)
-    console.print("  skillware list --skills-root /path/to/skills", style=MENU_STYLE)
+    console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
+    console.print("  skillware test --category compliance -v", style=MENU_STYLE)
     console.print()
 
     console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
@@ -242,8 +333,8 @@ def cmd_interactive(console=None, parser=None) -> None:
 
     menu = [
         ("1", "list", "discover and display all locally installed skills"),
-        ("2", "paths (soon, #81)", "show and repair skill directory resolution paths"),
-        ("3", "test (soon, #83)", "run test_skill.py for one or all skills"),
+        ("2", "paths (soon)", "show and repair skill directory resolution paths"),
+        ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
         ("4", "help", "usage guide for any command"),
     ]
 
@@ -275,9 +366,11 @@ def cmd_interactive(console=None, parser=None) -> None:
 
         if command == "list":
             cmd_list(console=console)
-        elif command in ("paths", "test"):
+        elif command == "test":
+            cmd_test(console=console)
+        elif command == "paths":
             console.print(
-                f"  '{command}' is not yet implemented. Coming in a future release.",
+                "  'paths' is not yet implemented. Coming in a future release.",
                 style="dim",
             )
         elif command == "help":
@@ -331,6 +424,39 @@ def main() -> None:
         help="Filter skills by issuer GitHub handle or name.",
     )
 
+    test_parser = subparsers.add_parser(
+        "test",
+        help="Run skill bundle tests (test_skill.py) via pytest.",
+    )
+    test_parser.add_argument(
+        "skill_id",
+        nargs="?",
+        default=None,
+        help="Skill ID (category/skill_name) to test.",
+    )
+    test_parser.add_argument(
+        "--skills-root",
+        type=Path,
+        default=None,
+        help="Override the skills directory path.",
+    )
+    test_parser.add_argument(
+        "--category",
+        default=None,
+        help="Run bundle tests for all skills in a category.",
+    )
+    test_parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Pass -v to pytest.",
+    )
+    test_parser.add_argument(
+        "--no-header",
+        action="store_true",
+        help="Pass --no-header to pytest.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -342,6 +468,16 @@ def main() -> None:
             skills_root_override=args.skills_root,
             category_filter=args.category,
             issuer_filter=args.issuer,
+        )
+    elif args.command == "test":
+        raise SystemExit(
+            cmd_test(
+                skills_root_override=args.skills_root,
+                skill_id=args.skill_id,
+                category=args.category,
+                verbose=args.verbose,
+                no_header=args.no_header,
+            )
         )
     else:
         cmd_interactive(parser=parser)
