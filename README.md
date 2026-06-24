@@ -8,7 +8,7 @@
 
 <div align="center">
   <img src="https://img.shields.io/badge/License-MIT-efcefa?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Python-3.11+-bae6fd?style=flat-square" alt="Python Version">
+  <img src="https://img.shields.io/badge/Python-3.10+-bae6fd?style=flat-square" alt="Python Version">
   <a href="https://pypi.org/project/skillware/"><img src="https://img.shields.io/pypi/v/skillware?style=flat-square&color=bbf7d0" alt="PyPI Version"></a>
 </div>
 
@@ -79,6 +79,8 @@ Skillware/
 
 ## Quick Start
 
+Requires **Python 3.10 or newer** (see `requires-python` in `pyproject.toml`).
+
 ### 1. Installation
 
 You can install Skillware directly from PyPI:
@@ -92,8 +94,10 @@ Or for development, clone the repository and install in editable mode:
 ```bash
 git clone https://github.com/arpahls/skillware.git
 cd skillware
-pip install -e .
+pip install -e ".[dev,all]"
 ```
+
+For documentation-only work, `pip install -e ".[dev]"` is enough. Skill and framework contributors should use `[dev,all]` to match CI (see [TESTING.md](docs/TESTING.md)).
 
 > **Note**: Individual skills may have their own dependencies. The `SkillLoader` validates `manifest.yaml` and warns of missing packages (e.g., `requests`, `pandas`) upon loading a skill.
 
@@ -113,11 +117,21 @@ your PATH — use `python -m skillware list` as a fallback. See
 
 ### 3. Configuration
 
-Create a `.env` file with your API keys (e.g., Google Gemini API Key):
+Copy the environment template and add your keys.
 
-```ini
-GOOGLE_API_KEY="your_key"
+**Unix / macOS:**
+
+```bash
+cp .env.example .env
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` with agent keys (for example Gemini) and any keys your skills need. Agent keys power your LLM client; skill keys are declared per skill in the [Skill library](docs/skills/README.md). See [API keys for skills](docs/usage/api_keys.md) for setup, security, and framework variables.
 
 ### 4. Usage Example (Gemini)
 

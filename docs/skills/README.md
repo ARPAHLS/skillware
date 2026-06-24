@@ -23,7 +23,7 @@ On-chain execution and trading for dedicated agent wallets (structured intent, p
 
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
-| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | [@Hendobox](https://github.com/Hendobox) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent (#142). |
+| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | [@Hendobox](https://github.com/Hendobox) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent. |
 
 ## Optimization
 Middleware skills that operate on text or state to increase performance, security, or efficiency.
@@ -61,7 +61,7 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
-| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval (#148). |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
 ---
 

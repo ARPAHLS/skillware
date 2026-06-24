@@ -1,5 +1,6 @@
 # Development convenience — same install GitHub Actions CI uses (see pyproject.toml).
 # Installs core + dev tools (pytest, flake8, black) + all optional SDK extras.
+# Documentation-only PRs can use: pip install -e ".[dev]"
 # For production installs use pyproject.toml extras instead, e.g.:
 #   pip install skillware                  # core only
 #   pip install "skillware[gemini]"        # + Google Gemini SDK

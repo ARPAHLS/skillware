@@ -79,6 +79,8 @@ git checkout -b feat/issue-<number>-short-description
 pip install -e ".[dev,all]"
 ```
 
+For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI.
+
 See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
 ### 5. Implement and verify
@@ -98,7 +100,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 ### Style
 
 - **No emojis** in source code, documentation, commit messages, or PR titles.
-- Use **Black** for formatting and **Flake8** for linting (see [TESTING.md](docs/TESTING.md)).
+- Use **Black** for formatting (CI runs `black --check`) and **Flake8** for linting (see [TESTING.md](docs/TESTING.md)).
 - Match existing naming, structure, and documentation tone in the files you touch.
 
 ### Scope
@@ -308,14 +310,15 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | Category | Purpose | Examples in registry |
 | :--- | :--- | :--- |
 | `compliance` | Privacy, policy, regulatory guardrails | `pii_masker`, `mica_module`, `tos_evaluator` |
-| `data_engineering` | Datasets, generation, ETL-style tooling | `synthetic_generator` |
-| `finance` | Blockchain, risk, financial analysis | `wallet_screening` |
+| `data_engineering` | Datasets, generation, ETL-style tooling | `synthetic_generator`, `novelty_extractor` |
 | `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
+| `dev_tools` | Developer workflows, issue resolution, repo tooling | `issue_resolver` |
+| `finance` | Blockchain, risk, financial analysis | `wallet_screening` |
 | `office` | Documents, productivity | `pdf_form_filler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
 | `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
-Skill IDs follow `category/skill_name` and should match the path under `skills/`.
+Skill IDs follow `category/skill_name` and should match the path under `skills/`. For the live registry, see [Skill Library](docs/skills/README.md). Propose new top-level categories in an issue before adding a folder.
 
 ---
 
@@ -332,7 +335,7 @@ Skill IDs follow `category/skill_name` and should match the path under `skills/`
 
 ## Safety and security
 
-- Skills that touch real-world assets (wallets, email, production APIs) should support a **dry run** or read-only mode when feasible.
+- Skills that touch real-world assets (wallets, email, production APIs) should support a **dry run** or read-only mode when feasible. High-risk skills (on-chain transfers, wallet operations) should use preview and confirmation flows before sending transactions; read each skill's instructions before enabling live keys.
 - Sanitize inputs in `skill.py` before external calls.
 - Respect the skill `constitution` in both code and documentation.
 - Malicious or deceptive contributions may be rejected and blocked from the project.

@@ -100,7 +100,7 @@ Run Black on the entire repository to automatically fix formatting issues:
 python -m black .
 ```
 
-Run `python -m black --check .` to verify formatting without writing files. GitHub Actions runs the same check before flake8 and pytest.
+Run `python -m black --check .` to verify formatting without writing files. GitHub Actions runs the same check on every pull request before flake8 and pytest; run `python -m black .` locally to fix issues before you push.
 
 ## 2. Linting (Flake8)
 

@@ -7,6 +7,7 @@ Many Skillware skills call external services (block explorers, model APIs, and s
 ## Navigation
 
 - [Skill keys vs agent keys](#skill-keys-vs-agent-keys)
+- [Framework environment variables](#framework-environment-variables)
 - [Local development](#local-development)
 - [Cloud and CI](#cloud-and-ci)
 - [Secret managers](#secret-managers)
@@ -24,6 +25,19 @@ Many Skillware skills call external services (block explorers, model APIs, and s
 | **Agent / LLM keys** | Your chat client (Gemini, Claude, OpenAI, and similar) | `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, and similar | Provider usage guides under `docs/usage/` |
 
 A single workflow may need both: for example, a skill that screens wallets may require `ETHERSCAN_API_KEY`, while your Gemini agent loop separately needs `GOOGLE_API_KEY` to run the model. Configure each name the code actually reads.
+
+---
+
+## Framework environment variables
+
+These are read by Skillware itself (loader and CLI), not by individual skills:
+
+| Variable | Purpose |
+| :--- | :--- |
+| `SKILLWARE_SKILL_PATH` | Extra filesystem roots for skill discovery (OS path separator between multiple entries). See [CLI reference](cli.md#path-resolution). |
+| `SKILLWARE_NO_VERSION_CHECK` | Set to `1` to disable the CLI version advisory (useful in CI and automation). See [CLI reference](cli.md#version-advisory). |
+
+Skill-specific names remain on each skill's catalog page and in `manifest.yaml` `env_vars`.
 
 ---
 

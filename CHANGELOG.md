@@ -13,6 +13,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Tests**: `tests/test_skill_issuer.py` now requires `test_skill.py` for every registry skill under `skills/` (#160).
 - **Documentation**: Clarified that bundle tests must mock network calls and model downloads in CI (#170).
 - **Documentation**: Added a **Status** section to [TESTING.md](docs/TESTING.md) summarizing the current testing model and planned CLI work (#179).
+- **Documentation**: Post-release alignment — category tables, Python 3.10+ badge, dev install (`[dev,all]` vs `[dev]`), README configuration via `.env.example`, DeFi env vars in `.env.example`, framework env vars in [api_keys.md](docs/usage/api_keys.md) (#154).
 
 ## [0.3.7] - 2026-06-22
 
