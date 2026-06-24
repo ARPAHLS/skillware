@@ -11,10 +11,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Changed
 
 - **Tests**: `tests/test_skill_issuer.py` now requires `test_skill.py` for every registry skill under `skills/` (#160).
-
-### Documentation
-
-- Clarified that bundle tests must mock network calls and model downloads in CI.
+- **Documentation**: Clarified that bundle tests must mock network calls and model downloads in CI (#170).
 
 ## [0.3.7] - 2026-06-22
 
