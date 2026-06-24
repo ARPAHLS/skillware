@@ -17,6 +17,7 @@ After installation, the `skillware` command is available directly:
 
     skillware
     skillware list
+    skillware test
     skillware --version
 
 If `skillware` is not recognized, Python's `Scripts` directory may not be on
@@ -35,6 +36,7 @@ as Python is installed):
 
     python -m skillware
     python -m skillware list
+    python -m skillware test finance/wallet_screening
     python -m skillware list --category compliance
     python -m skillware --help
 

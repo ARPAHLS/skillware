@@ -12,7 +12,7 @@ How to load Skillware skills and connect them to language models. Each guide cov
 
 For pip-installed apps, keep project skills in `./skills/<category>/<name>/` or set `SKILLWARE_SKILL_PATH` to your skills root.
 
-To list all locally available skills from the terminal, see the [CLI reference](cli.md).
+To list locally available skills or run bundle tests from the terminal, see the [CLI reference](cli.md).
 
 | Provider | Adapter | Guide | Agent API key (typical) |
 | :--- | :--- | :--- | :--- |
@@ -21,7 +21,7 @@ To list all locally available skills from the terminal, see the [CLI reference](
 | OpenAI (ChatGPT) | `to_openai_tool()` | [openai.md](openai.md) | `OPENAI_API_KEY` |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
-| CLI | `skillware list` | [cli.md](cli.md) | — |
+| CLI | `skillware list`, `skillware test` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
 

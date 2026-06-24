@@ -127,11 +127,15 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
   python -m pytest tests/
   ```
 
+  Bundle tests can also be run with `skillware test` (see [CLI reference](docs/usage/cli.md#skillware-test)); requires `[dev]` or `[dev,all]`.
+
   For a single skill:
 
   ```bash
   python -m pytest skills/<category>/<skill_name>/test_skill.py
   ```
+
+  Or: `skillware test <category>/<skill_name>`.
 
 - Install packages from that skill's `manifest.yaml` `requirements` when they are not covered by `[all]`. After adding a skill with new third-party deps, update the matching optional extra and `[all]` in `pyproject.toml` (see [Packaging](#packaging-pypi-and-pip-install)).
 - Wait for GitHub Actions CI to pass before requesting review.
@@ -160,12 +164,16 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
    pytest tests/
    ```
 
+   Or `skillware test` for bundle tests (see [CLI reference](docs/usage/cli.md#skillware-test)).
+
    For skill work, also run:
 
    ```bash
    pytest skills/<category>/<skill_name>/test_skill.py
    pytest tests/test_skill_issuer.py
    ```
+
+   Or `skillware test <category>/<skill_name>` for the bundle test only.
 
 5. **Commit** — Clear imperative message, no emojis; include issue reference when appropriate. Do not add AI tools in `Co-authored-by:` trailers (see [Agent Code of Conduct](CODE_OF_CONDUCT.md#contribution-process)).
 6. **Changelog** — If the PR is user-visible, add lines under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) before opening the PR.
@@ -257,7 +265,7 @@ The primary guide for the host LLM.
 - **Required** for every new registry skill (template: `templates/python_skill/test_skill.py`; enforced by `tests/test_skill_issuer.py`).
 - Unit tests for schema compliance and deterministic execution paths (offline; mock externals).
 - Ships inside the skill bundle via `pip install skillware`.
-- Run: `pytest skills/<category>/<skill_name>/test_skill.py`
+- Run: `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - Optional extra depth for maintainers: `tests/skills/<category>/test_<skill_name>.py` — see [TESTING.md](docs/TESTING.md).
 - Mock network calls and first-run model downloads in bundle tests.
 

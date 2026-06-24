@@ -138,6 +138,8 @@ pytest skills/
 pytest tests/
 ```
 
+Bundle tests: `skillware test` is equivalent for `skills/**/test_skill.py` (see [CLI reference](../usage/cli.md#skillware-test)).
+
 For a single skill:
 
 ```bash
@@ -263,7 +265,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `skill.py`: deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
 - [ ] `card.json`: `issuer` matches manifest
-- [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py`
+- [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
 - [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md`
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)

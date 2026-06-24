@@ -156,6 +156,16 @@ python -m pytest skills/
 python -m pytest tests/
 ```
 
+Or use the CLI (same bundle paths; requires `pip install -e ".[dev]"` or `[dev,all]`):
+
+```bash
+skillware test
+skillware test <category>/<skill_name>
+skillware test --category <category>
+```
+
+See [CLI reference](usage/cli.md#skillware-test).
+
 Single skill bundle test:
 
 ```bash
@@ -183,6 +193,6 @@ Before pushing your code, run the following commands:
 1. `skillware list` (verify install and path resolution)
 2. `python -m black --check .` (verify formatting; use `python -m black .` to fix)
 3. `python -m flake8 .` (check quality)
-4. `python -m pytest skills/` (bundle tests — same scope as CI)
+4. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
 5. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
-6. `python -m pytest skills/<category>/<skill_name>/test_skill.py` when you want a single-skill subset
+6. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill

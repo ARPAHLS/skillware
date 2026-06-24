@@ -235,7 +235,7 @@ def test_main_module_invocation():
 
 
 def test_cmd_help_includes_list_examples(capsys):
-    """cmd_help should include category and issuer examples."""
+    """cmd_help should include category, test, and issuer examples."""
     import io
     from rich.console import Console
 
@@ -246,7 +246,7 @@ def test_cmd_help_includes_list_examples(capsys):
     output = buf.getvalue()
     assert "--category" in output
     assert "--issuer" in output
-    assert "--skills-root" in output
+    assert "skillware test" in output
 
 
 def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
@@ -400,3 +400,42 @@ def test_cmd_test_missing_bundle_returns_nonzero(tmp_path):
         skill_id="office/missing",
     )
     assert rc == 1
+
+
+def test_main_test_subcommand_exits_with_cmd_test_code(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("skillware.cli.cmd_test", lambda **kwargs: 0)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "test", "office/pdf_form_filler"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+
+def test_interactive_test_dispatch(tmp_path, monkeypatch):
+    """Entering 3 or test should dispatch to cmd_test."""
+    import io
+    from rich.console import Console
+
+    _make_bundle(tmp_path, "office", "test_skill")
+    captured = {}
+
+    def fake_test(**kwargs):
+        captured["called"] = True
+        return 0
+
+    monkeypatch.setattr("skillware.cli.cmd_test", fake_test)
+
+    responses = iter(["test", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+
+    assert captured.get("called") is True

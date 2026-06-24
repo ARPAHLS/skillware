@@ -283,6 +283,7 @@ def cmd_help(console=None) -> None:
 
     console.print(Text("Examples", style=f"bold {TABLE_STYLE}"))
     console.print("  skillware list --category compliance", style=MENU_STYLE)
+    console.print("  skillware list --issuer rosspeili", style=MENU_STYLE)
     console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
     console.print("  skillware test --category compliance -v", style=MENU_STYLE)
     console.print()

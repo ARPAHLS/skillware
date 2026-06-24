@@ -28,7 +28,7 @@ Humans: Please describe what this PR does and why it's needed.
 ## Checklist (all PRs)
 
 - [ ] My code follows the **Agent Code of Conduct**.
-- [ ] I have run `python -m flake8 .`, `pytest skills/`, and `pytest tests/` locally (or the subset relevant to this change).
+- [ ] I have run `python -m flake8 .`, `pytest skills/` (or `skillware test`), and `pytest tests/` locally (or the subset relevant to this change).
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` if this PR changes user-visible behavior.
 - [ ] `examples/README.md` is updated if this PR adds, renames, or removes a runnable script under `examples/`.
 
