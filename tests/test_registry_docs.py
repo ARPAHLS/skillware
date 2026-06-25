@@ -58,8 +58,10 @@ def indexed_example_scripts() -> set[str]:
 @pytest.fixture(scope="session")
 def agent_loops_text() -> str:
     return (
-        REPO_ROOT / "docs" / "usage" / "agent_loops.md"
-    ).read_text(encoding="utf-8").lower()
+        (REPO_ROOT / "docs" / "usage" / "agent_loops.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
 
 
 def test_readme_matches_manifests(
@@ -71,14 +73,16 @@ def test_readme_matches_manifests(
     missing = manifested_skills - cataloged_skills
     extra = cataloged_skills - manifested_skills
 
-    assert not missing, (
-        "Skills with manifest but missing from docs/skills/README.md:\n"
-        + "\n".join(f"  - {skill}" for skill in sorted(missing))
+    assert (
+        not missing
+    ), "Skills with manifest but missing from docs/skills/README.md:\n" + "\n".join(
+        f"  - {skill}" for skill in sorted(missing)
     )
 
-    assert not extra, (
-        "Skills listed in docs/skills/README.md without a manifest.yaml:\n"
-        + "\n".join(f"  - {skill}" for skill in sorted(extra))
+    assert (
+        not extra
+    ), "Skills listed in docs/skills/README.md without a manifest.yaml:\n" + "\n".join(
+        f"  - {skill}" for skill in sorted(extra)
     )
 
 
@@ -95,12 +99,8 @@ def test_manifested_skills_have_catalog_pages(
         if not (docs_root / f"{Path(skill).name}.md").exists()
     ]
 
-    assert not missing, (
-        "Missing catalog pages:\n"
-        + "\n".join(
-            f"  - docs/skills/{Path(skill).name}.md ({skill})"
-            for skill in missing
-        )
+    assert not missing, "Missing catalog pages:\n" + "\n".join(
+        f"  - docs/skills/{Path(skill).name}.md ({skill})" for skill in missing
     )
 
 
@@ -113,17 +113,12 @@ def test_catalog_pages_have_manifests(
 
     expected = {Path(skill).name for skill in manifested_skills}
 
-    actual = {
-        page.stem
-        for page in docs_root.glob("*.md")
-        if page.name != "README.md"
-    }
+    actual = {page.stem for page in docs_root.glob("*.md") if page.name != "README.md"}
 
     orphaned = actual - expected
 
-    assert not orphaned, (
-        "Catalog pages without a matching manifest:\n"
-        + "\n".join(f"  - docs/skills/{page}.md" for page in sorted(orphaned))
+    assert not orphaned, "Catalog pages without a matching manifest:\n" + "\n".join(
+        f"  - docs/skills/{page}.md" for page in sorted(orphaned)
     )
 
 
@@ -136,18 +131,22 @@ def test_examples_readme_matches_files(
     missing = example_scripts - indexed_example_scripts
     orphaned = indexed_example_scripts - example_scripts
 
-    assert not missing, (
-        "Example scripts missing from examples/README.md:\n"
-        + "\n".join(f"  - {script}" for script in sorted(missing))
+    assert (
+        not missing
+    ), "Example scripts missing from examples/README.md:\n" + "\n".join(
+        f"  - {script}" for script in sorted(missing)
     )
 
-    assert not orphaned, (
-        "README references non-existent example scripts:\n"
-        + "\n".join(f"  - {script}" for script in sorted(orphaned))
+    assert (
+        not orphaned
+    ), "README references non-existent example scripts:\n" + "\n".join(
+        f"  - {script}" for script in sorted(orphaned)
     )
 
 
-@pytest.mark.xfail(reason="soft check — agent_loops.md coverage is advisory", strict=False)
+@pytest.mark.xfail(
+    reason="soft check — agent_loops.md coverage is advisory", strict=False
+)
 def test_agent_loops_reference_all_skills(
     manifested_skills: set[str],
     agent_loops_text: str,
@@ -165,7 +164,6 @@ def test_agent_loops_reference_all_skills(
         ):
             missing.append(skill)
 
-    assert not missing, (
-        "Skills missing from docs/usage/agent_loops.md:\n"
-        + "\n".join(f"  - {skill}" for skill in missing)
+    assert not missing, "Skills missing from docs/usage/agent_loops.md:\n" + "\n".join(
+        f"  - {skill}" for skill in missing
     )
