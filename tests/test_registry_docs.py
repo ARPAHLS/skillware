@@ -144,9 +144,6 @@ def test_examples_readme_matches_files(
     )
 
 
-@pytest.mark.xfail(
-    reason="soft check — agent_loops.md coverage is advisory", strict=False
-)
 def test_agent_loops_reference_all_skills(
     manifested_skills: set[str],
     agent_loops_text: str,

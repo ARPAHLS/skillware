@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+- **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).
+
 ## [0.3.9] - 2026-06-26
 
 ### Fixed
@@ -27,7 +29,6 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **CLI**: `skillware test` runs bundle tests via pytest — all roots, by skill ID, or by `--category`; supports `-v` and `--no-header`. Documented in [cli.md](docs/usage/cli.md), [TESTING.md](docs/TESTING.md), and contributor guides (#83).
 - **CLI**: `skillware list --examples` shows per-skill example script counts; `skillware examples [skill_id]` lists indexed runnable scripts from `examples/README.md` with GitHub source links; interactive menu option **examples** (#126).
-- **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).
 
 ## [0.3.7] - 2026-06-22
 
