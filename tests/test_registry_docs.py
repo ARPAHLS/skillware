@@ -10,8 +10,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILL_PATTERN = re.compile(r"`([\w-]+/[\w-]+)`")
 EXAMPLE_PATTERN = re.compile(r"^\|[^|]*`([\w-]+\.py)`", re.MULTILINE)
 
-# TODO: script issue_resolver_github_context.py is a shared helper module and
-#       shoud be renamed to issue_resolver_common.py (see #183).
+# TODO: script examples/issue_resolver_github_context.py is a shared helper module and
+#       should be renamed to examples/issue_resolver_common.py (see #183).
 GRANDFATHERED_EXAMPLES: set[str] = {"issue_resolver_github_context.py"}
 
 
