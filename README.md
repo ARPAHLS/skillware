@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/License-MIT-efcefa?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Python-3.10+-bae6fd?style=flat-square" alt="Python Version">
   <a href="https://pypi.org/project/skillware/"><img src="https://img.shields.io/pypi/v/skillware?style=flat-square&color=bbf7d0" alt="PyPI Version"></a>
+  <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93&color=ffdac1" alt="Total PyPI downloads"></a>
 </div>
 
 <br/>
@@ -21,6 +22,7 @@
   <a href="#documentation">Documentation</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#comparison">Comparison</a> •
+  <a href="#stats">Stats</a> •
   <a href="CHANGELOG.md">Changelog</a> •
   <a href="#contact">Contact</a>
 </div>
@@ -220,6 +222,14 @@ Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL
 *   **Runtime-Focused**: Provides tools for the application, not just recipes for an IDE.
 
 [Read the full comparison here](COMPARISON.md).
+
+## Stats
+
+<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/badge/Stats-PePyTech-ffdac1?style=flat-square" alt="PePy.tech dashboard"></a>
+<a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-ffdac1?style=flat-square" alt="PyPI Stats dashboard"></a>
+<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93%20total&color=bbf7d0" alt="Total downloads (PePy)"></a>
+
+PyPI download counts show how often `skillware` is installed from the package index. Numbers come from public third-party aggregators, and they include CI and mirror traffic, so they measure **install activity**, not unique users. Totals may differ slightly between services because each source uses its own window and methodology. Use the stats dashboards in the above badges for charts, version breakdowns, and longer history.
 
 ## Contact
 
