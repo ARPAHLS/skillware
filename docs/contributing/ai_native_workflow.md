@@ -90,9 +90,9 @@ You must:
 
 | If the issue involves... | You must also inspect |
 | :--- | :--- |
-| New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed |
+| New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
-| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/` |
+| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. If your change touches `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md`, run `pytest tests/test_registry_docs.py` to catch drift before pushing. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
@@ -146,6 +146,14 @@ For a single skill:
 pytest skills/<category>/<skill_name>/test_skill.py
 pytest tests/test_skill_issuer.py
 ```
+
+If your change touches `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md`, also run the doc-drift guards explicitly to catch parity issues early:
+
+```bash
+pytest tests/test_registry_docs.py
+```
+
+These checks are part of `pytest tests/` and will run in CI regardless, but an early local run saves a round-trip.
 
 Before Stage 5, scan your diff for:
 
@@ -270,6 +278,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md`
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes
+- [ ] `pytest tests/test_registry_docs.py` passes (catalog index, examples index, and agent-loops parity)
 - [ ] `SkillLoader.load_skill("<category>/<skill_name>")` works or deps are documented
 - [ ] `examples/README.md` updated if a new or changed script lives under `examples/`
 - [ ] No placeholders under `skills/`
@@ -281,6 +290,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] All issue acceptance criteria met
 - [ ] Links valid
 - [ ] `examples/README.md` row added or updated if the issue touches runnable examples
+- [ ] `pytest tests/test_registry_docs.py` passes when `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md` were edited
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` when the change is user-visible
 - [ ] No emojis; tone matches repo
 - [ ] No unrelated code changes

@@ -144,6 +144,13 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 Use the [pull request template](.github/PULL_REQUEST_TEMPLATE.md). Complete the **New or updated skill** section only when this PR adds or changes files under `skills/`.
 
+Before requesting review, verify your PR template checklist:
+
+- Select the correct **change type** (skill, documentation, framework, bug fix).
+- Confirm **local `flake8`, `black` and `pytest`** pass (both `pytest skills/` and `pytest tests/`).
+- Add a **CHANGELOG** entry under `[Unreleased]` when the change is user-visible.
+- Fill only the checkboxes that truthfully apply; do not leave unchecked defaults.
+
 ### AI agents and operators
 
 Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md). Human operators: approve the agent's plan before implementation, verify tests, and own the fork, commit, and PR. The operator remains responsible for the merged diff.

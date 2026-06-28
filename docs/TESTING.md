@@ -15,6 +15,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Maintainer tests under `tests/skills/` (optional per skill) | Done |
 | `[all]` extra covers bundle-test runtime deps | Done |
 | CLI `skillware test` for bundle discovery | Done |
+| Doc-drift guards (`test_registry_docs.py`) | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, and `pytest tests/`. Bundle tests gate merge the same as framework and maintainer tests.
 
