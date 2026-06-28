@@ -92,7 +92,7 @@ You must:
 | :--- | :--- |
 | New or updated skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
-| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. If your change touches `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md`, run `pytest tests/test_registry_docs.py` to catch drift before pushing. |
+| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. Run `pytest tests/test_registry_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
@@ -147,7 +147,7 @@ pytest skills/<category>/<skill_name>/test_skill.py
 pytest tests/test_skill_issuer.py
 ```
 
-If your change touches `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md`, also run the doc-drift guards explicitly to catch parity issues early:
+If your change adds, renames, or removes a skill or example script, run the doc-drift guards to verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` still match what is on disk:
 
 ```bash
 pytest tests/test_registry_docs.py
@@ -290,7 +290,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] All issue acceptance criteria met
 - [ ] Links valid
 - [ ] `examples/README.md` row added or updated if the issue touches runnable examples
-- [ ] `pytest tests/test_registry_docs.py` passes when `docs/skills/README.md`, `examples/README.md`, or `docs/usage/agent_loops.md` were edited
+- [ ] `pytest tests/test_registry_docs.py` passes when the change affects skill catalog pages, example scripts, or `docs/usage/agent_loops.md`
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` when the change is user-visible
 - [ ] No emojis; tone matches repo
 - [ ] No unrelated code changes
