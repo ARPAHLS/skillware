@@ -12,6 +12,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).
 
+### Changed
+
+- **Documentation**: README Stats section and live PyPI download badges (pepy / PyPI Stats dashboards, header `DLs ↓` total).
+
 ## [0.3.9] - 2026-06-26
 
 ### Fixed
