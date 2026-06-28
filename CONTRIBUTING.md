@@ -114,7 +114,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - Add or update tests in the correct layer when behavior changes (see [TESTING.md](docs/TESTING.md)).
 - **Skill bundle test** — `skills/<category>/<name>/test_skill.py` (required for new skills; ships in the wheel; runs in CI via `pytest skills/`).
-- **Framework test** — `tests/test_*.py` at repo root (loader, CLI, issuer rules).
+- **Framework test** — `tests/test_*.py` at repo root (loader, CLI, issuer rules, doc-drift guards).
 - **Maintainer skill test** — optional `tests/skills/<category>/test_<name>.py` for extra loader or edge-case coverage.
 - **Usage examples** — `examples/*.py` are not tests and are not run in CI.
 - **GitHub Actions** installs `pip install -e ".[dev,all]"`, runs `python -m black --check .`, then `flake8 .`, then **`pytest skills/`** (bundle tests), then **`pytest tests/`** (framework + maintainer tests). Do not add per-skill pip lines or hardcoded skill paths to `.github/workflows/ci.yml`.
