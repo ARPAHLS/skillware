@@ -45,7 +45,7 @@ Multi-layer screening runs locally in one `execute()` call. No generated scraper
 Skillware is designed so agents and their operators can discover, vet, and integrate capabilities without reinventing the wheel.
 
 - **Manifests** declare inputs, outputs, dependencies, and constitution in `manifest.yaml`.
-- **`skillware list`** and **`skillware test`** (CLI) surface the local registry and run bundle tests.
+- **`skillware list`**, **`skillware examples`** / **`skillware list --examples`**, and **`skillware test`** (CLI) surface the local registry, browse the runnable example index, and run bundle tests.
 - **[Examples index](../examples/README.md)** maps runnable provider scripts to skills.
 - **[Usage guides](usage/README.md)** show the same load / tool-call / execute loop for Gemini, Claude, OpenAI, DeepSeek, and Ollama.
 - **[Agent contribution workflow](contributing/ai_native_workflow.md)** documents how supervised agents propose scoped changes and open PRs.
