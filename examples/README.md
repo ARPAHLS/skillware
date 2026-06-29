@@ -7,8 +7,8 @@ them for a provider, execute local skill logic, and return tool results to an
 agent loop. After `pip install skillware`, run `skillware examples` or
 `skillware list --examples` from any directory to browse the index in the
 terminal; when no local `examples/README.md` is present, the index is fetched
-from GitHub (network required) (see
-[CLI reference](../docs/usage/cli.md)). Provider setup details live in the usage guides:
+from GitHub (network required); see
+[CLI reference](../docs/usage/cli.md). Provider setup details live in the usage guides:
 
 - [API keys for skills](../docs/usage/api_keys.md)
 - [Gemini](../docs/usage/gemini.md)

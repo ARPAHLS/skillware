@@ -79,7 +79,7 @@ Available commands:
 | Input | Command | Status |
 | :--- | :--- | :--- |
 | `1` / `list` | List all locally installed skills | Available |
-| `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`) | Available |
+| `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `4` / `paths` | Show and repair skill directory resolution paths | Coming soon |
 | `5` / `help` | Print rich-formatted help with commands, flags, and examples | Available |

@@ -12,6 +12,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).
 
+### Changed
+
+- **Documentation**: Aligned CLI and examples docs (`docs/usage/cli.md`, `examples/README.md`) with the `skillware test` / `skillware examples` behavior shipped in 0.3.8–0.3.9 (#191).
+
 ## [0.3.9] - 2026-06-26
 
 ### Fixed
