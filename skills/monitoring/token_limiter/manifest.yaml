@@ -1,0 +1,74 @@
+name: "monitoring/token_limiter"
+version: "1.0.0"
+description: "Deterministic token budget gate for autonomous agent loops. Returns CONTINUE, WARN, or FORCE_TERMINATE so the host loop can stop runaway tasks before they exhaust context or budget."
+short_description: "Token budget gate: CONTINUE, WARN, or FORCE_TERMINATE for agent loops."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: "monitoring"
+requirements: []
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Workflow action: check (default) evaluates the budget; reset clears cached turn results for task_id."
+      enum:
+        - check
+        - reset
+    task_id:
+      type: string
+      description: "Stable identifier for the autonomous task or agent session."
+    current_token_count:
+      type: integer
+      description: "Cumulative token count for the task so far. The host loop must track and pass the running total."
+    max_allowed_tokens:
+      type: integer
+      description: "Hard token ceiling for the task. At or above this value the skill returns FORCE_TERMINATE."
+    soft_threshold_pct:
+      type: number
+      description: "Optional warning threshold as a percentage of max_allowed_tokens. Default 80."
+    turn_id:
+      type: string
+      description: "Optional turn identifier for idempotent retries. Same task_id, turn_id, and counts return the cached decision."
+    model_id:
+      type: string
+      description: "Optional model name for indicative USD cost estimates (for example gpt-4o, gemini-2.5-flash)."
+    input_tokens:
+      type: integer
+      description: "Optional input tokens for this turn or cumulative split when estimating cost."
+    output_tokens:
+      type: integer
+      description: "Optional output tokens for this turn or cumulative split when estimating cost."
+    roi_value_usd:
+      type: number
+      description: "Optional scaffold for future ROI checks. Not enforced in v1."
+    expected_outcome:
+      type: string
+      description: "Optional scaffold describing the deliverable expected from the task (v2 ROI)."
+    outcome_delivered:
+      type: boolean
+      description: "Optional scaffold indicating whether the expected outcome was delivered (v2 ROI)."
+  required: []
+outputs:
+  status:
+    type: string
+    description: "ready or error."
+  action:
+    type: string
+    description: "CONTINUE, WARN, FORCE_TERMINATE, or RESET."
+  reason:
+    type: string
+    description: "Human-readable explanation of the decision."
+constitution: |
+  1. INFORMATIONAL ONLY: Output is a budget signal, not billing authority or legal clearance.
+  2. HOST RESPONSIBILITY: The calling loop must stop when action is FORCE_TERMINATE.
+  3. DETERMINISM: Same inputs produce the same decision (except timestamp).
+  4. PRIVACY: Do not accept or store prompt content; only metrics and task identifiers.
+  5. TOKEN FIRST: v1 terminates only on token hard limits. ROI fields are scaffold-only.
+  6. NO SIDE EFFECTS: Do not spawn background tasks, network calls, or process kills.
+presentation:
+  icon: "activity"
+  color: "#E67E22"

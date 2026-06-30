@@ -56,6 +56,13 @@ Skills that assist developers in understanding codebases, planning changes, and 
 | :--- | :--- | :--- | :--- |
 | **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
+## Monitoring
+Observability and guardrails for long-running autonomous agent loops.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Token Limiter](token_limiter.md)** | `monitoring/token_limiter` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
+
 ## Wellness
 Supportive coaching guardrails, crisis triage, and grounded psychoeducation for host agents.
 

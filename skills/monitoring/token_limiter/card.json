@@ -1,0 +1,22 @@
+{
+  "name": "Token Limiter",
+  "description": "Budget gate for autonomous agent loops. Returns CONTINUE, WARN, or FORCE_TERMINATE.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "activity",
+  "color": "orange",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "task_id", "label": "Task"},
+      {"key": "action", "label": "Decision", "type": "status_badge"},
+      {"key": "budget.utilization_pct", "label": "Utilization %", "type": "percent"},
+      {"key": "budget.current_token_count", "label": "Tokens Used", "type": "count"},
+      {"key": "cost.incurred_usd", "label": "Est. Cost (USD)", "type": "currency"}
+    ]
+  }
+}

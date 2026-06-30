@@ -51,6 +51,9 @@ with editable install: `pip install -e ".[gemini]"`.
 | `ollama_novelty_extractor.py` | `data_engineering/novelty_extractor` | Ollama | `pip install fastembed numpy`; install `ollama` separately | None | Runs the novelty extractor with local Ollama prompt-mode calls. |
 | `gemini_issue_resolver.py` | `dev_tools/issue_resolver` | Gemini | `[gemini]` | `GOOGLE_API_KEY`; optional `GITHUB_TOKEN` | Gemini loop for GitHub issue analysis; fetches issue data after `prepare` (sample: issue #123). |
 | `ollama_issue_resolver.py` | `dev_tools/issue_resolver` | Ollama | No Skillware extra; install `ollama` separately | optional `GITHUB_TOKEN`; `OLLAMA_MODEL` (default `gemma4:e2b`) | Ollama prompt-mode loop for GitHub issue analysis (sample: issue #123). |
+| `token_limiter_loop.py` | `monitoring/token_limiter` | Local execute | base install only | None | Simulates a runaway task hitting a token ceiling with deterministic budget checks. |
+| `gemini_token_limiter.py` | `monitoring/token_limiter` | Gemini | `[gemini]` | Optional `GOOGLE_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Gemini tool loop. |
+| `claude_token_limiter.py` | `monitoring/token_limiter` | Claude | `[claude]` | Optional `ANTHROPIC_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Claude tool loop. |
 
 ## Notes
 

@@ -237,7 +237,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `card.json` issuer must match manifest `name` and `email` when present
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md`
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
-- Categories: `compliance`, `data_engineering`, `defi`, `dev_tools`, `finance`, `office`, `optimization`, `wellness` — see [Skill library](../skills/README.md) for the live registry; propose new top-level categories in the issue first
+- Categories: `compliance`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `wellness` — see [Skill library](../skills/README.md) for the live registry; propose new top-level categories in the issue first
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
 - Logic in `skill.py`; prompts and persona in `instructions.md`
 - Never commit secrets; document `env_vars` in the manifest

@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "last_updated": "2026-05-24",
+  "currency": "USD",
+  "notes": "Indicative public list prices for cost estimates only. Not billing-grade.",
+  "models": {
+    "gpt-4o": {
+      "input_usd_per_1m": 2.5,
+      "output_usd_per_1m": 10.0
+    },
+    "gpt-4o-mini": {
+      "input_usd_per_1m": 0.15,
+      "output_usd_per_1m": 0.6
+    },
+    "claude-3-5-sonnet-latest": {
+      "input_usd_per_1m": 3.0,
+      "output_usd_per_1m": 15.0
+    },
+    "claude-3-5-haiku-latest": {
+      "input_usd_per_1m": 0.8,
+      "output_usd_per_1m": 4.0
+    },
+    "gemini-2.5-flash": {
+      "input_usd_per_1m": 0.15,
+      "output_usd_per_1m": 0.6
+    },
+    "gemini-2.5-flash-lite": {
+      "input_usd_per_1m": 0.075,
+      "output_usd_per_1m": 0.3
+    },
+    "deepseek-chat": {
+      "input_usd_per_1m": 0.27,
+      "output_usd_per_1m": 1.1
+    }
+  },
+  "fallback": {
+    "blended_usd_per_1m": 5.0
+  }
+}

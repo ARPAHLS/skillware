@@ -331,6 +331,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `finance` | Blockchain, risk, financial analysis | `wallet_screening` |
 | `office` | Documents, productivity | `pdf_form_filler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
+| `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
 | `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
 Skill IDs follow `category/skill_name` and should match the path under `skills/`. For the live registry, see [Skill Library](docs/skills/README.md). Propose new top-level categories in an issue before adding a folder.
