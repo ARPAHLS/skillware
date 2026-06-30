@@ -10,6 +10,8 @@ A deterministic **token budget gate** for autonomous agent loops. After each mod
 
 This skill does **not** kill processes, cancel provider sessions, or call billing APIs. It returns a structured decision the orchestrator acts on.
 
+> **Budget disclaimer:** This skill provides an operational budget signal only. It is not billing authority, financial advice, or a guarantee that spend is within budget. A `CONTINUE` result does not approve further spend; the host loop must track token usage from your provider or tokenizer and act on `FORCE_TERMINATE`. Cost estimates use bundled list prices and may differ from invoices.
+
 ## Capabilities
 
 - **Hard token ceiling**: Terminates (signals termination) when cumulative tokens reach `max_allowed_tokens`.
@@ -253,7 +255,14 @@ print(json.dumps(result, indent=2))
 
 ## Limitations
 
-- Host must track **cumulative** token counts; the skill does not read provider usage APIs.
+- **Provider-agnostic integration**: Works with any agent loop (local Ollama, cloud APIs, custom orchestrators) as long as the host passes cumulative `current_token_count`; the skill does not read provider usage APIs.
+- **Not billing authority**: Budget decisions are heuristic signals based on counts you supply and optional indicative pricing. They do not replace provider dashboards, invoices, or finance controls.
 - Cost figures are estimates from bundled list prices, not billing records.
 - ROI fields are scaffold-only in v1; only token limits trigger `FORCE_TERMINATE`.
 - Turn cache is in-memory per skill instance; restart the process to clear all cache.
+
+---
+
+## Enterprise disclaimer
+
+This skill is provided for demonstration and integration purposes. It is intended as a starting point that you can adapt to your own budgets, token accounting, and operational requirements. For an enterprise-grade version of this skill with dedicated support, SLAs, and customization, contact skills@arpacorp.net.
