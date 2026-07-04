@@ -13,6 +13,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Version policy**: Raise security support floor to `>= 0.3.5`, legacy band `0.3.0`–`0.3.4` (silent CLI), unsupported advisory for installs below `0.3.0` (#192).
 - **`office/pdf_form_filler`** and **`defi/evm_tx_handler`**: Align `manifest.yaml` `name` with registry paths (`office/pdf_form_filler`, `defi/evm_tx_handler`); update examples and docs to use manifest-derived tool dispatch (#201).
 - **Documentation**: Clarify skill ID vs manifest `name` vs provider tool names in `docs/usage/cli.md`, `docs/usage/agent_loops.md`, and `docs/introduction.md`; require full registry IDs in CONTRIBUTING manifest standard (#201).
+- **Documentation**: Add `docs/security/skill-trust-model.md` documenting the skill execution model, on-disk resolution order and shadowing, provenance tiers (Bundled / Project / External), and operator security guidance; wire links from SECURITY, usage, CONTRIBUTING, and CODE_OF_CONDUCT (#109).
+
 
 ## [0.4.0] - 2026-06-30
 
