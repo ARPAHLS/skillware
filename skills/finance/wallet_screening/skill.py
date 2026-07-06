@@ -4,7 +4,7 @@ import re
 import requests
 import glob
 import yaml
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from skillware.core.base_skill import BaseSkill
 
@@ -17,6 +17,10 @@ class WalletScreeningSkill(BaseSkill):
     A specific implementation of a compliance skill that screens Ethereum wallets
     against sanctions lists and malicious contract databases.
     """
+
+    # Etherscan account.txlist pagination (see api.etherscan.io docs).
+    ETHERSCAN_TX_PAGE_OFFSET = 1000
+    ETHERSCAN_TX_MAX_PAGES = 10  # cap: 10_000 normal txs per screen
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
@@ -60,7 +64,7 @@ class WalletScreeningSkill(BaseSkill):
             return {"error": "Missing ETHERSCAN_API_KEY environment variable."}
 
         # 1. Fetch Data
-        txs = self._get_eth_transactions(address)
+        txs, fetch_warnings = self._get_eth_transactions(address)
         eth_balance = self._get_eth_balance(address)
         eth_usd = self._get_price(self.coingecko_url_usd, "usd")
         eth_eur = self._get_price(self.coingecko_url_eur, "eur")
@@ -80,6 +84,7 @@ class WalletScreeningSkill(BaseSkill):
             eth_usd=eth_usd,
             eth_eur=eth_eur,
             txs_count=len(txs),
+            warnings=fetch_warnings,
         )
 
     # --- Loader Helpers ---
@@ -274,25 +279,61 @@ class WalletScreeningSkill(BaseSkill):
         except Exception:
             return 0.0
 
-    def _get_eth_transactions(self, address: str) -> List[Dict]:
+    def _get_eth_transactions(self, address: str) -> Tuple[List[Dict], List[str]]:
+        """Fetch normal ETH txs from Etherscan with pagination and warning codes."""
         url = "https://api.etherscan.io/api"
-        params = {
-            "module": "account",
-            "action": "txlist",
-            "address": address,
-            "startblock": 0,
-            "endblock": 99999999,
-            "sort": "asc",
-            "apikey": self.etherscan_api_key,
-        }
-        try:
-            resp = requests.get(url, params=params, timeout=15)
-            data = resp.json()
-            if data.get("status") == "1":
-                return data["result"]
-        except Exception:
-            pass
-        return []
+        warnings: List[str] = []
+        all_txs: List[Dict] = []
+        page = 1
+
+        while page <= self.ETHERSCAN_TX_MAX_PAGES:
+            params = {
+                "module": "account",
+                "action": "txlist",
+                "address": address,
+                "startblock": 0,
+                "endblock": 99999999,
+                "page": page,
+                "offset": self.ETHERSCAN_TX_PAGE_OFFSET,
+                "sort": "asc",
+                "apikey": self.etherscan_api_key,
+            }
+            try:
+                resp = requests.get(url, params=params, timeout=15)
+                data = resp.json()
+            except Exception:
+                warnings.append(
+                    "etherscan_txlist_unavailable"
+                    if page == 1
+                    else "etherscan_txlist_partial"
+                )
+                break
+
+            if data.get("status") != "1":
+                message = str(data.get("message", "")).lower()
+                if page == 1 and "no transactions found" in message:
+                    return [], warnings
+                warnings.append(
+                    "etherscan_txlist_unavailable"
+                    if page == 1
+                    else "etherscan_txlist_partial"
+                )
+                break
+
+            batch = data.get("result")
+            if not isinstance(batch, list):
+                warnings.append("etherscan_txlist_unavailable")
+                break
+
+            all_txs.extend(batch)
+            if len(batch) < self.ETHERSCAN_TX_PAGE_OFFSET:
+                break
+            if page >= self.ETHERSCAN_TX_MAX_PAGES:
+                warnings.append("etherscan_txlist_truncated")
+                break
+            page += 1
+
+        return all_txs, warnings
 
     def _get_eth_balance(self, address: str) -> float:
         url = "https://api.etherscan.io/api"
@@ -445,7 +486,9 @@ class WalletScreeningSkill(BaseSkill):
         eth_usd,
         eth_eur,
         txs_count,
+        warnings=None,
     ):
+        warnings = warnings or []
         pnl = analysis["value_out"] - analysis["value_in"] - analysis["gas_paid"]
         pnl_pct = (
             ((pnl) / analysis["value_in"] * 100) if analysis["value_in"] > 0 else 0.0
@@ -460,12 +503,16 @@ class WalletScreeningSkill(BaseSkill):
             key=lambda x: -x[1],
         )[:10]
 
+        metadata: Dict[str, Any] = {
+            "screening_time": datetime.now().isoformat(),
+            "wallet_address": address,
+            "data_sources_count": len(self.additional_datasets) + 2,
+        }
+        if warnings:
+            metadata["warnings"] = warnings
+
         return {
-            "metadata": {
-                "screening_time": datetime.now().isoformat(),
-                "wallet_address": address,
-                "data_sources_count": len(self.additional_datasets) + 2,
-            },
+            "metadata": metadata,
             "summary": {
                 "risk_flag": bool(sanctions_hits)
                 or bool(analysis["malicious_interactions"]),

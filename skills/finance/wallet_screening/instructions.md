@@ -17,6 +17,7 @@ The tool returns a JSON object. You should summarize this for the user in a prof
 2.  **`summary.malicious_interaction_count` (Integer)**: If > 0, the wallet has touched bad actors. List the `risk_details.malicious_interactions`.
 3.  **`financial_analysis.pnl_eth` / `pnl_usd`**: Profit and Loss. Useful for determining if it's a profitable trader or a victim.
 4.  **`network_analysis.top_10_counterparties`**: Who are they sending money to?
+5.  **`metadata.warnings` (Array, optional)**: If present, tell the user the on-chain history may be **incomplete** — e.g. `etherscan_txlist_truncated` (wallet exceeded the fetch cap), `etherscan_txlist_unavailable`, or `etherscan_txlist_partial`. Do not present PnL or interaction counts as exhaustive when warnings are set.
 
 ## Safety Protocol
 *   If a wallet is **Sanctioned**: severe warning. "⚠️ WARNING: This wallet appears on the following sanctions lists..."
