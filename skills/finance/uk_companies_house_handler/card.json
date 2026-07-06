@@ -1,0 +1,21 @@
+{
+  "name": "UK Companies House Handler",
+  "description": "Search, profile, officers, PSC, and filing history for UK-registered companies via Companies House API.",
+  "issuer": {
+    "name": "Areen Agrawal",
+    "email": "agrawalareen09@gmail.com",
+    "github": "Areen-09",
+    "org": "ARPAHLS"
+  },
+  "icon": "building-columns",
+  "color": "teal",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "status", "label": "Status", "type": "status_badge"},
+      {"key": "company_number", "label": "Company No."},
+      {"key": "company_name", "label": "Company Name"},
+      {"key": "company_status", "label": "Company Status", "type": "status_badge"}
+    ]
+  }
+}

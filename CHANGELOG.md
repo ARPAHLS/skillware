@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 Contributors add user-facing entries under `[Unreleased]` in the same PR. Maintainers rename that section to a version and date when cutting a PyPI release. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## [Unreleased]
+### Added
+
+- **`finance/uk_companies_house_handler`**: New skill for UK Companies House REST API — deterministic company search, profile, officers, PSC, filing history, and intent-to-operation mapping with UK corporate terminology translation; bundled endpoint index and terminology map; status-based response envelope (ready/needs_input/error) with disambiguation support.
 
 ### Changed
 

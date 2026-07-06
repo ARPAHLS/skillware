@@ -1,0 +1,107 @@
+# Maps common (often US-centric) business terms to their UK Companies House
+# equivalents. The skill and instructions.md reference this so agents do not
+# hallucinate wrong roles or entity types.
+
+role_mappings:
+  ceo: director
+  chief_executive_officer: director
+  chief_executive: director
+  president: director
+  chairman: director
+  chairwoman: director
+  chairperson: director
+  board_member: director
+  managing_director: director
+  executive_director: director
+  non_executive_director: director
+  cfo: director
+  cto: director
+  coo: director
+  secretary: secretary
+  company_secretary: secretary
+  corporate_secretary: secretary
+  owner: person_with_significant_control
+  shareholder: person_with_significant_control
+  beneficial_owner: person_with_significant_control
+  stakeholder: person_with_significant_control
+  majority_owner: person_with_significant_control
+  controlling_shareholder: person_with_significant_control
+  partner: llp_designated_member
+  general_partner: llp_designated_member
+  limited_partner: llp_member
+
+entity_types:
+  corporation: ltd
+  inc: ltd
+  incorporated: ltd
+  limited: ltd
+  llc: ltd
+  co: ltd
+  company: ltd
+  public_company: plc
+  public_limited_company: plc
+  partnership: llp
+  limited_liability_partnership: llp
+  limited_partnership: lp
+  community_interest_company: cic
+  charity: charitable-incorporated-organisation
+
+status_mappings:
+  operating: active
+  open: active
+  running: active
+  trading: active
+  closed: dissolved
+  shutdown: dissolved
+  bankrupt: liquidation
+  insolvent: liquidation
+  in_administration: administration
+  winding_up: liquidation
+  struck_off: dissolved
+  dormant: dormant
+
+document_types:
+  annual_report: annual-return
+  10k: accounts
+  10q: confirmation-statement
+  financial_statements: accounts
+  balance_sheet: accounts
+  income_statement: accounts
+  articles: incorporation
+  articles_of_incorporation: incorporation
+  bylaws: incorporation
+  charter: incorporation
+  annual_filing: confirmation-statement
+  registration: incorporation
+
+# Maps user intent keywords to the appropriate skill action
+intent_to_action:
+  search: resolve_company
+  find: resolve_company
+  lookup: resolve_company
+  look_up: resolve_company
+  who_is: get_officers
+  directors: get_officers
+  officers: get_officers
+  board: get_officers
+  management: get_officers
+  leadership: get_officers
+  ceo: get_officers
+  owner: get_pscs
+  owners: get_pscs
+  ownership: get_pscs
+  shareholder: get_pscs
+  shareholders: get_pscs
+  beneficial_owner: get_pscs
+  psc: get_pscs
+  filings: get_filing_history
+  filing: get_filing_history
+  accounts: get_filing_history
+  annual_return: get_filing_history
+  documents: get_filing_history
+  profile: get_company_profile
+  details: get_company_profile
+  info: get_company_profile
+  information: get_company_profile
+  status: get_company_profile
+  registered: get_company_profile
