@@ -2,11 +2,32 @@
 
 Every integration follows the same execution pattern:
 
+```mermaid
+flowchart TD
+    subgraph HostLoop ["Host-Centric Loop"]
+        direction TB
+        Load((1. Load)) --> Wire((2. Wire)) --> Prompt((3. Prompt))
+        Prompt --> Execute((4. Execute)) --> Return((5. Return)) --> Prompt
+    end
+```
+
+Your loop always looks like this. Skillware handles load and tool translation; you call execute and pass JSON back. To see what files a skill contains, see the [Introduction](../introduction.md).
+
 1. `bundle = SkillLoader.load_skill("<category>/<skill_name>")`
 2. `skill = bundle["class"]()` — or `SkillLoader.get_skill_class(bundle)()`; `bundle["module"]` remains available for backward compatibility.
 3. Adapt `bundle` for the model (`to_gemini_tool`, `to_claude_tool`, etc.).
 4. Pass `bundle["instructions"]` as system context.
 5. On tool call, `result = skill.execute(arguments)` and return JSON to the model.
+
+| Step | Call |
+| :--- | :--- |
+| **load** | `SkillLoader.load_skill(id)` |
+| **wire** | `to_*_tool(bundle)` + `bundle["instructions"]` &rarr; model |
+| **prompt** | User query &rarr; model |
+| **execute** | `SkillClass().execute(args)` |
+| **return** | Tool result &rarr; model |
+
+> **Direct path (no model)**: You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON.
 
 Provider guides contain full API details. Skill pages contain copy-paste examples with skill-specific paths and sample user messages.
 

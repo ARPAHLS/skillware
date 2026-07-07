@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Documentation**: Add minimal Mermaid architecture flow diagrams to README, introduction, and agent loops; add cross-links and direct-path footnotes (#210).
+
 ### Changed
 
 - **Loader**: `SkillLoader.load_skill()` auto-discovers the single `BaseSkill` subclass in each `skill.py` and exposes it as `bundle["class"]`; `get_skill_class()` helper added. Existing `bundle["module"]` usage is unchanged (#89).

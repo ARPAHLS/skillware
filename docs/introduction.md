@@ -49,6 +49,23 @@ Skillware/
         └── loader.py               # The engine that bridges the skill to the LLM
 ```
 
+```mermaid
+flowchart TD
+    subgraph Bundle["Skill Bundle Folder"]
+        Manifest[manifest.yaml]
+        Instructions[instructions.md]
+        SkillPy[skill.py]
+    end
+
+    Loader[SkillLoader] -->|Loads| Bundle
+    Loader -->|Adapts manifest| Adapters[Model Tool Schemas]
+    Host[Host App] -.->|Directly calls execute| SkillPy
+
+    style Host stroke-width:2px,stroke-dasharray: 5 5
+```
+
+A skill is a folder on disk. The loader turns the manifest into whatever tool schema your runtime expects. For the code loop that hooks these adapters up, see [Agent Loops](usage/agent_loops.md).
+
 When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestration happens behind the scenes:
 
 ### Step 1: Discovery & Loading

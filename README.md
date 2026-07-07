@@ -17,6 +17,7 @@
 
 <div align="center">
   <a href="#mission">Mission</a> •
+  <a href="#how-it-works">How it works</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
@@ -47,6 +48,18 @@ A **Skill** in this framework provides everything an Agent needs to master a dom
 ### Skill library
 
 Browse capabilities by category in the [Skill library](docs/skills/README.md) or on our <a href="https://skillware.site/skills" target="_blank" rel="noopener noreferrer">site&nbsp;↗</a>.
+
+## How it works
+
+```mermaid
+flowchart LR
+    Registry[(Registry / Disk)] -->|Load| Skillware[Skillware Loader]
+    Skillware -->|Adapt| Host[Host App]
+    Host -->|Prompt + Tools| Model([AI Model])
+    Model -->|Tool Call| Host
+```
+
+Install the registry once. Skillware loads a bundle and adapts it to your model's tool format — you run the loop. For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).
 
 ## Architecture
 
