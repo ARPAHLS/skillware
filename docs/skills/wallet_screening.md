@@ -237,7 +237,7 @@ The skill returns a rich forensic report. Agents act on this data.
 ## Limitations
 
 - **Ethereum only**: The skill screens Ethereum (EVM) addresses exclusively. Bitcoin, Solana, or other chain addresses are not supported and will fail address validation.
-- **Etherscan transaction cap**: Etherscan's `txlist` endpoint returns a maximum of 10,000 transactions per address. Wallets with very high transaction volume will have their older history silently truncated, which may affect PnL and counterparty calculations.
+- **Etherscan transaction cap**: Normal ETH history is fetched via paginated `txlist` (1,000 txs per page, max 10 pages → **10,000 txs**). When that cap is hit, or Etherscan fails, the report includes `metadata.warnings` with codes such as `etherscan_txlist_truncated`, `etherscan_txlist_unavailable`, or `etherscan_txlist_partial`. Treat PnL and counterparty stats as incomplete when warnings are present.
 - **Point-in-time sanctions data**: The bundled JSON lists (`entities.ftm.json`, `malicious_scs_2025.json`, and the normalized lists) reflect the state at the time of the last `maintenance/` run. They must be refreshed periodically to stay current.
 - **No ERC-20 or internal transaction coverage**: Only standard ETH transfers from the Etherscan `txlist` action are analyzed. ERC-20 token transfers, internal transactions, and NFT transfers are not included in financial flow calculations.
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
