@@ -3,6 +3,7 @@ from skillware.cli import (
     _resolve_pytest_targets,
     _parse_examples_index,
     _load_examples_index,
+    _examples_readme_path,
     _example_counts_by_skill,
     _example_github_url,
     cmd_list,
@@ -588,6 +589,12 @@ def test_load_examples_index_prefers_local_readme(examples_readme):
     rows, source = _load_examples_index()
     assert len(rows) == 2
     assert source == examples_readme
+
+
+def test_examples_readme_path_includes_packaged_index():
+    path = _examples_readme_path()
+    assert path is not None
+    assert path.as_posix().endswith("skillware/examples/README.md")
 
 
 def test_load_examples_index_github_fallback(monkeypatch):

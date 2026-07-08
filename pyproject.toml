@@ -78,6 +78,7 @@ include = ["skillware*", "skills*"]
 # and this wildcard. No per-skill entries needed when adding registry skills.
 [tool.setuptools.package-data]
 skills = ["**/*"]
+skillware = ["examples/README.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "skills"]

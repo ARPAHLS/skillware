@@ -77,11 +77,13 @@ def _example_github_url(script: str) -> str:
 
 
 def _examples_readme_path() -> Optional[Path]:
-    """Resolve a local examples/README.md from checkout or cwd walk."""
+    """Resolve examples/README.md from installed package, checkout, or cwd walk."""
     candidates: List[Path] = []
 
-    package_root = Path(__file__).resolve().parent.parent
-    candidates.append(package_root.parent / _EXAMPLES_README_REL)
+    package_dir = Path(__file__).resolve().parent
+    project_root = package_dir.parent
+    candidates.append(package_dir / _EXAMPLES_README_REL)
+    candidates.append(project_root / _EXAMPLES_README_REL)
 
     cwd = Path.cwd()
     for directory in [cwd, *list(cwd.parents)[:_PARENT_WALK_LIMIT]]:
