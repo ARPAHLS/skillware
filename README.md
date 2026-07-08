@@ -53,10 +53,10 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md) or
 
 ```mermaid
 flowchart LR
-    Registry[(Registry / Disk)] -->|Load| Skillware[Skillware Loader]
-    Skillware -->|Adapt| Host[Host App]
-    Host -->|Prompt + Tools| Model([AI Model])
-    Model -->|Tool Call| Host
+    Registry[(Registry)] -->|Load| Loader[Loader]
+    Loader -->|Adapt| Host[Host]
+    Host -->|Prompt + Tools| LogicalSystems([Logical Systems])
+    LogicalSystems -->|Tool Call| Host
 ```
 
 Install the registry once. Skillware loads a bundle and adapts it to your model's tool format — you run the loop. For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).

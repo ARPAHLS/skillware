@@ -55,7 +55,6 @@ flowchart TD
         Manifest[manifest.yaml]
         Instructions[instructions.md]
         SkillPy[skill.py]
-        CardJson["card.json (optional)"]
     end
 
     Loader[SkillLoader] -->|Loads| Bundle
@@ -63,10 +62,8 @@ flowchart TD
 
     subgraph Adapters["Model adapters"]
         direction LR
-        G[Gemini]
-        C[Claude]
-        O[OpenAI]
-        OL[Ollama]
+        API[API models]
+        Local[Local models]
     end
 
     Host[Host App] -.->|Directly calls execute| SkillPy

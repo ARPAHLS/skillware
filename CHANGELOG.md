@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **Documentation**: Compact architecture Mermaid diagrams — shorter README labels, model-agnostic adapter nodes in introduction, horizontal agent-loop layout with role table (#210 follow-up).
+
 ## [0.4.1] - 2026-07-08
 
 ### Added

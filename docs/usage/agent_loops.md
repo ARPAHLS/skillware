@@ -1,29 +1,21 @@
 # Agent loops with Skillware
 
-Every integration follows the same execution pattern:
+Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
 
 ```mermaid
-flowchart TD
-    subgraph Skillware
-        Load((1. Load)) --> Adapt((2. Wire / Adapt))
-    end
-
-    subgraph Model
-        Prompt((3. Prompt))
-        Return((5. Return))
-    end
-
-    subgraph Host ["Host App"]
-        Execute((4. Execute))
-    end
-
-    Adapt -->|Inject tools/instructions| Prompt
-    Prompt -->|Tool call request| Execute
-    Execute -->|Tool result JSON| Return
-    Return -->|Loop next iteration| Prompt
+flowchart LR
+    Load[load] --> Wire[wire]
+    Wire --> Prompt[prompt]
+    Prompt --> Execute[execute]
+    Execute --> Return[return]
+    Return --> Prompt
 ```
 
-Your loop always looks like this. Skillware handles load and tool translation; you call execute and pass JSON back. To see what files a skill contains, see the [Introduction](../introduction.md).
+| Role | Steps |
+| :--- | :--- |
+| **Skillware** | load, wire |
+| **Model** | prompt, return |
+| **Host** | execute |
 
 1. `bundle = SkillLoader.load_skill("<category>/<skill_name>")`
 2. `skill = bundle["class"]()` — or `SkillLoader.get_skill_class(bundle)()`; `bundle["module"]` remains available for backward compatibility.
