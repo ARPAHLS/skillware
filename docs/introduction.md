@@ -57,6 +57,8 @@ The loader resolves `category/skill_name` to a skill directory by checking, in o
 *   It parses the `manifest.yaml` (including `issuer` for attribution, separate from tool-calling fields). Registry skills set `name` to the full ID (`category/skill_name`), which Gemini and Claude use as the tool name; OpenAI and DeepSeek receive a sanitized variant (slashes → underscores). For registry-layout paths (`<skill_root>/<category>/<skill_name>/`), the loader warns when `name` does not match the folder path; flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Loaded bundles expose `registry_id` when validation applies.
 *   It reads `instructions.md` and `card.json`.
 
+For how skills are resolved on disk, the provenance tiers, and what to check before loading skills you did not write, see [Skill trust model & operator security](security/skill-trust-model.md).
+
 ### Step 2: Adaptation (The "Babel Fish")
 This is Skillware's superpower. Every model (Gemini, Claude, GPT) speaks a different "Tool Language".
 *   **Gemini** wants `FunctionDeclaration` with Protobuf types (UPPERCASE).

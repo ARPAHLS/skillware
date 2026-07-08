@@ -28,21 +28,25 @@ Because the search stops at the first matching id, a skill earlier in the order 
 
 The practical consequence: placing a skill with the same id as an official one, anywhere earlier in the search order, silently replaces the official skill. Shadowing is a normal feature of the resolution order, but it means the id you ask for does not by itself tell you which code will run — the location does.
 
+### Flat vs registry layout
+
+A private, local skill can live either in registry layout (`<skill_root>/<category>/<skill_name>/`) or in a flat layout (`<skill_root>/<skill_name>/`). Both load. One practical wrinkle: `skillware list` only discovers the two-level registry layout, so a flat skill loads fine but does not appear in `list`. If a local skill loads but is missing from `list`, a flat layout is usually why.
+
 ## 3. Provenance tiers
 
 A skill's tier describes where it came from and who reviewed it, which is the basis for how much you should trust it. It does not describe runtime isolation. All tiers execute the same way, in your host process.
 
 | Tier | Where it comes from | Reviewed by | Basis for trust | Sandboxed? |
 | :--- | :--- | :--- | :--- | :--- |
-| A — Bundled registry | Shipped in the skillware wheel (site-packages/skills/) | Maintainers, via pull-request review | Public review before it ships | No |
-| B — Project-local | ./skills/ in your project (cwd or a parent) | You / your team | You put it there | No |
-| C — External | SKILLWARE_SKILL_PATH or an absolute path | No one, until you review it | Treat as untrusted until read | No |
+| **Bundled registry** | Shipped in the skillware wheel (site-packages/skills/) | Maintainers, via pull-request review | Public review before it ships | No |
+| **Project-local** | ./skills/ in your project (cwd or a parent) | You / your team | You put it there | No |
+| **External** | SKILLWARE_SKILL_PATH or an absolute path | No one, until you review it | Treat as untrusted until read | No |
 
-**Tier A — Bundled registry.** These ship inside the package and go through maintainer pull-request review before release. This is the most trustworthy origin, but review is not isolation: a bundled skill still runs unsandboxed in your process.
+**Bundled registry.** These ship inside the package and go through maintainer pull-request review before release. This is the most trustworthy origin, but review is not isolation: a bundled skill still runs unsandboxed in your process.
 
-**Tier B — Project-local.** Skills in your project's ./skills/ (or a parent's). Trust here is simply trust in you and your team — you are responsible for the code you place there.
+**Project-local.** Skills in your project's ./skills/ (or a parent's). Trust here is simply trust in you and your team — you are responsible for the code you place there.
 
-**Tier C — External.** Skills loaded from SKILLWARE_SKILL_PATH or an absolute path. This is third-party code you did not write and no one has reviewed for you. Treat it as untrusted until you have read it yourself.
+**External.** Skills loaded from SKILLWARE_SKILL_PATH or an absolute path. This is third-party code you did not write and no one has reviewed for you. Treat it as untrusted until you have read it yourself.
 
 ## 4. constitution is guidance, not isolation
 
@@ -62,17 +66,17 @@ The same distinction applies to other manifest fields. Declaring env_vars docume
 
 Three common setups and what to watch for in each.
 
-**pip-only agent.** You pip install skillware and use only bundled skills (Tier A). Origin trust is highest here — the skills were reviewed before shipping — but execution is still unsandboxed: a bundled skill runs in your process with full access like any other. The risk is lower because of review, not because of isolation.
+**pip-only agent.** You pip install skillware and use only bundled skills (Bundled). Origin trust is highest here — the skills were reviewed before shipping — but execution is still unsandboxed: a bundled skill runs in your process with full access like any other. The risk is lower because of review, not because of isolation.
 
-**Development with ./skills/.** You keep project skills in ./skills/ (Tier B). Two things to keep in mind: trust rests on whoever on your team wrote the code, and shadowing applies — a local skill with the same id as a bundled one replaces it. Check that you are not unintentionally overriding an official skill with a local id.
+**Development with ./skills/.** You keep project skills in ./skills/ (Project). Two things to keep in mind: trust rests on whoever on your team wrote the code, and shadowing applies — a local skill with the same id as a bundled one replaces it. Check that you are not unintentionally overriding an official skill with a local id.
 
-**External path.** You point SKILLWARE_SKILL_PATH at a third-party skills directory (Tier C). This is the highest-risk case: unreviewed code runs in your process with access to your entire os.environ. Because a skill can read environment variables and make network calls, a malicious or careless external skill could read your API keys or secrets and send them elsewhere — nothing in the loader prevents this. Only load external skills you have read.
+**External path.** You point SKILLWARE_SKILL_PATH at a third-party skills directory (External). This is the highest-risk case: unreviewed code runs in your process with access to your entire os.environ. Because a skill can read environment variables and make network calls, a malicious or careless external skill could read your API keys or secrets and send them elsewhere — nothing in the loader prevents this. Only load external skills you have read.
 
 ## 6. Operator checklist
 
 Because there is no default isolation, these precautions are on you, the operator — the loader does not do them for you:
 
-- Read external (Tier C) skills before you load them. Do not run third-party skill code you have not looked at.
+- Read external (External) skills before you load them. Do not run third-party skill code you have not looked at.
 - Use dedicated, least-privilege API keys for agent work. Any loaded skill can read every variable in os.environ, so do not expose production or personal full-access keys.
 - Do not run untrusted skills on a machine that holds production secrets.
 - Watch for shadowing: confirm a local ./skills/ id is not unintentionally overriding a bundled skill.
