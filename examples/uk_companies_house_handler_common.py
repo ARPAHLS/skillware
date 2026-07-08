@@ -8,12 +8,7 @@ HTTP responses (no live API key required).
 from __future__ import annotations
 
 import json
-import os
-from contextlib import contextmanager
-from typing import Any, Dict, Iterator
-from unittest.mock import MagicMock, patch
-
-from skillware.core.loader import SkillLoader
+from typing import Any, Dict
 
 SKILL_ID = "finance/uk_companies_house_handler"
 
@@ -132,61 +127,22 @@ MOCK_FILING_RESPONSE = {
 }
 
 
-def demo_mode_enabled() -> bool:
-    """Check if the demo flag is set."""
-    return os.environ.get("UK_COMPANIES_HOUSE_EXAMPLE_DEMO", "").strip() in (
-        "1",
-        "true",
-        "yes",
-    )
-
-
-@contextmanager
-def demo_skill() -> Iterator[Any]:
-    """Yield a skill instance with mocked HTTP for demo mode."""
-    bundle = SkillLoader.load_skill(SKILL_ID)
-    skill = bundle["module"].UkCompaniesHouseHandlerSkill(
-        config={"COMPANIES_HOUSE_API_KEY": "demo_key"}
-    )
-
-    call_counter = {"n": 0}
-    ordered_responses = [
-        MOCK_SEARCH_RESPONSE,
-        MOCK_PROFILE_RESPONSE,
-        MOCK_OFFICERS_RESPONSE,
-        MOCK_PSC_RESPONSE,
-        MOCK_FILING_RESPONSE,
-    ]
-
-    def mock_request(method, url, **kwargs):
-        mock_resp = MagicMock()
-        idx = min(call_counter["n"], len(ordered_responses) - 1)
-        mock_resp.json.return_value = ordered_responses[idx]
-        mock_resp.raise_for_status = MagicMock()
-        call_counter["n"] += 1
-        return mock_resp
-
-    with patch(
-        "skills.finance.uk_companies_house_handler.skill.requests.request",
-        side_effect=mock_request,
-    ):
-        yield skill
-
-
-def load_skill():
-    """Return a skill instance (demo or live)."""
-    if demo_mode_enabled():
-        return demo_skill()
-    bundle = SkillLoader.load_skill(SKILL_ID)
-    return bundle["module"].UkCompaniesHouseHandlerSkill()
-
-
 def run_scripted_flow(skill: Any) -> None:
-    """Deterministic agent-style sequence: resolve, profile, officers, PSC, filings."""
+    """Deterministic agent-style sequence: map_intent, resolve, profile, officers, PSC, filings."""
     print("=== uk_companies_house_handler scripted flow ===\n")
+    print("User Query: Who is the CEO of BP?")
+
+    # Step 0: Map intent
+    intent_result = skill.execute(
+        {
+            "action": "map_intent",
+            "intent_keywords": "CEO",
+            "entities": {"company_query": "BP"},
+        }
+    )
+    print(json.dumps(intent_result, indent=2))
 
     # Step 1: Resolve company
-    print("1) resolve_company — searching for 'BP'")
     resolve_result = skill.execute(
         {"action": "resolve_company", "query": "BP", "limit": 5}
     )
@@ -206,14 +162,12 @@ def run_scripted_flow(skill: Any) -> None:
         return
 
     # Step 2: Get company profile
-    print("2) get_company_profile")
     profile_result = skill.execute(
         {"action": "get_company_profile", "company_number": company_number}
     )
     print(json.dumps(profile_result, indent=2))
 
     # Step 3: Get officers (active only)
-    print("\n3) get_officers (active_only=true)")
     officers_result = skill.execute(
         {
             "action": "get_officers",
@@ -224,12 +178,10 @@ def run_scripted_flow(skill: Any) -> None:
     print(json.dumps(officers_result, indent=2))
 
     # Step 4: Get PSCs
-    print("\n4) get_pscs")
     psc_result = skill.execute({"action": "get_pscs", "company_number": company_number})
     print(json.dumps(psc_result, indent=2))
 
     # Step 5: Get filing history
-    print("\n5) get_filing_history")
     filing_result = skill.execute(
         {"action": "get_filing_history", "company_number": company_number}
     )

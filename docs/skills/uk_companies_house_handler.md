@@ -23,7 +23,7 @@ The skill is self-contained in `skills/finance/uk_companies_house_handler/`.
 ### 1. The Mind (`instructions.md`)
 The system prompt teaches the AI to:
 - Map US business terminology to UK equivalents (CEO -> director, owner -> PSC).
-- Always resolve a company by name before querying by number.
+- Always map intent first before taking actions to build the correct action pipeline and resolve the company by name.
 - Handle disambiguation by presenting candidates to the user.
 - Cite company number and data timestamp in all responses.
 
@@ -71,7 +71,9 @@ skill = bundle["module"].UkCompaniesHouseHandlerSkill(
     config={"COMPANIES_HOUSE_API_KEY": os.environ.get("COMPANIES_HOUSE_API_KEY")}
 )
 client = genai.Client()
-tool = SkillLoader.to_gemini_tool(bundle)
+gemini_decl = SkillLoader.to_gemini_tool(bundle)
+gemini_decl["name"] = SkillLoader._sanitize_function_tool_name(gemini_decl["name"])
+tool = types.Tool(function_declarations=[gemini_decl])
 tool_name = bundle["manifest"]["name"]
 response = client.models.generate_content(
     model="gemini-2.5-flash",
@@ -239,7 +241,7 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "action": "map_intent",
-  "intent_keywords": ["ceo", "bp", "director"],
+  "intent_keywords": "ceo, bp, director",
   "entities": {"company_query": "BP"}
 }
 ```

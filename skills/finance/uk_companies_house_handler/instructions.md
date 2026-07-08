@@ -38,12 +38,13 @@ Always inform the user about these terminology differences when presenting resul
 | `get_filing_history` | List filings (accounts, returns, etc.) | `company_number` |
 | `map_intent` | Translate intent keywords to action pipeline | `intent_keywords` or `entities` |
 
-## Workflow — Always resolve first
+## Workflow — Always map intent first
 
-1. **Never guess a company number.** Always start with `resolve_company` when you have a name.
-2. If the response status is `needs_input`, present the candidates to the user and ask them to choose.
-3. Once you have a confirmed `company_number`, call specific actions (`get_officers`, `get_pscs`, etc.).
-4. Use `map_intent` when you need help translating user language into the right action sequence.
+1. **Always map intent first.** For every new user request, you MUST start by calling the `map_intent` action with the user's `intent_keywords` (as a comma-separated string) and `entities` (if applicable).
+2. Read the `suggested_pipeline` returned by the `map_intent` action.
+3. Follow the actions exactly as ordered in the `suggested_pipeline`.
+4. If a step (like `resolve_company`) returns a status of `needs_input`, present the candidates to the user and wait for their choice before proceeding.
+5. Once you have a confirmed `company_number`, continue with the remaining specific actions (`get_officers`, `get_pscs`, etc.) in your pipeline.
 
 ## Understanding responses
 

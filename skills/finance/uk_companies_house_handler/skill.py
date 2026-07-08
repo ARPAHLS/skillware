@@ -424,7 +424,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
     def _map_intent(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Map user intent keywords to a suggested action pipeline."""
-        keywords = params.get("intent_keywords", [])
+        keywords_raw = params.get("intent_keywords", "")
+        if isinstance(keywords_raw, list):
+            keywords = keywords_raw
+        else:
+            keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
         entities = params.get("entities", {})
 
         if not keywords and not entities:
@@ -457,19 +461,24 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         pipeline = []
         company_query = entities.get("company_query", "")
 
-        # If we have a company query, always start with resolve
-        if company_query:
+        # Check if any suggested action requires a company number
+        needs_resolve = any(
+            action in _ACTIONS_REQUIRING_COMPANY_NUMBER for action in suggested_actions
+        )
+
+        # If we have a company query, or if any action needs a resolve, always start with resolve
+        if company_query or needs_resolve:
             pipeline.append(
                 {
                     "action": "resolve_company",
-                    "params": {"query": company_query},
+                    "params": {"query": company_query or "<insert_company_name_here>"},
                 }
             )
 
         # Add the unique suggested actions
         for action in suggested_actions:
-            if action == "resolve_company" and company_query:
-                continue  # Already added above
+            if action == "resolve_company":
+                continue  # Already added above (or handled)
             step = {"action": action, "params": {}}
             if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
                 step["params"]["company_number"] = "<from_resolve>"
@@ -497,7 +506,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "suggested_pipeline": pipeline,
                 "terminology_map": terminology_translations,
                 "relevant_endpoints": relevant_endpoints,
-                "all_role_mappings": role_map,
             },
         )
 

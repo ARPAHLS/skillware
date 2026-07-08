@@ -44,10 +44,8 @@ parameters:
       type: string
       description: "Filing category filter (get_filing_history)."
     intent_keywords:
-      type: array
-      items:
-        type: string
-      description: "Keywords from user intent for map_intent action."
+      type: string
+      description: "Comma-separated keywords from user intent for map_intent action."
     entities:
       type: object
       description: "Extracted entities for map_intent (e.g. company_query, role)."

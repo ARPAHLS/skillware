@@ -68,4 +68,5 @@ skills in one harness.
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py` | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
+| `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 
