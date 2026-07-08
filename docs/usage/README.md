@@ -12,6 +12,8 @@ How to load Skillware skills and connect them to language models. Each guide cov
 
 For pip-installed apps, keep project skills in `./skills/<category>/<name>/` or set `SKILLWARE_SKILL_PATH` to your skills root.
 
+> **Security:** Loading a skill executes its `skill.py` in your process — there is no sandbox, and the first matching id in the search order wins (a local skill can shadow a bundled one). Only load skills you trust, and see the [skill trust model](../security/skill-trust-model.md) before loading external skills.
+
 To list locally available skills or run bundle tests from the terminal, see the [CLI reference](cli.md).
 
 | Provider | Adapter | Guide | Agent API key (typical) |

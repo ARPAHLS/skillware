@@ -1,0 +1,67 @@
+name: finance/uk_companies_house_handler
+version: 1.0.0
+description: |
+  Deterministic UK Companies House API handler for agents. Provides structured
+  operations for company search, profile lookup, officer and PSC listing, filing
+  history, and intent-to-operation mapping with UK corporate terminology
+  translation. Returns status-based responses (ready, needs_input, error) with
+  disambiguation support. The agent owns natural-language dialogue; the skill
+  returns structured candidates and next actions.
+short_description: "UK Companies House search, officers, PSC, and filings via structured actions."
+issuer:
+  name: Areen Agrawal
+  email: agrawalareen09@gmail.com
+  github: Areen-09
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: >
+        The operation to perform. One of: resolve_company, get_company_profile,
+        get_officers, get_pscs, get_filing_history, map_intent.
+      enum:
+        - resolve_company
+        - get_company_profile
+        - get_officers
+        - get_pscs
+        - get_filing_history
+        - map_intent
+    query:
+      type: string
+      description: "Company name or partial name for search (resolve_company)."
+    company_number:
+      type: string
+      description: "8-character UK company number (required for profile/officers/pscs/filing)."
+    active_only:
+      type: boolean
+      description: "Filter to current/active records only. Default false."
+    limit:
+      type: integer
+      description: "Max results to return (resolve_company). Default 5."
+    category:
+      type: string
+      description: "Filing category filter (get_filing_history)."
+    intent_keywords:
+      type: string
+      description: "Comma-separated keywords from user intent for map_intent action."
+    entities:
+      type: object
+      description: "Extracted entities for map_intent (e.g. company_query, role)."
+  required:
+    - action
+constitution: |
+  1. Use only publicly available Companies House data.
+  2. Require COMPANIES_HOUSE_API_KEY via environment; never hardcode or log the key.
+  3. Do not cache personal data (officer names, addresses) beyond the current request.
+  4. Always cite company_number and data timestamp (fetched_at) in responses.
+  5. Never guess a company number; return ranked search hits when ambiguous.
+  6. This skill provides company information, not legal or accounting advice.
+  7. Do not submit filings or modify Companies House records.
+env_vars:
+  COMPANIES_HOUSE_API_KEY:
+    description: "API key from the Companies House Developer Hub. Used as HTTP Basic username with empty password."
+    required: true
+requirements:
+  - requests

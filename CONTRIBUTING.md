@@ -357,6 +357,7 @@ Skill IDs follow `category/skill_name` and should match the path under `skills/`
 - Sanitize inputs in `skill.py` before external calls.
 - Respect the skill `constitution` in both code and documentation.
 - Malicious or deceptive contributions may be rejected and blocked from the project.
+- **Registry review is not runtime isolation.** Passing maintainer review means a skill's *origin* is trusted; it does not sandbox the skill. All skills run in the host process regardless of tier. See the [skill trust model](docs/security/skill-trust-model.md).
 
 ---
 

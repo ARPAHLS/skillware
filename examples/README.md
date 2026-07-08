@@ -54,6 +54,8 @@ with editable install: `pip install -e ".[gemini]"`.
 | `token_limiter_loop.py` | `monitoring/token_limiter` | Local execute | base install only | None | Simulates a runaway task hitting a token ceiling with deterministic budget checks. |
 | `gemini_token_limiter.py` | `monitoring/token_limiter` | Gemini | `[gemini]` | Optional `GOOGLE_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Gemini tool loop. |
 | `claude_token_limiter.py` | `monitoring/token_limiter` | Claude | `[claude]` | Optional `ANTHROPIC_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Claude tool loop. |
+| `gemini_uk_companies_house_handler.py` | `finance/uk_companies_house_handler` | Gemini | `[gemini]` | `GOOGLE_API_KEY`, `COMPANIES_HOUSE_API_KEY` | Resolve company, officers, filings via Gemini tool loop. |
+| `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | base install only | None | Runs a scripted sequence (resolve, profile, officers, pscs, filings) with mocked HTTP responses (no API keys needed). |
 
 ## Notes
 

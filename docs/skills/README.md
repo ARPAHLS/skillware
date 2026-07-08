@@ -17,6 +17,7 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
 | **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
+| **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers, PSC, filing history, and UK terminology mapping via structured actions. |
 
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).

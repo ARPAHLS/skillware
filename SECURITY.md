@@ -14,6 +14,10 @@ Thresholds are defined in `skillware/version_policy.py` (`MIN_SECURITY_SUPPORTED
 
 **Note:** PyPI releases are immutable. Users on very old wheels will not see the CLI advisory until they upgrade to a release that includes this logic at least once. That is expected for OSS packaging.
 
+## Skill execution model
+
+Loading a skill runs its `skill.py` in your host process, with full filesystem and environment access. Skillware does not sandbox skills; trust is based on provenance (where a skill came from and who reviewed it), not runtime isolation. Before loading skills you did not write, review the [skill trust model](docs/security/skill-trust-model.md).
+
 ## Reporting a Vulnerability
 
 We take security seriously. If you discover a vulnerability in Skillware (e.g., standard library skills leaking data, or loader bypasses):
