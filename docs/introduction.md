@@ -55,6 +55,7 @@ flowchart TD
         Manifest[manifest.yaml]
         Instructions[instructions.md]
         SkillPy[skill.py]
+        CardJson[card.json]
     end
 
     Loader[SkillLoader] -->|Loads| Bundle

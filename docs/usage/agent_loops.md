@@ -4,11 +4,23 @@ Every integration follows the same execution pattern:
 
 ```mermaid
 flowchart TD
-    subgraph HostLoop ["Host-Centric Loop"]
-        direction TB
-        Load((1. Load)) --> Wire((2. Wire)) --> Prompt((3. Prompt))
-        Prompt --> Execute((4. Execute)) --> Return((5. Return)) --> Prompt
+    subgraph Skillware
+        Load((1. Load)) --> Adapt((2. Wire / Adapt))
     end
+
+    subgraph Model
+        Prompt((3. Prompt))
+        Return((5. Return))
+    end
+
+    subgraph Host ["Host App"]
+        Execute((4. Execute))
+    end
+
+    Adapt -->|Inject tools/instructions| Prompt
+    Prompt -->|Tool call request| Execute
+    Execute -->|Tool result JSON| Return
+    Return -->|Loop next iteration| Prompt
 ```
 
 Your loop always looks like this. Skillware handles load and tool translation; you call execute and pass JSON back. To see what files a skill contains, see the [Introduction](../introduction.md).
@@ -24,10 +36,15 @@ Your loop always looks like this. Skillware handles load and tool translation; y
 | **load** | `SkillLoader.load_skill(id)` |
 | **wire** | `to_*_tool(bundle)` + `bundle["instructions"]` &rarr; model |
 | **prompt** | User query &rarr; model |
-| **execute** | `SkillClass().execute(args)` |
+| **execute** | `bundle["class"]().execute(args)` |
 | **return** | Tool result &rarr; model |
 
 > **Direct path (no model)**: You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON.
+>
+> ```mermaid
+> flowchart LR
+>     Load((1. Load)) --> Execute((2. Execute)) --> JSON((3. JSON))
+> ```
 
 Provider guides contain full API details. Skill pages contain copy-paste examples with skill-specific paths and sample user messages.
 
