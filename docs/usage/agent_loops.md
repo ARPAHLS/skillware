@@ -39,12 +39,14 @@ Your loop always looks like this. Skillware handles load and tool translation; y
 | **execute** | `bundle["class"]().execute(args)` |
 | **return** | Tool result &rarr; model |
 
-> **Direct path (no model)**: You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON.
->
-> ```mermaid
-> flowchart LR
->     Load((1. Load)) --> Execute((2. Execute)) --> JSON((3. JSON))
-> ```
+### Direct path (no model)
+
+You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON.
+
+```mermaid
+flowchart LR
+    Load((1. Load)) --> Execute((2. Execute)) --> JSON((3. JSON))
+```
 
 Provider guides contain full API details. Skill pages contain copy-paste examples with skill-specific paths and sample user messages.
 

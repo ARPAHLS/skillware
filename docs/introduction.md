@@ -55,17 +55,26 @@ flowchart TD
         Manifest[manifest.yaml]
         Instructions[instructions.md]
         SkillPy[skill.py]
-        CardJson[card.json]
+        CardJson["card.json (optional)"]
     end
 
     Loader[SkillLoader] -->|Loads| Bundle
-    Loader -->|Adapts manifest| Adapters[Model Tool Schemas]
+    Loader --> Adapters
+
+    subgraph Adapters["Model adapters"]
+        direction LR
+        G[Gemini]
+        C[Claude]
+        O[OpenAI]
+        OL[Ollama]
+    end
+
     Host[Host App] -.->|Directly calls execute| SkillPy
 
     style Host stroke-width:2px,stroke-dasharray: 5 5
 ```
 
-A skill is a folder on disk. The loader turns the manifest into whatever tool schema your runtime expects. For the code loop that hooks these adapters up, see [Agent Loops](usage/agent_loops.md).
+A skill is a folder on disk. The loader turns the manifest into whatever tool schema your runtime expects. For the high-level picture, see [How it works](../README.md#how-it-works); for the code loop that hooks these adapters up, see [Agent Loops](usage/agent_loops.md).
 
 When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestration happens behind the scenes:
 
@@ -73,7 +82,14 @@ When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestr
 The loader resolves `category/skill_name` to a skill directory by checking, in order: an existing path on disk, roots in `SKILLWARE_SKILL_PATH`, a `skills/` folder in the current working directory (or its parents), then bundled skills installed with the package. Each bundle is a directory containing `manifest.yaml` and `skill.py`.
 *   It dynamically imports the `skill.py` module and auto-discovers the single `BaseSkill` subclass as `bundle["class"]` (no hardcoded class names required).
 *   It parses the `manifest.yaml` (including `issuer` for attribution, separate from tool-calling fields). Registry skills set `name` to the full ID (`category/skill_name`), which Gemini and Claude use as the tool name; OpenAI and DeepSeek receive a sanitized variant (slashes → underscores). For registry-layout paths (`<skill_root>/<category>/<skill_name>/`), the loader warns when `name` does not match the folder path; flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Loaded bundles expose `registry_id` when validation applies.
-*   It reads `instructions.md` and `card.json`.
+*   It reads `instructions.md` and, when present, optional `card.json`.
+
+```mermaid
+flowchart LR
+    ID[category/name] --> FIND[resolve]
+    FIND --> PACK[bundle]
+    PACK --> ADAPT[adapt]
+```
 
 For how skills are resolved on disk, the provenance tiers, and what to check before loading skills you did not write, see [Skill trust model & operator security](security/skill-trust-model.md).
 
