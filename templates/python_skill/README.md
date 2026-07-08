@@ -6,8 +6,8 @@ Starter bundle under `skills/<category>/<skill_name>/`. Copy this template from 
 
 1. **Rename** the folder to match your skill ID (e.g. `skills/finance/my_skill`).
 2. **Packaging**: Add empty `__init__.py` files in `skills/<category>/` (new categories only) and in your skill folder so PyPI wheels include the full bundle. No `pyproject.toml` changes per skill.
-3. **`manifest.yaml`**: Set real `name`, `version`, `description`, `short_description`, `parameters`, `constitution`, and `issuer` (`name` + `email` required; `github` / `org` optional).
-4. **`skill.py`**: Implement deterministic logic; no LLM-generated code in the skill body.
+3. **`manifest.yaml`**: Set real `name` to the full registry ID (`category/skill_name`, matching the folder path), `version`, `description`, `short_description`, `parameters`, `constitution`, and `issuer` (`name` + `email` required; `github` / `org` optional). `SkillLoader.load_skill()` warns when `name` diverges from the path under registry layout; flat private layouts (`skills/<skill_name>/`) are not validated.
+4. **`skill.py`**: Implement deterministic logic with exactly one `BaseSkill` subclass (loaded as `bundle["class"]`); no LLM-generated code in the skill body.
 5. **`instructions.md`**: Tell the agent when and how to use the tool.
 6. **`card.json`**: Mirror `issuer` from the manifest; customize UI fields.
 7. **`test_skill.py`**: Bundle test (required; enforced by `tests/test_skill_issuer.py`); offline, mock external services, including HTTP clients, LLM APIs, embedding/model loaders, and any first-run model downloads; run `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`. See [TESTING.md](../../docs/TESTING.md).

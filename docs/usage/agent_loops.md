@@ -3,7 +3,7 @@
 Every integration follows the same execution pattern:
 
 1. `bundle = SkillLoader.load_skill("<category>/<skill_name>")`
-2. `skill = bundle["module"].<SkillClass>()`
+2. `skill = bundle["class"]()` — or `SkillLoader.get_skill_class(bundle)()`; `bundle["module"]` remains available for backward compatibility.
 3. Adapt `bundle` for the model (`to_gemini_tool`, `to_claude_tool`, etc.).
 4. Pass `bundle["instructions"]` as system context.
 5. On tool call, `result = skill.execute(arguments)` and return JSON to the model.
@@ -22,7 +22,7 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 | DeepSeek | `to_deepseek_tool(bundle)["function"]["name"]` (same sanitization rules) |
 | Ollama (prompt) | `"tool"` field in the JSON block the model emits (same as `manifest["name"]` when the manifest uses the full registry ID) |
 
-**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with `bundle["manifest"]["name"]` on Gemini and Claude, or derive sanitized names from the adapter on OpenAI and DeepSeek (`office_pdf_form_filler`, `defi_evm_tx_handler`). Do not hardcode legacy short names in examples.
+**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with `bundle["manifest"]["name"]` on Gemini and Claude, or derive sanitized names from the adapter on OpenAI and DeepSeek (`office_pdf_form_filler`, `defi_evm_tx_handler`). Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
 
 ## Minimal execute (no LLM)
 
@@ -30,8 +30,7 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
-SkillClass = bundle["module"].TOSEvaluatorSkill
-result = SkillClass().execute(
+result = bundle["class"]().execute(
     {
         "target_url": "https://example.com",
         "intended_action": "crawl documentation for research",

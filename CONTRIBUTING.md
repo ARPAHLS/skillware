@@ -207,7 +207,7 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 
 **Required fields and sections:**
 
-- `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix).
+- `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check.
 - `version`, `description`
 - `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
 - `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
@@ -247,7 +247,8 @@ requirements:
 
 ### 2. `skill.py` (logic)
 
-- Implement deterministic Python logic (planned: inherit from `BaseSkill` where applicable).
+- Define **exactly one** concrete subclass of `BaseSkill` per skill file. `SkillLoader.load_skill()` discovers it automatically as `bundle["class"]` (see `SkillLoader.get_skill_class()`).
+- Implement deterministic Python logic; inherit from `BaseSkill`.
 - Accept a dictionary of inputs; return a JSON-serializable dictionary.
 - Catch internal errors and return a structured error report; do not crash the host agent.
 - Do **not** print to stdout or stderr for normal operation.

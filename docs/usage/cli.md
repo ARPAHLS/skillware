@@ -196,7 +196,7 @@ the same condition `SkillLoader` requires to load a skill successfully.
 | **OpenAI / DeepSeek tool name** | Sanitized adapter name | `office_pdf_form_filler` |
 | **Ollama prompt `"tool"`** | Same as manifest when using full IDs | `office/pdf_form_filler` |
 
-`skillware list` always shows the **path-derived ID**; it does not read `manifest["name"]` for the ID column. Keep manifest `name` aligned with that ID so agent loops and `SkillLoader.to_*_tool()` stay consistent. See [Agent loops](agent_loops.md#tool-name-matching).
+`skillware list` always shows the **path-derived ID**; it does not read `manifest["name"]` for the ID column. Keep manifest `name` aligned with that ID so agent loops and `SkillLoader.to_*_tool()` stay consistent. `SkillLoader.load_skill()` warns via `SkillwareIdentityWarning` when a registry-layout skill has a missing or mismatched `name` (flat private skills under `<skill_root>/<skill_name>/` are not checked). See [Agent loops](agent_loops.md#tool-name-matching).
 
 ## Color theme
 

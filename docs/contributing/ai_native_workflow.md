@@ -233,6 +233,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 
 - Bundle: `manifest.yaml`, `skill.py`, `instructions.md`, `card.json`, `test_skill.py`, plus catalog docs
 - `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
+- `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and `org` optional; no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md`
@@ -268,9 +269,9 @@ Complete the checklist that matches your issue during Stage 5.
 ### New or updated skill
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
-- [ ] `manifest.yaml`: `name`, `version`, `description`, `parameters`, `constitution`, real `issuer`
+- [ ] `manifest.yaml`: `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
-- [ ] `skill.py`: deterministic, JSON-serializable returns, safe error handling
+- [ ] `skill.py`: exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
 - [ ] `card.json`: `issuer` matches manifest
 - [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
@@ -300,6 +301,7 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] Framework issue approved
 - [ ] Changes in `skillware/` and relevant `tests/`
+- [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings)
 - [ ] `pytest tests/` passes
 - [ ] Usage docs updated if API changed
 - [ ] No undeclared breaking changes

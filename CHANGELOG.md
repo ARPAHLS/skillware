@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Loader**: `SkillLoader.load_skill()` auto-discovers the single `BaseSkill` subclass in each `skill.py` and exposes it as `bundle["class"]`; `get_skill_class()` helper added. Existing `bundle["module"]` usage is unchanged (#89).
+- **Loader**: `SkillLoader.load_skill()` validates that `manifest.yaml` `name` matches the path-derived registry ID for `category/skill_name` layouts; emits `SkillwareIdentityWarning` on mismatch (warn-only v1). Flat private skills under a skill root are unchanged. Bundles now include optional `registry_id` (#200).
 - **Version policy**: Raise security support floor to `>= 0.3.5`, legacy band `0.3.0`–`0.3.4` (silent CLI), unsupported advisory for installs below `0.3.0` (#192).
 - **`office/pdf_form_filler`** and **`defi/evm_tx_handler`**: Align `manifest.yaml` `name` with registry paths (`office/pdf_form_filler`, `defi/evm_tx_handler`); update examples and docs to use manifest-derived tool dispatch (#201).
 - **Documentation**: Clarify skill ID vs manifest `name` vs provider tool names in `docs/usage/cli.md`, `docs/usage/agent_loops.md`, and `docs/introduction.md`; require full registry IDs in CONTRIBUTING manifest standard (#201).

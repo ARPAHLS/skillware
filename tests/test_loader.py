@@ -1,11 +1,16 @@
 import subprocess
 import sys
+import warnings
 import zipfile
 from pathlib import Path
 
 import pytest
 
-from skillware.core.loader import SKILLWARE_SKILL_PATH_ENV, SkillLoader
+from skillware.core.loader import (
+    SKILLWARE_SKILL_PATH_ENV,
+    SkillLoader,
+    SkillwareIdentityWarning,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -18,6 +23,157 @@ def test_load_skill_not_found():
 def test_load_skill_registry_has_manifest():
     bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
     assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
+    assert bundle["registry_id"] == "optimization/prompt_rewriter"
+    assert bundle["class"].__name__ == "PromptRewriter"
+    assert SkillLoader.get_skill_class(bundle) is bundle["class"]
+
+
+def test_load_skill_class_is_instantiable():
+    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    skill = bundle["class"]()
+    result = skill.execute({"raw_text": "hello world"})
+    assert "error" not in result
+
+
+def test_discover_skill_class_requires_exactly_one_subclass(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "broken" / "no_class"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: broken/no_class\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "def helper():\n    return 1\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ImportError, match="found none"):
+        SkillLoader.load_skill("broken/no_class")
+
+
+def test_discover_skill_class_rejects_multiple_subclasses(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "broken" / "two_classes"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: broken/two_classes\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class FirstSkill(BaseSkill):\n"
+        "    @property\n"
+        "    def manifest(self):\n"
+        "        return {}\n"
+        "    def execute(self, params):\n"
+        "        return {}\n"
+        "class SecondSkill(BaseSkill):\n"
+        "    @property\n"
+        "    def manifest(self):\n"
+        "        return {}\n"
+        "    def execute(self, params):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ImportError, match="found: \\['FirstSkill', 'SecondSkill'\\]"):
+        SkillLoader.load_skill("broken/two_classes")
+
+
+def test_load_skill_registry_id_matches_bundled_skills():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", SkillwareIdentityWarning)
+        bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+    assert bundle["registry_id"] == "compliance/tos_evaluator"
+
+
+def test_flat_skill_skips_identity_validation(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "my_flat_skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: different_from_path\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class FlatSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", SkillwareIdentityWarning)
+        bundle = SkillLoader.load_skill("my_flat_skill")
+    assert bundle["registry_id"] is None
+
+
+def test_registry_layout_mismatch_warns(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "finance" / "bad_manifest"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: finance/wrong_name\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class BadManifestSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    with pytest.warns(SkillwareIdentityWarning, match="does not match registry path"):
+        bundle = SkillLoader.load_skill("finance/bad_manifest")
+    assert bundle["registry_id"] == "finance/bad_manifest"
+
+
+def test_registry_layout_missing_name_warns(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "office" / "no_name"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "version: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class NoNameSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    with pytest.warns(SkillwareIdentityWarning, match="missing 'name'"):
+        bundle = SkillLoader.load_skill("office/no_name")
+    assert bundle["registry_id"] == "office/no_name"
+
+
+def test_env_root_registry_layout_validates(tmp_path, monkeypatch):
+    root = tmp_path / "custom_skills"
+    skill_dir = root / "monitoring" / "env_registry_skill"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: monitoring/env_registry_skill\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class EnvRegistrySkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(root))
+    monkeypatch.chdir(tmp_path)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", SkillwareIdentityWarning)
+        bundle = SkillLoader.load_skill("monitoring/env_registry_skill")
+    assert bundle["registry_id"] == "monitoring/env_registry_skill"
 
 
 def test_resolve_skill_from_project_skills_dir(tmp_path, monkeypatch):
@@ -38,6 +194,7 @@ def test_resolve_skill_from_project_skills_dir(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     bundle = SkillLoader.load_skill("local_skill")
     assert bundle["manifest"]["name"] == "local_skill"
+    assert bundle["registry_id"] is None
 
 
 def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
@@ -60,6 +217,7 @@ def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     bundle = SkillLoader.load_skill("env_skill")
     assert bundle["manifest"]["name"] == "env_skill"
+    assert bundle["registry_id"] is None
 
 
 def test_resolve_skill_prefers_env_over_cwd(tmp_path, monkeypatch):

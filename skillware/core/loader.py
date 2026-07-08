@@ -1,10 +1,17 @@
+import inspect
 import os
 import re
+import warnings
 import yaml
 import json
 import importlib.util
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Type
+
+
+class SkillwareIdentityWarning(UserWarning):
+    """Emitted when manifest.name does not match the registry folder path (warn-only in v1)."""
+
 
 SKILLWARE_SKILL_PATH_ENV = "SKILLWARE_SKILL_PATH"
 _MAX_PARENT_WALK = 6
@@ -48,6 +55,74 @@ class SkillLoader:
             for entry in raw.split(os.pathsep)
             if entry.strip()
         ]
+
+    @staticmethod
+    def _all_skill_roots() -> List[Path]:
+        roots: List[Path] = []
+        seen: set[str] = set()
+        for root in (
+            SkillLoader._env_skill_roots()
+            + SkillLoader._cwd_skill_roots()
+            + [SkillLoader._bundled_skills_root()]
+        ):
+            resolved = root.resolve()
+            key = str(resolved)
+            if key not in seen:
+                seen.add(key)
+                roots.append(resolved)
+        return roots
+
+    @staticmethod
+    def _expected_registry_id(skill_dir: Path) -> Optional[str]:
+        """
+        Return category/skill_name when the skill directory uses registry layout
+        ({skill_root}/{category}/{skill_name}/). Flat layouts ({skill_root}/{skill_name}/)
+        and arbitrary absolute paths outside skill roots return None.
+        """
+        resolved = skill_dir.resolve()
+        parent = resolved.parent
+        for root in SkillLoader._all_skill_roots():
+            try:
+                relative_parent = parent.relative_to(root)
+            except ValueError:
+                continue
+            if len(relative_parent.parts) == 1:
+                return f"{relative_parent.parts[0]}/{resolved.name}"
+        return None
+
+    @staticmethod
+    def _validate_manifest_identity(
+        skill_dir: Path, manifest: Dict[str, Any]
+    ) -> Optional[str]:
+        """
+        Warn when manifest.name diverges from the path-derived registry ID.
+        Returns the expected registry ID for registry-layout skills, else None.
+        """
+        expected = SkillLoader._expected_registry_id(skill_dir)
+        if expected is None:
+            return None
+
+        manifest_name = manifest.get("name")
+        if not manifest_name or not str(manifest_name).strip():
+            warnings.warn(
+                f"Skill at {skill_dir}: manifest.yaml is missing 'name'; "
+                f"expected {expected!r} for registry layout (category/skill_name).",
+                SkillwareIdentityWarning,
+                stacklevel=4,
+            )
+            return expected
+
+        manifest_name = str(manifest_name).strip()
+        if manifest_name != expected:
+            warnings.warn(
+                f"Skill at {skill_dir}: manifest.yaml name {manifest_name!r} does not "
+                f"match registry path {expected!r}. Set name to the full ID "
+                f"(category/skill_name) or use a flat layout (<skill_root>/<skill_name>/) "
+                f"for private local skills. See CONTRIBUTING.md.",
+                SkillwareIdentityWarning,
+                stacklevel=4,
+            )
+        return expected
 
     @staticmethod
     def _cwd_skill_roots() -> List[Path]:
@@ -113,13 +188,51 @@ class SkillLoader:
         )
 
     @staticmethod
+    def _discover_skill_class(module: Any, skill_file: str) -> Type[Any]:
+        """
+        Return the single BaseSkill subclass defined in the loaded skill module.
+        """
+        from skillware.core.base_skill import BaseSkill
+
+        skill_classes = [
+            obj
+            for _, obj in inspect.getmembers(module, inspect.isclass)
+            if issubclass(obj, BaseSkill)
+            and obj is not BaseSkill
+            and obj.__module__ == module.__name__
+        ]
+        if len(skill_classes) == 1:
+            return skill_classes[0]
+        if not skill_classes:
+            raise ImportError(
+                f"Expected exactly one BaseSkill subclass in {skill_file}, found none."
+            )
+        names = [cls.__name__ for cls in skill_classes]
+        raise ImportError(
+            f"Expected exactly one BaseSkill subclass in {skill_file}, "
+            f"found: {names}"
+        )
+
+    @staticmethod
+    def get_skill_class(skill_bundle: Dict[str, Any]) -> Type[Any]:
+        """Return the BaseSkill subclass from a bundle produced by load_skill()."""
+        skill_class = skill_bundle.get("class")
+        if skill_class is None:
+            raise KeyError(
+                "Skill bundle has no 'class' key; load with SkillLoader.load_skill() first."
+            )
+        return skill_class
+
+    @staticmethod
     def load_skill(skill_path: str) -> Dict[str, Any]:
         """
         Loads a skill and returns a bundled object with:
-        - class: The Python class (uninstantiated)
+        - module: The loaded skill.py module
+        - class: The BaseSkill subclass (uninstantiated)
         - manifest: The YAML metadata
         - instructions: The system prompt content
         - card: The UI card definition
+        - registry_id: Path-derived registry ID when validation applies
         """
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
@@ -129,7 +242,9 @@ class SkillLoader:
         manifest_path = os.path.join(skill_path, "manifest.yaml")
         if os.path.exists(manifest_path):
             with open(manifest_path, "r", encoding="utf-8") as f:
-                manifest = yaml.safe_load(f)
+                manifest = yaml.safe_load(f) or {}
+
+        registry_id = SkillLoader._validate_manifest_identity(resolved_path, manifest)
 
         # Check Dependencies
         if "requirements" in manifest:
@@ -165,15 +280,14 @@ class SkillLoader:
         if spec and spec.loader:
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            # Find the class that inherits from BaseSkill?
-            # For now assume the user looks for the exported class or we inspect.
-            # We'll just return the module and let the user instantiate the known class name
-            # or we could enforce a naming convention.
+            skill_class = SkillLoader._discover_skill_class(module, skill_file)
             return {
                 "module": module,
+                "class": skill_class,
                 "manifest": manifest,
                 "instructions": instructions,
                 "card": card,
+                "registry_id": registry_id,
             }
         return {}
 
