@@ -7,6 +7,13 @@ Browse by category below, or run `skillware list` after `pip install skillware` 
 ## Office
 Skills for document processing, email automation, and productivity.
 
+## Creative
+Skills for image processing, media editing, and creative utilities.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Background Remover](bg_remover.md)** | `creative/bg_remover` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
+
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
 | **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |

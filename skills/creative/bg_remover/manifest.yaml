@@ -1,0 +1,78 @@
+name: "creative/bg_remover"
+version: "0.1.0"
+description: "Remove image backgrounds locally using rembg."
+short_description: "Offline background removal using rembg with transparent PNG output."
+
+issuer:
+  name: Ayush Srivastava
+  email: "ayush.sri0705@gmail.com"
+  github: AyushSrivastava1818
+  org: ""
+
+parameters:
+  type: object
+  properties:
+    image:
+      type: string
+      description: "Base64 encoded input image."
+
+    input_path:
+      type: string
+      description: "Optional local input image."
+
+    output_path:
+      type: string
+      description: "Optional output PNG path."
+
+    model:
+      type: string
+      enum:
+        - isnet-general-use
+        - u2net
+        - u2net_human_seg
+        - silueta
+      default: isnet-general-use
+
+    alpha_matting:
+      type: boolean
+      default: false
+
+outputs:
+  success:
+    type: boolean
+
+  image_base64:
+    type: string
+
+  mime_type:
+    type: string
+
+  output_path:
+    type: string
+
+  width:
+    type: integer
+
+  height:
+    type: integer
+
+  model_used:
+    type: string
+
+  error:
+    type: string
+
+  error_code:
+    type: string
+
+requirements:
+  - rembg>=2.0.0
+  - pillow
+  - onnxruntime
+
+constitution: |
+  1. IMAGE_ONLY: Process still images only.
+  2. LOCAL_FIRST: Never use cloud APIs.
+  3. PRIVACY: Never store image bytes.
+  4. DETERMINISTIC: Same input produces same output.
+  5. FAIL_CLOSED: Return structured errors on invalid input.

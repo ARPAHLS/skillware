@@ -10,6 +10,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- Added `creative/bg_remover`, an offline background removal skill powered by rembg.
+
+### Added
+
 - **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).
 - **Documentation**: Cross-linked `tests/test_registry_docs.py` in `ai_native_workflow.md` and `CONTRIBUTING.md` so contributors know doc-drift guards run in CI; added explicit PR checklist reminder in `CONTRIBUTING.md` (#193).
 
