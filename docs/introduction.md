@@ -30,7 +30,7 @@ In integration, a "Skill" is not just a function. It is a living unit of capabil
 
 ## The Architecture: How It Works
 
-Skillware relies on a strict, modular layout. Instead of hardcoding tools into your primary application, you maintain a structured registry of capabilities:
+Skillware relies on a strict, modular layout. Instead of hardcoding tools into your primary application, you maintain a structured registry of capabilities grouped by domain folders under `skills/` (see [Skill categories](../CONTRIBUTING.md#skill-categories) when contributing):
 
 ```text
 Skillware/

@@ -333,7 +333,7 @@ Registry-wide issuer rules are enforced in `tests/test_skill_issuer.py` (skills 
 
 ## Skill categories
 
-Place each skill under one top-level directory under `skills/`. Use an existing category when it fits; propose a new category in the issue if none apply.
+Place each skill under one top-level directory under `skills/`. Use an existing category when it fits.
 
 | Category | Purpose | Examples in registry |
 | :--- | :--- | :--- |
@@ -341,13 +341,19 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `data_engineering` | Datasets, generation, ETL-style tooling | `synthetic_generator`, `novelty_extractor` |
 | `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
 | `dev_tools` | Developer workflows, issue resolution, repo tooling | `issue_resolver` |
-| `finance` | Blockchain, risk, financial analysis | `wallet_screening` |
+| `finance` | Blockchain, risk, financial analysis | `wallet_screening`, `uk_companies_house_handler` |
 | `office` | Documents, productivity | `pdf_form_filler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
 | `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
 | `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
-Skill IDs follow `category/skill_name` and should match the path under `skills/` and the `name` field in `manifest.yaml`. For the live registry, see [Skill Library](docs/skills/README.md). Propose new top-level categories in an issue before adding a folder.
+### Choosing a category
+
+The table above is **illustrative**, not a closed list. When contributing a new skill, pick the category whose purpose best matches the skill's primary function.
+
+Registry IDs are always `category/skill_name` from the folder path and must match the `name` field in `manifest.yaml` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). For the live registry, see [Skill Library](docs/skills/README.md).
+
+**New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
 ---
 

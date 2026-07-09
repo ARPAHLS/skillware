@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Documentation
+
+- **CONTRIBUTING**: Category selection guidance for contributors; issue-first policy for new top-level folders (#204).
+
 ### Changed
 
 - **GitHub**: Overhauled issue templates (CLI, Skill Upgrade, Examples, Packaging), issue chooser `config.yml`, PR template, and label taxonomy with pastel colors; labels sync automatically from `.github/labels.json` via CI on merge to `main` (#227).
