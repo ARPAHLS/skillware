@@ -69,7 +69,7 @@ Gemini uses `FunctionDeclaration` objects (defined in Protobuf) to describe tool
 The `manifest.yaml` uses standard JSON Schema types (lowercase `string`, `object`).
 Gemini requires Protobuf types (uppercase `STRING`, `OBJECT`).
 
-`SkillLoader.to_gemini_tool()` handles this conversion automatically. It recursively walks your parameter schema and ensures it is compatible with Gemini's backend.
+`SkillLoader.to_gemini_tool()` handles this conversion automatically. It recursively walks your parameter schema, sanitizes the tool name, and returns a ready-to-use `types.Tool` object compatible with Gemini's backend.
 
 ### 2. Context Injection
 Gemini 1.5+ supports `system_instruction`. Skillware leverages this to inject the "Mind" of the skill (`instructions.md`).

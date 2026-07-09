@@ -324,10 +324,11 @@ def test_to_gemini_tool():
         }
     }
     tool = SkillLoader.to_gemini_tool(dummy_bundle)
-    assert tool["name"] == "test_gemini_skill"
+    decl = tool.function_declarations[0]
+    assert decl.name == "test_gemini_skill"
     # Gemini requires UPPERCASE types for Protobufs
-    assert tool["parameters"]["type"] == "OBJECT"
-    assert tool["parameters"]["properties"]["param1"]["type"] == "STRING"
+    assert decl.parameters.type.name == "OBJECT"
+    assert decl.parameters.properties["param1"].type.name == "STRING"
 
 
 def test_to_claude_tool():

@@ -40,9 +40,7 @@ def main() -> None:
     client = genai.Client()
 
     # Convert the manifest to a Gemini function declaration and sanitize the name
-    gemini_decl = SkillLoader.to_gemini_tool(bundle)
-    gemini_decl["name"] = SkillLoader._sanitize_function_tool_name(gemini_decl["name"])
-    tool = types.Tool(function_declarations=[gemini_decl])
+    tool = SkillLoader.to_gemini_tool(bundle)
 
     system_instruction = bundle["instructions"]
 

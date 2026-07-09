@@ -45,6 +45,8 @@ def main() -> None:
     client = genai.Client()
     tool = SkillLoader.to_gemini_tool(bundle)
     system_instruction = bundle["instructions"]
+    # Derive the tool name from the manifest so this stays correct if the name changes
+    TOOL_NAME = SkillLoader._sanitize_function_tool_name(bundle["manifest"]["name"])
 
     user_query = (
         "Plan a buy of 10 DEGEN on Base paying with USDC. "
@@ -70,7 +72,7 @@ def main() -> None:
         fn_args = dict(part.function_call.args)
         print(f"Agent tool call: {fn_name} -> {json.dumps(fn_args)}")
 
-        if fn_name != bundle["manifest"]["name"]:
+        if fn_name != TOOL_NAME:
             print(f"Unknown tool: {fn_name}")
             break
 

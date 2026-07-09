@@ -17,6 +17,8 @@ tos_skill = TOSEvaluatorSkill()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 system_instruction = bundle["instructions"]
+# Derive the tool name from the manifest so this stays correct if the name changes
+TOOL_NAME = SkillLoader._sanitize_function_tool_name(bundle["manifest"]["name"])
 
 user_query = (
     "Before scraping Hackernoon tagged AI pages, check whether automated crawling "
@@ -43,7 +45,7 @@ while response.candidates and response.candidates[0].content.parts:
     print(f"Gemini requested tool: {fn_name}")
     print(f"Input: {fn_args}")
 
-    if fn_name == "compliance/tos_evaluator":
+    if fn_name == TOOL_NAME:
         result = tos_skill.execute(fn_args)
         print(json.dumps(result, indent=2))
         response = client.models.generate_content(

@@ -25,10 +25,10 @@ skill = IssueResolverSkill()
 github_token = os.environ.get("GITHUB_TOKEN") or None
 
 client = genai.Client()
-tool_decl = SkillLoader.to_gemini_tool(bundle)
-tool_decl["name"] = SkillLoader._sanitize_function_tool_name(SKILL_ID)
-gemini_tool = types.Tool(function_declarations=[tool_decl])
-gemini_fn_name = tool_decl["name"]
+gemini_tool = SkillLoader.to_gemini_tool(bundle)
+# Derive the tool name from the manifest so this stays correct if the name changes
+gemini_fn_name = SkillLoader._sanitize_function_tool_name(bundle["manifest"]["name"])
+
 system_instruction = bundle["instructions"]
 model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
 

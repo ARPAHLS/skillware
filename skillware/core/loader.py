@@ -292,13 +292,21 @@ class SkillLoader:
         return {}
 
     @staticmethod
-    def to_gemini_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:
+    def to_gemini_tool(skill_bundle: Dict[str, Any]) -> Any:
         """
         Converts a skill manifest to a Gemini function declaration.
         Handles type conversion (lowercase to UPPERCASE) for Gemini Protobuf compatibility.
         """
+        try:
+            from google.genai import types
+        except ImportError:
+            raise ImportError(
+                "google-genai is required for to_gemini_tool. Install with: pip install google-genai"
+            )
+
         manifest = skill_bundle.get("manifest", {})
-        name = manifest.get("name", "unknown_tool")
+        raw_name = manifest.get("name", "unknown_tool")
+        name = SkillLoader._sanitize_function_tool_name(raw_name)
         description = manifest.get("description", "")
         parameters = manifest.get("parameters", {})
 
@@ -313,11 +321,15 @@ class SkillLoader:
                 }
             return new_schema
 
-        return {
-            "name": name,
-            "description": description,
-            "parameters": sanitize_schema(parameters),
-        }
+        return types.Tool(
+            function_declarations=[
+                {
+                    "name": name,
+                    "description": description,
+                    "parameters": sanitize_schema(parameters),
+                }
+            ]
+        )
 
     @staticmethod
     def to_claude_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:

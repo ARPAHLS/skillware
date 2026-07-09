@@ -16,6 +16,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **GitHub**: Overhauled issue templates (CLI, Skill Upgrade, Examples, Packaging), issue chooser `config.yml`, PR template, and label taxonomy with pastel colors; labels sync automatically from `.github/labels.json` via CI on merge to `main` (#227).
 
+### Fixed
+- **Framework:** `SkillLoader.to_gemini_tool()` now returns a `google.genai.types.Tool` object instead of a raw dictionary, ensuring compatibility with the `google-genai` SDK when passing tools to `GenerateContentConfig`.
+- **Examples:** Removed manual `types.Tool` wrapping, and consistently utilize `SkillLoader._sanitize_function_tool_name()` for derived tool names in gemini examples.
+- **Tests:** Updated `tests/test_loader.py` to assert against the properties of the `google.genai.types.Tool` object for `to_gemini_tool()`.
+
 ## [0.4.2] - 2026-07-08
 
 ### Changed

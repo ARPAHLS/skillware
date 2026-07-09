@@ -33,9 +33,7 @@ def run_gemini_loop(skill, bundle) -> None:
 
     print("\nPhase 2: Gemini tool loop with budget check...")
     client = genai.Client()
-    tool_decl = SkillLoader.to_gemini_tool(bundle)
-    tool_decl["name"] = SkillLoader._sanitize_function_tool_name(SKILL_ID)
-    gemini_tool = types.Tool(function_declarations=[tool_decl])
+    gemini_tool = SkillLoader.to_gemini_tool(bundle)
     system_instruction = bundle["instructions"]
     model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
