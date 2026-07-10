@@ -11,6 +11,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Documentation
 
 - **CONTRIBUTING**: Category selection guidance for contributors; issue-first policy for new top-level folders (#204).
+- **Usage docs**: Align `agent_loops.md` and `cli.md` with Gemini sanitized tool-name dispatch after #229 (#230 follow-up).
 
 ### Added
 

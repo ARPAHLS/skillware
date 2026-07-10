@@ -214,7 +214,8 @@ the same condition `SkillLoader` requires to load a skill successfully.
 | :--- | :--- | :--- |
 | **CLI / loader ID** | Folder path `category/skill_name` | `office/pdf_form_filler` |
 | **`manifest.yaml` `name`** | Should match the registry ID | `office/pdf_form_filler` |
-| **Gemini / Claude tool name** | `manifest["name"]` via adapter | `office/pdf_form_filler` |
+| **Gemini tool name** | Sanitized via `to_gemini_tool()` / `_sanitize_gemini_tool_name()` | `office_pdf_form_filler` |
+| **Claude tool name** | `manifest["name"]` via adapter | `office/pdf_form_filler` |
 | **OpenAI / DeepSeek tool name** | Sanitized adapter name | `office_pdf_form_filler` |
 | **Ollama prompt `"tool"`** | Same as manifest when using full IDs | `office/pdf_form_filler` |
 
