@@ -104,9 +104,7 @@ load_env_file()
 bundle = SkillLoader.load_skill("dev_tools/issue_resolver")
 skill = bundle["class"]()
 client = genai.Client()
-tool_decl = SkillLoader.to_gemini_tool(bundle)
-tool_decl["name"] = SkillLoader._sanitize_function_tool_name("dev_tools/issue_resolver")
-gemini_tool = types.Tool(function_declarations=[tool_decl])
+gemini_tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
     model="gemini-2.5-flash-lite",
     contents="Analyze https://github.com/owner/repo/issues/123 and propose a fix plan.",

@@ -46,7 +46,7 @@ def main() -> None:
     tool = SkillLoader.to_gemini_tool(bundle)
     system_instruction = bundle["instructions"]
     # Derive the tool name from the manifest so this stays correct if the name changes
-    TOOL_NAME = SkillLoader._sanitize_function_tool_name(bundle["manifest"]["name"])
+    TOOL_NAME = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
 
     user_query = (
         "Plan a buy of 10 DEGEN on Base paying with USDC. "

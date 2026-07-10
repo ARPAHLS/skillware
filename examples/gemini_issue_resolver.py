@@ -27,7 +27,7 @@ github_token = os.environ.get("GITHUB_TOKEN") or None
 client = genai.Client()
 gemini_tool = SkillLoader.to_gemini_tool(bundle)
 # Derive the tool name from the manifest so this stays correct if the name changes
-gemini_fn_name = SkillLoader._sanitize_function_tool_name(bundle["manifest"]["name"])
+gemini_fn_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
 
 system_instruction = bundle["instructions"]
 model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")

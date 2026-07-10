@@ -93,7 +93,7 @@ skill = bundle["class"](
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 # Use the manifest name so the match stays correct if the name ever changes
-tool_name = bundle["manifest"]["name"]
+tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
 response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents="Screen wallet 0xd8dA... for sanctions and malicious contract interactions.",

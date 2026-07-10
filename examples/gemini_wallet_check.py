@@ -22,7 +22,7 @@ client = genai.Client()
 tool = SkillLoader.to_gemini_tool(skill_bundle)
 system_instruction = skill_bundle["instructions"]
 # Derive the tool name from the manifest so this stays correct if the name changes
-TOOL_NAME = SkillLoader._sanitize_function_tool_name(skill_bundle["manifest"]["name"])
+TOOL_NAME = SkillLoader._sanitize_gemini_tool_name(skill_bundle["manifest"]["name"])
 
 user_query = (
     "Can you screen this wallet for me? 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"

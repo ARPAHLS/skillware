@@ -81,6 +81,8 @@ The `google-genai` SDK returns model parts that can include `function_call` requ
 In a manual Skillware loop, execute the matching local skill with `skill.execute(dict(part.function_call.args))`, then send a `function_response` back to Gemini so the model can produce the final answer.
 If you use an automatic-calling helper in your own app, keep the same boundary: Skillware executes locally, and the tool result is returned to the model before you show a final response.
 
+**Canonical Dispatch**: When matching the requested `function_call.name` against your skill in a multi-tool agent loop, always match against the sanitized name (e.g. `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` or the adapter-derived `tool.function_declarations[0].name`), not the raw registry ID with slashes.
+
 ## 🛠️ Advanced: Manual Execution Loop
 
 If you need granular control (e.g., to sanitize inputs or show progress bars), use the manual loop:

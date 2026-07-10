@@ -111,9 +111,7 @@ load_env_file()
 bundle = SkillLoader.load_skill("monitoring/token_limiter")
 skill = bundle["class"]()
 client = genai.Client()
-tool_decl = SkillLoader.to_gemini_tool(bundle)
-tool_decl["name"] = SkillLoader._sanitize_function_tool_name("monitoring/token_limiter")
-gemini_tool = types.Tool(function_declarations=[tool_decl])
+gemini_tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
     model="gemini-2.5-flash-lite",
     contents=(

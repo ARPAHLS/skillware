@@ -74,10 +74,8 @@ skill = bundle["class"](
     config={"COMPANIES_HOUSE_API_KEY": os.environ.get("COMPANIES_HOUSE_API_KEY")}
 )
 client = genai.Client()
-gemini_decl = SkillLoader.to_gemini_tool(bundle)
-gemini_decl["name"] = SkillLoader._sanitize_function_tool_name(gemini_decl["name"])
-tool = types.Tool(function_declarations=[gemini_decl])
-tool_name = bundle["manifest"]["name"]
+tool = SkillLoader.to_gemini_tool(bundle)
+tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
 response = client.models.generate_content(
     model="gemini-2.5-flash",
     contents="Who is the CEO of BP?",

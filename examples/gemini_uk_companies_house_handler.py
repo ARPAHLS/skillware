@@ -67,7 +67,7 @@ def main() -> None:
         print(f"Function: {fn_name}")
         print(f"Arguments: {json.dumps(fn_args, indent=2)}")
 
-        expected_tool_name = SkillLoader._sanitize_function_tool_name(
+        expected_tool_name = SkillLoader._sanitize_gemini_tool_name(
             bundle["manifest"]["name"]
         )
         if fn_name != expected_tool_name:

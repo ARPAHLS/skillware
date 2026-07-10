@@ -104,7 +104,7 @@ response = client.models.generate_content(
         system_instruction=bundle["instructions"],
     ),
 )
-# On function_call, match bundle["manifest"]["name"] (defi/evm_tx_handler):
+# On function_call, match SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"]) (defi_evm_tx_handler):
 # skill.execute({"action": ..., "intent": ...})
 # After preview + user approval: skill.execute({"action": "execute", "intent": intent, "confirmed": True})
 ```

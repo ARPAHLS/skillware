@@ -19,7 +19,7 @@ pdf_skill = PDFFormFillerSkill()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(skill_bundle)
 system_instruction = skill_bundle["instructions"]
-TOOL_NAME = SkillLoader._sanitize_function_tool_name(skill_bundle["manifest"]["name"])
+TOOL_NAME = SkillLoader._sanitize_gemini_tool_name(skill_bundle["manifest"]["name"])
 
 pdf_path = os.path.abspath("test_form.pdf")
 user_query = (

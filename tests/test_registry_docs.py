@@ -164,3 +164,37 @@ def test_agent_loops_reference_all_skills(
     assert not missing, "Skills missing from docs/usage/agent_loops.md:\n" + "\n".join(
         f"  - {skill}" for skill in missing
     )
+
+
+def test_skill_docs_gemini_anti_patterns():
+    """Verify Gemini snippets in skill catalog pages do not use anti-patterns."""
+    docs_root = REPO_ROOT / "docs" / "skills"
+
+    anti_patterns = [
+        (r'tool_decl\["name"\]\s*=', 'tool_decl["name"] mutation'),
+        (r'gemini_decl\["name"\]\s*=', 'gemini_decl["name"] mutation'),
+        (
+            r"types\.Tool\s*\(\s*function_declarations\s*=\s*\[",
+            "types.Tool(function_declarations=[ manual wrap",
+        ),
+        (
+            r'function_call\.name\s*==\s*(?:bundle|skill)\["manifest"\]\["name"\]',
+            'function_call.name == bundle["manifest"]["name"] without sanitize',
+        ),
+    ]
+
+    failures = []
+
+    for md_file in docs_root.glob("*.md"):
+        if md_file.name == "README.md":
+            continue
+
+        content = md_file.read_text(encoding="utf-8")
+
+        for pattern, name in anti_patterns:
+            if re.search(pattern, content):
+                failures.append(f"{md_file.name}: {name}")
+
+    assert not failures, "Gemini anti-patterns found in skill docs:\n" + "\n".join(
+        f"  - {f}" for f in failures
+    )

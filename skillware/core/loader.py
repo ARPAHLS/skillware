@@ -292,46 +292,6 @@ class SkillLoader:
         return {}
 
     @staticmethod
-    def to_gemini_tool(skill_bundle: Dict[str, Any]) -> Any:
-        """
-        Converts a skill manifest to a Gemini function declaration.
-        Handles type conversion (lowercase to UPPERCASE) for Gemini Protobuf compatibility.
-        """
-        try:
-            from google.genai import types
-        except ImportError:
-            raise ImportError(
-                "google-genai is required for to_gemini_tool. Install with: pip install google-genai"
-            )
-
-        manifest = skill_bundle.get("manifest", {})
-        raw_name = manifest.get("name", "unknown_tool")
-        name = SkillLoader._sanitize_function_tool_name(raw_name)
-        description = manifest.get("description", "")
-        parameters = manifest.get("parameters", {})
-
-        # Helper to recursively upper-case 'type' fields
-        def sanitize_schema(schema):
-            new_schema = schema.copy()
-            if "type" in new_schema:
-                new_schema["type"] = new_schema["type"].upper()
-            if "properties" in new_schema:
-                new_schema["properties"] = {
-                    k: sanitize_schema(v) for k, v in new_schema["properties"].items()
-                }
-            return new_schema
-
-        return types.Tool(
-            function_declarations=[
-                {
-                    "name": name,
-                    "description": description,
-                    "parameters": sanitize_schema(parameters),
-                }
-            ]
-        )
-
-    @staticmethod
     def to_claude_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:
         """
         Converts a skill manifest to an Anthropic Claude tool definition.
@@ -358,12 +318,57 @@ class SkillLoader:
         return safe[:64]
 
     @staticmethod
+    def _sanitize_gemini_tool_name(name: str) -> str:
+        return SkillLoader._sanitize_function_tool_name(name)
+
+    @staticmethod
     def _sanitize_openai_tool_name(name: str) -> str:
         return SkillLoader._sanitize_function_tool_name(name)
 
     @staticmethod
     def _sanitize_deepseek_tool_name(name: str) -> str:
         return SkillLoader._sanitize_function_tool_name(name)
+
+    @staticmethod
+    def to_gemini_tool(skill_bundle: Dict[str, Any]) -> Any:
+        """
+        Converts a skill manifest to a Gemini function declaration.
+        Handles type conversion (lowercase to UPPERCASE) for Gemini Protobuf compatibility.
+        See: https://ai.google.dev/gemini-api/docs/generate-content/function-calling#how-it-works
+        """
+        try:
+            from google.genai import types
+        except ImportError:
+            raise ImportError(
+                "google-genai is required for to_gemini_tool. Install with: pip install google-genai"
+            )
+
+        manifest = skill_bundle.get("manifest", {})
+        raw_name = manifest.get("name", "unknown_tool")
+        name = SkillLoader._sanitize_gemini_tool_name(raw_name)
+        description = manifest.get("description", "")
+        parameters = manifest.get("parameters", {})
+
+        # Helper to recursively upper-case 'type' fields
+        def sanitize_schema(schema):
+            new_schema = schema.copy()
+            if "type" in new_schema:
+                new_schema["type"] = new_schema["type"].upper()
+            if "properties" in new_schema:
+                new_schema["properties"] = {
+                    k: sanitize_schema(v) for k, v in new_schema["properties"].items()
+                }
+            return new_schema
+
+        return types.Tool(
+            function_declarations=[
+                {
+                    "name": name,
+                    "description": description,
+                    "parameters": sanitize_schema(parameters),
+                }
+            ]
+        )
 
     @staticmethod
     def to_openai_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:
