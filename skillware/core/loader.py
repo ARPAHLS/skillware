@@ -8,13 +8,23 @@ import importlib.util
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Type
 
+import skillware.core.discovery as _discovery
+from skillware.core.discovery import (
+    build_skill_not_found_message,
+    bundled_skills_root,
+    cwd_skill_roots,
+    env_skill_roots,
+    existing_skill_root_paths,
+    get_skill_roots,
+    is_skill_dir,
+)
+
+SKILLWARE_SKILL_PATH_ENV = _discovery.SKILLWARE_SKILL_PATH_ENV
+
 
 class SkillwareIdentityWarning(UserWarning):
     """Emitted when manifest.name does not match the registry folder path (warn-only in v1)."""
 
-
-SKILLWARE_SKILL_PATH_ENV = "SKILLWARE_SKILL_PATH"
-_MAX_PARENT_WALK = 6
 
 # PyPI distribution names that differ from their import paths.
 _REQUIREMENT_IMPORT_ALIASES = {
@@ -39,38 +49,23 @@ class SkillLoader:
 
     @staticmethod
     def _is_skill_dir(path: Path) -> bool:
-        return path.is_dir() and (path / "skill.py").is_file()
+        return is_skill_dir(path)
 
     @staticmethod
     def _bundled_skills_root() -> Path:
-        return Path(__file__).resolve().parent.parent.parent / "skills"
+        return bundled_skills_root()
 
     @staticmethod
     def _env_skill_roots() -> List[Path]:
-        raw = os.environ.get(SKILLWARE_SKILL_PATH_ENV, "").strip()
-        if not raw:
-            return []
-        return [
-            Path(entry).expanduser().resolve()
-            for entry in raw.split(os.pathsep)
-            if entry.strip()
-        ]
+        return [root.path for root in env_skill_roots()]
 
     @staticmethod
     def _all_skill_roots() -> List[Path]:
-        roots: List[Path] = []
-        seen: set[str] = set()
-        for root in (
-            SkillLoader._env_skill_roots()
-            + SkillLoader._cwd_skill_roots()
-            + [SkillLoader._bundled_skills_root()]
-        ):
-            resolved = root.resolve()
-            key = str(resolved)
-            if key not in seen:
-                seen.add(key)
-                roots.append(resolved)
-        return roots
+        return existing_skill_root_paths()
+
+    @staticmethod
+    def _cwd_skill_roots() -> List[Path]:
+        return [root.path for root in cwd_skill_roots()]
 
     @staticmethod
     def _expected_registry_id(skill_dir: Path) -> Optional[str]:
@@ -125,22 +120,6 @@ class SkillLoader:
         return expected
 
     @staticmethod
-    def _cwd_skill_roots() -> List[Path]:
-        roots: List[Path] = []
-        current = Path.cwd().resolve()
-        for _ in range(_MAX_PARENT_WALK):
-            candidate = current / "skills"
-            if candidate.is_dir():
-                resolved = candidate.resolve()
-                if resolved not in roots:
-                    roots.append(resolved)
-            parent = current.parent
-            if parent == current:
-                break
-            current = parent
-        return roots
-
-    @staticmethod
     def _resolve_skill_path(skill_path: str) -> Path:
         """
         Resolve a skill directory from an absolute path, a path relative to cwd,
@@ -162,30 +141,13 @@ class SkillLoader:
                 return resolved
 
         skill_id = raw.replace("\\", "/").strip("/")
-        searched: List[str] = []
 
-        def try_roots(roots: List[Path]) -> Optional[Path]:
-            for root in roots:
-                attempt = (root / skill_id).resolve()
-                searched.append(str(attempt))
-                if SkillLoader._is_skill_dir(attempt):
-                    return attempt
-            return None
+        for root in get_skill_roots():
+            attempt = (root.path / skill_id).resolve()
+            if SkillLoader._is_skill_dir(attempt):
+                return attempt
 
-        for roots in (
-            SkillLoader._env_skill_roots(),
-            SkillLoader._cwd_skill_roots(),
-            [SkillLoader._bundled_skills_root()],
-        ):
-            found = try_roots(roots)
-            if found is not None:
-                return found
-
-        raise FileNotFoundError(
-            f"Skill not found: {skill_id!r}. Searched:\n  "
-            + "\n  ".join(searched)
-            + f"\nSet {SKILLWARE_SKILL_PATH_ENV} or pass an absolute path to the skill directory."
-        )
+        raise FileNotFoundError(build_skill_not_found_message(skill_id))
 
     @staticmethod
     def _discover_skill_class(module: Any, skill_file: str) -> Type[Any]:

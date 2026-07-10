@@ -17,6 +17,13 @@ from rich import box
 import importlib.metadata
 
 from skillware.core.loader import SkillLoader
+from skillware.core.discovery import (
+    SKILLWARE_SKILL_PATH_ENV,
+    find_shadow_conflicts,
+    get_skill_roots,
+    list_registry_skill_ids,
+    resolution_order_summary,
+)
 from skillware.version_policy import emit_upgrade_advisory, get_installed_version
 
 TABLE_STYLE = "bold #C7CEEA"  # lavender  - headers
@@ -177,26 +184,8 @@ def _load_examples_index() -> (
 
 
 def _get_skill_roots(skills_root_override: Optional[Path] = None) -> List[Path]:
-    """Return the list of roots to search for skills, mirrors SkillLoader resolution order."""
-    if skills_root_override is not None:
-        if skills_root_override.exists():
-            return [skills_root_override]
-        return []
-
-    roots = []
-    seen = set()
-
-    for root in (
-        SkillLoader._env_skill_roots()
-        + SkillLoader._cwd_skill_roots()
-        + [SkillLoader._bundled_skills_root()]
-    ):
-        resolved = root.resolve()
-        if resolved not in seen and resolved.exists():
-            seen.add(resolved)
-            roots.append(resolved)
-
-    return roots
+    """Return existing skill root paths in loader resolution order."""
+    return [root.path for root in get_skill_roots(skills_root_override)]
 
 
 def _short_description(data: Dict[str, Any], max_len: int = 80) -> str:
@@ -481,6 +470,100 @@ def cmd_examples(
     return 0
 
 
+def cmd_paths(
+    skills_root_override: Optional[Path] = None,
+    console=None,
+) -> int:
+    """Show skill root resolution order, tiers, and shadowing (read-only; #246 adds config)."""
+    if console is None:
+        console = Console()
+
+    cwd = Path.cwd().resolve()
+    console.print(Text("Skill path resolution", style=f"bold {TABLE_STYLE}"))
+    console.print(f"  cwd: {cwd}", style="dim")
+    console.print()
+
+    roots = get_skill_roots(skills_root_override, for_display=True)
+    if not roots:
+        console.print(
+            "No skill roots configured. Set "
+            f"{SKILLWARE_SKILL_PATH_ENV} or use --skills-root.",
+            style="bold #FF9AA2",
+        )
+        return 1
+
+    table = Table(
+        box=box.SIMPLE_HEAVY,
+        border_style=BORDER_STYLE,
+        header_style=TABLE_STYLE,
+        expand=True,
+    )
+    table.add_column("ORDER", style=CATEGORY_STYLE, no_wrap=True, ratio=1)
+    table.add_column("TIER", style=ID_STYLE, no_wrap=True, ratio=1)
+    table.add_column("PATH", ratio=4)
+    table.add_column("STATUS", no_wrap=True, ratio=1)
+    table.add_column("SKILLS", style="dim", no_wrap=True, ratio=1)
+
+    for index, root in enumerate(roots, start=1):
+        skill_count = len(list_registry_skill_ids(root.path)) if root.exists else 0
+        status = "ok" if root.exists else "missing"
+        status_style = ID_STYLE if root.exists else "bold #FF9AA2"
+        table.add_row(
+            str(index),
+            root.tier.value,
+            str(root.path),
+            Text(status, style=status_style),
+            str(skill_count) if root.exists else "—",
+        )
+
+    console.print(table)
+    console.print()
+
+    conflicts = find_shadow_conflicts(roots)
+    if conflicts:
+        console.print(
+            Text("Shadowing (first root wins on load)", style=f"bold {TABLE_STYLE}")
+        )
+        for conflict in conflicts[:20]:
+            console.print(
+                f"  {conflict.skill_id}: "
+                f"{conflict.winner.tier.value} at {conflict.winner.path} "
+                f"shadows {conflict.shadowed.tier.value} at {conflict.shadowed.path}",
+                style="bold #FF9AA2",
+            )
+        if len(conflicts) > 20:
+            console.print(f"  … and {len(conflicts) - 20} more", style="dim")
+        console.print()
+
+    console.print(Text("Resolution order", style=f"bold {TABLE_STYLE}"))
+    for label, detail in resolution_order_summary():
+        console.print(f"  {label}: {detail}", style="dim")
+    console.print()
+
+    console.print(Text("Tips", style=f"bold {TABLE_STYLE}"))
+    console.print(
+        "  • One-shot override: skillware list --skills-root /path/to/skills",
+        style=MENU_STYLE,
+    )
+    console.print(
+        f"  • Persistent external roots: export {SKILLWARE_SKILL_PATH_ENV}=/path/to/skills",
+        style=MENU_STYLE,
+    )
+    console.print(
+        "  • Trust tiers: docs/security/skill-trust-model.md",
+        style=f"dim {SPLASH_STYLE}",
+    )
+    console.print(
+        "  • Persist project/external paths in config: tracked in #246",
+        style="dim",
+    )
+    console.print(
+        "  • Flat-layout skills (<root>/<name>/) load but may not appear in list",
+        style="dim",
+    )
+    return 0
+
+
 def _prompt_examples_skill_id(console) -> Tuple[Optional[str], bool]:
     """Return (skill_id or None for all, should_run)."""
     try:
@@ -526,6 +609,7 @@ def cmd_help(console=None) -> None:
     console.print("  skillware test                — run all bundle tests")
     console.print("  skillware test <category/name> — run one skill bundle test")
     console.print("  skillware test --category <n> — run tests for a category")
+    console.print("  skillware paths               — show skill root resolution")
     console.print("  skillware --version           — print installed version")
     console.print()
 
@@ -533,7 +617,7 @@ def cmd_help(console=None) -> None:
     console.print("  list      available now", style=ID_STYLE)
     console.print("  examples  available now", style=ID_STYLE)
     console.print("  test      available now", style=ID_STYLE)
-    console.print("  paths     coming soon", style="dim")
+    console.print("  paths     available now", style=ID_STYLE)
     console.print()
 
     console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
@@ -549,6 +633,7 @@ def cmd_help(console=None) -> None:
     console.print("  skillware list --examples --category dev_tools", style=MENU_STYLE)
     console.print("  skillware examples compliance/tos_evaluator", style=MENU_STYLE)
     console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
+    console.print("  skillware paths", style=MENU_STYLE)
     console.print()
 
     console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
@@ -637,7 +722,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("1", "list", "discover and display all locally installed skills"),
         ("2", "examples", "browse runnable scripts from examples/README.md"),
         ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
-        ("4", "paths (soon)", "show and repair skill directory resolution paths"),
+        ("4", "paths", "show skill directory resolution order and shadowing"),
         ("5", "help", "usage guide for any command"),
     ]
 
@@ -678,10 +763,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         elif command == "test":
             cmd_test(console=console)
         elif command == "paths":
-            console.print(
-                "  'paths' is not yet implemented. Coming in a future release.",
-                style="dim",
-            )
+            cmd_paths(console=console)
         elif command == "help":
             cmd_help(console=console)
         else:
@@ -781,6 +863,17 @@ def main() -> None:
         help="Pass --no-header to pytest.",
     )
 
+    paths_parser = subparsers.add_parser(
+        "paths",
+        help="Show skill root resolution order and shadowing.",
+    )
+    paths_parser.add_argument(
+        "--skills-root",
+        type=Path,
+        default=None,
+        help="Override the skills directory path for this command only.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -806,6 +899,8 @@ def main() -> None:
                 no_header=args.no_header,
             )
         )
+    elif args.command == "paths":
+        raise SystemExit(cmd_paths(skills_root_override=args.skills_root))
     else:
         cmd_interactive(parser=parser)
 

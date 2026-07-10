@@ -8,6 +8,18 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **CLI:** `skillware paths` shows skill root resolution order (external → project → bundled), tier labels, shadowing summary, and operator tips; interactive menu option `4` wired (#81).
+- **Framework:** `skillware/core/discovery.py` — shared skill root discovery for `SkillLoader` and the CLI (tier labels, shadowing, registry ID listing; foundation for config-driven paths in #246).
+- **Framework:** Skill-not-found errors from `SkillLoader.load_skill()` include searched paths and a `skillware paths` tip (#81).
+
+### Changed
+
+- **Framework:** `SkillLoader` delegates root resolution to `discovery.get_skill_roots()` so load, list, test, and `paths` use the same order (#81).
+- **CLI:** Help and menu list `paths` as available (no longer “coming soon”) (#81).
+- **Documentation:** README — trim redundant Contributing cross-links, add `skillware paths` to install verification, and link the skill trust model in the docs table; cross-link `skillware paths` in `docs/introduction.md` and `docs/usage/README.md`.
+
 ## [0.4.3] - 2026-07-10
 
 ### Added

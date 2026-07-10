@@ -11,6 +11,7 @@ from skillware.cli import (
     cmd_test,
     _short_description,
     cmd_help,
+    cmd_paths,
 )
 
 import pytest
@@ -638,3 +639,75 @@ def test_main_examples_subcommand_exits_with_cmd_examples_code(monkeypatch):
         assert exc.value.code == 0
     finally:
         sys.argv = argv
+
+
+def test_cmd_paths_shows_roots_and_tiers(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    root = tmp_path / "skills"
+    root.mkdir()
+    skill_dir = root / "office" / "demo"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "skill.py").touch()
+    (skill_dir / "manifest.yaml").write_text(
+        "name: office/demo\nversion: 0.1.0\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_paths(console=console) == 0
+
+    output = buf.getvalue()
+    assert "Skill path resolution" in output
+    assert "project" in output
+    assert "bundled" in output
+    assert str(root) in output or "skills" in output.lower()
+    assert " 1 " in output or output.rstrip().endswith("1")
+
+
+def test_cmd_help_includes_paths_command():
+    import io
+    from rich.console import Console
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+    cmd_help(console=console)
+    output = buf.getvalue()
+    assert "skillware paths" in output
+    assert "available now" in output
+    assert "coming soon" not in output.lower()
+
+
+def test_main_paths_subcommand(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("skillware.cli.cmd_paths", lambda **kwargs: 0)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "paths"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+
+def test_interactive_paths_dispatches(monkeypatch):
+    import io
+    from rich.console import Console
+
+    responses = iter(["4", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_interactive(console=console)
+
+    output = buf.getvalue()
+    assert "Skill path resolution" in output
+    assert "not yet implemented" not in output.lower()

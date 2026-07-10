@@ -104,7 +104,7 @@ Available commands:
 | `1` / `list` | List all locally installed skills | Available |
 | `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
-| `4` / `paths` | Show and repair skill directory resolution paths | Coming soon |
+| `4` / `paths` | Show skill root resolution order, tiers, and shadowing | Available |
 | `5` / `help` | Print rich-formatted help with commands, flags, and examples | Available |
 
 ## Commands
@@ -192,6 +192,21 @@ Requires pytest (`pip install -e ".[dev]"` or `pip install -e ".[dev,all]"`).
 
 Exit code matches pytest (non-zero on failures or missing test paths).
 
+### skillware paths
+
+Show where Skillware looks for skills — same order as `SkillLoader.load_skill()` — with tier labels (**external**, **project**, **bundled**), per-root skill counts, and shadowing warnings when the same registry ID exists in multiple roots.
+
+    skillware paths
+    skillware paths --skills-root /path/to/my/skills
+
+#### Flags
+
+| Flag | Description |
+| :--- | :--- |
+| `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
+
+Read-only in v0.4.x; persist project/external paths via config is tracked in #246. Interactive menu: **`4` / `paths`**.
+
 ## Path resolution
 
 `skillware list` searches for skills in the same order as `SkillLoader`:
@@ -199,6 +214,8 @@ Exit code matches pytest (non-zero on failures or missing test paths).
 1. Roots listed in `SKILLWARE_SKILL_PATH` (OS path separator between multiple entries)
 2. A `skills/` directory under the current working directory and its parents
 3. Bundled skills installed with the `skillware` package
+
+Run `skillware paths` for a live view of resolved roots, tiers, and shadowing.
 
 To point the CLI at a persistent custom root, set the environment variable:
 

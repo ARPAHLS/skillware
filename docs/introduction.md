@@ -76,7 +76,7 @@ A skill is a folder on disk. The loader turns the manifest into whatever tool sc
 When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestration happens behind the scenes:
 
 ### Step 1: Discovery & Loading
-The loader resolves `category/skill_name` to a skill directory by checking, in order: an existing path on disk, roots in `SKILLWARE_SKILL_PATH`, a `skills/` folder in the current working directory (or its parents), then bundled skills installed with the package. Each bundle is a directory containing `manifest.yaml` and `skill.py`.
+The loader resolves `category/skill_name` to a skill directory by checking, in order: an existing path on disk, roots in `SKILLWARE_SKILL_PATH`, a `skills/` folder in the current working directory (or its parents), then bundled skills installed with the package. Run `skillware paths` for a live view of resolved roots, tiers, and shadowing. Each bundle is a directory containing `manifest.yaml` and `skill.py`.
 *   It dynamically imports the `skill.py` module and auto-discovers the single `BaseSkill` subclass as `bundle["class"]` (no hardcoded class names required).
 *   It parses the `manifest.yaml` (including `issuer` for attribution, separate from tool-calling fields). Registry skills set `name` to the full ID (`category/skill_name`), which Claude uses as the tool name; Gemini, OpenAI, and DeepSeek receive a sanitized variant (slashes → underscores). For registry-layout paths (`<skill_root>/<category>/<skill_name>/`), the loader warns when `name` does not match the folder path; flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Loaded bundles expose `registry_id` when validation applies.
 *   It reads `instructions.md` and, when present, optional `card.json`.

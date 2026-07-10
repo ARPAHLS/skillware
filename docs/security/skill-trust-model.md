@@ -26,6 +26,8 @@ If you pass a path that already points at a skill directory (absolute or relativ
 
 Because the search stops at the first matching id, a skill earlier in the order shadows any skill with the same id later in the order. If a finance/wallet_screening exists under SKILLWARE_SKILL_PATH or in a local ./skills/, it is loaded instead of the bundled, maintainer-reviewed copy of the same id — and the bundled copy never runs.
 
+Run `skillware paths` to see which roots are active and which IDs shadow bundled registry skills.
+
 The practical consequence: placing a skill with the same id as an official one, anywhere earlier in the search order, silently replaces the official skill. Shadowing is a normal feature of the resolution order, but it means the id you ask for does not by itself tell you which code will run — the location does.
 
 ### Flat vs registry layout

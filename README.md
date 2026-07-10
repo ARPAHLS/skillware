@@ -120,13 +120,16 @@ For documentation-only work, `pip install -e ".[dev]"` is enough. Skill and fram
 
 ```bash
 skillware list
+skillware paths
 ```
 
 This prints a table of all locally available skills and confirms the install
-and path resolution are working. Running `skillware` with no arguments opens
-the interactive menu. As optional checks you can also run `skillware test` to
-execute bundle tests, and `skillware examples` to browse the runnable example
-index (fetched from GitHub when no local `examples/README.md` is present).
+and path resolution are working. `skillware paths` shows the same root order
+the loader uses (external → project → bundled), tier labels, and shadowing.
+Running `skillware` with no arguments opens the interactive menu. As optional
+checks you can also run `skillware test` to execute bundle tests, and
+`skillware examples` to browse the runnable example index (fetched from GitHub
+when no local `examples/README.md` is present).
 
 If `skillware` is not recognized, Python's `Scripts` directory may not be on
 your PATH — use `python -m skillware list` as a fallback. See
@@ -219,13 +222,14 @@ For other providers and shared integration patterns, see the [usage guides index
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
 | **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 
 ## Contributing
 
 We are building the "App Store" for Agents. Skills are the main contribution, but documentation, tests, and framework fixes are welcome too. Human operators and supervised agents follow the same standards: scoped PRs, deterministic behavior, and verified tests.
 
-See the **Contributing** row in [Documentation](#documentation) for the full path, [Contributing](CONTRIBUTING.md) (types, skill standard, PR process), [Agent Native Workflow](docs/contributing/ai_native_workflow.md) (for autonomous and semi-autonomous agents), [Testing](docs/TESTING.md) (Black, Flake8, framework and skill pytest, pre-PR checklist), and [Changelog](CHANGELOG.md) (user-facing entries under `[Unreleased]`).
+Start with [Contributing](CONTRIBUTING.md) (types, skill standard, PR process), [Agent Native Workflow](docs/contributing/ai_native_workflow.md) (for autonomous and semi-autonomous agents), [Testing](docs/TESTING.md) (Black, Flake8, framework and skill pytest, pre-PR checklist), and [Changelog](CHANGELOG.md) (user-facing entries under `[Unreleased]`).
 
 Also read the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) and complete only the sections that apply.
 
