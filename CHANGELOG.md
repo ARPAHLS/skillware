@@ -8,16 +8,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
-### Documentation
-
-- **CONTRIBUTING**: Category selection guidance for contributors; issue-first policy for new top-level folders (#204).
-- **Usage docs**: Align `agent_loops.md` and `cli.md` with Gemini sanitized tool-name dispatch after #229 (#230 follow-up).
-
 ### Added
 
 - **Framework:** Added `_sanitize_gemini_tool_name()` to `skillware/core/loader.py` to explicitly map provider tool naming constraints.
 - **Tests:** Added `test_sanitize_gemini_tool_name()` to `tests/test_loader.py` to verify safe translation and `test_skill_docs_gemini_anti_patterns()` to `tests/test_registry_docs.py` to enforce documentation hygiene by preventing manual tool wrapping and mutation anti-patterns in skill catalog pages.
 - **Documentation:** Added canonical dispatch guidelines to `docs/usage/gemini.md` and `docs/usage/skill_usage_template.md`.
+- **Documentation:** Category selection guidance for contributors; issue-first policy for new top-level folders in `CONTRIBUTING.md` (#204).
 
 ### Changed
 
@@ -25,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Framework:** `SkillLoader.to_gemini_tool()` now returns a `google.genai.types.Tool` object instead of a raw dictionary, ensuring compatibility with the `google-genai` SDK when passing tools to `GenerateContentConfig`.
 - **Tests:** Updated `tests/test_loader.py` to assert against the properties of the `google.genai.types.Tool` object for `to_gemini_tool()`.
 - **Documentation:** Updated Gemini integration snippets across all skill catalog pages and `introduction.md` to reflect the `to_gemini_tool()` API change and correct tool name sanitization.
+- **Documentation:** Aligned `agent_loops.md` and `cli.md` with Gemini sanitized tool-name dispatch after #229 (#230 follow-up).
 - **Examples:** Removed manual `types.Tool` wrapping, and consistently utilize `SkillLoader._sanitize_gemini_tool_name()` for derived tool names in gemini examples.
 
 ### Fixed
