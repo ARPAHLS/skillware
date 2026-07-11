@@ -50,6 +50,15 @@ A skill's tier describes where it came from and who reviewed it, which is the ba
 
 **External.** Skills loaded from SKILLWARE_SKILL_PATH or an absolute path. This is third-party code you did not write and no one has reviewed for you. Treat it as untrusted until you have read it yourself.
 
+### Operator expectations
+
+What you can reasonably expect from each origin:
+
+- **Bundled** skills are maintainer-reviewed before they ship — and still run unsandboxed in your process. Review raises confidence in the code's intent; it does not add isolation.
+- **Project and External** skills are your responsibility as the operator. As the identity RFC (#234) puts it: the project can provide the emulator for any skill, but external ROMs/skills are 100% the responsibility of the user. Nothing implies vetting of code the maintainers have never seen.
+- **External skills can change out of band.** A skill imported from a URL or git repository can change at any time, independently of Skillware releases. If you depend on one, pin it (a specific commit or copy) and re-review when you update.
+- **Where to report problems:** issues with bundled skills or the loader belong in this repository. Problems inside an external skill belong with that skill's maintainer — this repo can't fix or vouch for code it doesn't host.
+
 ## 4. constitution is guidance, not isolation
 
 A skill's manifest.yaml can declare a constitution — a set of natural-language rules such as "use a dedicated wallet only," "never pass private keys in tool arguments," or "fail closed on missing confirmation." For example, defi/evm_tx_handler declares a constitution covering dedicated wallets, secret handling, and fail-closed behavior.
@@ -63,6 +72,10 @@ The same distinction applies to other manifest fields. Declaring env_vars docume
 | Tell the agent how the skill should be used | Sandbox or restrict skill.py |
 | Document expected env vars and dependencies | Limit which env vars or files the code can access |
 | Set norms reviewers and agents can rely on | Enforce those norms at runtime |
+
+### Instruction-only content
+
+Some skill content is instructions rather than code — markdown packs and similar material that an agent reads. Loading it does not execute Python in your process, but that does not make it safe: instructions can still steer what the agent does (including how it uses other tools and skills). The risk moves from process access to agent behavior. Treat instruction-only content from outside your project with the same provenance judgment as executable skills: read it before you let an agent follow it.
 
 ## 5. Concrete flows
 

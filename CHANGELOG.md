@@ -19,6 +19,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Framework:** `SkillLoader` delegates root resolution to `discovery.get_skill_roots()` so load, list, test, and `paths` use the same order (#81).
 - **CLI:** Help and menu list `paths` as available (no longer “coming soon”) (#81).
 - **Documentation:** README — trim redundant Contributing cross-links, add `skillware paths` to install verification, and link the skill trust model in the docs table; cross-link `skillware paths` in `docs/introduction.md` and `docs/usage/README.md`.
+- **Documentation**: Add operator expectations (bundled vs external, out-of-band changes, where to report issues) and an instruction-only content note to `docs/security/skill-trust-model.md`; add trust-model cross-links from README configuration and CONTRIBUTING Skill Package Standard (#243).
 
 ## [0.4.3] - 2026-07-10
 

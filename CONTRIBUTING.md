@@ -210,6 +210,8 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
 ## Skill Package Standard
 
+Skills you submit are reviewed for origin and quality, not sandboxed at runtime — operators run them in their own process. Understand the [skill trust model](docs/security/skill-trust-model.md) before designing a skill's behavior.
+
 Every registry skill lives in `skills/<category>/<skill_name>/` and **must** include the files below. This is the detailed standard for the **skill** contribution type.
 
 ### 1. `manifest.yaml` (metadata and governance)
