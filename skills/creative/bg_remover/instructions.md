@@ -2,18 +2,25 @@
 
 Use this skill whenever a user asks to:
 
-- remove the background
-- make an image transparent
-- isolate a product
-- create a PNG with transparency
-- cut out a person or object
+- remove the background from an image
+- isolate an object or person
+- create a transparent PNG
+- cut out a product
+- prepare an image for design or e-commerce workflows
 
-Do NOT use this skill for:
+Do not use this skill for:
 
 - videos
 - batch image processing
-- cloud-only image editing
+- cloud-only editing workflows
 
-Input should be a Base64 image whenever possible.
+Accepted inputs:
 
-Return a transparent PNG.
+- Base64 image data (`image`)
+- Local file (`input_path`)
+
+If `output_path` is supplied, save the generated transparent PNG there.
+
+Otherwise return the PNG as a Base64 string.
+
+This skill processes images locally using `rembg` and produces PNG output with transparency.

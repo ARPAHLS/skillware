@@ -2,10 +2,14 @@
 
 Welcome to the official catalog of Skillware capabilities. New here? Start with the [project README](../../README.md).
 
-Browse by category below, or run `skillware list` after `pip install skillware` to see locally available skills.
+Browse by category below, or run `skillware list` after `pip install skillware` to see locally available skills. When contributing a new skill, see [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md.
 
 ## Office
 Skills for document processing, email automation, and productivity.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
 
 ## Creative
 Skills for image processing, media editing, and creative utilities.
@@ -14,16 +18,13 @@ Skills for image processing, media editing, and creative utilities.
 | :--- | :--- | :--- | :--- |
 | **[Background Remover](bg_remover.md)** | `creative/bg_remover` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
-
 ## Finance
 Tools for financial analysis, blockchain interaction, and regulatory compliance.
 
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
 | **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
+| **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers, PSC, filing history, and UK terminology mapping via structured actions. |
 
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).
@@ -63,6 +64,13 @@ Skills that assist developers in understanding codebases, planning changes, and 
 | :--- | :--- | :--- | :--- |
 | **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
+## Monitoring
+Observability and guardrails for long-running autonomous agent loops.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Token Limiter](token_limiter.md)** | `monitoring/token_limiter` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
+
 ## Wellness
 Supportive coaching guardrails, crisis triage, and grounded psychoeducation for host agents.
 
@@ -80,7 +88,9 @@ Registry skills live under `skills/<category>/<skill_name>/` in the repository a
 from skillware.core.loader import SkillLoader
 
 # Load by registry ID (category/skill_name)
-skill = SkillLoader.load_skill("finance/wallet_screening")
+bundle = SkillLoader.load_skill("finance/wallet_screening")
+skill = bundle["class"]()
+# Or: skill = bundle["module"].WalletScreeningSkill()
 ```
 
 ---

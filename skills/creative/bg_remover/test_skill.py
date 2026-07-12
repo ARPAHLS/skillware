@@ -7,28 +7,36 @@ import yaml
 from PIL import Image
 
 from .skill import BackgroundRemover
-from . import skill as bg_skill
 
-print("Loaded module:", bg_skill.__name__)
+import sys
+import types
+
 
 @pytest.fixture(autouse=True)
 def mock_remove(monkeypatch):
-    """Mock rembg.remove so tests stay offline."""
+    """Mock rembg so tests stay offline."""
 
-    def fake_remove(image_bytes):
+    def fake_remove(image_bytes, *args, **kwargs):
         img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         return buffer.getvalue()
 
-    monkeypatch.setattr(
-        "skills.creative.bg_remover.skill.remove",
-        fake_remove,
+    def fake_new_session(model_name="u2net", *args, **kwargs):
+        return object()
+
+    fake_module = types.SimpleNamespace(
+        remove=fake_remove,
+        new_session=fake_new_session,
     )
+
+    monkeypatch.setitem(sys.modules, "rembg", fake_module)
+
 
 @pytest.fixture
 def skill():
     return BackgroundRemover()
+
 
 @pytest.fixture
 def manifest():
@@ -39,7 +47,8 @@ def manifest():
 
     with open(manifest_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
-    
+
+
 def test_manifest(skill, manifest):
     assert skill.manifest["name"] == manifest["name"]
     assert skill.manifest["version"] == manifest["version"]
@@ -50,7 +59,8 @@ def test_missing_input(skill):
 
     assert result["success"] is False
     assert result["error_code"] == "INVALID_INPUT"
-    
+
+
 def create_image():
 
     image = Image.new("RGB", (64, 64), "white")
@@ -59,34 +69,26 @@ def create_image():
 
     image.save(buffer, format="PNG")
 
-    return base64.b64encode(
-        buffer.getvalue()
-    ).decode()
+    return base64.b64encode(buffer.getvalue()).decode()
+
 
 def test_base64_image(skill):
 
     img = create_image()
 
-    result = skill.execute(
-        {
-            "image": img
-        }
-    )
+    result = skill.execute({"image": img})
 
     assert result["success"] is True
     assert result["mime_type"] == "image/png"
     assert result["width"] > 0
-    assert result["height"] > 0 
+    assert result["height"] > 0
+
 
 def test_output_keys(skill):
 
     img = create_image()
 
-    result = skill.execute(
-        {
-            "image": img
-        }
-    )
+    result = skill.execute({"image": img})
 
     expected = {
         "success",
@@ -100,13 +102,66 @@ def test_output_keys(skill):
 
     assert expected.issubset(result.keys())
 
+
 def test_invalid_base64(skill):
 
-    result = skill.execute(
-        {
-            "image": "not_base64"
-        }
-    )
+    result = skill.execute({"image": "not_base64"})
 
     assert result["success"] is False
     assert result["error_code"] == "PROCESSING_FAILED"
+
+def test_missing_dependency(monkeypatch, skill):
+    """Returns MISSING_DEPENDENCY when optional libraries are unavailable."""
+
+    monkeypatch.delitem(sys.modules, "rembg", raising=False)
+    monkeypatch.delitem(sys.modules, "PIL", raising=False)
+    monkeypatch.delitem(sys.modules, "PIL.Image", raising=False)
+
+    original_import = __import__
+
+    def fake_import(name, *args, **kwargs):
+        if name in ("rembg", "PIL", "PIL.Image"):
+            raise ImportError
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.__import__", fake_import)
+
+    result = skill.execute({"image": create_image()})
+
+    assert result["success"] is False
+    assert result["error_code"] == "MISSING_DEPENDENCY"
+
+def test_input_path(skill, tmp_path):
+    image = Image.new("RGB", (64, 64), "white")
+
+    input_file = tmp_path / "input.png"
+    image.save(input_file)
+
+    result = skill.execute(
+        {
+            "input_path": str(input_file),
+        }
+    )
+
+    assert result["success"] is True
+    assert result["mime_type"] == "image/png"
+
+
+def test_output_path(skill, tmp_path):
+    image = Image.new("RGB", (64, 64), "white")
+
+    input_file = tmp_path / "input.png"
+    output_file = tmp_path / "output.png"
+
+    image.save(input_file)
+
+    result = skill.execute(
+        {
+            "input_path": str(input_file),
+            "output_path": str(output_file),
+        }
+    )
+
+    assert result["success"] is True
+    assert output_file.exists()
+    assert result["output_path"] == str(output_file)
