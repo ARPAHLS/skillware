@@ -95,6 +95,17 @@ def test_registry_skills_have_packaging_init_files():
         )
 
 
+def test_registry_manifests_use_outputs_not_output():
+    """Registry manifests must declare return shape under outputs:, not legacy output:."""
+    for skill_dir in _discover_skill_dirs():
+        rel = skill_dir.relative_to(REPO_ROOT).as_posix()
+        manifest = _load_manifest(skill_dir)
+        assert "output" not in manifest, (
+            f"{rel} manifest.yaml: rename legacy 'output:' to 'outputs:' "
+            "(named keys under outputs, see templates/python_skill/manifest.yaml)"
+        )
+
+
 def test_registry_card_issuer_matches_manifest_when_present():
     for skill_dir in _discover_skill_dirs():
         rel = skill_dir.relative_to(REPO_ROOT).as_posix()

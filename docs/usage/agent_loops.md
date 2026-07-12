@@ -21,19 +21,19 @@ flowchart LR
 2. `skill = bundle["class"]()` — or `SkillLoader.get_skill_class(bundle)()`; `bundle["module"]` remains available for backward compatibility.
 3. Adapt `bundle` for the model (`to_gemini_tool`, `to_claude_tool`, etc.).
 4. Pass `bundle["instructions"]` as system context.
-5. On tool call, `result = skill.execute(arguments)` and return JSON to the model.
+5. On tool call, **optionally** validate arguments with `skill.validate_params(arguments)` against manifest `parameters` JSON Schema (recommended before `execute()` in production agent loops), then `result = skill.execute(arguments)` and return JSON to the model.
 
 | Step | Call |
 | :--- | :--- |
 | **load** | `SkillLoader.load_skill(id)` |
 | **wire** | `to_*_tool(bundle)` + `bundle["instructions"]` &rarr; model |
 | **prompt** | User query &rarr; model |
-| **execute** | `bundle["class"]().execute(args)` |
+| **execute** | Optional: `skill.validate_params(args)`; then `bundle["class"]().execute(args)` |
 | **return** | Tool result &rarr; model |
 
 ### Direct path (no model)
 
-You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON.
+You can also run skills directly without an LLM or agent loop (e.g., `examples/token_limiter_loop.py`): load the skill, call `execute(args)` directly, and process the returned JSON. **`validate_params()` is optional** — direct scripts and many examples skip it; skills may still validate or error inside `execute()`.
 
 ```mermaid
 flowchart LR
@@ -41,6 +41,8 @@ flowchart LR
 ```
 
 Provider guides contain full API details. Skill pages contain copy-paste examples with skill-specific paths and sample user messages.
+
+**Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_tos_evaluator.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
 
 ---
 

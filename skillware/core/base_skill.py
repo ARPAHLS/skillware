@@ -1,6 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
+import jsonschema
+from jsonschema import ValidationError
+
+
+class SkillwareParamValidationError(ValueError):
+    """Raised when tool arguments fail manifest ``parameters`` JSON Schema validation."""
+
 
 class BaseSkill(ABC):
     """
@@ -28,7 +35,28 @@ class BaseSkill(ABC):
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """
-        Validates input parameters against the manifest schema.
+        Validates input parameters against the manifest ``parameters`` schema.
+
+        Returns ``True`` when validation passes. Raises ``SkillwareParamValidationError``
+        when ``params`` is not a mapping or does not satisfy the schema.
         """
-        # TODO: Implement schema validation (e.g. using Pydantic or jsonschema)
+        schema = self.manifest.get("parameters")
+        if not schema or not isinstance(schema, dict):
+            return True
+
+        skill_name = self.manifest.get("name", "unknown_skill")
+        if not isinstance(params, dict):
+            raise SkillwareParamValidationError(
+                f"Skill '{skill_name}' expects parameter arguments as a JSON object (dict), "
+                f"got {type(params).__name__}."
+            )
+
+        try:
+            jsonschema.validate(instance=params, schema=schema)
+        except ValidationError as exc:
+            path = ".".join(str(part) for part in exc.absolute_path) or "(root)"
+            raise SkillwareParamValidationError(
+                f"Skill '{skill_name}' parameter validation failed at '{path}': {exc.message}"
+            ) from exc
+
         return True

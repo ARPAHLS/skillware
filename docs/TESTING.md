@@ -58,8 +58,8 @@ pip install -r requirements.txt
 
 ### Framework test
 
-- Core engine health: loader, CLI, issuer rules, version policy.
-- `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, and presence of `test_skill.py` in every skill bundle.
+- Core engine health: loader, CLI, issuer rules, version policy, parameter schema validation (`tests/test_validate_params.py`).
+- `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, presence of `test_skill.py` in every skill bundle, and rejects legacy manifest `output:` keys.
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
@@ -82,7 +82,7 @@ pip install -r requirements.txt
 | :--- | :--- | :--- |
 | Manifest + execute contract for one skill | Bundle test | `skills/compliance/tos_evaluator/test_skill.py` |
 | Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_tos_evaluator.py` |
-| Loader, CLI, registry issuer rules | Framework test | `tests/test_loader.py`, `tests/test_skill_issuer.py`, `tests/test_registry_docs.py` |
+| Loader, CLI, registry issuer rules, param validation | Framework test | `tests/test_loader.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py` |
 | End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.

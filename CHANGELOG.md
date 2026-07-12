@@ -12,7 +12,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **CLI:** `skillware paths` shows skill root resolution order (external → project → bundled), tier labels, shadowing summary, and operator tips; interactive menu option `4` wired (#81).
 - **Framework:** `skillware/core/discovery.py` — shared skill root discovery for `SkillLoader` and the CLI (tier labels, shadowing, registry ID listing; foundation for config-driven paths in #246).
-- **Framework:** Skill-not-found errors from `SkillLoader.load_skill()` include searched paths and a `skillware paths` tip (#81).
+- **Framework:** `BaseSkill.validate_params()` — optional helper to validate tool arguments against manifest `parameters` JSON Schema; raises `SkillwareParamValidationError` on mismatch. Not called automatically by the loader or `execute()` (#125). Reference: `examples/claude_wallet_check.py`, `examples/gemini_tos_evaluator.py`.
+- **Framework:** Registry manifests standardize on `outputs:` (legacy singular `output:` removed from `finance/wallet_screening`) (#125).
 
 ### Changed
 

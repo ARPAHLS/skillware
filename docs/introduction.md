@@ -116,7 +116,7 @@ This "Context Injection" ensures the model isn't just *able* to call the tool, b
 1.  **User Query**: "Is wallet 0x123 safe?"
 2.  **Model Cognition**: The LLM reads the injected `instructions.md` and realizes it should use the `finance/wallet_screening` tool.
 3.  **Tool Call**: The LLM outputs a structured tool call (e.g., JSON or Protobuf).
-4.  **Framework Execution**: Your script (or the model's auto-runner) executes `skill.execute({"address": "0x123"})`.
+4.  **Framework Execution**: Your script may validate tool arguments with `skill.validate_params(...)` before `execute()` (optional; recommended in agent loops). Direct integrations can call `skill.execute({"address": "0x123"})` without validation, as in many examples under `examples/`.
 5.  **The Body Acts**: `skill.py` runs. It fetches Etherscan data, checks local JSON sanctions lists, mimics the logic of a complex forensic tool.
 6.  **Structured Output**: The Body returns a rich JSON object.
 7.  **Synthesis**: The LLM receives the JSON. Guided again by the `instructions.md` (which says "Summarize risk factors clearly"), it translates the data into a human-readable report.

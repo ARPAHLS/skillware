@@ -51,7 +51,7 @@ if message.stop_reason == "tool_use":
     print(f"Input: {tool_input}")
 
     if tool_name == TOOL_NAME:
-        # Execute the skill
+        wallet_skill.validate_params(tool_input)
         result = wallet_skill.execute(tool_input)
 
         print("\nSkill Execution Result (Summary):")

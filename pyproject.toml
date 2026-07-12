@@ -23,6 +23,7 @@ dependencies = [
     "python-dotenv",
     "beautifulsoup4",
     "packaging",
+    "jsonschema>=4.0",
     "rich>=13.0",
 ]
 requires-python = ">=3.10"

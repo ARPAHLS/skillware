@@ -46,6 +46,7 @@ while response.candidates and response.candidates[0].content.parts:
     print(f"Input: {fn_args}")
 
     if fn_name == TOOL_NAME:
+        tos_skill.validate_params(fn_args)
         result = tos_skill.execute(fn_args)
         print(json.dumps(result, indent=2))
         response = client.models.generate_content(

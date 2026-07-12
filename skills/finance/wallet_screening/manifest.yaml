@@ -16,9 +16,10 @@ parameters:
       description: The Ethereum wallet address to screen (starts with 0x).
   required:
     - address
-output:
-  type: object
-  description: A detailed JSON report containing risk assessment, sanctions hits, and transaction analysis.
+outputs:
+  report:
+    type: object
+    description: A detailed JSON report containing risk assessment, sanctions hits, and transaction analysis.
 constitution: |
   1. USER PRIVACY: Do not store or log the wallet address externally.
   2. ACCURACY: Always warn the user that this is a risk assessment tool and not legal advice.

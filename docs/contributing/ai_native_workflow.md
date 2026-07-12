@@ -272,7 +272,7 @@ Complete the checklist that matches your issue during Stage 5.
 ### New or updated skill
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
-- [ ] `manifest.yaml`: `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`
+- [ ] `manifest.yaml`: `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
 - [ ] `skill.py`: exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
@@ -304,7 +304,7 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] Framework issue approved
 - [ ] Changes in `skillware/` and relevant `tests/`
-- [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings)
+- [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings, `validate_params`)
 - [ ] `pytest tests/` passes
 - [ ] Usage docs updated if API changed
 - [ ] No undeclared breaking changes
