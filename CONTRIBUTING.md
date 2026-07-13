@@ -34,7 +34,7 @@ Pick the path that matches your issue. Only the **skill** row requires the full 
 | **Core framework** | `skillware/core/`, framework `tests/` | `core framework`, `enhancement` | Framework Feature issue | `pytest tests/`; update usage docs if API changes |
 | **CLI** | `skillware/cli.py`, `docs/usage/cli.md` | `cli` | CLI issue | `pytest tests/test_cli.py` when relevant |
 | **Examples** | `examples/*.py`, agent loops, examples index | `examples` | Examples issue | Script runs; `pytest tests/test_registry_docs.py` when index changes |
-| **Packaging** | `pyproject.toml`, `MANIFEST.in`, wheel | `packaging` | Packaging issue | Build/install smoke per issue |
+| **Packaging** | `pyproject.toml`, `MANIFEST.in`, wheel | `packaging` | Packaging issue | `scripts/wheel_smoke_test.py` after wheel build (see [TESTING.md](docs/TESTING.md#packaging-smoke-test)) |
 | **Bug fix** | Paths named in issue | `bug` | Bug Report | Reproduction or failing test |
 | **Good first issue** | Usually docs, tests, or small fixes | `good first issue` | Read acceptance criteria literally | Checklist for underlying type above |
 | **RFC / large change** | Architecture, manifest contract | `discussion`, `core framework` | RFC issue | Per RFC scope |
@@ -128,7 +128,10 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 - **Framework test** — `tests/test_*.py` at repo root (loader, CLI, issuer rules, doc-drift guards).
 - **Maintainer skill test** — optional `tests/skills/<category>/test_<name>.py` for extra loader or edge-case coverage.
 - **Usage examples** — `examples/*.py` are not tests and are not run in CI.
-- **GitHub Actions** installs `pip install -e ".[dev,all]"`, runs `python -m black --check .`, then `flake8 .`, then **`pytest skills/`** (bundle tests), then **`pytest tests/`** (framework + maintainer tests). Do not add per-skill pip lines or hardcoded skill paths to `.github/workflows/ci.yml`.
+- **GitHub Actions** runs two jobs on every PR (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+  - **`build`** — editable install `pip install -e ".[dev,all]"`, then `python -m black --check .`, `flake8 .`, **`pytest skills/`** (bundle tests), **`pytest tests/`** (framework + maintainer tests).
+  - **`wheel-smoke`** — builds a wheel, installs it in a fresh venv (base deps only), runs **`scripts/wheel_smoke_test.py`** to verify every bundled registry skill ships correctly. See [Packaging smoke test](docs/TESTING.md#packaging-smoke-test).
+- Do not add per-skill pip lines or hardcoded skill paths to `.github/workflows/ci.yml`.
 - Run locally before opening a PR:
 
   ```bash
@@ -297,7 +300,7 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 
 - Add an empty `__init__.py` in `skills/<category>/` when you introduce a **new category**, and in `skills/<category>/<skill_name>/` for each new skill directory (enforced by `tests/test_skill_issuer.py`).
 - Non-Python files (`manifest.yaml`, `instructions.md`, `card.json`, data files) are included automatically via `MANIFEST.in` and `[tool.setuptools.package-data]` (`skills = ["**/*"]`).
-- Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works from the repo root and, when changing the loader, from a clean `pip install` of the built wheel.
+- Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works from the repo root. CI **wheel-smoke** verifies every bundled skill from a clean `pip install` of the built wheel; run [`scripts/wheel_smoke_test.py`](scripts/wheel_smoke_test.py) locally when changing packaging, `MANIFEST.in`, or skill bundle layout (see [TESTING.md](docs/TESTING.md#packaging-smoke-test)).
 
 **Manifest `requirements` and optional extras**
 

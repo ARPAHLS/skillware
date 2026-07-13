@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **CI:** PyPI wheel packaging smoke test — builds a wheel, installs it in a fresh venv (base deps only), and verifies every bundled registry skill is present and loadable via `scripts/wheel_smoke_test.py` (#182).
+- **Documentation:** Cross-linked wheel-smoke CI job in `CONTRIBUTING.md` and `docs/contributing/ai_native_workflow.md` (#182).
 - **CLI:** `skillware paths` shows skill root resolution order (external → project → bundled), tier labels, shadowing summary, and operator tips; interactive menu option `4` wired (#81).
 - **Framework:** `skillware/core/discovery.py` — shared skill root discovery for `SkillLoader` and the CLI (tier labels, shadowing, registry ID listing; foundation for config-driven paths in #246).
 - **Framework:** `BaseSkill.validate_params()` — optional helper to validate tool arguments against manifest `parameters` JSON Schema; raises `SkillwareParamValidationError` on mismatch. Not called automatically by the loader or `execute()` (#125). Reference: `examples/claude_wallet_check.py`, `examples/gemini_tos_evaluator.py`.

@@ -216,7 +216,7 @@ You should:
 
 1. Draft the PR description (why, not only what; link the issue).
 2. Map changed files to the [pull request template](../../.github/PULL_REQUEST_TEMPLATE.md)—skill checklist only when `skills/` changed.
-3. Monitor CI (lint, `pytest skills/`, and `pytest tests/`). If checks fail, diagnose, fix in Stage 4, and push to the same branch.
+3. Monitor CI: **`build`** (lint, `pytest skills/`, `pytest tests/`) and **`wheel-smoke`** (built wheel + `scripts/wheel_smoke_test.py`). If checks fail, diagnose, fix in Stage 4, and push to the same branch.
 4. Address review comments with focused follow-up commits.
 
 Do not force-push shared branches unless a maintainer instructs you.

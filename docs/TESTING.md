@@ -17,8 +17,9 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | CLI `skillware test` for bundle discovery | Done |
 | Doc-drift guards (`test_registry_docs.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
+| PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
 
-Every pull request runs `black --check`, `flake8`, `pytest skills/`, and `pytest tests/`. Bundle tests gate merge the same as framework and maintainer tests.
+Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
 When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI.
 
@@ -86,6 +87,27 @@ pip install -r requirements.txt
 | End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.
+
+## Packaging smoke test
+
+Editable clone tests (`pytest skills/`, `pytest tests/`) do not prove that a **built PyPI wheel** ships every registry bundle. CI runs an additional **wheel-smoke** job (see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) that:
+
+1. Builds a wheel from the PR branch (`python -m build --wheel`).
+2. Creates a fresh virtualenv and `pip install`s the wheel (**base install only** — no `[all]` or per-skill extras).
+3. Runs `scripts/wheel_smoke_test.py`, which checks every bundled skill for required bundle files, manifest/name parity, instructions and card assets, and `SkillLoader.load_skill(..., check_requirements=False)`.
+
+Skills whose optional runtime deps are not in the base wheel may be **deferred** (packaging verified, import skipped until extras are installed). That is expected; bundle tests in editable mode still cover execute paths with mocked deps.
+
+Run locally after building a wheel:
+
+```bash
+python -m build --wheel --outdir dist/
+python -m venv /tmp/wheel-smoke-venv
+/tmp/wheel-smoke-venv/bin/pip install dist/skillware-*.whl
+/tmp/wheel-smoke-venv/bin/python scripts/wheel_smoke_test.py
+```
+
+On Windows, use `Scripts\python` and `Scripts\pip` under the venv path.
 
 ## 1. Code Formatting (Black)
 

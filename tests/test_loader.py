@@ -28,6 +28,16 @@ def test_load_skill_registry_has_manifest():
     assert SkillLoader.get_skill_class(bundle) is bundle["class"]
 
 
+def test_load_skill_can_skip_requirement_check():
+    """Packaging smoke installs base wheel only; optional extras may be absent."""
+    bundle = SkillLoader.load_skill(
+        "compliance/mica_module",
+        check_requirements=False,
+    )
+    assert bundle["manifest"].get("name") == "compliance/mica_module"
+    assert bundle["class"].__name__ == "MiCAModuleSkill"
+
+
 def test_load_skill_class_is_instantiable():
     bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
     skill = bundle["class"]()

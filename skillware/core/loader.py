@@ -186,7 +186,9 @@ class SkillLoader:
         return skill_class
 
     @staticmethod
-    def load_skill(skill_path: str) -> Dict[str, Any]:
+    def load_skill(
+        skill_path: str, *, check_requirements: bool = True
+    ) -> Dict[str, Any]:
         """
         Loads a skill and returns a bundled object with:
         - module: The loaded skill.py module
@@ -195,6 +197,9 @@ class SkillLoader:
         - instructions: The system prompt content
         - card: The UI card definition
         - registry_id: Path-derived registry ID when validation applies
+
+        Set ``check_requirements=False`` for packaging smoke tests that install
+        the base wheel without optional skill extras (``[all]``, ``[defi]``, etc.).
         """
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
@@ -209,7 +214,7 @@ class SkillLoader:
         registry_id = SkillLoader._validate_manifest_identity(resolved_path, manifest)
 
         # Check Dependencies
-        if "requirements" in manifest:
+        if check_requirements and "requirements" in manifest:
             missing = []
             for req in manifest["requirements"]:
                 import_name = SkillLoader._requirement_import_name(req)

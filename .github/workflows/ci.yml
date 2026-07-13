@@ -47,3 +47,27 @@ jobs:
         ANTHROPIC_API_KEY: "dummy_key_for_ci"
         ETHERSCAN_API_KEY: "dummy_key_for_ci"
       run: pytest tests/
+
+  wheel-smoke:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Build wheel
+      run: |
+        python -m pip install --upgrade pip build
+        python -m build --wheel --outdir dist/
+
+    - name: Install wheel in clean venv
+      run: |
+        python -m venv /tmp/wheel-smoke-venv
+        /tmp/wheel-smoke-venv/bin/pip install --upgrade pip
+        /tmp/wheel-smoke-venv/bin/pip install dist/skillware-*.whl
+
+    - name: Wheel packaging smoke test
+      run: /tmp/wheel-smoke-venv/bin/python scripts/wheel_smoke_test.py
