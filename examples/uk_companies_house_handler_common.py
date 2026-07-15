@@ -141,11 +141,13 @@ def run_scripted_flow(skill: Any) -> None:
         }
     )
     print(json.dumps(intent_result, indent=2))
+    context = intent_result.get("context", {})
 
     # Step 1: Resolve company
     resolve_result = skill.execute(
-        {"action": "resolve_company", "query": "BP", "limit": 5}
+        {"action": "resolve_company", "query": "BP", "limit": 5, "context": context}
     )
+    context = resolve_result.get("context", context)
     print(json.dumps(resolve_result, indent=2))
 
     # Pick the first candidate
@@ -153,38 +155,44 @@ def run_scripted_flow(skill: Any) -> None:
         company_number = resolve_result["candidates"][0]["company_number"]
         company_name = resolve_result["candidates"][0]["title"]
         print(f"\nUser selects: {company_name} ({company_number})\n")
+        context["company_number"] = company_number
+        context["company_name"] = company_name
     elif resolve_result["status"] == "ready":
         company_number = resolve_result["company_number"]
         company_name = resolve_result.get("company_name", "")
         print(f"\nSingle match: {company_name} ({company_number})\n")
+        context["company_number"] = company_number
+        context["company_name"] = company_name
     else:
         print(f"\nError: {resolve_result.get('message', 'unknown')}")
         return
 
     # Step 2: Get company profile
     profile_result = skill.execute(
-        {"action": "get_company_profile", "company_number": company_number}
+        {"action": "get_company_profile", "context": context}
     )
+    context = profile_result.get("context", context)
     print(json.dumps(profile_result, indent=2))
 
     # Step 3: Get officers (active only)
     officers_result = skill.execute(
         {
             "action": "get_officers",
-            "company_number": company_number,
             "active_only": True,
+            "context": context,
         }
     )
+    context = officers_result.get("context", context)
     print(json.dumps(officers_result, indent=2))
 
     # Step 4: Get PSCs
-    psc_result = skill.execute({"action": "get_pscs", "company_number": company_number})
+    psc_result = skill.execute({"action": "get_pscs", "context": context})
+    context = psc_result.get("context", context)
     print(json.dumps(psc_result, indent=2))
 
     # Step 5: Get filing history
-    filing_result = skill.execute(
-        {"action": "get_filing_history", "company_number": company_number}
-    )
+    filing_result = skill.execute({"action": "get_filing_history", "context": context})
+    context = filing_result.get("context", context)
     print(json.dumps(filing_result, indent=2))
 
     print("\n=== flow complete ===")

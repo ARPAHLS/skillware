@@ -1,10 +1,10 @@
 name: finance/uk_companies_house_handler
-version: 1.0.0
+version: 1.1.0
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing, filing
   history, and intent-to-operation mapping with UK corporate terminology
-  translation. Returns status-based responses (ready, needs_input, error) with
+  translation. Returns status-based responses (ready, partial, needs_input, error) with
   disambiguation support. The agent owns natural-language dialogue; the skill
   returns structured candidates and next actions.
 short_description: "UK Companies House search, officers, PSC, and filings via structured actions."
@@ -49,6 +49,12 @@ parameters:
     entities:
       type: object
       description: "Extracted entities for map_intent (e.g. company_query, role)."
+    context:
+      type: object
+      description: "State carried over from prior skill turns (e.g. company_number, company_name)."
+    pipeline:
+      type: object
+      description: "State of an executing multi-step pipeline (e.g. completed_steps, total_steps) to carry forward."
   required:
     - action
 constitution: |

@@ -19,6 +19,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Skills (finance/uk_companies_house_handler):** Completed Phase v2a upgrade (#220). Added `context` parameter to carry forward session state (`company_number`, `company_name`, `officer_filter`, etc.). Added `partial` envelope status and optional `pipeline` state to support paused multi-step pipelines. Updated `_get_officers` to fallback to `company_name` from context. Updated `examples/gemini_uk_companies_house_handler.py` into a fully interactive chat loop.
 - **Documentation:** CONTRIBUTING and contributor workflow checklists — update `card.json` and output fixtures together when changing `execute()` output (#199).
 
 ## [0.4.5] - 2026-07-16

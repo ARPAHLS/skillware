@@ -73,11 +73,13 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Dispatch to the appropriate action handler."""
         action = params.get("action")
+        context = params.get("context", {})
 
         if not action:
             return self._error_response(
                 "missing_action",
                 "The 'action' parameter is required.",
+                context=context,
             )
 
         if action not in _VALID_ACTIONS:
@@ -85,7 +87,19 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "invalid_action",
                 f"Unknown action '{action}'. "
                 f"Valid actions: {sorted(_VALID_ACTIONS)}",
+                context=context,
             )
+
+        # Fallback parameters from context if not explicitly provided
+        if "company_number" not in params and "company_number" in context:
+            params["company_number"] = context["company_number"]
+        if "officer_filter" not in params and "officer_filter" in context:
+            params["officer_filter"] = context["officer_filter"]
+        if (
+            "selected_transaction_id" not in params
+            and "selected_transaction_id" in context
+        ):
+            params["selected_transaction_id"] = context["selected_transaction_id"]
 
         # Validate company_number is present when required
         if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
@@ -97,6 +111,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     "parameter. Use 'resolve_company' first to find "
                     "the correct company number.",
                     next_actions=["resolve_company"],
+                    context=context,
                 )
 
         dispatch = {
@@ -109,7 +124,29 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         }
 
         try:
-            return dispatch[action](params)
+            result = dispatch[action](params)
+
+            # Carry forward and merge context
+            new_context = {
+                "company_number": context.get("company_number"),
+                "company_name": context.get("company_name"),
+                "last_action": action,
+                "officer_filter": context.get("officer_filter"),
+                "selected_transaction_id": context.get("selected_transaction_id"),
+            }
+            if result.get("company_number"):
+                new_context["company_number"] = result["company_number"]
+            if result.get("company_name"):
+                new_context["company_name"] = result["company_name"]
+            if "officer_filter" in params:
+                new_context["officer_filter"] = params["officer_filter"]
+            if "selected_transaction_id" in params:
+                new_context["selected_transaction_id"] = params[
+                    "selected_transaction_id"
+                ]
+
+            result["context"] = new_context
+            return result
         except requests.exceptions.HTTPError as exc:
             status_code = exc.response.status_code if exc.response is not None else None
             if status_code == 404:
@@ -117,30 +154,36 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     "not_found",
                     "The requested resource was not found at "
                     "Companies House. Check the company number.",
+                    context=context,
                 )
             if status_code == 429:
                 return self._error_response(
                     "rate_limited",
                     "Companies House API rate limit exceeded. " "Wait and retry.",
+                    context=context,
                 )
             return self._error_response(
                 "api_error",
                 f"Companies House API returned HTTP {status_code}.",
+                context=context,
             )
         except requests.exceptions.Timeout:
             return self._error_response(
                 "timeout",
                 "Companies House API request timed out.",
+                context=context,
             )
         except requests.exceptions.ConnectionError:
             return self._error_response(
                 "connection_error",
                 "Could not connect to the Companies House API.",
+                context=context,
             )
         except Exception as exc:
             return self._error_response(
                 "internal_error",
                 f"Unexpected error: {type(exc).__name__}: {exc}",
+                context=context,
             )
 
     # --- Action Handlers ---
@@ -296,10 +339,18 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             officers.append(officer)
 
         company_name = data.get("company_name", "")
-        # Try to get company name from a links-based lookup if
-        # the officers endpoint did not return it directly
+        # Fallback to context first
         if not company_name:
-            company_name = data.get("links", {}).get("company", "")
+            company_name = params.get("context", {}).get("company_name", "")
+
+        # Fetch company profile to get the name if the officers endpoint omitted it
+        if not company_name:
+            try:
+                profile = self._get_company_profile({"company_number": company_number})
+                if profile.get("status") == "ready":
+                    company_name = profile.get("company_name", "")
+            except Exception:
+                pass
 
         result = {
             "company_number": company_number,
@@ -547,6 +598,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         data: Dict[str, Any],
         next_actions: Optional[List[str]] = None,
         source: str = "companies_house_api",
+        context: Optional[Dict[str, Any]] = None,
+        pipeline: Optional[Dict[str, int]] = None,
     ) -> Dict[str, Any]:
         """Build a successful response envelope."""
         response = {
@@ -554,6 +607,33 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "source": source,
             "fetched_at": self._fetched_at(),
         }
+        if context is not None:
+            response["context"] = context
+        if pipeline is not None:
+            response["pipeline"] = pipeline
+        response.update(data)
+        if next_actions:
+            response["next_actions"] = next_actions
+        return response
+
+    def _partial_response(
+        self,
+        data: Dict[str, Any],
+        next_actions: Optional[List[str]] = None,
+        source: str = "companies_house_api",
+        context: Optional[Dict[str, Any]] = None,
+        pipeline: Optional[Dict[str, int]] = None,
+    ) -> Dict[str, Any]:
+        """Build a partial status response envelope."""
+        response = {
+            "status": "partial",
+            "source": source,
+            "fetched_at": self._fetched_at(),
+        }
+        if context is not None:
+            response["context"] = context
+        if pipeline is not None:
+            response["pipeline"] = pipeline
         response.update(data)
         if next_actions:
             response["next_actions"] = next_actions
@@ -565,6 +645,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         candidates: List[Dict[str, Any]],
         agent_hint: str = "",
         next_actions: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None,
+        pipeline: Optional[Dict[str, int]] = None,
     ) -> Dict[str, Any]:
         """Build a disambiguation response envelope."""
         response = {
@@ -573,6 +655,10 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "candidates": candidates,
             "fetched_at": self._fetched_at(),
         }
+        if context is not None:
+            response["context"] = context
+        if pipeline is not None:
+            response["pipeline"] = pipeline
         if agent_hint:
             response["agent_hint"] = agent_hint
         if next_actions:
@@ -585,6 +671,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         message: str,
         agent_hint: str = "",
         next_actions: Optional[List[str]] = None,
+        context: Optional[Dict[str, Any]] = None,
+        pipeline: Optional[Dict[str, int]] = None,
     ) -> Dict[str, Any]:
         """Build a structured error response envelope."""
         response = {
@@ -593,6 +681,10 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "message": message,
             "fetched_at": self._fetched_at(),
         }
+        if context is not None:
+            response["context"] = context
+        if pipeline is not None:
+            response["pipeline"] = pipeline
         if agent_hint:
             response["agent_hint"] = agent_hint
         if next_actions:

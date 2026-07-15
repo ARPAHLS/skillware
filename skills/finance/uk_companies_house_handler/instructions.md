@@ -45,19 +45,21 @@ Always inform the user about these terminology differences when presenting resul
 3. Follow the actions exactly as ordered in the `suggested_pipeline`.
 4. If a step (like `resolve_company`) returns a status of `needs_input`, present the candidates to the user and wait for their choice before proceeding.
 5. Once you have a confirmed `company_number`, continue with the remaining specific actions (`get_officers`, `get_pscs`, etc.) in your pipeline.
+6. **State Tracking (Context)**: Every response from the skill includes a `context` object. You MUST pass this exact `context` object back as an argument to subsequent tool calls in the same session. This allows the skill to remember the active `company_number` and `company_name` without you having to manually extract and pass them every time.
 
 ## Understanding responses
 
 Every response includes a `status` field:
 
 - **`ready`**: The data was fetched successfully. Present it to the user.
+- **`partial`**: The operation succeeded, but the data returned is incomplete (e.g., due to pagination or a missing sub-resource). Inform the user that there is more information available or synthesize the available data.
 - **`needs_input`**: Multiple matches or missing information. Present the `candidates` to the user and ask for clarification. Use the `agent_hint` for guidance.
 - **`error`**: Something went wrong. Check `error_code` and `message`. Common errors:
   - `not_found`: Company number does not exist.
   - `rate_limited`: Too many requests; wait and retry.
   - `missing_company_number`: You need to resolve a company first.
 
-Every response includes `fetched_at` (UTC timestamp) and `source` — always cite these when presenting data.
+Every response includes `fetched_at` (UTC timestamp), `source`, and a `context` block — always cite the timestamp and source when presenting data. Responses may also include an optional `pipeline` object (e.g. `{"completed_steps": 1, "total_steps": 2}`) representing the partial pipeline state if a multi-step operation is paused.
 
 ## Limitations
 
