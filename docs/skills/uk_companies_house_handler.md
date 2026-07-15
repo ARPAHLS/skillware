@@ -16,6 +16,7 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 - **Persons with Significant Control (PSC)**: List beneficial owners with natures of control, equivalent to the US concept of "beneficial owner" or "shareholder".
 - **Filing History**: List filings (accounts, confirmation statements, incorporations) with optional category filtering and document metadata links.
 - **Intent Mapping**: Translate common user intent keywords (CEO, owner, shareholder) to the correct UK Companies House actions and build suggested action pipelines.
+- **State Tracking (Context)**: Automatically carries forward session state (like `company_number`, `company_name`, and active filters) between sequential tool calls to seamlessly link multi-step operations.
 
 ## Internal Architecture
 
@@ -32,6 +33,7 @@ The system prompt teaches the AI to:
 A single `execute()` entry point dispatches to six action handlers:
 - **HTTP layer**: Authenticated requests using API key as HTTP Basic username.
 - **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`.
+- **State propagation**: Extracts and updates a strict 5-key `context` schema in every response, falling back to these values if omitted in subsequent requests.
 - **Error handling**: Catches HTTP errors (404, 429, 500), timeouts, and connection failures.
 
 ### 3. The Knowledge (`data/`)
