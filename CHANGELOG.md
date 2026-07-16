@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **Documentation:** Clarified that skill `instructions.md` files provide concise, append-only skill context rather than host-agent personas (#258).
+
 ## [0.4.5] - 2026-07-16
 
 ### Added

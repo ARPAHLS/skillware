@@ -243,7 +243,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
 - Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
-- Logic in `skill.py`; prompts and persona in `instructions.md`
+- Logic in `skill.py`; skill-specific context in `instructions.md`. Keep instructions short and append-only: host agents already own their system prompt and persona, so describe this skill's use, limits, outputs, and errors instead of assigning a role.
 - Never commit secrets; document `env_vars` in the manifest
 
 ### Core framework (`skillware/core/`)

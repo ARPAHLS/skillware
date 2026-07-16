@@ -272,12 +272,13 @@ requirements:
 
 ### 3. `instructions.md` (cognition)
 
-The primary guide for the host LLM.
+The primary guide for the host LLM. Treat it as a short, append-only block of context for this skill: host agents already own their system prompt and persona.
 
-- Open with context such as: "You are an agent equipped with [Skill Name]..."
-- Explain **when** to invoke the tool.
-- Explain how to interpret outputs and handle edge cases.
-- Keep prompts and persona here, not in `skill.py`.
+- Open with the skill's ID, purpose, and important limits.
+- Explain **when** to invoke the tool, which inputs fit each scenario, and how to interpret outputs and errors.
+- Keep the guidance concise because operators may load multiple skills.
+- Avoid persona assignments such as "You are an agent equipped with...", restating host-wide policies, or instructions that could conflict with another skill.
+- Keep skill-specific prompts here, not in `skill.py`.
 
 ### 4. `card.json` (presentation)
 
