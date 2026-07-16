@@ -52,14 +52,14 @@ Always inform the user about these terminology differences when presenting resul
 Every response includes a `status` field:
 
 - **`ready`**: The data was fetched successfully. Present it to the user.
-- **`partial`**: The operation succeeded, but the data returned is incomplete (e.g., due to pagination or a missing sub-resource). Inform the user that there is more information available or synthesize the available data.
+- **`partial`**: (Note: v2b prep, not currently used) The operation succeeded, but the data returned is incomplete (e.g., due to pagination or a missing sub-resource). Inform the user that there is more information available or synthesize the available data.
 - **`needs_input`**: Multiple matches or missing information. Present the `candidates` to the user and ask for clarification. Use the `agent_hint` for guidance.
 - **`error`**: Something went wrong. Check `error_code` and `message`. Common errors:
   - `not_found`: Company number does not exist.
   - `rate_limited`: Too many requests; wait and retry.
   - `missing_company_number`: You need to resolve a company first.
 
-Every response includes `fetched_at` (UTC timestamp), `source`, and a `context` block — always cite the timestamp and source when presenting data. Responses may also include an optional `pipeline` object (e.g. `{"completed_steps": 1, "total_steps": 2}`) representing the partial pipeline state if a multi-step operation is paused.
+Every response includes `fetched_at` (UTC timestamp), `source`, and a `context` block — always cite the timestamp and source when presenting data. Responses may also include an optional `pipeline` object (Note: v2b prep, not currently used; e.g. `{"completed_steps": 1, "total_steps": 2}`) representing the partial pipeline state if a multi-step operation is paused.
 
 ## Limitations
 

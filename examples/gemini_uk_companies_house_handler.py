@@ -1,10 +1,10 @@
 """
-Non-interactive Gemini agent loop for finance/uk_companies_house_handler.
+Interactive Gemini agent loop for finance/uk_companies_house_handler.
 
-Demonstrates the full "Who is the CEO of BP?" flow:
+Demonstrates an interactive flow to query UK companies:
   1. map_intent -- translate intent keywords to an action pipeline
   2. resolve_company -- search by name, receive ranked candidates
-  3. Agent disambiguates (scripted: picks BP P.L.C.)
+  3. Agent disambiguates (asks user to pick if needed)
   4. get_officers -- list directors for the resolved company number
 
 Environment (live mode):
@@ -44,7 +44,16 @@ def main() -> None:
 
     system_instruction = bundle["instructions"]
 
-    print("Type 'exit' or 'quit' to stop.")
+    print("\n" + "=" * 60)
+    print("UK Companies House Gemini Agent")
+    print("=" * 60)
+    print("This agent can look up UK companies, officers, PSCs, and filings.")
+    print("Try asking:")
+    print("  - 'Who is the CEO of BP?'")
+    print("  - 'Show me the filing history for Tesco'")
+    print("  - 'Who owns Monzo?'")
+    print("\nType 'exit' or 'quit' to stop.")
+    print("=" * 60)
 
     chat = client.chats.create(
         model="gemini-2.5-flash",
