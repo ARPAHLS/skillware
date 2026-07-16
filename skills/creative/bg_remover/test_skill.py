@@ -1,10 +1,13 @@
 import base64
 import io
+import importlib.util
 import os
 
 import pytest
 import yaml
 from PIL import Image
+
+from skillware.core.loader import SkillLoader
 
 from .skill import BackgroundRemover
 
@@ -25,10 +28,10 @@ def mock_remove(monkeypatch):
     def fake_new_session(model_name="u2net", *args, **kwargs):
         return object()
 
-    fake_module = types.SimpleNamespace(
-        remove=fake_remove,
-        new_session=fake_new_session,
-    )
+    fake_module = types.ModuleType("rembg")
+    fake_module.remove = fake_remove
+    fake_module.new_session = fake_new_session
+    fake_module.__spec__ = importlib.util.spec_from_loader("rembg", loader=None)
 
     monkeypatch.setitem(sys.modules, "rembg", fake_module)
 
@@ -52,6 +55,12 @@ def manifest():
 def test_manifest(skill, manifest):
     assert skill.manifest["name"] == manifest["name"]
     assert skill.manifest["version"] == manifest["version"]
+
+
+def test_skill_loader_can_import():
+    bundle = SkillLoader.load_skill("creative/bg_remover")
+    assert bundle["manifest"]["name"] == "creative/bg_remover"
+    assert hasattr(bundle["module"], "BackgroundRemover")
 
 
 def test_missing_input(skill):
@@ -207,3 +216,37 @@ def test_custom_model(skill):
 
     assert result["success"] is True
     assert result["model_used"] == "u2net"
+
+
+def test_alpha_matting_forwarded(skill, monkeypatch):
+    seen = {}
+
+    def fake_remove(image_bytes, *args, **kwargs):
+        seen["alpha_matting"] = kwargs.get("alpha_matting")
+        img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    fake_module = types.SimpleNamespace(
+        remove=fake_remove,
+        new_session=lambda *args, **kwargs: object(),
+    )
+    monkeypatch.setitem(sys.modules, "rembg", fake_module)
+
+    result = skill.execute(
+        {
+            "image": create_image(),
+            "alpha_matting": True,
+        }
+    )
+
+    assert result["success"] is True
+    assert seen["alpha_matting"] is True
+
+
+def test_missing_input_path(skill):
+    result = skill.execute({"input_path": "/nonexistent/path/image.png"})
+
+    assert result["success"] is False
+    assert result["error_code"] == "PROCESSING_FAILED"

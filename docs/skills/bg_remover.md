@@ -51,6 +51,17 @@ Provider API keys are only required when using the provider integration examples
 
 \* One of `image` or `input_path` is required. If both are sent, `image` wins.
 
+## Model selection
+
+| Use case | Suggested `model` | Notes |
+| :--- | :--- | :--- |
+| Products, logos, general scenes (default) | `isnet-general-use` | Best default for most requests |
+| People, portraits, human subjects | `u2net_human_seg` | Prefer when the subject is a person |
+| Legacy / simple scenes | `u2net` or `silueta` | Optional fallback models |
+| Hair, fur, glass, fine edges | any model + `alpha_matting: true` | Slower; use when edge quality matters |
+
+Agent routing details live in `skills/creative/bg_remover/instructions.md`.
+
 ## Output Schema
 
 | Field | Description |
@@ -69,7 +80,7 @@ Provider API keys are only required when using the provider integration examples
 
 | Scenario | Example payload |
 | :--- | :--- |
-| Chat / upload handoff | `{"image": "<base64>"}` |
+| Chat / upload / attachment handoff | `{"image": "<base64>"}` |
 | Local file | `{"input_path": "/path/to/product.png"}` |
 | Save to disk | `{"input_path": "product.png", "output_path": "product_no_bg.png"}` |
 | URL (agent pre-step) | Agent downloads `https://example.com/photo.jpg` → temp file, then `{"input_path": "/tmp/photo.jpg", "output_path": "/tmp/photo_no_bg.png"}` |
@@ -108,7 +119,7 @@ The skill lives in `skills/creative/bg_remover/`.
 
 ### The Mind (`instructions.md`)
 
-Agent-facing routing rules: when to call, input/output conventions, URL and cloud pre-steps, and error codes.
+Skill instructions: when to invoke, input/output conventions, URL and cloud pre-steps, model selection, and error codes.
 
 ### The Body (`skill.py`)
 

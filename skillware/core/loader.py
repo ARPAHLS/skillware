@@ -34,6 +34,7 @@ _REQUIREMENT_IMPORT_ALIASES = {
     "pymupdf": "fitz",
     "beautifulsoup4": "bs4",
     "pyyaml": "yaml",
+    "pillow": "PIL",
 }
 
 

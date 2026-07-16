@@ -9,6 +9,8 @@ issuer:
   github: AyushSrivastava1818
   org: ""
 
+category: "creative"
+
 parameters:
   type: object
   properties:
@@ -26,6 +28,7 @@ parameters:
 
     model:
       type: string
+      description: "rembg model; default isnet-general-use. Use u2net_human_seg for people."
       enum:
         - isnet-general-use
         - u2net
@@ -35,35 +38,46 @@ parameters:
 
     alpha_matting:
       type: boolean
+      description: "Enable alpha matting for finer edges (hair, fur); slower when true."
       default: false
+  required: []
 
 outputs:
   success:
     type: boolean
+    description: "True when background removal completed successfully."
 
   image_base64:
     type: string
+    description: "Base64-encoded transparent PNG (always set on success)."
 
   mime_type:
     type: string
+    description: "Output MIME type (image/png on success)."
 
   output_path:
     type: string
+    description: "Echo of the requested output path when provided."
 
   width:
     type: integer
+    description: "Output image width in pixels."
 
   height:
     type: integer
+    description: "Output image height in pixels."
 
   model_used:
     type: string
+    description: "rembg model used for processing."
 
   error:
     type: string
+    description: "Human-readable error message when success is false."
 
   error_code:
     type: string
+    description: "INVALID_INPUT, MISSING_DEPENDENCY, or PROCESSING_FAILED."
 
 requirements:
   - rembg>=2.0.0
@@ -76,3 +90,7 @@ constitution: |
   3. PRIVACY: Never store image bytes.
   4. DETERMINISTIC: Same input produces same output.
   5. FAIL_CLOSED: Return structured errors on invalid input.
+
+presentation:
+  icon: "photo"
+  color: "#8b5cf6"
