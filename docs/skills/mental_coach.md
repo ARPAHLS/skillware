@@ -4,6 +4,8 @@
 **Skill ID:** `wellness/mental_coach`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) (AO) · **Contact:** masa88keith@gmail.com
 
+**Recommended install:** `pip install "skillware[wellness_mental_coach]"`. See [Install extras](../usage/install_extras.md).
+
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 Deterministic wellness coaching guardrail for host agents. Runs crisis triage before retrieval, blocks clinical overreach, retrieves grounded KB chunks with citations, and optionally runs a Gemini scope evaluator.

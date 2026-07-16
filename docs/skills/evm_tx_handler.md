@@ -3,6 +3,8 @@
 **ID**: `defi/evm_tx_handler`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[defi_evm_tx_handler]"`. See [Install extras](../usage/install_extras.md).
+
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 Structured EVM operations for a **dedicated agent wallet**: resolve trade intent, quote Uniswap V2 swaps, preview outcomes, execute swaps, and send native/ERC20 transfers on Ethereum and Base.

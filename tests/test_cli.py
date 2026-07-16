@@ -470,15 +470,17 @@ def test_interactive_examples_dispatch(examples_readme, monkeypatch):
     assert captured.get("skill_id") is None
 
 
-SAMPLE_EXAMPLES_README = """# Examples
-
-## Runnable Scripts
-
-| Script | Skill ID | Provider | Required extra | Required env vars | Description |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `gemini_tos_evaluator.py` | `compliance/tos_evaluator` | Gemini | `[gemini]` | `GOOGLE_API_KEY` | Demo. |
-| `ollama_skills_test.py` | `finance/wallet_screening`, `office/pdf_form_filler` | Ollama | `[office]` | None | Multi. |
-"""
+SAMPLE_EXAMPLES_README = (
+    "# Examples\n\n"
+    "## Runnable Scripts\n\n"
+    "| Script | Skill ID | Provider | Required extra | Required env vars | Description |\n"
+    "| :--- | :--- | :--- | :--- | :--- | :--- |\n"
+    "| `gemini_tos_evaluator.py` | `compliance/tos_evaluator` | Gemini | "
+    "`[compliance_tos_evaluator]`, `[gemini]` | `GOOGLE_API_KEY` | Demo. |\n"
+    "| `ollama_skills_test.py` | `finance/wallet_screening`, "
+    "`office/pdf_form_filler` | Ollama | `[finance_wallet_screening]`, "
+    "`[office_pdf_form_filler]` | None | Multi. |\n"
+)
 
 
 @pytest.fixture

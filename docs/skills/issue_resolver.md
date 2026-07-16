@@ -4,6 +4,7 @@
 **Skill ID:** `dev_tools/issue_resolver`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A developer-tools skill that accepts any **GitHub issue URL** and guides the calling agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written.

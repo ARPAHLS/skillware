@@ -10,6 +10,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Packaging:** Category, per-skill, and `[all]` optional extras generated from skill manifests via `scripts/sync_extras.py`; hand-maintained `dev`, SDK extras, and meta `[agents]` (#236).
+- **Documentation:** [Install extras](docs/usage/install_extras.md) — canonical guide for `pip install skillware[...]` targets (#236).
+- **Framework:** `skillware/core/extras.py` and richer `ImportError` hints from `SkillLoader` when manifest requirements are missing (#236).
 - **CI:** PyPI wheel packaging smoke test — builds a wheel, installs it in a fresh venv (base deps only), and verifies every bundled registry skill is present and loadable via `scripts/wheel_smoke_test.py` (#182).
 - **Documentation:** Cross-linked wheel-smoke CI job in `CONTRIBUTING.md` and `docs/contributing/ai_native_workflow.md` (#182).
 - **CLI:** `skillware paths` shows skill root resolution order (external → project → bundled), tier labels, shadowing summary, and operator tips; interactive menu option `4` wired (#81).
@@ -19,6 +22,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Packaging (breaking):** Removed legacy extras `cli`, `embeddings`; `[all]` is skill runtime deps only (not SDK packages). Use `[agents]` for Gemini + Claude + OpenAI SDK deps (#236).
+- **CLI:** `skillware list` prints a pointer to the install extras guide (#236).
+- **Documentation:** README, CONTRIBUTING, TESTING, skill catalog pages, and examples index updated for the new extra taxonomy; every skill doc recommends its per-skill extra (#236).
 - **Framework:** `SkillLoader` delegates root resolution to `discovery.get_skill_roots()` so load, list, test, and `paths` use the same order (#81).
 - **CLI:** Help and menu list `paths` as available (no longer “coming soon”) (#81).
 - **Documentation:** README — trim redundant Contributing cross-links, add `skillware paths` to install verification, and link the skill trust model in the docs table; cross-link `skillware paths` in `docs/introduction.md` and `docs/usage/README.md`.

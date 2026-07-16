@@ -77,6 +77,8 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 
 Registry skills live under `skills/<category>/<skill_name>/` in the repository and in the PyPI package. After `pip install skillware`, load by ID from your project (`./skills/...`), via `SKILLWARE_SKILL_PATH`, or from the bundled registry copy under `site-packages/skills/`. See [Usage guides](../usage/README.md#finding-skills-on-disk).
 
+Optional **runtime packages** install via [pip extras](../usage/install_extras.md). **Always use the per-skill extra** in docs and installs (`pip install "skillware[category_skill]"`), even when it is empty today. Category extras and `[all]` remain available for broader installs. The base wheel includes every skill bundle on disk without optional runtime packages.
+
 ```python
 from skillware.core.loader import SkillLoader
 

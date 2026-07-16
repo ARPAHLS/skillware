@@ -2,6 +2,8 @@
 
 **ID**: `compliance/pii_masker`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+
+**Recommended install:** `pip install "skillware[compliance_pii_masker]"`. See [Install extras](../usage/install_extras.md).
 **Category**: Compliance
 
 [Skill Library](README.md) · [Testing](../TESTING.md)

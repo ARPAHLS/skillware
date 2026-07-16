@@ -3,6 +3,7 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A deterministic UK Companies House API handler for agents. Provides structured operations for company search, profile lookup, officer and PSC listing, filing history, and intent-to-operation mapping with UK corporate terminology translation. Returns status-based responses (`ready`, `needs_input`, `error`) with disambiguation support.

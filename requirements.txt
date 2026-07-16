@@ -1,14 +1,13 @@
 # Development convenience — same install GitHub Actions CI uses (see pyproject.toml).
-# Installs core + dev tools (pytest, flake8, black) + all optional SDK extras.
+# Installs core + dev tools (pytest, flake8, black) + all skill runtime deps.
 # Documentation-only PRs can use: pip install -e ".[dev]"
 # For production installs use pyproject.toml extras instead, e.g.:
-#   pip install skillware                  # core only
-#   pip install "skillware[gemini]"        # + Google Gemini SDK
-#   pip install "skillware[claude]"        # + Anthropic SDK
-#   pip install "skillware[openai]"        # + OpenAI SDK
-#   pip install "skillware[office]"        # + PyMuPDF
-#   pip install "skillware[defi]"            # + web3 (EVM skills)
-#   pip install "skillware[embeddings]"      # + fastembed, numpy
-#   pip install "skillware[all]"           # + all optional SDKs and skill runtime deps
-#   pip install "skillware[dev]"           # + testing and linting tools
+#   pip install skillware                                    # core + all skills on disk
+#   pip install "skillware[finance_wallet_screening]"        # per-skill extra (preferred in docs)
+#   pip install "skillware[office_pdf_form_filler]"          # per-skill extra with runtime deps
+#   pip install "skillware[finance]"                         # whole category
+#   pip install "skillware[gemini]"                          # agent SDK
+#   pip install "skillware[agents]"                          # all agent SDKs
+#   pip install "skillware[all]"                             # all skill runtime deps
+#   pip install "skillware[dev]"                             # testing and linting tools
 -e ".[dev,all]"

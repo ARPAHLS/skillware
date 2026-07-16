@@ -90,7 +90,7 @@ git checkout -b feat/issue-<number>-short-description
 pip install -e ".[dev,all]"
 ```
 
-For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI.
+For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI (optional `[agents]` for SDK examples — see [Install extras](docs/usage/install_extras.md)).
 
 See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
@@ -151,7 +151,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
   Or: `skillware test <category>/<skill_name>`.
 
-- Install packages from that skill's `manifest.yaml` `requirements` when they are not covered by `[all]`. After adding a skill with new third-party deps, update the matching optional extra and `[all]` in `pyproject.toml` (see [Packaging](#packaging-pypi-and-pip-install)).
+- Install packages from that skill's `manifest.yaml` `requirements` when they are not covered by `[all]`. After adding a skill with new third-party deps, run `python scripts/sync_extras.py` (see [Install extras](docs/usage/install_extras.md)).
 - Wait for GitHub Actions CI to pass before requesting review.
 
 ### Pull request template
@@ -305,14 +305,15 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 **Manifest `requirements` and optional extras**
 
 - List runtime packages in the skill's `manifest.yaml` `requirements` (source of truth for loaders and docs).
-- Mirror any package **not** already in core `[project.dependencies]` into `[project.optional-dependencies]` in `pyproject.toml`: use an existing group when it fits (`[gemini]`, `[office]`, `[defi]`, `[embeddings]`, …) and always add the same pins to `[all]`.
-- Core already includes `requests`, `pyyaml`, and `beautifulsoup4` (manifests may say `bs4`).
-- Contributors and CI install everything needed for bundle tests with `pip install -e ".[dev,all]"`.
+- Run `python scripts/sync_extras.py` after changing manifests — it regenerates category, per-skill, and `[all]` rows in `pyproject.toml` (see [Install extras](docs/usage/install_extras.md)).
+- Core already includes `requests`, `pyyaml`, and `beautifulsoup4` (manifests may say `bs4`); the sync script omits core packages from extras automatically.
+- Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `agents`) stay above the generated block in `pyproject.toml`.
+- Contributors and CI install skill runtime deps with `pip install -e ".[dev,all]"`; add `[agents]` when running SDK examples locally.
 
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).
-- Include **ID** and **Issuer** near the top (for example linked GitHub handle and optional org).
+- Include **ID**, **Issuer**, and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).

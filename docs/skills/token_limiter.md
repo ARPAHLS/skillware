@@ -4,6 +4,7 @@
 **Skill ID:** `monitoring/token_limiter`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[monitoring_token_limiter]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A deterministic **token budget gate** for autonomous agent loops. After each model turn, the host passes cumulative token usage; the skill returns `CONTINUE`, `WARN`, or `FORCE_TERMINATE`. The host loop must stop when the action is `FORCE_TERMINATE`.

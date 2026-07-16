@@ -55,7 +55,7 @@ pip install -e ".[dev,all]"
 git checkout -b feat/issue-<number>-short-description
 ```
 
-Use `pip install -e ".[dev]"` when the issue is documentation-only; use `[dev,all]` for skill or framework work so local pytest matches CI.
+Use `pip install -e ".[dev]"` when the issue is documentation-only; use `[dev,all]` for skill or framework work so local pytest matches CI. Add `[agents]` when running SDK examples (see [Install extras](../usage/install_extras.md)).
 
 Before Stage 2, confirm:
 
@@ -279,7 +279,8 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `card.json`: `issuer` matches manifest
 - [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
-- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md`
+- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (include **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
+- [ ] After changing `manifest.yaml` `requirements`, run `python scripts/sync_extras.py` and confirm `python scripts/sync_extras.py --check` passes
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes
 - [ ] `pytest tests/test_registry_docs.py` passes (catalog index, examples index, and agent-loops parity)

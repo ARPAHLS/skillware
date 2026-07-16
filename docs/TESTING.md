@@ -18,6 +18,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Doc-drift guards (`test_registry_docs.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
+| Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`) | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
@@ -174,7 +175,7 @@ That covers **skill bundle tests** under `skills/` and **framework + maintainer 
 
 Pushes to `main` that touch `.github/labels.json` also run [`.github/workflows/sync-labels.yml`](../../.github/workflows/sync-labels.yml) to upsert GitHub labels from the JSON file.
 
-The `[all]` extra includes optional SDK groups plus registry skill runtime deps (`web3`, `fastembed`, `numpy`, …) so `pytest skills/` works after `pip install -e ".[dev,all]"`. When a skill adds new `manifest.yaml` `requirements`, add the same packages to the matching optional extra and to `[all]` in `pyproject.toml`.
+The `[all]` extra includes registry skill runtime deps only (`web3`, `fastembed`, `numpy`, …) so `pytest skills/` works after `pip install -e ".[dev,all]"`. When a skill adds new `manifest.yaml` `requirements`, run `python scripts/sync_extras.py` to regenerate category, skill, and `[all]` rows in `pyproject.toml` (see [Install extras](usage/install_extras.md)).
 
 ### Local commands
 
@@ -224,4 +225,5 @@ Before pushing your code, run the following commands:
 3. `python -m flake8 .` (check quality)
 4. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
 5. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
-6. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill
+6. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
+7. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill

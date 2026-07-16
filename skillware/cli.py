@@ -401,6 +401,10 @@ def cmd_list(
         table.add_row(*row)
 
     console.print(table)
+    console.print(
+        "Optional runtime deps: see docs/usage/install_extras.md",
+        style="dim",
+    )
 
 
 def cmd_examples(

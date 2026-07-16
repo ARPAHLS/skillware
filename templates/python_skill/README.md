@@ -5,13 +5,13 @@ Starter bundle under `skills/<category>/<skill_name>/`. Copy this template from 
 ## Before you submit
 
 1. **Rename** the folder to match your skill ID (e.g. `skills/finance/my_skill`).
-2. **Packaging**: Add empty `__init__.py` files in `skills/<category>/` (new categories only) and in your skill folder so PyPI wheels include the full bundle. No `pyproject.toml` changes per skill.
+2. **Packaging**: Add empty `__init__.py` files in `skills/<category>/` (new categories only) and in your skill folder so PyPI wheels include the full bundle. List runtime packages in `manifest.yaml` `requirements`, then run `python scripts/sync_extras.py` to update optional extras in `pyproject.toml` (see [Install extras](../../docs/usage/install_extras.md)).
 3. **`manifest.yaml`**: Set real `name` to the full registry ID (`category/skill_name`, matching the folder path), `version`, `description`, `short_description`, `parameters`, `constitution`, and `issuer` (`name` + `email` required; `github` / `org` optional). `SkillLoader.load_skill()` warns when `name` diverges from the path under registry layout; flat private layouts (`skills/<skill_name>/`) are not validated.
 4. **`skill.py`**: Implement deterministic logic with exactly one `BaseSkill` subclass (loaded as `bundle["class"]`); no LLM-generated code in the skill body.
 5. **`instructions.md`**: Tell the agent when and how to use the tool.
 6. **`card.json`**: Mirror `issuer` from the manifest; customize UI fields.
 7. **`test_skill.py`**: Bundle test (required; enforced by `tests/test_skill_issuer.py`); offline, mock external services, including HTTP clients, LLM APIs, embedding/model loaders, and any first-run model downloads; run `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`. See [TESTING.md](../../docs/TESTING.md).
-8. **`docs/skills/<skill_name>.md`**: Catalog page with **ID**, **Issuer**, and **Usage Examples** (all providers; see `docs/usage/skill_usage_template.md`).
+8. **`docs/skills/<skill_name>.md`**: Catalog page with **ID**, **Issuer**, **Recommended install** (`pip install "skillware[<category>_<skill>]"`), and **Usage Examples** (all providers; see `docs/usage/skill_usage_template.md`).
 9. **`docs/skills/README.md`**: Add a row to the skill library table.
 
 Do not commit template placeholders (`Your Name`, `you@example.com`, `YOUR ORG`, etc.) under `skills/`—only real issuer details belong in the registry.

@@ -18,6 +18,7 @@ from skillware.core.discovery import (
     get_skill_roots,
     is_skill_dir,
 )
+from skillware.core.extras import build_missing_requirements_message
 
 SKILLWARE_SKILL_PATH_ENV = _discovery.SKILLWARE_SKILL_PATH_ENV
 
@@ -223,8 +224,7 @@ class SkillLoader:
 
             if missing:
                 raise ImportError(
-                    f"Skill '{manifest.get('name')}' requires missing packages: {', '.join(missing)}. "
-                    f"Please run: pip install {' '.join(missing)}"
+                    build_missing_requirements_message(manifest, registry_id, missing)
                 )
 
         # Load Instructions

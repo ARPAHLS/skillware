@@ -4,6 +4,8 @@
 **Skill ID:** `data_engineering/novelty_extractor`
 **Issuer:** [@rizzoMartin](https://github.com/rizzoMartin)
 
+**Recommended install:** `pip install "skillware[data_engineering_novelty_extractor]"`. See [Install extras](../usage/install_extras.md).
+
 [Skill Library](README.md) - [Testing](../TESTING.md)
 
 A data engineering skill that filters large text datasets by semantic novelty,
@@ -47,7 +49,7 @@ multi-turn filtering by passing `distilled_content` as `baseline_chunks`.
 This skill requires `fastembed` and `numpy`. Install them before loading:
 
 ```bash
-pip install fastembed numpy
+pip install "skillware[data_engineering_novelty_extractor]"
 ```
 
 On first use, `fastembed` downloads the `BAAI/bge-small-en-v1.5` model (~50 MB)

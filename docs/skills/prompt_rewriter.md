@@ -4,6 +4,7 @@
 **Skill ID:** `optimization/prompt_rewriter`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[optimization_prompt_rewriter]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A powerful middleware skill that acts as a deterministic compression logic gate for agents. It ingests a massive, bloated prompt or conversation history and "rewrites" it to use fewer tokens while aggressively retaining 100% of the semantic meaning and instructions.

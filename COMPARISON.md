@@ -14,7 +14,7 @@ This document clarifies how Skillware compares to other common approaches for eq
 
 | Method | Speed | Cost | Accuracy | Reliability | Security | Setup |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Skillware** (`finance/wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install skillware` |
+| **Skillware** (`finance/wallet_screening`) | Seconds | Low (~$0 + optional Etherscan key) | High (deterministic OFAC/TRM-style data) | Repeatable, tested Python | Fixed code path | `pip install "skillware[finance_wallet_screening]"` |
 | **Prompt + web search** | Minutes | High tokens | Low (misses on-chain signals) | Varies per run | Generated code and scraping | Prompt engineering |
 | **MCP / multi-agent** | Minutes+ | Tokens + infra | Medium (tool-dependent) | Server/agent-dependent | Many moving parts | Deploy servers |
 | **Native APIs** (Chainalysis, TRM) | Sseconds | High (enterprise) | High | SLA-backed | Vendor-controlled | Contracts |

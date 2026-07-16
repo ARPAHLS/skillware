@@ -79,9 +79,10 @@ print(result)
 
 Full runnable loops live under `examples/` where listed. See the
 [examples index](../../examples/README.md) for script filenames, skill IDs,
-provider extras, required environment variables, and skills that do not yet
-have runnable examples. Gemini reference scripts use the `google-genai` SDK
-(`import google.genai`). All [skill catalog pages](../skills/README.md)
+per-skill pip extras, SDK extras, and required environment variables. Install
+each skill with `pip install "skillware[<category>_<skill>]"` (see
+[Install extras](install_extras.md)). Gemini reference scripts use the
+`google-genai` SDK (`import google.genai`). All [skill catalog pages](../skills/README.md)
 include compact **Usage Examples** per provider.
 
 `Local execute / mixed` means the checked-in script is not a single-provider

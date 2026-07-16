@@ -24,6 +24,7 @@ To list locally available skills, inspect path resolution, or run bundle tests f
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
 | CLI | `skillware list`, `skillware paths`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
+| Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
 

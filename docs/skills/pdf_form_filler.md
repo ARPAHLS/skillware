@@ -3,6 +3,7 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[office_pdf_form_filler]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A productivity skill that fills AcroForm-based PDFs by mapping natural language instructions to detected form fields using semantic understanding.

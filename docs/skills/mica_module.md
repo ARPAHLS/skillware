@@ -3,6 +3,8 @@
 **ID**: `compliance/mica_module`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 
+**Recommended install:** `pip install "skillware[compliance_mica_module]"`. See [Install extras](../usage/install_extras.md).
+
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
 A highly specialized, localized RAG (Retrieval-Augmented Generation) and policy enforcement engine for the Markets in Crypto-Assets (MiCA) regulation. It ensures any agent using it can understand, query, and enforce the entirety of MiCA with granular precision, acting as a strict compliance firewall.

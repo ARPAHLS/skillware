@@ -1,3 +1,4 @@
+import importlib.util
 import subprocess
 import sys
 import warnings
@@ -36,6 +37,20 @@ def test_load_skill_can_skip_requirement_check():
     )
     assert bundle["manifest"].get("name") == "compliance/mica_module"
     assert bundle["class"].__name__ == "MiCAModuleSkill"
+
+
+def test_load_skill_missing_requirements_suggests_skill_extra(monkeypatch):
+    real_find_spec = importlib.util.find_spec
+
+    def fake_find_spec(name, package=None):
+        if name == "google.genai":
+            return None
+        return real_find_spec(name, package)
+
+    monkeypatch.setattr(importlib.util, "find_spec", fake_find_spec)
+
+    with pytest.raises(ImportError, match=r"skillware\[compliance_mica_module\]"):
+        SkillLoader.load_skill("compliance/mica_module")
 
 
 def test_load_skill_class_is_instantiable():

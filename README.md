@@ -112,9 +112,9 @@ cd skillware
 pip install -e ".[dev,all]"
 ```
 
-For documentation-only work, `pip install -e ".[dev]"` is enough. Skill and framework contributors should use `[dev,all]` to match CI (see [TESTING.md](docs/TESTING.md)).
+For documentation-only work, `pip install -e ".[dev]"` is enough. Skill and framework contributors should use `[dev,all]` to match CI (see [TESTING.md](docs/TESTING.md) and [Install extras](docs/usage/install_extras.md)).
 
-> **Note**: Individual skills may have their own dependencies. The `SkillLoader` validates `manifest.yaml` and warns of missing packages (e.g., `requests`, `pandas`) upon loading a skill.
+> **Note**: Every skill has a dedicated pip extra (`pip install "skillware[category_skill]"`). The `SkillLoader` validates `manifest.yaml` on load and suggests the matching extra when packages are missing. See [Install extras](docs/usage/install_extras.md).
 
 ### 2. Verify your installation
 
@@ -223,7 +223,7 @@ For other providers and shared integration patterns, see the [usage guides index
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 

@@ -198,3 +198,25 @@ def test_skill_docs_gemini_anti_patterns():
     assert not failures, "Gemini anti-patterns found in skill docs:\n" + "\n".join(
         f"  - {f}" for f in failures
     )
+
+
+def test_catalog_pages_have_skill_specific_recommended_install(
+    manifested_skills: set[str],
+):
+    """Every catalog page recommends the per-skill pip extra."""
+    from skillware.core.extras import registry_id_to_extra
+
+    docs_root = REPO_ROOT / "docs" / "skills"
+    missing = []
+
+    for skill_id in sorted(manifested_skills):
+        page = docs_root / f"{Path(skill_id).name}.md"
+        content = page.read_text(encoding="utf-8")
+        extra = registry_id_to_extra(skill_id)
+        needle = f"skillware[{extra}]"
+        if needle not in content:
+            missing.append(f"{page.name}: expected Recommended install with {needle!r}")
+
+    assert not missing, "Missing skill-specific recommended install:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )
