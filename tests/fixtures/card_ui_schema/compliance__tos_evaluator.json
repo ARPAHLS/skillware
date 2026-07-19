@@ -1,0 +1,27 @@
+{
+  "samples": [
+    {
+      "is_safe_to_proceed": true,
+      "confidence_score": 0.72,
+      "verdict": "SAFE",
+      "reason": "Discovered policy text includes language that appears permissive for the requested behavior.",
+      "recommended_next_step": "Proceed conservatively and continue honoring crawl delays and rate limits.",
+      "action_type": "read",
+      "robots_assessment": {
+        "can_fetch": true,
+        "reason": "Allowed by robots.txt"
+      },
+      "tos_assessment": {
+        "status": "allowed",
+        "summary": "Permissive language found."
+      },
+      "llm_assessment": {
+        "status": "not_used"
+      },
+      "discovered_policy_urls": {
+        "candidates": ["https://example.com/terms"]
+      },
+      "evidence": []
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "preview": {
+        "you_pay": {"asset": "USDC", "amount": "100.0"},
+        "you_receive": {"asset": "WETH", "amount": "0.04"}
+      },
+      "quote": {},
+      "requires_confirmation": true
+    },
+    {
+      "status": "confirmed",
+      "tx_hash": "0xabc123def456",
+      "explorer_url": "https://etherscan.io/tx/0xabc123def456",
+      "receipt": {"success": true},
+      "quote": {}
+    }
+  ]
+}

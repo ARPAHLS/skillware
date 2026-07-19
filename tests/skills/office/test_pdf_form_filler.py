@@ -77,7 +77,7 @@ def test_apply_edits_checkbox():
 
 
 @patch("skills.office.pdf_form_filler.skill.anthropic.Anthropic")
-def test_skill_execute_mocked(mock_anthropic_cls):
+def test_skill_execute_mocked(mock_anthropic_cls, tmp_path):
     """Test the full execution flow with mocked LLM."""
     # Setup Mock
     mock_client = mock_anthropic_cls.return_value
@@ -98,29 +98,20 @@ def test_skill_execute_mocked(mock_anthropic_cls):
     # 7 is TEXT
     widget.field_type = 7
     page.add_widget(widget)
-    temp_pdf_path = "temp_test_skill.pdf"
+    temp_pdf_path = tmp_path / "temp_test_skill.pdf"
     doc.save(temp_pdf_path)
     doc.close()
 
-    try:
-        # Execute
-        result = skill.execute(
-            {
-                "pdf_path": os.path.abspath(temp_pdf_path),
-                "instructions": "Fill test field with Hello World",
-            }
-        )
+    result = skill.execute(
+        {
+            "pdf_path": str(temp_pdf_path),
+            "instructions": "Fill test field with Hello World",
+        }
+    )
 
-        if "error" in result:
-            pytest.fail(f"Skill execution returned error: {result['error']}")
+    if "error" in result:
+        pytest.fail(f"Skill execution returned error: {result['error']}")
 
-        assert result["status"] == "success"
-        assert "page0_test_field" in result["filled_fields"]
-        assert os.path.exists(result["output_path"])
-
-    finally:
-        # Cleanup
-        if os.path.exists(temp_pdf_path):
-            os.remove(temp_pdf_path)
-        if "result" in locals() and os.path.exists(result.get("output_path", "")):
-            os.remove(result["output_path"])
+    assert result["status"] == "success"
+    assert "page0_test_field" in result["filled_fields"]
+    assert os.path.exists(result["output_path"])

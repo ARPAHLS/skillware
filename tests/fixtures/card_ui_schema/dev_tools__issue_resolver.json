@@ -1,0 +1,25 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "action": "prepare",
+      "workflow_version": "1.0",
+      "issue": {
+        "url": "https://github.com/ARPAHLS/skillware/issues/199",
+        "api_url": "https://api.github.com/repos/ARPAHLS/skillware/issues/199",
+        "owner": "ARPAHLS",
+        "repo": "skillware",
+        "number": 199
+      },
+      "repository": {
+        "html_url": "https://github.com/ARPAHLS/skillware",
+        "api_url": "https://api.github.com/repos/ARPAHLS/skillware"
+      },
+      "auth": {
+        "token_provided": true,
+        "note": "Include the Authorization header."
+      },
+      "next_step": "Call action workflow_overview."
+    }
+  ]
+}

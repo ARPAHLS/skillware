@@ -1,0 +1,10 @@
+{
+  "samples": [
+    {
+      "compressed_text": "Analyze quarterly revenue trends.",
+      "original_tokens": 12,
+      "new_tokens": 6,
+      "tokens_saved": 6
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "source": "companies_house_api",
+      "fetched_at": "2026-07-19T12:00:00Z",
+      "company_number": "01234567",
+      "company_name": "Example Ltd",
+      "company_status": "active",
+      "company_type": "ltd",
+      "next_actions": ["get_officers"]
+    }
+  ]
+}

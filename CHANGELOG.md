@@ -8,6 +8,19 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Framework:** `skillware/core/ui_schema.py` helpers to resolve dot paths and validate output-card field keys (#199).
+- **CI:** Parametrized guard `tests/test_card_ui_schema.py` — every registry skill with output-card `ui_schema` must ship a fixture under `tests/fixtures/card_ui_schema/` whose samples cover all field keys (#199).
+
+### Fixed
+
+- **`compliance/mica_module`**, **`compliance/pii_masker`**: Align `card.json` output fields with actual `execute()` return shape (#199).
+
+### Changed
+
+- **Documentation:** CONTRIBUTING and contributor workflow checklists — update `card.json` and output fixtures together when changing `execute()` output (#199).
+
 ## [0.4.5] - 2026-07-16
 
 ### Added

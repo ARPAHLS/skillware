@@ -269,6 +269,7 @@ requirements:
 - Catch internal errors and return a structured error report; do not crash the host agent.
 - Do **not** print to stdout or stderr for normal operation.
 - Do **not** embed open-ended LLM code generation as the skill implementation.
+- When you change the JSON shape returned by `execute()`, update `card.json` output fields (if present) and the matching fixture under `tests/fixtures/card_ui_schema/` in the same PR.
 
 ### 3. `instructions.md` (cognition)
 
@@ -284,6 +285,8 @@ The primary guide for the host LLM.
 - Optional but recommended for user-facing agents and catalog UIs.
 - Describes UI presentation (`name`, `description`, `icon`, `ui_schema`, and similar).
 - When present, include an `issuer` object that matches `manifest.yaml` (`name` and `email` at minimum; copy `github` and `org` when used).
+- For output cards (`ui_schema.type` = `card`), each `ui_schema.fields[].key` must be a dot path into the JSON returned by `execute()` (for example `metadata.wallet_address`, `preview.you_pay`). Update `card.json` in the same PR when you change the output shape.
+- Add or refresh a representative output fixture at `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (one object or a `{"samples": [...]}` list when multiple execute paths surface different fields). CI validates keys via `tests/test_card_ui_schema.py` (#199).
 
 ### 5. `test_skill.py` (bundle test)
 

@@ -239,6 +239,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and `org` optional; no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
+- Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md`
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
 - Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
@@ -276,7 +277,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
 - [ ] `skill.py`: exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md`: when to use, how to interpret output, limitations
-- [ ] `card.json`: `issuer` matches manifest
+- [ ] `card.json`: `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)
 - [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
 - [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (include **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))

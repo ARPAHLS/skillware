@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "sanitized_text": "Contact [EMAIL_1] for support.",
+      "metadata": {
+        "detected_entities": ["EMAIL"],
+        "entity_count": 1,
+        "security_level": "local-only",
+        "model": "arpacorp/micro-f1-mask"
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "samples": [
+    {
+      "metadata": {
+        "screening_time": "2026-07-19T12:00:00",
+        "wallet_address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        "data_sources_count": 2
+      },
+      "summary": {
+        "risk_flag": false,
+        "sanctioned_entity_match": false,
+        "malicious_interaction_count": 0,
+        "balance_eth": 1.5,
+        "balance_usd": 4500.0,
+        "total_transactions": 42
+      },
+      "financial_analysis": {
+        "value_in_eth": 10.0,
+        "value_in_usd": 30000.0,
+        "value_out_eth": 8.0,
+        "value_out_usd": 24000.0,
+        "gas_paid_eth": 0.05,
+        "pnl_eth": 1.95,
+        "pnl_usd": 5850.0,
+        "pnl_percent": 19.5,
+        "value_in_eur": 28000.0,
+        "value_out_eur": 22400.0
+      },
+      "risk_details": {
+        "sanctions_hits": [],
+        "malicious_interactions": []
+      },
+      "network_analysis": {
+        "most_interacted_wallet": "0xabc",
+        "top_10_counterparties": []
+      }
+    }
+  ]
+}

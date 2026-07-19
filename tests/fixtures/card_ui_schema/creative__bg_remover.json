@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "success": true,
+      "image_base64": "iVBORw0KGgo=",
+      "mime_type": "image/png",
+      "output_path": "/tmp/bg_removed.png",
+      "width": 640,
+      "height": 480,
+      "model_used": "u2net"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "samples": [
+    {
+      "retrieved_sections": ["Title V / Article 59"],
+      "policy_status": "CAUTION",
+      "gemini_evaluator_feedback": {
+        "grade": "N/A",
+        "holes_found": "Evaluator disabled by parameter.",
+        "suggestion": "Proceed manually integrating the extracted logic."
+      },
+      "final_context_for_agent": "Output your final answer seamlessly integrating MiCA rules."
+    }
+  ]
+}

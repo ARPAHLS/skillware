@@ -13,12 +13,18 @@
         "type": "card",
         "fields": [
             {
-                "key": "mode",
-                "label": "Redaction Mode"
+                "key": "metadata.entity_count",
+                "label": "Entities Found",
+                "type": "count"
             },
             {
-                "key": "ollama_url",
-                "label": "Ollama Endpoint"
+                "key": "metadata.detected_entities",
+                "label": "Entity Types",
+                "type": "tags"
+            },
+            {
+                "key": "metadata.security_level",
+                "label": "Security Level"
             }
         ]
     }

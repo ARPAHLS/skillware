@@ -13,12 +13,18 @@
         "type": "card",
         "fields": [
             {
-                "key": "run_evaluator",
-                "label": "Enable Evaluator"
+                "key": "policy_status",
+                "label": "Policy Status",
+                "type": "status_badge"
             },
             {
-                "key": "evaluator_model",
-                "label": "Evaluator Model"
+                "key": "gemini_evaluator_feedback.grade",
+                "label": "Evaluator Grade"
+            },
+            {
+                "key": "retrieved_sections",
+                "label": "Sections",
+                "type": "tags"
             }
         ]
     }

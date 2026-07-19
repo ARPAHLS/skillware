@@ -1,0 +1,10 @@
+{
+  "samples": [
+    {
+      "status": "success",
+      "output_path": "/tmp/filled.pdf",
+      "filled_fields": ["page0_name", "page0_email"],
+      "message": "Successfully filled 2 fields."
+    }
+  ]
+}

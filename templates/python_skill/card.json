@@ -14,7 +14,8 @@
         "fields": [
             {
                 "key": "status",
-                "label": "Status"
+                "label": "Status",
+                "type": "status_badge"
             }
         ]
     }

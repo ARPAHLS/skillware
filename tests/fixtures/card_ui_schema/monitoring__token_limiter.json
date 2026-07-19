@@ -1,0 +1,32 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "schema_version": "1.0",
+      "action": "CONTINUE",
+      "task_id": "demo-task",
+      "reason": "Token utilization at 10.0% (10/100).",
+      "budget": {
+        "current_token_count": 10,
+        "max_allowed_tokens": 100,
+        "utilization_pct": 10.0,
+        "tokens_over_budget": 0,
+        "soft_threshold_pct": 80.0,
+        "soft_limit_tokens": 80
+      },
+      "cost": {
+        "incurred_usd": 0.001,
+        "model_id": "gemini-2.5-flash-lite",
+        "pricing_source": "data/model_pricing.json",
+        "pricing_last_updated": "2026-01-01"
+      },
+      "roi": {},
+      "metadata": {
+        "warnings": [],
+        "turn_id": null,
+        "cache_hit": false
+      },
+      "timestamp": "2026-07-19T12:00:00Z"
+    }
+  ]
+}

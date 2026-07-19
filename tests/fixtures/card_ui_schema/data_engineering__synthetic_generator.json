@@ -1,0 +1,11 @@
+{
+  "samples": [
+    {
+      "samples": [{"id": 1, "value": "sample-a"}],
+      "entropy_score": 4.2,
+      "status": "success",
+      "provider_used": "gemini",
+      "samples_generated": 1
+    }
+  ]
+}

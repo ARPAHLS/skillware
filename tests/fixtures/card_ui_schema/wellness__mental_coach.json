@@ -1,0 +1,18 @@
+{
+  "samples": [
+    {
+      "policy_status": "CAUTION",
+      "scope": "coaching",
+      "retrieved_sections": ["grounding_chunk_1"],
+      "citations": [],
+      "hard_constraints_applied": [],
+      "disclaimers_required": ["not_medical_advice"],
+      "evaluator_feedback": {
+        "grade": "B",
+        "holes_found": "None",
+        "suggestion": "Proceed with empathy."
+      },
+      "final_context_for_agent": "Coach the user using retrieved grounding."
+    }
+  ]
+}
