@@ -4,6 +4,10 @@ Skillware supports OpenAI Chat Completions tool calling via `SkillLoader.to_open
 
 For agent credentials, set `OPENAI_API_KEY` (see [API keys for skills](api_keys.md) for local and CI setup). Skills that call external APIs during `execute()` may require additional variables documented on each skill page.
 
+The same adapter also works with model hosts that accept the OpenAI `tools`
+schema. See [OpenAI-compatible model hosts](openai_compatible.md) for provider
+base URLs, credentials, and compatibility boundaries.
+
 ---
 
 ## Quick snippet
@@ -20,6 +24,18 @@ tool = SkillLoader.to_openai_tool(bundle)
 
 client = OpenAI()
 # Pass bundle["instructions"] as the system message when you start the chat.
+```
+
+For a compatible host, keep the same adapter and configure the client. For
+example, Groq uses a different key and base URL:
+
+```python
+import os
+
+client = OpenAI(
+    api_key=os.environ["GROQ_API_KEY"],
+    base_url="https://api.groq.com/openai/v1",
+)
 ```
 
 ---
@@ -133,6 +149,7 @@ print(response.choices[0].message.content)
 
 ## Related documents
 
+- [OpenAI-compatible model hosts](openai_compatible.md)
 - [API keys for skills](api_keys.md)
 - [Usage: DeepSeek](deepseek.md) (separate adapter)
 - [Usage: Gemini](gemini.md)
