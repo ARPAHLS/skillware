@@ -21,6 +21,7 @@ To list locally available skills, inspect path resolution, or run bundle tests f
 | Google Gemini | `to_gemini_tool()` | [gemini.md](gemini.md) | `GOOGLE_API_KEY` (install `skillware[gemini]` for `google-genai`) |
 | Anthropic Claude | `to_claude_tool()` | [claude.md](claude.md) | `ANTHROPIC_API_KEY` |
 | OpenAI (ChatGPT) | `to_openai_tool()` | [openai.md](openai.md) | `OPENAI_API_KEY` |
+| OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
 | CLI | `skillware list`, `skillware paths`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
