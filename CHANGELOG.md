@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Documentation:** OpenAI-compatible host guide covering shared `to_openai_tool()` usage, provider base URLs, credentials, and local servers (#261).
 - **Framework:** `skillware/core/ui_schema.py` helpers to resolve dot paths and validate output-card field keys (#199).
 - **CI:** Parametrized guard `tests/test_card_ui_schema.py` — every registry skill with output-card `ui_schema` must ship a fixture under `tests/fixtures/card_ui_schema/` whose samples cover all field keys (#199).
 
