@@ -216,14 +216,14 @@ for part in response.candidates[0].content.parts:
         print(part.text)
 ```
 
-For other providers and shared integration patterns, see the [usage guides index](docs/usage/README.md), [agent loops](docs/usage/agent_loops.md), [Gemini](docs/usage/gemini.md), [Claude](docs/usage/claude.md), [OpenAI](docs/usage/openai.md), [DeepSeek](docs/usage/deepseek.md), [Ollama](docs/usage/ollama.md), [API keys for skills](docs/usage/api_keys.md), and the [skill usage template](docs/usage/skill_usage_template.md) for contributors.
+For other providers and shared integration patterns, see the [usage guides index](docs/usage/README.md), [agent loops](docs/usage/agent_loops.md), [Gemini](docs/usage/gemini.md), [Claude](docs/usage/claude.md), [OpenAI](docs/usage/openai.md), [OpenAI-compatible hosts](docs/usage/openai_compatible.md), [DeepSeek](docs/usage/deepseek.md), [Ollama](docs/usage/ollama.md), [API keys for skills](docs/usage/api_keys.md), and the [skill usage template](docs/usage/skill_usage_template.md) for contributors.
 
 ## Documentation
 
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 
