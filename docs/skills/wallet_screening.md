@@ -190,14 +190,15 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 
 ## Data Schema
 
-The skill returns a rich forensic report. Agents act on this data.
+The skill returns a rich forensic report. Agents act on this data. `metadata.warnings` is optional — present when Etherscan history is truncated or partially unavailable (see Limitations).
 
 ```json
 {
   "metadata": {
     "screening_time": "2025-01-01T00:00:00",
     "wallet_address": "0xd8dA...",
-    "data_sources_count": 3
+    "data_sources_count": 3,
+    "warnings": ["etherscan_txlist_truncated"]
   },
   "summary": {
     "risk_flag": true,
