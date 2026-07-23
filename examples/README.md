@@ -14,6 +14,7 @@ from GitHub (network required); see
 - [Gemini](../docs/usage/gemini.md)
 - [Claude](../docs/usage/claude.md)
 - [OpenAI](../docs/usage/openai.md)
+- [OpenAI-compatible hosts](../docs/usage/openai_compatible.md)
 - [DeepSeek](../docs/usage/deepseek.md)
 - [Ollama](../docs/usage/ollama.md)
 - [Install extras](../docs/usage/install_extras.md)
@@ -53,6 +54,7 @@ pip install -e ".[dev,all,agents]"
 | `ollama_skills_test.py` | `finance/wallet_screening`, `office/pdf_form_filler`, `optimization/prompt_rewriter` | Ollama | `[finance_wallet_screening]`, `[office_pdf_form_filler]`, `[optimization_prompt_rewriter]`; install `ollama` separately | `ETHERSCAN_API_KEY`, `ANTHROPIC_API_KEY` | Loads multiple skills and tests prompt-mode tool calling with Ollama. |
 | `ollama_tos_evaluator.py` | `compliance/tos_evaluator` | Ollama | `[compliance_tos_evaluator]`; install `ollama` separately | None | Runs the terms-of-service evaluator with local Ollama prompt-mode calls. |
 | `openai_tos_evaluator.py` | `compliance/tos_evaluator` | OpenAI | `[compliance_tos_evaluator]`, `[openai]` | `OPENAI_API_KEY` | Runs the terms-of-service evaluator with OpenAI function calling. |
+| `openai_compatible_host.py` | `compliance/tos_evaluator` | Groq (OpenAI-compatible) | `[compliance_tos_evaluator]`, `[openai]` | `GROQ_API_KEY`, `GROQ_MODEL` | Runs the terms-of-service evaluator through Groq's OpenAI-compatible API. |
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | `[compliance_pii_masker]` | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_compression_demo.py` | `optimization/prompt_rewriter` | Local execute | `[optimization_prompt_rewriter]` | None | Demonstrates prompt compression without a provider loop. |
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | `[data_engineering_novelty_extractor]` | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |
