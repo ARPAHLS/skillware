@@ -57,6 +57,9 @@ response = client.chat.completions.create(
 Handle `response.choices[0].message.tool_calls`, execute the skill, and return
 the result exactly as in the [shared agent loop](agent_loops.md).
 
+For a complete runnable Groq loop (load skill, call host, `execute()`, return
+tool result), see [`examples/openai_compatible_host.py`](../../examples/openai_compatible_host.py).
+
 ## Common hosts
 
 The endpoints below are the providers' documented general OpenAI-compatible
@@ -88,6 +91,7 @@ instead of treating it as structured tool calling.
 
 ## Related documents
 
+- [Runnable example: `openai_compatible_host.py`](../../examples/openai_compatible_host.py)
 - [Usage: OpenAI](openai.md)
 - [Usage: DeepSeek](deepseek.md)
 - [Shared agent loops](agent_loops.md)
