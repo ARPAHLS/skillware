@@ -14,6 +14,8 @@
 
 - Removes image backgrounds locally using `rembg`
 - Accepts Base64 images or local file paths
+- Validates Base64, file paths, image contents, and input size
+- Reuses cached inference sessions for improved performance
 - Produces transparent PNG output
 - Supports optional `alpha_matting`
 - Works completely offline after the initial ONNX model download
@@ -43,6 +45,7 @@ Provider API keys are only required when using the provider integration examples
 | `input_path` | No | Local input image path |
 | `output_path` | No | Local output PNG path |
 | `model` | No | Optional rembg model |
+
 | `alpha_matting` | No | Enable alpha matting if supported |
 
 ## Output Schema
@@ -55,6 +58,8 @@ Provider API keys are only required when using the provider integration examples
 | `width` | Output image width |
 | `height` | Output image height |
 | `model_used` | rembg model used for processing |
+| `output_path` | Output file path when provided |
+| `error_code` | Structured error code for failed requests |
 
 ## Input and Output Recipes
 
@@ -106,7 +111,7 @@ Guides the host agent on when to invoke the skill, accepted inputs, and expected
 
 ### The Body (`skill.py`)
 
-Processes still images locally using `rembg`, supports Base64 and file-based workflows, and returns transparent PNG output.
+Processes still images locally using `rembg`, validates inputs, reuses cached inference sessions, supports Base64 and file-based workflows, and returns transparent PNG output.
 
 ## Cloud Storage Recipes
 
@@ -158,6 +163,8 @@ Download the object locally, invoke the skill, then upload the resulting transpa
 
 - Runs completely offline after the required model is available.
 - The first execution downloads the required ONNX model (approximately 176 MB). Later executions reuse the cached model and work completely offline.
+- Input validation rejects invalid Base64, missing files, empty files, corrupt images, directory paths, and inputs larger than 25 MB.
+- Parent directories for `output_path` are created automatically when needed.
 - Unit tests mock `rembg` and do not download ONNX models.
 - The optional `model` and `alpha_matting` parameters are forwarded to `rembg` when supported by the installed version.
 

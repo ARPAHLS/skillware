@@ -12,6 +12,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - Added `creative/bg_remover`, an offline background removal skill powered by rembg.
 
+### Changed
+
+- **`creative/bg_remover`**: Hardened the skill with cached rembg sessions, improved input and path validation, automatic output directory creation, and input size limits.
+
+- **Documentation**: README Stats section and live PyPI download badges (pepy / PyPI Stats dashboards, header `DLs ↓` total).
+
 ### Added
 
 - **Tests**: `tests/test_registry_docs.py` — CI doc-drift guards that verify skill catalog, examples index, and agent-loops reference matrix stay in sync with the registry (#183).

@@ -4,11 +4,13 @@ from pathlib import Path
 from typing import Any, Dict
 
 from skillware.core.base_skill import BaseSkill
+
 MAX_IMAGE_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
 class BackgroundRemover(BaseSkill):
     """Remove image backgrounds locally using rembg."""
+
     _sessions = {}
 
     @classmethod
@@ -25,7 +27,7 @@ class BackgroundRemover(BaseSkill):
     def manifest(self) -> Dict[str, Any]:
         return {
             "name": "creative/bg_remover",
-            "version": "0.1.0",
+            "version": "0.2.0",
             "description": (
                 "Remove image backgrounds locally using rembg "
                 "and return a transparent PNG."
@@ -88,7 +90,15 @@ class BackgroundRemover(BaseSkill):
                         "error_code": "FILE_NOT_FOUND",
                     }
 
-                image_bytes = input_file.read_bytes()            
+                image_bytes = input_file.read_bytes()
+
+            if len(image_bytes) > MAX_IMAGE_BYTES:
+                return {
+                    "success": False,
+                    "error": f"Input image exceeds the maximum size of {MAX_IMAGE_BYTES // (1024 * 1024)} MB.",
+                    "error_code": "INVALID_INPUT",
+                }
+
             if len(image_bytes) == 0:
                 return {
                     "success": False,
@@ -104,7 +114,7 @@ class BackgroundRemover(BaseSkill):
                     "error": "Input is not a valid image.",
                     "error_code": "INVALID_INPUT",
                 }
-            
+
             session = self._get_session(model)
 
             output_bytes = remove(
