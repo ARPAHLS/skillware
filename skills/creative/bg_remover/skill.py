@@ -63,10 +63,41 @@ class BackgroundRemover(BaseSkill):
 
             # Read image bytes
             if image_b64:
-                image_bytes = base64.b64decode(image_b64)
+                try:
+                    image_bytes = base64.b64decode(image_b64, validate=True)
+                except Exception:
+                    return {
+                        "success": False,
+                        "error": "Invalid base64 image.",
+                        "error_code": "INVALID_INPUT",
+                    }
             else:
-                image_bytes = Path(input_path).read_bytes()
+                input_file = Path(input_path)
 
+                if not input_file.exists():
+                    return {
+                        "success": False,
+                        "error": f"Input file '{input_path}' was not found.",
+                        "error_code": "FILE_NOT_FOUND",
+                    }
+
+                image_bytes = input_file.read_bytes()            
+            if len(image_bytes) == 0:
+                return {
+                    "success": False,
+                    "error": "Input image is empty.",
+                    "error_code": "INVALID_INPUT",
+                }
+            try:
+                image = Image.open(io.BytesIO(image_bytes))
+                image.verify()
+            except Exception:
+                return {
+                    "success": False,
+                    "error": "Input is not a valid image.",
+                    "error_code": "INVALID_INPUT",
+                }
+            
             session = self._get_session(model)
 
             output_bytes = remove(

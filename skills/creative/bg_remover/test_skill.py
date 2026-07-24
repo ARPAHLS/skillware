@@ -108,7 +108,7 @@ def test_invalid_base64(skill):
     result = skill.execute({"image": "not_base64"})
 
     assert result["success"] is False
-    assert result["error_code"] == "PROCESSING_FAILED"
+    assert result["error_code"] == "INVALID_INPUT"
 
 def test_missing_dependency(monkeypatch, skill):
     """Returns MISSING_DEPENDENCY when optional libraries are unavailable."""
@@ -198,3 +198,40 @@ def test_session_reuse(monkeypatch, skill):
     skill.execute({"image": image})
 
     assert call_count == 1
+
+def test_missing_input_file(skill):
+    result = skill.execute(
+        {
+            "input_path": "does_not_exist.png",
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "FILE_NOT_FOUND"
+
+def test_empty_input_file(skill, tmp_path):
+    empty_file = tmp_path / "empty.png"
+    empty_file.write_bytes(b"")
+
+    result = skill.execute(
+        {
+            "input_path": str(empty_file),
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+def test_invalid_image(skill):
+    invalid_image = base64.b64encode(
+        b"this is not an image"
+    ).decode()
+
+    result = skill.execute(
+        {
+            "image": invalid_image,
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
