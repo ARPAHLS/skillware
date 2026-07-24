@@ -19,8 +19,17 @@ Accepted inputs:
 - Base64 image data (`image`)
 - Local file (`input_path`)
 
-If `output_path` is supplied, save the generated transparent PNG there.
+Input validation includes:
 
-Otherwise return the PNG as a Base64 string.
+- Invalid Base64 detection
+- Missing input files
+- Empty input files
+- Invalid or corrupt images
+- Directory path rejection
+- Maximum input size enforcement (25 MB)
 
-This skill processes images locally using `rembg` and produces PNG output with transparency.
+If `output_path` is supplied, parent directories are created automatically if needed, and the generated transparent PNG is saved there.
+
+Otherwise, the PNG is returned as a Base64 string.
+
+This skill processes images entirely locally using `rembg`, reuses cached inference sessions for improved performance, and always produces PNG output with transparency.

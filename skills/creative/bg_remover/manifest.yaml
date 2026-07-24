@@ -1,6 +1,6 @@
 name: "creative/bg_remover"
-version: "0.1.0"
-description: "Remove image backgrounds locally using rembg."
+version: "0.2.0"
+description: "Remove image backgrounds locally using rembg with cached inference sessions and robust input validation."
 short_description: "Offline background removal using rembg with transparent PNG output."
 
 issuer:
