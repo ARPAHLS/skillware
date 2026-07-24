@@ -19,6 +19,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Citation:** Root `CITATION.cff` and README **Citing** section for formal software citation; first Zenodo-archived GitHub release (#269, #270).
 
+### Changed
+
+- **`creative/bg_remover`**: Hardened the skill by reusing rembg sessions across executions, validating Base64 input and image files, rejecting empty, oversized (>25 MB), or invalid images, and automatically creating parent directories for `output_path`. Updated documentation and expanded bundle tests for the new validation behavior.
+
 ## [0.4.6] - 2026-07-23
 
 ### Added

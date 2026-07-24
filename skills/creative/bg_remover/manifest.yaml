@@ -1,5 +1,5 @@
 name: "creative/bg_remover"
-version: "0.1.0"
+version: "0.2.0"
 description: "Remove image backgrounds locally using rembg."
 short_description: "Offline background removal using rembg with transparent PNG output."
 

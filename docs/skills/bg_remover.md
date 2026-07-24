@@ -123,7 +123,7 @@ Skill instructions: when to invoke, input/output conventions, URL and cloud pre-
 
 ### The Body (`skill.py`)
 
-Lazy-imports `rembg` and Pillow, runs `new_session` + `remove`, and returns structured JSON with transparent PNG bytes.
+Lazy-imports `rembg` and Pillow, reuses cached rembg sessions, runs `remove`, and returns structured JSON with transparent PNG bytes.
 
 ## Usage Examples
 
