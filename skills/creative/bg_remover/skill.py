@@ -7,8 +7,10 @@ from skillware.core.base_skill import BaseSkill
 
 MAX_IMAGE_BYTES = 25 * 1024 * 1024  # 25 MB
 
+
 class BackgroundRemover(BaseSkill):
     """Remove image backgrounds locally using rembg."""
+
     _sessions = {}
 
     @classmethod
@@ -16,6 +18,7 @@ class BackgroundRemover(BaseSkill):
         """Load and reuse rembg sessions across executions."""
         if model not in cls._sessions:
             from rembg import new_session
+
             cls._sessions[model] = new_session(model)
 
         return cls._sessions[model]
