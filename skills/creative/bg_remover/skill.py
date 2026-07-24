@@ -73,6 +73,12 @@ class BackgroundRemover(BaseSkill):
                     }
             else:
                 input_file = Path(input_path)
+                if input_file.is_dir():
+                    return {
+                        "success": False,
+                        "error": "Input path must be a file, not a directory.",
+                        "error_code": "INVALID_INPUT",
+                    }
 
                 if not input_file.exists():
                     return {
@@ -117,7 +123,9 @@ class BackgroundRemover(BaseSkill):
 
             # Optional save
             if output_path:
-                Path(output_path).write_bytes(buffer.getvalue())
+                output_file = Path(output_path)
+                output_file.parent.mkdir(parents=True, exist_ok=True)
+                output_file.write_bytes(buffer.getvalue())
 
             return {
                 "success": True,

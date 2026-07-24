@@ -235,3 +235,31 @@ def test_invalid_image(skill):
 
     assert result["success"] is False
     assert result["error_code"] == "INVALID_INPUT"
+
+def test_input_path_is_directory(skill, tmp_path):
+    result = skill.execute(
+        {
+            "input_path": str(tmp_path),
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+def test_output_parent_created(skill, tmp_path):
+    image = Image.new("RGB", (64, 64), "white")
+
+    input_file = tmp_path / "input.png"
+    image.save(input_file)
+
+    output_file = tmp_path / "nested" / "folder" / "output.png"
+
+    result = skill.execute(
+        {
+            "input_path": str(input_file),
+            "output_path": str(output_file),
+        }
+    )
+
+    assert result["success"] is True
+    assert output_file.exists()
