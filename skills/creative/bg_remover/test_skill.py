@@ -263,3 +263,15 @@ def test_output_parent_created(skill, tmp_path):
 
     assert result["success"] is True
     assert output_file.exists()
+
+def test_image_too_large(skill):
+    large_image = base64.b64encode(b"x" * (26 * 1024 * 1024)).decode()
+
+    result = skill.execute(
+        {
+            "image": large_image,
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"

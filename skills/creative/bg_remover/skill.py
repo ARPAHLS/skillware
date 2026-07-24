@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from skillware.core.base_skill import BaseSkill
+MAX_IMAGE_BYTES = 25 * 1024 * 1024  # 25 MB
 
 
 class BackgroundRemover(BaseSkill):
