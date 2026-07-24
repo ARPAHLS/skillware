@@ -165,3 +165,36 @@ def test_output_path(skill, tmp_path):
     assert result["success"] is True
     assert output_file.exists()
     assert result["output_path"] == str(output_file)
+
+def test_session_reuse(monkeypatch, skill):
+    """Verify rembg sessions are reused for the same model."""
+
+    call_count = 0
+
+    def fake_new_session(model_name="u2net", *args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        return object()
+
+    def fake_remove(image_bytes, *args, **kwargs):
+        img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    fake_module = types.SimpleNamespace(
+        remove=fake_remove,
+        new_session=fake_new_session,
+    )
+
+    monkeypatch.setitem(sys.modules, "rembg", fake_module)
+
+    # Reset cached sessions so the test starts clean
+    BackgroundRemover._sessions.clear()
+
+    image = create_image()
+
+    skill.execute({"image": image})
+    skill.execute({"image": image})
+
+    assert call_count == 1

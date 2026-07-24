@@ -8,6 +8,17 @@ from skillware.core.base_skill import BaseSkill
 
 class BackgroundRemover(BaseSkill):
     """Remove image backgrounds locally using rembg."""
+    _sessions = {}
+
+    @classmethod
+    def _get_session(cls, model: str):
+        """Load and reuse rembg sessions across executions."""
+        if model not in cls._sessions:
+            from rembg import new_session
+
+            cls._sessions[model] = new_session(model)
+
+        return cls._sessions[model]
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -26,7 +37,7 @@ class BackgroundRemover(BaseSkill):
         try:
             try:
                 from PIL import Image
-                from rembg import new_session, remove
+                from rembg import remove
             except ImportError:
                 return {
                     "success": False,
@@ -56,7 +67,7 @@ class BackgroundRemover(BaseSkill):
             else:
                 image_bytes = Path(input_path).read_bytes()
 
-            session = new_session(model)
+            session = self._get_session(model)
 
             output_bytes = remove(
                 image_bytes,
