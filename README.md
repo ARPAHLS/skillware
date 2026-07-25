@@ -256,11 +256,9 @@ PyPI download counts show how often `skillware` is installed from the package in
 
 ## Citing
 
-If you use **this** software project (`ARPAHLS/skillware`) in research or products, please cite it via the repository [CITATION.cff](CITATION.cff) (GitHub **Cite this repository** in the sidebar).
+<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-c7d2fe?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
 
-**Preferred form (once Zenodo is linked):** the Zenodo **concept DOI** recorded in `CITATION.cff` under `identifiers` — a stable target that does not change every release. Until that DOI is minted, use the CFF / GitHub citation export and the repository URL.
-
-For reproducibility, also record the **Skillware version** you used (PyPI package version or Git tag, for example `0.4.7`) in your methods or dependency list. You do not need a new DOI per release for ordinary citations.
+If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.4.7`).
 
 ## Contact
 

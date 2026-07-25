@@ -404,7 +404,7 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |
 | [`.github/labels.json`](.github/labels.json) | Label names, colors, descriptions (synced via CI) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
-| [CITATION.cff](CITATION.cff) | Preferred software citation metadata (Zenodo concept DOI when present) |
+| [CITATION.cff](CITATION.cff) | Preferred software citation (Zenodo concept DOI `10.5281/zenodo.21552745`) |
 | [Security policy](SECURITY.md) | Reporting vulnerabilities |
 
 ### Maintainer: cutting a framework release
@@ -424,7 +424,7 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |
 | `docs/contributing/ai_native_workflow.md` / `CODE_OF_CONDUCT.md` | **No** | Not version bump surfaces |
 
-After the first Zenodo concept DOI exists: optional README DOI badge and a Citation/DOI entry under `[project.urls]` in `pyproject.toml`. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
+README Citing badge and `pyproject.toml` `[project.urls]` `DOI` already point at the concept DOI. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
 
 ---
 

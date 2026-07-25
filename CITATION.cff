@@ -1,10 +1,10 @@
-# Citation metadata for ARPAHLS/skillware (the open-source software project).
-# Prefer the Zenodo concept DOI once minted (#269); keep version in methods text.
+# Citation metadata for ARPAHLS/skillware.
+# Prefer the Zenodo concept DOI under identifiers; keep version in methods text.
 # Validate: pip install cffconvert && cffconvert -i CITATION.cff -f apalike
 cff-version: 1.2.0
 message: >-
   If you use this software, please cite it using the metadata below.
-  Prefer the Zenodo concept DOI when listed under identifiers.
+  Prefer the Zenodo concept DOI (10.5281/zenodo.21552745).
   Also record the Skillware version you used (PyPI or Git tag) for reproducibility.
 type: software
 title: Skillware
@@ -43,8 +43,7 @@ keywords:
   - skill-registry
   - open-source
   - dev-tools
-# After Zenodo GitHub integration + first archived release (#269 Phase B), add:
-# identifiers:
-#   - type: doi
-#     value: 10.5281/zenodo.XXXXXXXX
-#     description: Concept DOI (all versions)
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21552745
+    description: Concept DOI (all versions)
