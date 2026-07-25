@@ -1,0 +1,50 @@
+# Citation metadata for ARPAHLS/skillware (the open-source software project).
+# Prefer the Zenodo concept DOI once minted (#269); keep version in methods text.
+# Validate: pip install cffconvert && cffconvert -i CITATION.cff -f apalike
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata below.
+  Prefer the Zenodo concept DOI when listed under identifiers.
+  Also record the Skillware version you used (PyPI or Git tag) for reproducibility.
+type: software
+title: Skillware
+abstract: >-
+  Skillware is an open-source Python framework for modular, self-contained skill
+  management for machines. It provides a loadable skill registry with manifests,
+  constitution and safety constraints, deterministic execute() implementations,
+  and adapters for logical system providers — whether LLM APIs, hosted inference,
+  or local runtimes.
+version: "0.4.6"
+date-released: "2026-07-23"
+license: MIT
+repository-code: "https://github.com/ARPAHLS/skillware"
+url: "https://skillware.site"
+authors:
+  - family-names: Peilivanidis
+    given-names: Vladimiros
+    alias: Ross Peili
+    email: vpeilivanidis@gmail.com
+    affiliation: "ARPA Hellenic Logical Systems"
+    website: "https://github.com/rosspeili"
+  - name: "ARPA Hellenic Logical Systems"
+    email: skillware-os@arpacorp.net
+    website: "https://arpacorp.net"
+keywords:
+  - skillware
+  - python
+  - ai
+  - ai-agents
+  - agent-skills
+  - autonomous-agents
+  - llm-tools
+  - function-calling
+  - local-ai
+  - sovereign-ai
+  - skill-registry
+  - open-source
+  - dev-tools
+# After Zenodo GitHub integration + first archived release (#269 Phase B), add:
+# identifiers:
+#   - type: doi
+#     value: 10.5281/zenodo.XXXXXXXX
+#     description: Concept DOI (all versions)
