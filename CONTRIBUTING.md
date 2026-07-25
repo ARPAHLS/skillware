@@ -418,7 +418,7 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
 | GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269) |
 | PyPI upload | **Yes** | After tag / CI as usual |
-| `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.6`) is present; otherwise “record the version you used” is enough |
+| `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used” is enough |
 | `skillware/version_policy.py` + `SECURITY.md` | **Only when support windows change** | Not every release |
 | CLI / loader code | **Usually no** | Version is read from installed package metadata |
 | Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |

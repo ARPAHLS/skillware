@@ -39,7 +39,7 @@ def test_emit_advisory_silent_for_current_release(monkeypatch, capsys):
     monkeypatch.setattr(
         version_policy.metadata,
         "version",
-        lambda _name: "0.4.6",
+        lambda _name: "0.4.7",
     )
     version_policy.emit_upgrade_advisory()
     assert capsys.readouterr().err == ""

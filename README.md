@@ -260,7 +260,7 @@ If you use **this** software project (`ARPAHLS/skillware`) in research or produc
 
 **Preferred form (once Zenodo is linked):** the Zenodo **concept DOI** recorded in `CITATION.cff` under `identifiers` — a stable target that does not change every release. Until that DOI is minted, use the CFF / GitHub citation export and the repository URL.
 
-For reproducibility, also record the **Skillware version** you used (PyPI package version or Git tag, for example `0.4.6`) in your methods or dependency list. You do not need a new DOI per release for ordinary citations.
+For reproducibility, also record the **Skillware version** you used (PyPI package version or Git tag, for example `0.4.7`) in your methods or dependency list. You do not need a new DOI per release for ordinary citations.
 
 ## Contact
 

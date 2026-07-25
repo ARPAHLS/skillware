@@ -8,9 +8,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.4.7] - 2026-07-25
+
 ### Added
 
-- **Citation:** Root `CITATION.cff` and README **Citing** section for formal software citation; Zenodo concept DOI to follow maintainer GitHub–Zenodo linking (#269).
+- **Citation:** Root `CITATION.cff` and README **Citing** section for formal software citation; Zenodo concept DOI to follow maintainer GitHub–Zenodo linking (#269, #270).
 
 ## [0.4.6] - 2026-07-23
 
