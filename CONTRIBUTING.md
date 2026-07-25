@@ -117,7 +117,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 ### Scope
 
 - Change only what the issue requires. Avoid unrelated refactors or drive-by edits.
-- Do not bump the package version in `pyproject.toml` unless the issue or a maintainer explicitly requests it (skill-only PRs typically do not version the framework).
+- Do not bump the package version in `pyproject.toml` (or `CITATION.cff` `version` / `date-released`) unless the issue or a maintainer explicitly requests it (skill-only PRs typically do not version the framework). See [Maintainer: cutting a framework release](#maintainer-cutting-a-framework-release).
 - When a PR changes **user-visible behavior** (framework features, new or changed skills, breaking fixes, CLI or documentation users rely on), add entries under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) in the same PR (Keep a Changelog sections: Added / Changed / Fixed / Removed). Do not add version headers or publish releases; maintainers cut releases.
 - Skill-only PRs that will not ship in the next PyPI release may omit a CHANGELOG entry; ask on the issue or use maintainer judgment.
 
@@ -404,7 +404,27 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |
 | [`.github/labels.json`](.github/labels.json) | Label names, colors, descriptions (synced via CI) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
+| [CITATION.cff](CITATION.cff) | Preferred software citation metadata (Zenodo concept DOI when present) |
 | [Security policy](SECURITY.md) | Reporting vulnerabilities |
+
+### Maintainer: cutting a framework release
+
+Routine contributor PRs must **not** bump the package version. Maintainers cut releases (chore / release PR or direct maintainer commit) and should keep version surfaces in sync:
+
+| Touch | Every framework release? | Notes |
+| :--- | :--- | :--- |
+| `pyproject.toml` → `[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
+| `CHANGELOG.md` | **Yes** | Move `[Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`; leave a fresh empty `[Unreleased]` |
+| `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
+| GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269) |
+| PyPI upload | **Yes** | After tag / CI as usual |
+| `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.6`) is present; otherwise “record the version you used” is enough |
+| `skillware/version_policy.py` + `SECURITY.md` | **Only when support windows change** | Not every release |
+| CLI / loader code | **Usually no** | Version is read from installed package metadata |
+| Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |
+| `docs/contributing/ai_native_workflow.md` / `CODE_OF_CONDUCT.md` | **No** | Not version bump surfaces |
+
+After the first Zenodo concept DOI exists: optional README DOI badge and a Citation/DOI entry under `[project.urls]` in `pyproject.toml`. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
 
 ---
 

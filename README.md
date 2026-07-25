@@ -24,6 +24,7 @@
   <a href="#contributing">Contributing</a> •
   <a href="#comparison">Comparison</a> •
   <a href="#stats">Stats</a> •
+  <a href="#citing">Citing</a> •
   <a href="CHANGELOG.md">Changelog</a> •
   <a href="#contact">Contact</a>
 </div>
@@ -252,6 +253,14 @@ Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL
 <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93%20total&color=bbf7d0" alt="Total downloads (PePy)"></a>
 
 PyPI download counts show how often `skillware` is installed from the package index. Numbers come from public third-party aggregators, and they include CI and mirror traffic, so they measure **install activity**, not unique users. Totals may differ slightly between services because each source uses its own window and methodology. Use the stats dashboards in the above badges for charts, version breakdowns, and longer history.
+
+## Citing
+
+If you use **this** software project (`ARPAHLS/skillware`) in research or products, please cite it via the repository [CITATION.cff](CITATION.cff) (GitHub **Cite this repository** in the sidebar).
+
+**Preferred form (once Zenodo is linked):** the Zenodo **concept DOI** recorded in `CITATION.cff` under `identifiers` — a stable target that does not change every release. Until that DOI is minted, use the CFF / GitHub citation export and the repository URL.
+
+For reproducibility, also record the **Skillware version** you used (PyPI package version or Git tag, for example `0.4.6`) in your methods or dependency list. You do not need a new DOI per release for ordinary citations.
 
 ## Contact
 
