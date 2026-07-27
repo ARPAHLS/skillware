@@ -12,6 +12,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Citation:** Zenodo concept DOI `10.5281/zenodo.21552745` in `CITATION.cff`, README badge/Citing section, and `pyproject.toml` project URL (#269).
 - **Skill:** `security/prompt_injection_firewall` — offline-only deterministic pre-flight scanner (no LLM path) with local `kb/` detectors for hidden text, Unicode/confusable evasion, nested encodings, instruction overrides, corroboration-based sensitivity, and sanitization output (#46).
+- **`dev_tools/issue_resolver`:** Parse caller-fetched `ISSUE_RESOLVER.md` Markdown into provenance-labelled, context-only profile data while preserving universal v0.2 workflow outputs when no profile is supplied; add the profile standard and Skillware dogfood profile (#145).
 
 ## [0.4.7] - 2026-07-25
 

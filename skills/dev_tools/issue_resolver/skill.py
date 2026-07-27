@@ -1,7 +1,7 @@
 import importlib.util
 import os
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from skillware.core.base_skill import BaseSkill
 
@@ -28,6 +28,102 @@ get_workflow_overview = _wf.get_workflow_overview
 validate_commit_message = _wf.validate_commit_message
 
 
+_ATX_HEADING_RE = re.compile(r"^ {0,3}(?P<marks>#{1,6})(?:[ \t]+(?P<text>.*)|[ \t]*)$")
+_FENCE_RE = re.compile(r"^ {0,3}(?P<marker>`{3,}|~{3,})(?P<rest>.*)$")
+_CLOSING_HASHES_RE = re.compile(r"[ \t]+#+[ \t]*$")
+
+
+def _trim_blank_lines(lines: List[str]) -> str:
+    """Join lines after removing only outer blank lines."""
+    start = 0
+    end = len(lines)
+    while start < end and not lines[start].strip():
+        start += 1
+    while end > start and not lines[end - 1].strip():
+        end -= 1
+    return "\n".join(lines[start:end])
+
+
+def _parse_profile_markdown(markdown: str) -> Dict[str, Any]:
+    """Parse a small, deterministic Markdown subset without semantic mapping."""
+    title: Optional[str] = None
+    preamble_lines: List[str] = []
+    sections: List[Dict[str, Any]] = []
+    current_section: Optional[Dict[str, Any]] = None
+    current_lines: List[str] = []
+    first_heading_seen = False
+    fence_char: Optional[str] = None
+    fence_length = 0
+
+    for line in markdown.splitlines():
+        fence_match = _FENCE_RE.match(line)
+        if fence_char is not None:
+            if current_section is None:
+                preamble_lines.append(line)
+            else:
+                current_lines.append(line)
+            if fence_match:
+                marker = fence_match.group("marker")
+                if (
+                    marker[0] == fence_char
+                    and len(marker) >= fence_length
+                    and not fence_match.group("rest").strip()
+                ):
+                    fence_char = None
+                    fence_length = 0
+            continue
+
+        if fence_match:
+            marker = fence_match.group("marker")
+            fence_char = marker[0]
+            fence_length = len(marker)
+            if current_section is None:
+                preamble_lines.append(line)
+            else:
+                current_lines.append(line)
+            continue
+
+        heading_match = _ATX_HEADING_RE.match(line)
+        if not heading_match:
+            if current_section is None:
+                preamble_lines.append(line)
+            else:
+                current_lines.append(line)
+            continue
+
+        if current_section is not None:
+            current_section["content"] = _trim_blank_lines(current_lines)
+            sections.append(current_section)
+            current_section = None
+            current_lines = []
+
+        level = len(heading_match.group("marks"))
+        heading = heading_match.group("text") or ""
+        heading = _CLOSING_HASHES_RE.sub("", heading).strip()
+
+        if not first_heading_seen and level == 1:
+            while preamble_lines and not preamble_lines[-1].strip():
+                preamble_lines.pop()
+            title = heading
+        else:
+            current_section = {
+                "level": level,
+                "heading": heading,
+            }
+        first_heading_seen = True
+
+    if current_section is not None:
+        current_section["content"] = _trim_blank_lines(current_lines)
+        sections.append(current_section)
+
+    return {
+        "format": "markdown",
+        "title": title,
+        "preamble": _trim_blank_lines(preamble_lines),
+        "sections": sections,
+    }
+
+
 class IssueResolverSkill(BaseSkill):
     """
     Universal GitHub issue resolution assistant for any repository.
@@ -44,6 +140,7 @@ class IssueResolverSkill(BaseSkill):
     _VALID_ACTIONS = frozenset(
         {
             "prepare",
+            "load_repository_profile",
             "workflow_overview",
             "stage_checklist",
             "validate_commit_message",
@@ -158,6 +255,43 @@ class IssueResolverSkill(BaseSkill):
             ),
         }
 
+    def _load_repository_profile(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        profile_source = params.get("profile_source")
+        if not isinstance(profile_source, str) or not profile_source.strip():
+            return {
+                "status": "error",
+                "message": "profile_source is required for action load_repository_profile.",
+            }
+
+        profile_markdown = params.get("profile_markdown")
+        if not isinstance(profile_markdown, str) or not profile_markdown.strip():
+            return {
+                "status": "error",
+                "message": (
+                    "profile_markdown is required for action "
+                    "load_repository_profile."
+                ),
+            }
+
+        return {
+            "status": "ready",
+            "action": "load_repository_profile",
+            "workflow_version": WORKFLOW_VERSION,
+            "profile_context": {
+                "label": "Repository ISSUE_RESOLVER.md profile",
+                "provenance": {
+                    "kind": "caller_fetched_repository_profile",
+                    "source": profile_source,
+                },
+                "authority": {
+                    "classification": "repository_context_only",
+                    "can_override_constitution": False,
+                    "can_grant_authority": False,
+                },
+                "document": _parse_profile_markdown(profile_markdown),
+            },
+        }
+
     def _stage_checklist(self, params: Dict[str, Any]) -> Dict[str, Any]:
         stage = (params.get("stage") or "").strip().lower()
         if not stage:
@@ -196,6 +330,8 @@ class IssueResolverSkill(BaseSkill):
             }
         if action == "prepare":
             return self._prepare(params)
+        if action == "load_repository_profile":
+            return self._load_repository_profile(params)
         if action == "workflow_overview":
             overview = get_workflow_overview()
             overview["action"] = "workflow_overview"

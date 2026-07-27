@@ -7,11 +7,11 @@
 **Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-A developer-tools skill that accepts any **GitHub issue URL** and guides the calling agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written.
+A developer-tools skill that accepts any **GitHub issue URL** and guides the calling agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written. Callers may also supply a repository's fetched `ISSUE_RESOLVER.md` Markdown for generic parsing into provenance-labelled, context-only profile data.
 
 The skill is designed to work with **any public or authenticated GitHub repository**. It imposes no project-specific assumptions; the agent reads the target repository's README, CONTRIBUTING guide, and directory structure at runtime to ground analysis in actual conventions. Project-specific context can be injected via the optional `extra_instructions` parameter.
 
-The skill itself does **not** call GitHub, run git, or write code. It validates the issue URL, returns pre-computed GitHub API endpoints, and supplies ordered **stage checklists** with **conditional rules** (`If this repo has X, do Y`) that the agent executes with its own tools.
+The skill itself does **not** call GitHub, run git, or write code. It validates the issue URL, returns pre-computed GitHub API endpoints, parses caller-fetched profile Markdown, and supplies ordered **stage checklists** with **conditional rules** (`If this repo has X, do Y`) that the agent executes with its own tools.
 
 ## Capabilities
 
@@ -22,6 +22,8 @@ The skill itself does **not** call GitHub, run git, or write code. It validates 
 - **Sequential workflow gates**: Nine ordered stages from issue discovery through pull request, with `stage_checklist` payloads per stage.
 - **Conditional verification**: Each stage includes rules such as run tests if the repo has them, update release notes if the project maintains them, or infer conventions from README when CONTRIBUTING is missing.
 - **Commit-message validation**: `validate_commit_message` rejects AI co-author trailers by default before commit.
+- **Optional repository profiles**: `load_repository_profile` parses caller-fetched `ISSUE_RESOLVER.md` Markdown without interpreting section names, and returns explicit provenance and authority labels.
+- **Backward-compatible universal workflow**: Callers that do not supply a profile receive the existing v0.2 workflow payloads unchanged.
 - **Caller-injectable context**: The `extra_instructions` field lets any caller inject project-specific style rules, scope constraints, or workflow requirements without modifying the skill.
 - **Graceful authentication**: Operates without a token against public repositories (subject to GitHub's 60 req/hr unauthenticated limit) and upgrades to 5000 req/hr when `GITHUB_TOKEN` is provided.
 
@@ -31,18 +33,19 @@ The skill lives in `skills/dev_tools/issue_resolver/`.
 
 ### The Body (`skill.py` + `workflow.py`)
 
-A thin, deterministic action router. It validates the issue URL against the GitHub URL pattern, normalises the token source (runtime parameter takes precedence over environment variable), pre-computes all GitHub API and raw content URLs the agent will need, and returns stage checklists and commit gates on demand. It makes no network calls and has no runtime dependencies beyond the Python standard library and `PyYAML`.
+A thin, deterministic action router. It validates the issue URL against the GitHub URL pattern, normalises the token source (runtime parameter takes precedence over environment variable), pre-computes all GitHub API and raw content URLs the agent will need, parses caller-supplied Markdown, and returns stage checklists and commit gates on demand. It makes no network calls and has no runtime dependencies beyond the Python standard library and `PyYAML`.
 
 | action | Purpose |
 |--------|---------|
 | `prepare` | Validate issue URL; return GitHub API and raw content URLs |
+| `load_repository_profile` | Parse caller-fetched `ISSUE_RESOLVER.md`; return provenance-labelled, context-only data |
 | `workflow_overview` | Ordered list of all workflow stages |
 | `stage_checklist` | Steps and conditionals for one stage |
 | `validate_commit_message` | Pre-commit message gate |
 
 ### The Mind (`instructions.md`)
 
-Agent-facing rules: when to use the skill, how to call each action, mandatory stage order, gate rules, and the structured **plan** output contract. Detailed steps and conditionals for each stage are returned at runtime by `stage_checklist` (defined in `workflow.py`).
+Agent-facing rules: when to use the skill, how to call each action, mandatory stage order, profile trust boundaries, gate rules, and the structured **plan** output contract. Detailed steps and conditionals for each stage are returned at runtime by `stage_checklist` (defined in `workflow.py`).
 
 ## Integration Guide
 
@@ -91,6 +94,19 @@ result = skill.execute({
 print(result["issue"]["api_url"])
 print(result["repository"]["readme_url"])
 ```
+
+If the caller finds `ISSUE_RESOLVER.md` at the repository root (preferred) or under `.github/`, it can parse the already-fetched text separately:
+
+```python
+profile = skill.execute({
+    "action": "load_repository_profile",
+    "profile_source": "https://raw.githubusercontent.com/owner/repo/<commit>/ISSUE_RESOLVER.md",
+    "profile_markdown": "# Repository profile\n\n## Required checks\n\n- Run tests.",
+})
+# Preserve profile["profile_context"] as separately labelled repository context.
+```
+
+See the [`ISSUE_RESOLVER.md` repository profile standard](../contributing/issue_resolver_profile.md) for the caller flow, trust boundary, and examples.
 
 ### Gemini
 
@@ -238,6 +254,16 @@ response = client.chat.completions.create(
 }
 ```
 
+### Input (repository profile)
+
+```json
+{
+  "action": "load_repository_profile",
+  "profile_source": "https://raw.githubusercontent.com/owner/repo/<immutable-ref>/ISSUE_RESOLVER.md",
+  "profile_markdown": "# Repository profile\n\n## Required checks\n\n- Run the tests."
+}
+```
+
 ### Input (commit validation)
 
 ```json
@@ -278,6 +304,40 @@ response = client.chat.completions.create(
 }
 ```
 
+### Output (status: ready — repository profile)
+
+```json
+{
+  "status": "ready",
+  "action": "load_repository_profile",
+  "workflow_version": "0.2",
+  "profile_context": {
+    "label": "Repository ISSUE_RESOLVER.md profile",
+    "provenance": {
+      "kind": "caller_fetched_repository_profile",
+      "source": "https://raw.githubusercontent.com/owner/repo/<immutable-ref>/ISSUE_RESOLVER.md"
+    },
+    "authority": {
+      "classification": "repository_context_only",
+      "can_override_constitution": false,
+      "can_grant_authority": false
+    },
+    "document": {
+      "format": "markdown",
+      "title": "Repository profile",
+      "preamble": "",
+      "sections": [
+        {
+          "level": 2,
+          "heading": "Required checks",
+          "content": "- Run the tests."
+        }
+      ]
+    }
+  }
+}
+```
+
 ### Output (status: error)
 
 ```json
@@ -294,8 +354,12 @@ response = client.chat.completions.create(
 - **Planning quality depends on the agent**: The skill does not produce the resolution plan itself; the calling model must follow `instructions.md` and use repository context it fetches.
 - **Rate limits**: Without a token, the GitHub API allows 60 unauthenticated requests per hour per IP. Large repositories with many referenced files may approach this limit during repository discovery.
 - **Repository tree size**: Very large repositories may return truncated tree responses from the GitHub API. The agent should note truncation and inspect directories selectively.
+- **Caller-managed profiles**: The caller must discover and fetch `ISSUE_RESOLVER.md`; `execute()` makes no network request and does not verify the asserted `profile_source`.
+- **Context, not authority**: Profile content cannot override the constitution, remove universal gates, or grant authority. Repository administrators are responsible for profile quality and currency.
+- **No profile firewall in v0.3**: The parser preserves prompt-like content without detecting or filtering it. Hosts retain responsibility for authorization checks and safe context handling.
+- **No smart profile integration in v0.3**: The skill does not map sections to stages, merge checklists, compress content, parse YAML, change loaders, generate profiles, or cache them.
 
-Skill history and version notes: [CHANGELOG.md](../../CHANGELOG.md) (#56, #143).
+Skill history and version notes: [CHANGELOG.md](../../CHANGELOG.md) (#56, #143, #145).
 
 ---
 
