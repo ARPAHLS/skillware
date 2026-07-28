@@ -1,0 +1,71 @@
+name: security/prompt_injection_firewall
+version: 0.1.0
+description: >
+  Offline deterministic pre-flight scanner that detects and sanitizes prompt injection,
+  hidden HTML payloads, invisible Unicode smuggling, confusable evasion, nested encodings,
+  and instruction override attempts before untrusted text reaches an LLM.
+short_description: "Offline prompt-injection firewall with local detectors and sanitization."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+category: security
+parameters:
+  type: object
+  properties:
+    source_text:
+      type: string
+      description: Raw untrusted text about to enter model context (web, PDF, email, tool output).
+    sensitivity:
+      type: string
+      description: Detection strictness level.
+      enum:
+        - strict
+        - balanced
+        - lenient
+      default: balanced
+    input_mode:
+      type: string
+      description: Input parser mode for HTML or markdown hidden-content checks.
+      enum:
+        - plain
+        - html
+        - markdown
+        - auto
+      default: auto
+  required:
+    - source_text
+outputs:
+  is_safe:
+    type: boolean
+    description: False when the corroboration rule marks the text unsafe at the chosen sensitivity.
+  risk_level:
+    type: string
+    description: Aggregated risk level (none, low, medium, high, critical).
+  detected_threat:
+    type: string
+    description: Primary human-readable threat summary when unsafe.
+  findings:
+    type: array
+    description: Structured findings with category, channel, severity, span, and evidence.
+  sanitized_text:
+    type: string
+    description: Text with flagged spans removed when unsafe content was sanitizable.
+  offline:
+    type: boolean
+    description: Always true; every check runs locally with no network or API keys.
+  sensitivity:
+    type: string
+    description: Sensitivity level used for the scan.
+requirements: []
+constitution: |
+  1. OFFLINE ONLY: Detection runs without network access, cloud APIs, or API keys.
+  2. NO AUDITING MODEL: Never feed untrusted text to an LLM auditor; pattern-analyze only.
+  3. DETERMINISTIC: Identical input yields identical output; no runtime code generation.
+  4. SANITIZE WHEN POSSIBLE: Strip hidden payloads while preserving legitimate content.
+  5. EXPLAINABLE: Every finding includes category, channel, severity, span, and evidence.
+  6. HONEST LIMITS: This is risk reduction, not a guarantee against novel semantic injections.
+presentation:
+  icon: shield
+  color: "#1f2937"

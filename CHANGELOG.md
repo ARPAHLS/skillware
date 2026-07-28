@@ -11,6 +11,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 
 - **Citation:** Zenodo concept DOI `10.5281/zenodo.21552745` in `CITATION.cff`, README badge/Citing section, and `pyproject.toml` project URL (#269).
+- **Skill:** `security/prompt_injection_firewall` — offline-only deterministic pre-flight scanner (no LLM path) with local `kb/` detectors for hidden text, Unicode/confusable evasion, nested encodings, instruction overrides, corroboration-based sensitivity, and sanitization output (#46).
 
 ## [0.4.7] - 2026-07-25
 

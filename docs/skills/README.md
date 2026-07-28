@@ -57,6 +57,13 @@ Enforces privacy, guardrails, and secure handling of sensitive data before it re
 | **[MiCA Module](mica_module.md)** | `compliance/mica_module` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
 | **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
 
+## Security
+Offline and local-first defenses for untrusted input before it reaches model context or host agents.
+
+| Skill | ID | Issuer | Description |
+| :--- | :--- | :--- | :--- |
+| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+
 ## Dev Tools
 Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.
 

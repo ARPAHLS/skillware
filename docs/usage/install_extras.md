@@ -77,6 +77,7 @@ Union of non-core `requirements` from every skill in the category.
 | `monitoring` | `monitoring/token_limiter` | *(none today)* |
 | `office` | `office/pdf_form_filler` | `anthropic`, `pymupdf` |
 | `optimization` | `optimization/prompt_rewriter` | *(none today)* |
+| `security` | `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 
 ```bash
@@ -104,6 +105,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
+| `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` | |
 
 ```bash

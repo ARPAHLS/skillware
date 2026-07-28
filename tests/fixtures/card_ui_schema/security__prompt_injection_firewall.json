@@ -1,0 +1,12 @@
+{
+  "samples": [
+    {
+      "is_safe": false,
+      "risk_level": "high",
+      "detected_threat": "Hidden prompt override mechanism detected.",
+      "sanitized_text": "Buy the stock. ",
+      "offline": true,
+      "sensitivity": "balanced"
+    }
+  ]
+}

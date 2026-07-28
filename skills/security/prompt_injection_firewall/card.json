@@ -1,0 +1,41 @@
+{
+    "name": "Prompt Injection Firewall",
+    "description": "Offline local scan and sanitization for hostile instructions in untrusted text.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "shield",
+    "color": "#1f2937",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "is_safe",
+                "label": "Safe"
+            },
+            {
+                "key": "risk_level",
+                "label": "Risk Level"
+            },
+            {
+                "key": "detected_threat",
+                "label": "Primary Threat"
+            },
+            {
+                "key": "sanitized_text",
+                "label": "Sanitized Text"
+            },
+            {
+                "key": "offline",
+                "label": "Offline"
+            },
+            {
+                "key": "sensitivity",
+                "label": "Sensitivity"
+            }
+        ]
+    }
+}
