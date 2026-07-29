@@ -23,6 +23,15 @@ class BackgroundRemover(BaseSkill):
 
         return cls._sessions[model]
 
+    @staticmethod
+    def _validate_output_path(output_path: str) -> Path:
+        output = Path(output_path)
+
+        if ".." in output.parts:
+            raise ValueError("Unsafe output_path contains path traversal.")
+
+        return output
+
     @property
     def manifest(self) -> Dict[str, Any]:
         return {
@@ -111,6 +120,9 @@ class BackgroundRemover(BaseSkill):
             try:
                 image = Image.open(io.BytesIO(image_bytes))
                 image.verify()
+
+                # Reopen after verify() because verify() leaves the image unusable.
+                image = Image.open(io.BytesIO(image_bytes))
             except Exception:
                 return {
                     "success": False,
@@ -137,7 +149,15 @@ class BackgroundRemover(BaseSkill):
 
             # Optional save
             if output_path:
-                output_file = Path(output_path)
+                try:
+                    output_file = self._validate_output_path(output_path)
+                except ValueError:
+                    return {
+                        "success": False,
+                        "error": "Unsafe output_path.",
+                        "error_code": "INVALID_INPUT",
+                    }
+
                 output_file.parent.mkdir(parents=True, exist_ok=True)
                 output_file.write_bytes(buffer.getvalue())
 

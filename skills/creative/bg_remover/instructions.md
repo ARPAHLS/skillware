@@ -52,6 +52,7 @@ If **both** `image` and `input_path` are sent, **`image` wins** (do not double-s
 - Empty image files are rejected.
 - Images larger than **25 MB** are rejected.
 - Image integrity is validated before processing.
+- output_path must not contain path traversal components (for example `..`).
 
 ### Example payloads
 

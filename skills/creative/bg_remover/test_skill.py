@@ -326,3 +326,14 @@ def test_session_reuse(skill, monkeypatch):
     assert calls["count"] == 1
 
     BackgroundRemover._sessions.clear()
+
+def test_unsafe_output_path(skill):
+    result = skill.execute(
+        {
+            "image": create_image(),
+            "output_path": "../../../evil.png",
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"

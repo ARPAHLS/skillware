@@ -77,7 +77,7 @@ outputs:
 
   error_code:
     type: string
-    description: "INVALID_INPUT, MISSING_DEPENDENCY, or PROCESSING_FAILED."
+    description: "INVALID_INPUT, FILE_NOT_FOUND, MISSING_DEPENDENCY, or PROCESSING_FAILED."
 
 requirements:
   - rembg>=2.0.0
