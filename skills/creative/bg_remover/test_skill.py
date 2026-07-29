@@ -327,6 +327,7 @@ def test_session_reuse(skill, monkeypatch):
 
     BackgroundRemover._sessions.clear()
 
+
 def test_unsafe_output_path(skill):
     result = skill.execute(
         {
