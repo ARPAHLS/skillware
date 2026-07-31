@@ -9,7 +9,7 @@ from PIL import Image
 
 from skillware.core.loader import SkillLoader
 
-from .skill import BackgroundRemover
+from .skill import BackgroundRemover, MAX_IMAGE_BYTES
 
 import sys
 import types
@@ -335,6 +335,16 @@ def test_unsafe_output_path(skill):
             "output_path": "../../../evil.png",
         }
     )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+def test_oversized_base64_image(skill):
+    oversized = base64.b64encode(
+        b"\0" * (MAX_IMAGE_BYTES + 1)
+    ).decode()
+
+    result = skill.execute({"image": oversized})
 
     assert result["success"] is False
     assert result["error_code"] == "INVALID_INPUT"

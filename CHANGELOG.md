@@ -13,15 +13,16 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Citation:** Zenodo concept DOI `10.5281/zenodo.21552745` in `CITATION.cff`, README badge/Citing section, and `pyproject.toml` project URL (#269).
 - **Skill:** `security/prompt_injection_firewall` — offline-only deterministic pre-flight scanner (no LLM path) with local `kb/` detectors for hidden text, Unicode/confusable evasion, nested encodings, instruction overrides, corroboration-based sensitivity, and sanitization output (#46).
 
+
+### Changed
+
+- **`creative/bg_remover`**: Hardened the skill by reusing rembg sessions across executions, validating Base64 input and image files, rejecting empty, oversized (>25 MB), or invalid images, and automatically creating parent directories for `output_path`. Updated documentation and expanded bundle tests for the new validation behavior.
+
 ## [0.4.7] - 2026-07-25
 
 ### Added
 
 - **Citation:** Root `CITATION.cff` and README **Citing** section for formal software citation; first Zenodo-archived GitHub release (#269, #270).
-
-### Changed
-
-- **`creative/bg_remover`**: Hardened the skill by reusing rembg sessions across executions, validating Base64 input and image files, rejecting empty, oversized (>25 MB), or invalid images, and automatically creating parent directories for `output_path`. Updated documentation and expanded bundle tests for the new validation behavior.
 
 ## [0.4.6] - 2026-07-23
 

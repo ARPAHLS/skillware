@@ -2,7 +2,9 @@
 
 > **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). See [TESTING.md](../docs/TESTING.md).
 
+
 Runnable examples in this directory show how to load Skillware skills, adapt them for a provider, execute local skill logic, and return tool results to an agent loop. After `pip install skillware`, run `skillware examples` or `skillware list --examples` from any directory to browse the index in the terminal; when no local `examples/README.md` is present, the index is fetched from GitHub (network required); see [CLI reference](../docs/usage/cli.md). Provider setup details live in the usage guides:
+
 - [API keys for skills](../docs/usage/api_keys.md)
 - [Gemini](../docs/usage/gemini.md)
 - [Claude](../docs/usage/claude.md)
@@ -67,3 +69,4 @@ pip install -e ".[dev,all,agents]"
 - Agent-side model keys such as `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `DEEPSEEK_API_KEY` are documented in the provider guides.
 - Skill runtime keys such as `ETHERSCAN_API_KEY` are documented in each skill manifest and on the skill catalog pages.
 - Ollama examples require the Python `ollama` package, a local Ollama server, and the model named in the script, but no cloud API key.
+

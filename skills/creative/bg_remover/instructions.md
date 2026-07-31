@@ -131,3 +131,4 @@ Subsequent executions reuse cached rembg sessions for the selected model, reduci
 | `INVALID_INPUT` | Invalid Base64, missing input, directory path, empty image, oversized image (>25 MB), corrupt image, or unsupported input. |
 | `MISSING_DEPENDENCY` | Ask the user to run `pip install "skillware[creative_bg_remover]"` (or `pip install rembg pillow onnxruntime`), then retry. |
 | `PROCESSING_FAILED` | Surface the `error` string; input may be missing, corrupt, or unsupported. |
+| `FILE_NOT_FOUND` | The supplied `input_path` does not exist. Ask the user to verify the path and try again. |
