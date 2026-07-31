@@ -2,7 +2,6 @@
 
 > **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). See [TESTING.md](../docs/TESTING.md).
 
-
 Runnable examples in this directory show how to load Skillware skills, adapt them for a provider, execute local skill logic, and return tool results to an agent loop. After `pip install skillware`, run `skillware examples` or `skillware list --examples` from any directory to browse the index in the terminal; when no local `examples/README.md` is present, the index is fetched from GitHub (network required); see [CLI reference](../docs/usage/cli.md). Provider setup details live in the usage guides:
 
 - [API keys for skills](../docs/usage/api_keys.md)
@@ -22,6 +21,7 @@ pip install "skillware[office_pdf_form_filler]" "skillware[gemini]"
 ```
 
 For local development with every skill and SDK:
+
 ```bash
 pip install -e ".[dev,all,agents]"
 ```
@@ -62,6 +62,7 @@ pip install -e ".[dev,all,agents]"
 | `gemini_uk_companies_house_handler.py` | `finance/uk_companies_house_handler` | Gemini | `[finance_uk_companies_house_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `COMPANIES_HOUSE_API_KEY` | Resolve company, officers, filings via Gemini tool loop. |
 | `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | `[finance_uk_companies_house_handler]` | None | Runs a scripted sequence (resolve, profile, officers, pscs, filings) with mocked HTTP responses (no API keys needed). |
 | `bg_remover_demo.py` | `creative/bg_remover` | Local execute | `[creative_bg_remover]` | None | Demonstrates offline background removal from a local image and optionally writes a transparent PNG. |
+ (fix(bg_remover): address review feedback)
 
 ## Notes
 
