@@ -87,6 +87,8 @@ office = [
 
 optimization = []
 
+security = []
+
 wellness = [
     "google-genai",
 ]
@@ -130,6 +132,8 @@ office_pdf_form_filler = [
 ]
 
 optimization_prompt_rewriter = []
+
+security_prompt_injection_firewall = []
 
 wellness_mental_coach = [
     "google-genai",
