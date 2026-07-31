@@ -339,10 +339,9 @@ def test_unsafe_output_path(skill):
     assert result["success"] is False
     assert result["error_code"] == "INVALID_INPUT"
 
+
 def test_oversized_base64_image(skill):
-    oversized = base64.b64encode(
-        b"\0" * (MAX_IMAGE_BYTES + 1)
-    ).decode()
+    oversized = base64.b64encode(b"\0" * (MAX_IMAGE_BYTES + 1)).decode()
 
     result = skill.execute({"image": oversized})
 
