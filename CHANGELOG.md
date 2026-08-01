@@ -13,6 +13,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Citation:** Zenodo concept DOI `10.5281/zenodo.21552745` in `CITATION.cff`, README badge/Citing section, and `pyproject.toml` project URL (#269).
 - **Skill:** `security/prompt_injection_firewall` — offline-only deterministic pre-flight scanner (no LLM path) with local `kb/` detectors for hidden text, Unicode/confusable evasion, nested encodings, instruction overrides, corroboration-based sensitivity, and sanitization output (#46).
 
+### Changed
+
+- **Documentation / examples:** Renamed the shared GitHub helper from `issue_resolver_github_context.py` to `issue_resolver_common.py` and cleaned up the examples/docs parity story so the helper remains excluded from the runnable examples index while the three provider demos continue to import the shared module.
+
 ## [0.4.7] - 2026-07-25
 
 ### Added
@@ -36,7 +40,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **`finance/wallet_screening`**: Paginate Etherscan `txlist` (up to 10k normal txs) and surface `metadata.warnings` when history is truncated or unavailable; bump skill version `1.0.0` → `1.0.1` (#214, parent #115).
 - **Skills (finance/uk_companies_house_handler):** Completed Phase v2a upgrade (#220). Added `context` parameter to carry forward session state (`company_number`, `company_name`, `officer_filter`, etc.). Added `partial` envelope status and optional `pipeline` state to support paused multi-step pipelines (noted as v2b prep in instructions). Updated `_get_officers` to fallback to `company_name` from context and added tests for fallback logic. Updated `examples/gemini_uk_companies_house_handler.py` into a fully interactive chat loop.
 - **Documentation:** CONTRIBUTING and contributor workflow checklists — update `card.json` and output fixtures together when changing `execute()` output (#199).
-
+=======
 ## [0.4.5] - 2026-07-16
 
 ### Added
