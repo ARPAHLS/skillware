@@ -62,7 +62,6 @@ pip install -e ".[dev,all,agents]"
 | `gemini_uk_companies_house_handler.py` | `finance/uk_companies_house_handler` | Gemini | `[finance_uk_companies_house_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `COMPANIES_HOUSE_API_KEY` | Resolve company, officers, filings via Gemini tool loop. |
 | `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | `[finance_uk_companies_house_handler]` | None | Runs a scripted sequence (resolve, profile, officers, pscs, filings) with mocked HTTP responses (no API keys needed). |
 | `bg_remover_demo.py` | `creative/bg_remover` | Local execute | `[creative_bg_remover]` | None | Demonstrates offline background removal from a local image and optionally writes a transparent PNG. |
- (fix(bg_remover): address review feedback)
 
 ## Notes
 

@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -34,14 +35,13 @@ class BackgroundRemover(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {
-            "name": "creative/bg_remover",
-            "version": "0.2.0",
-            "description": (
-                "Remove image backgrounds locally using rembg "
-                "and return a transparent PNG."
-            ),
-        }
+        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.yaml")
+        if os.path.exists(manifest_path):
+            import yaml
+
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f)
+        return {}
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute background removal."""
