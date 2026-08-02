@@ -32,6 +32,8 @@ For S3, GCS, Azure Blob, or Cloudflare R2: download the object to a temp file �
 
 On the **first run** in a fresh environment, processing may take a few minutes while rembg downloads the ONNX model (~176 MB for `isnet-general-use`). Later runs reuse the cache and are much faster.
 
+Background removal sessions are also reused across executions for the same model, reducing repeated initialization overhead.
+
 ## Input (one required: `image` OR `input_path`)
 
 | Scenario | Parameter |
@@ -42,6 +44,15 @@ On the **first run** in a fresh environment, processing may take a few minutes w
 | Cloud object storage | Download object → temp file → `input_path` |
 
 If **both** `image` and `input_path` are sent, **`image` wins** (do not double-submit).
+
+### Input validation
+
+- Invalid Base64 payloads are rejected.
+- `input_path` must reference an existing file (directories are rejected).
+- Empty image files are rejected.
+- Images larger than **25 MB** are rejected.
+- Image integrity is validated before processing.
+- output_path must not contain path traversal components (for example `..`).
 
 ### Example payloads
 
@@ -91,6 +102,8 @@ Omit `model` for default `isnet-general-use`. Set `alpha_matting` only when edge
 | Chat or API only | Omit `output_path`; use `image_base64` from the result (always present on success). |
 | Save next to original | Same directory, new name (e.g. `1223_no_bg.png`). |
 
+If the parent directory of `output_path` does not exist, it is created automatically before writing the PNG.
+
 ## Interpreting a successful result
 
 When `success` is `true`:
@@ -109,10 +122,13 @@ Runtime: `rembg`, `pillow`, `onnxruntime`. Install: `pip install "skillware[crea
 
 First `execute()` downloads the ONNX model to the rembg cache (`~/.u2net/` on Linux/macOS, `%USERPROFILE%\.u2net\` on Windows).
 
+Subsequent executions reuse cached rembg sessions for the selected model, reducing repeated initialization overhead.
+
 ## Errors
 
 | `error_code` | Response |
 | :--- | :--- |
-| `INVALID_INPUT` | Ask for an upload, attachment, base64 payload, or local `input_path`. |
+| `INVALID_INPUT` | Invalid Base64, missing input, directory path, empty image, oversized image (>25 MB), corrupt image, or unsupported input. |
 | `MISSING_DEPENDENCY` | Ask the user to run `pip install "skillware[creative_bg_remover]"` (or `pip install rembg pillow onnxruntime`), then retry. |
 | `PROCESSING_FAILED` | Surface the `error` string; input may be missing, corrupt, or unsupported. |
+| `FILE_NOT_FOUND` | The supplied `input_path` does not exist. Ask the user to verify the path and try again. |

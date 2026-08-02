@@ -1,24 +1,47 @@
 import base64
 import io
+import os
 from pathlib import Path
 from typing import Any, Dict
 
 from skillware.core.base_skill import BaseSkill
 
+MAX_IMAGE_BYTES = 25 * 1024 * 1024  # 25 MB
+
 
 class BackgroundRemover(BaseSkill):
     """Remove image backgrounds locally using rembg."""
 
+    _sessions = {}
+
+    @classmethod
+    def _get_session(cls, model: str):
+        """Load and reuse rembg sessions across executions."""
+        if model not in cls._sessions:
+            from rembg import new_session
+
+            cls._sessions[model] = new_session(model)
+
+        return cls._sessions[model]
+
+    @staticmethod
+    def _validate_output_path(output_path: str) -> Path:
+        output = Path(output_path)
+
+        if ".." in output.parts:
+            raise ValueError("Unsafe output_path contains path traversal.")
+
+        return output
+
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {
-            "name": "creative/bg_remover",
-            "version": "0.1.0",
-            "description": (
-                "Remove image backgrounds locally using rembg "
-                "and return a transparent PNG."
-            ),
-        }
+        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.yaml")
+        if os.path.exists(manifest_path):
+            import yaml
+
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f)
+        return {}
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute background removal."""
@@ -26,7 +49,7 @@ class BackgroundRemover(BaseSkill):
         try:
             try:
                 from PIL import Image
-                from rembg import new_session, remove
+                from rembg import remove
             except ImportError:
                 return {
                     "success": False,
@@ -53,11 +76,61 @@ class BackgroundRemover(BaseSkill):
 
             # Read image bytes
             if image_b64:
-                image_bytes = base64.b64decode(image_b64)
+                try:
+                    image_bytes = base64.b64decode(image_b64, validate=True)
+                except Exception:
+                    return {
+                        "success": False,
+                        "error": "Invalid base64 image.",
+                        "error_code": "INVALID_INPUT",
+                    }
             else:
-                image_bytes = Path(input_path).read_bytes()
+                input_file = Path(input_path)
 
-            session = new_session(model)
+                if input_file.is_dir():
+                    return {
+                        "success": False,
+                        "error": "Input path must be a file, not a directory.",
+                        "error_code": "INVALID_INPUT",
+                    }
+
+                if not input_file.exists():
+                    return {
+                        "success": False,
+                        "error": f"Input file '{input_path}' was not found.",
+                        "error_code": "FILE_NOT_FOUND",
+                    }
+
+                image_bytes = input_file.read_bytes()
+
+            if len(image_bytes) > MAX_IMAGE_BYTES:
+                return {
+                    "success": False,
+                    "error": f"Input image exceeds the maximum size of {MAX_IMAGE_BYTES // (1024 * 1024)} MB.",
+                    "error_code": "INVALID_INPUT",
+                }
+
+            if len(image_bytes) == 0:
+                return {
+                    "success": False,
+                    "error": "Input image is empty.",
+                    "error_code": "INVALID_INPUT",
+                }
+
+            try:
+                image = Image.open(io.BytesIO(image_bytes))
+                image.verify()
+
+                # Reopen after verify() because verify() leaves the image unusable.
+                image = Image.open(io.BytesIO(image_bytes))
+            except Exception:
+                return {
+                    "success": False,
+                    "error": "Input is not a valid image.",
+                    "error_code": "INVALID_INPUT",
+                }
+
+            session = self._get_session(model)
 
             output_bytes = remove(
                 image_bytes,
@@ -76,7 +149,17 @@ class BackgroundRemover(BaseSkill):
 
             # Optional save
             if output_path:
-                Path(output_path).write_bytes(buffer.getvalue())
+                try:
+                    output_file = self._validate_output_path(output_path)
+                except ValueError:
+                    return {
+                        "success": False,
+                        "error": "Unsafe output_path.",
+                        "error_code": "INVALID_INPUT",
+                    }
+
+                output_file.parent.mkdir(parents=True, exist_ok=True)
+                output_file.write_bytes(buffer.getvalue())
 
             return {
                 "success": True,

@@ -1,5 +1,5 @@
 name: "creative/bg_remover"
-version: "0.1.0"
+version: "0.2.0"
 description: "Remove image backgrounds locally using rembg."
 short_description: "Offline background removal using rembg with transparent PNG output."
 
@@ -77,7 +77,7 @@ outputs:
 
   error_code:
     type: string
-    description: "INVALID_INPUT, MISSING_DEPENDENCY, or PROCESSING_FAILED."
+    description: "INVALID_INPUT, FILE_NOT_FOUND, MISSING_DEPENDENCY, or PROCESSING_FAILED."
 
 requirements:
   - rembg>=2.0.0

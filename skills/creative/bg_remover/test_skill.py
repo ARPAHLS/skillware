@@ -9,7 +9,7 @@ from PIL import Image
 
 from skillware.core.loader import SkillLoader
 
-from .skill import BackgroundRemover
+from .skill import BackgroundRemover, MAX_IMAGE_BYTES
 
 import sys
 import types
@@ -117,7 +117,7 @@ def test_invalid_base64(skill):
     result = skill.execute({"image": "not_base64"})
 
     assert result["success"] is False
-    assert result["error_code"] == "PROCESSING_FAILED"
+    assert result["error_code"] == "INVALID_INPUT"
 
 
 def test_missing_dependency(monkeypatch, skill):
@@ -249,4 +249,101 @@ def test_missing_input_path(skill):
     result = skill.execute({"input_path": "/nonexistent/path/image.png"})
 
     assert result["success"] is False
-    assert result["error_code"] == "PROCESSING_FAILED"
+    assert result["error_code"] == "FILE_NOT_FOUND"
+
+
+def test_directory_input(skill, tmp_path):
+    result = skill.execute({"input_path": str(tmp_path)})
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+
+def test_empty_input_file(skill, tmp_path):
+    empty = tmp_path / "empty.png"
+    empty.write_bytes(b"")
+
+    result = skill.execute({"input_path": str(empty)})
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+
+def test_invalid_image_file(skill, tmp_path):
+    bad = tmp_path / "bad.png"
+    bad.write_text("not an image")
+
+    result = skill.execute({"input_path": str(bad)})
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+
+def test_output_directory_created(skill, tmp_path):
+    image = Image.new("RGB", (64, 64), "white")
+
+    input_file = tmp_path / "input.png"
+    image.save(input_file)
+
+    output_file = tmp_path / "nested" / "folder" / "output.png"
+
+    result = skill.execute(
+        {
+            "input_path": str(input_file),
+            "output_path": str(output_file),
+        }
+    )
+
+    assert result["success"] is True
+    assert output_file.exists()
+
+
+def test_session_reuse(skill, monkeypatch):
+    calls = {"count": 0}
+
+    def fake_remove(image_bytes, *args, **kwargs):
+        img = Image.new("RGBA", (100, 100), (255, 0, 0, 0))
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    def fake_new_session(model_name="u2net", *args, **kwargs):
+        calls["count"] += 1
+        return object()
+
+    fake_module = types.ModuleType("rembg")
+    fake_module.remove = fake_remove
+    fake_module.new_session = fake_new_session
+    fake_module.__spec__ = importlib.util.spec_from_loader("rembg", loader=None)
+
+    monkeypatch.setitem(sys.modules, "rembg", fake_module)
+
+    BackgroundRemover._sessions.clear()
+
+    skill.execute({"image": create_image()})
+    skill.execute({"image": create_image()})
+
+    assert calls["count"] == 1
+
+    BackgroundRemover._sessions.clear()
+
+
+def test_unsafe_output_path(skill):
+    result = skill.execute(
+        {
+            "image": create_image(),
+            "output_path": "../../../evil.png",
+        }
+    )
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"
+
+
+def test_oversized_base64_image(skill):
+    oversized = base64.b64encode(b"\0" * (MAX_IMAGE_BYTES + 1)).decode()
+
+    result = skill.execute({"image": oversized})
+
+    assert result["success"] is False
+    assert result["error_code"] == "INVALID_INPUT"

@@ -74,7 +74,7 @@ Agent routing details live in `skills/creative/bg_remover/instructions.md`.
 | `height` | Output image height in pixels |
 | `model_used` | rembg model used for processing |
 | `error` | Human-readable error message when `success` is `false` |
-| `error_code` | `INVALID_INPUT`, `MISSING_DEPENDENCY`, or `PROCESSING_FAILED` |
+| `error_code` | `INVALID_INPUT`, `FILE_NOT_FOUND`, `MISSING_DEPENDENCY`, or `PROCESSING_FAILED` |
 
 ## Input scenarios
 
@@ -123,7 +123,7 @@ Skill instructions: when to invoke, input/output conventions, URL and cloud pre-
 
 ### The Body (`skill.py`)
 
-Lazy-imports `rembg` and Pillow, runs `new_session` + `remove`, and returns structured JSON with transparent PNG bytes.
+Lazy-imports `rembg` and Pillow, reuses cached rembg sessions, runs `remove`, and returns structured JSON with transparent PNG bytes.
 
 ## Usage Examples
 
@@ -133,7 +133,7 @@ Use `bundle["class"]()` in the snippets below; explicit `bundle["module"].ClassN
 
 ### Runnable examples
 
-See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. There is no dedicated runnable example for this skill yet; the Claude, OpenAI, and DeepSeek sections below are **catalog snippets only** (same pattern as [PDF Form Filler](pdf_form_filler.md)).
+See [examples/README.md](../../examples/README.md) for the current runnable-script inventory. See `examples/bg_remover_demo.py` for a runnable local example. The Claude, OpenAI, and DeepSeek sections below remain catalog snippets showing provider integration patterns.
 
 Sample user request:
 
