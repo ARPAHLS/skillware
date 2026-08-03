@@ -68,10 +68,10 @@ system PATH, or use the `py` launcher:
 ## Version advisory
 
 On CLI startup, Skillware checks the installed package version **once per process**.
-If you are on an **unsupported** release (below `0.3.0`, for example `0.2.9`), a single
-dim message is printed to stderr suggesting an upgrade to `>= 0.3.5`. Installs in the
-`0.3.0`–`0.3.4` band stay silent (no security backports, but no startup spam). Current
-supported installs (`0.3.5` and above) stay silent.
+If you are on an **unsupported** release (below `0.3.5`, for example `0.3.4` or `0.2.9`), a single
+dim message is printed to stderr suggesting an upgrade to `>= 0.4.7`. Installs in the
+`0.3.5`–`0.4.6` band stay silent (no security backports, but no startup spam). Current
+supported installs (`0.4.7` and above) stay silent.
 
 Library use (`import skillware`, `SkillLoader`) never prints this message.
 

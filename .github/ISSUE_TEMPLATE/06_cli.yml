@@ -72,6 +72,6 @@ body:
     attributes:
       label: Environment
       placeholder: |
-        Windows 11, Python 3.12, skillware 0.4.7
+        Windows 11, Python 3.12, skillware 0.4.8
     validations:
       required: false

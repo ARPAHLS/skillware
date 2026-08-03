@@ -144,11 +144,11 @@ def test_result_contains_repository_fields(skill):
     )
     assert repo["readme_url"].endswith("README.md")
     assert repo["profile_urls"] == [
-        "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md",
         (
             "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/"
             ".github/ISSUE_RESOLVER.md"
         ),
+        "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md",
     ]
     assert repo["tree_api_url"].startswith(
         "https://api.github.com/repos/ARPAHLS/skillware"
@@ -304,12 +304,12 @@ FROZEN_V0_2_UNCHANGED_OUTPUT_SHA256 = {
 }
 
 V0_3_PROFILE_DISCOVERY_OUTPUT_SHA256 = {
-    "prepare": "7f6ccb50cc44987d29d06b542234c605c39d1aab10b64a6a197b79503a2cd064",
+    "prepare": "6e3b6da1942e8c4f9c0ec9ad2cde9e7c187f00fa504a12cf0ddc5b0c5660c0ef",
     "workflow_overview": (
         "bf371c37598469aa9fece7f051505f23c6c6cb30e8d728fac315f0f1ad4e8563"
     ),
     "stage_checklist:discover_repository": (
-        "fdb5206d00906661f4b8accfec74776dae0fbec302fa169d6b0bf2b59fe18035"
+        "b85885fa217a8d4cb303ef8a121ffba0d838b2996315348ab8450ac485427850"
     ),
 }
 

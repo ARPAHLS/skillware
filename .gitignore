@@ -1,5 +1,7 @@
 # Environment Variables
 .env
+.env.*
+!.env.example
 
 # Per-skill local config (use config.yaml.example as template)
 skills/**/config.yaml
@@ -17,20 +19,28 @@ venv/
 build/
 dist/
 *.egg-info/
+*.log
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+coverage.xml
 
-# Linting
+# Linting / type checking
 .ruff_cache/
+.mypy_cache/
 
-# IDEs
+# IDEs / editor
 .vscode/
 .idea/
+.cursor/
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Local wheels / smoke artifacts
+*.whl

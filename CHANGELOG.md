@@ -8,16 +8,19 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.4.8] - 2026-08-03
+
 ### Added
 
-- **Citation:** Zenodo concept DOI `10.5281/zenodo.21552745` in `CITATION.cff`, README badge/Citing section, and `pyproject.toml` project URL (#269).
 - **Skill:** `security/prompt_injection_firewall` — offline-only deterministic pre-flight scanner (no LLM path) with local `kb/` detectors for hidden text, Unicode/confusable evasion, nested encodings, instruction overrides, corroboration-based sensitivity, and sanitization output (#46).
-- **`dev_tools/issue_resolver`:** Expose ordered root and `.github` profile discovery URLs, parse caller-fetched `ISSUE_RESOLVER.md` Markdown into provenance-labelled context, and add the profile standard and Skillware dogfood profile while preserving the universal stage order and gates (#145).
-
+- **`dev_tools/issue_resolver`:** Caller-fetched `ISSUE_RESOLVER.md` repository profiles — ordered profile discovery URLs, `load_repository_profile` parsing with provenance-labelled context, profile standard doc, and Skillware dogfood profile under `.github/ISSUE_RESOLVER.md` (#145, #271).
+- **Documentation:** [`docs/contributing/issue_resolver_profile.md`](docs/contributing/issue_resolver_profile.md) — normative contract and examples for repository-maintained agent context files.
 
 ### Changed
 
-- **`creative/bg_remover`**: Hardened the skill by reusing rembg sessions across executions, validating Base64 input and image files, rejecting empty, oversized (>25 MB), or invalid images, and automatically creating parent directories for `output_path`. Updated documentation and expanded bundle tests for the new validation behavior.
+- **`creative/bg_remover`**: Hardened to v0.2.0 — rembg session reuse, Base64 and file validation, 25 MB limit, path traversal rejection, parent directory creation for `output_path`, demo script, and expanded bundle tests (#257, #268).
+- **`dev_tools/issue_resolver`:** Profile discovery prefers `.github/ISSUE_RESOLVER.md` over a repo-root fallback; expanded Skillware dogfood profile aligned with contributor workflow and stage gates.
+- **Version policy:** Raise security support floor to `>= 0.4.7`; legacy band `0.3.5`–`0.4.6` (upgrade recommended, silent CLI); unsupported advisory for installs below `0.3.5`.
 
 ## [0.4.7] - 2026-07-25
 

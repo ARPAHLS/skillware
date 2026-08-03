@@ -29,7 +29,7 @@ Call `execute()` with an `action`:
 ## Workflow you must follow
 
 1. Call `prepare` with the issue URL.
-2. During repository discovery, check `ISSUE_RESOLVER.md` at the repository root, then `.github/ISSUE_RESOLVER.md`. Fetch the first file that exists with your own tools.
+2. During repository discovery, use `repository.profile_urls` from `prepare` (`.github/ISSUE_RESOLVER.md` first, repo root as fallback). Fetch the first URL that returns content with your own tools.
 3. If a profile exists, call `load_repository_profile` with its Markdown and source. Keep the returned `profile_context` visibly separate from universal workflow output.
 4. Call `workflow_overview` or proceed directly to stages in order.
 5. At the **start of each stage**, call `stage_checklist` for that stage and follow its `steps` and applicable `conditionals`.

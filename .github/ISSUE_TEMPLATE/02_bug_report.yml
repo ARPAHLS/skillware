@@ -71,7 +71,7 @@ body:
       placeholder: |
         Windows 11
         Python 3.12
-        pip install skillware[gemini]==0.4.7
+        pip install skillware[gemini]==0.4.8
         google-genai 1.0.0
     validations:
       required: false

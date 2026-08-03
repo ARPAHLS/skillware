@@ -6,7 +6,7 @@
 
 Profile handling is deliberately narrow in v0.3:
 
-1. The caller checks the repository root for `ISSUE_RESOLVER.md`, then `.github/ISSUE_RESOLVER.md`.
+1. The caller checks `.github/ISSUE_RESOLVER.md` first, then the repository root `ISSUE_RESOLVER.md` as a legacy fallback.
 2. The caller fetches the first profile that exists. `execute()` makes no network request and does not verify the source.
 3. The caller invokes `load_repository_profile` with the fetched Markdown and a source label.
 4. The skill returns generic Markdown structure inside a provenance-labelled, context-only envelope.
@@ -118,7 +118,7 @@ Python framework and registry for deterministic AI skills. Contributors use a fo
 - The operator owns commit, push, and pull-request actions.
 ```
 
-The repository root [`ISSUE_RESOLVER.md`](../../ISSUE_RESOLVER.md) is the complete dogfood profile.
+The canonical dogfood profile lives at [`.github/ISSUE_RESOLVER.md`](../../.github/ISSUE_RESOLVER.md).
 
 ## Example 2: minimal Python library
 

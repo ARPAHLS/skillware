@@ -242,11 +242,11 @@ class IssueResolverSkill(BaseSkill):
                 "profile_urls": [
                     (
                         f"https://raw.githubusercontent.com/{parsed['owner']}"
-                        f"/{parsed['repo']}/HEAD/ISSUE_RESOLVER.md"
+                        f"/{parsed['repo']}/HEAD/.github/ISSUE_RESOLVER.md"
                     ),
                     (
                         f"https://raw.githubusercontent.com/{parsed['owner']}"
-                        f"/{parsed['repo']}/HEAD/.github/ISSUE_RESOLVER.md"
+                        f"/{parsed['repo']}/HEAD/ISSUE_RESOLVER.md"
                     ),
                 ],
                 "tree_api_url": (

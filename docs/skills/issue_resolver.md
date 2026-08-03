@@ -23,7 +23,7 @@ The skill itself does **not** call GitHub, run git, or write code. It validates 
 - **Conditional verification**: Each stage includes rules such as run tests if the repo has them, update release notes if the project maintains them, or infer conventions from README when CONTRIBUTING is missing.
 - **Commit-message validation**: `validate_commit_message` rejects AI co-author trailers by default before commit.
 - **Optional repository profiles**: `load_repository_profile` parses caller-fetched `ISSUE_RESOLVER.md` Markdown without interpreting section names, and returns explicit provenance and authority labels.
-- **Ordered profile discovery**: `prepare` exposes root and `.github` `ISSUE_RESOLVER.md` candidates in precedence order, while the caller remains responsible for fetching the first file that exists.
+- **Ordered profile discovery**: `prepare` exposes `.github/` then root `ISSUE_RESOLVER.md` candidates; the caller fetches the first file that exists.
 - **Stable universal gates**: Repository profiles do not change the stage order, approval requirements, or unaffected universal checklists; smart profile-to-stage merging remains deferred.
 - **Caller-injectable context**: The `extra_instructions` field lets any caller inject project-specific style rules, scope constraints, or workflow requirements without modifying the skill.
 - **Graceful authentication**: Operates without a token against public repositories (subject to GitHub's 60 req/hr unauthenticated limit) and upgrades to 5000 req/hr when `GITHUB_TOKEN` is provided.
@@ -97,7 +97,7 @@ print(result["repository"]["readme_url"])
 print(result["repository"]["profile_urls"])
 ```
 
-If the caller finds `ISSUE_RESOLVER.md` at the repository root (preferred) or under `.github/`, it can parse the already-fetched text separately:
+If the caller finds `ISSUE_RESOLVER.md` under `.github/` (preferred) or at the repository root (legacy fallback), it can parse the already-fetched text separately:
 
 ```python
 profile = skill.execute({
@@ -296,8 +296,8 @@ response = client.chat.completions.create(
     "readme_url": "https://raw.githubusercontent.com/owner/repo/HEAD/README.md",
     "contributing_url": "https://raw.githubusercontent.com/owner/repo/HEAD/CONTRIBUTING.md",
     "profile_urls": [
-      "https://raw.githubusercontent.com/owner/repo/HEAD/ISSUE_RESOLVER.md",
-      "https://raw.githubusercontent.com/owner/repo/HEAD/.github/ISSUE_RESOLVER.md"
+      "https://raw.githubusercontent.com/owner/repo/HEAD/.github/ISSUE_RESOLVER.md",
+      "https://raw.githubusercontent.com/owner/repo/HEAD/ISSUE_RESOLVER.md"
     ],
     "tree_api_url": "https://api.github.com/repos/owner/repo/git/trees/HEAD?recursive=1"
   },

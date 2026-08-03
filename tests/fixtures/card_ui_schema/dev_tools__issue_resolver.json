@@ -17,8 +17,8 @@
         "readme_url": "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/README.md",
         "contributing_url": "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/CONTRIBUTING.md",
         "profile_urls": [
-          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md",
-          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/.github/ISSUE_RESOLVER.md"
+          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/.github/ISSUE_RESOLVER.md",
+          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md"
         ],
         "tree_api_url": "https://api.github.com/repos/ARPAHLS/skillware/git/trees/HEAD?recursive=1"
       },

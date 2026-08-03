@@ -44,9 +44,9 @@ STAGES: Dict[str, Dict[str, Any]] = {
             "Read README (repository.readme_url) for purpose, stack, and setup.",
             "Read CONTRIBUTING if present (repository.contributing_url); continue if 404.",
             (
-                "Check repository.profile_urls in order; fetch the first "
-                "ISSUE_RESOLVER.md that exists, then call load_repository_profile "
-                "with its Markdown and source."
+                "Check repository.profile_urls in order (.github/ISSUE_RESOLVER.md "
+                "first, repo root fallback); fetch the first file that exists, then "
+                "call load_repository_profile with its Markdown and source."
             ),
             "Fetch the repository tree (repository.tree_api_url) and map source, test, docs, and CI areas.",
             "Inspect files explicitly referenced by the issue.",
@@ -54,7 +54,7 @@ STAGES: Dict[str, Dict[str, Any]] = {
         "conditionals": [
             "If CONTRIBUTING is missing, infer conventions from README, CI config, and existing code.",
             (
-                "If neither repository.profile_urls candidate exists, skip "
+                "If no repository.profile_urls candidate returns content, skip "
                 "load_repository_profile and continue with the universal workflow unchanged."
             ),
             "If the tree response is truncated, inspect relevant directories selectively.",
