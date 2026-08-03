@@ -1,6 +1,6 @@
 {
     "name": "Issue Resolver",
-    "description": "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, returns GitHub API endpoints, and provides sequential stage checklists with verify, commit, and pull request gates.",
+    "description": "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, parses caller-fetched ISSUE_RESOLVER.md profiles into provenance-labelled context, and provides sequential stage checklists with verify, commit, and pull request gates.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",
@@ -17,6 +17,10 @@
                 "label": "Status"
             },
             {
+                "key": "action",
+                "label": "Action"
+            },
+            {
                 "key": "issue.number",
                 "label": "Issue"
             },
@@ -27,6 +31,14 @@
             {
                 "key": "auth.token_provided",
                 "label": "Authenticated"
+            },
+            {
+                "key": "profile_context.provenance.source",
+                "label": "Profile Source"
+            },
+            {
+                "key": "profile_context.authority.classification",
+                "label": "Profile Authority"
             }
         ]
     }

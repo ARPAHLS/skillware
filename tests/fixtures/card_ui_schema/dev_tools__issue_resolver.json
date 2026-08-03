@@ -3,23 +3,60 @@
     {
       "status": "ready",
       "action": "prepare",
-      "workflow_version": "1.0",
+      "workflow_version": "0.2",
       "issue": {
         "url": "https://github.com/ARPAHLS/skillware/issues/199",
         "api_url": "https://api.github.com/repos/ARPAHLS/skillware/issues/199",
         "owner": "ARPAHLS",
         "repo": "skillware",
-        "number": 199
+        "number": "199"
       },
       "repository": {
         "html_url": "https://github.com/ARPAHLS/skillware",
-        "api_url": "https://api.github.com/repos/ARPAHLS/skillware"
+        "api_url": "https://api.github.com/repos/ARPAHLS/skillware",
+        "readme_url": "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/README.md",
+        "contributing_url": "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/CONTRIBUTING.md",
+        "profile_urls": [
+          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md",
+          "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/.github/ISSUE_RESOLVER.md"
+        ],
+        "tree_api_url": "https://api.github.com/repos/ARPAHLS/skillware/git/trees/HEAD?recursive=1"
       },
       "auth": {
         "token_provided": true,
-        "note": "Include the Authorization header."
+        "note": "Include the Authorization header: Bearer <GITHUB_TOKEN>."
       },
-      "next_step": "Call action workflow_overview."
+      "extra_instructions": null,
+      "next_step": "Call action workflow_overview or stage_checklist for discover_issue. Follow instructions.md stages in order; do not skip gates."
+    },
+    {
+      "status": "ready",
+      "action": "load_repository_profile",
+      "workflow_version": "0.2",
+      "profile_context": {
+        "label": "Repository ISSUE_RESOLVER.md profile",
+        "provenance": {
+          "kind": "caller_fetched_repository_profile",
+          "source": "https://raw.githubusercontent.com/ARPAHLS/skillware/abc123/ISSUE_RESOLVER.md"
+        },
+        "authority": {
+          "classification": "repository_context_only",
+          "can_override_constitution": false,
+          "can_grant_authority": false
+        },
+        "document": {
+          "format": "markdown",
+          "title": "Issue resolver profile — Skillware",
+          "preamble": "",
+          "sections": [
+            {
+              "level": 2,
+              "heading": "Required checks",
+              "content": "- Run the issue resolver bundle tests."
+            }
+          ]
+        }
+      }
     }
   ]
 }
