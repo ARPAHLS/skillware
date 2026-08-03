@@ -143,10 +143,27 @@ def test_result_contains_repository_fields(skill):
         "https://raw.githubusercontent.com/ARPAHLS/skillware"
     )
     assert repo["readme_url"].endswith("README.md")
+    assert repo["profile_urls"] == [
+        "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md",
+        (
+            "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/"
+            ".github/ISSUE_RESOLVER.md"
+        ),
+    ]
     assert repo["tree_api_url"].startswith(
         "https://api.github.com/repos/ARPAHLS/skillware"
     )
     assert "trees" in repo["tree_api_url"]
+
+
+def test_prepare_profile_discovery_makes_no_network_call(skill):
+    with mock.patch(
+        "socket.create_connection",
+        side_effect=AssertionError("network access attempted"),
+    ):
+        result = skill.execute({"issue_url": VALID_URL})
+    assert result["status"] == "ready"
+    assert len(result["repository"]["profile_urls"]) == 2
 
 
 def test_no_token_auth_note(skill):
@@ -210,6 +227,9 @@ def test_workflow_overview(skill):
     assert result["action"] == "workflow_overview"
     assert len(result["stage_order"]) == 9
     assert result["stage_order"][0] == "discover_issue"
+    assert "future_profiles_note" not in result
+    assert "ISSUE_RESOLVER.md" in result["repository_profiles_note"]
+    assert "profile_applied remain deferred" in result["repository_profiles_note"]
 
 
 def test_stage_checklist_discover_issue(skill):
@@ -219,6 +239,22 @@ def test_stage_checklist_discover_issue(skill):
     assert result["steps"]
     assert result["conditionals"]
     assert result["next_stage"] == "discover_repository"
+
+
+def test_stage_checklist_discover_repository_includes_profile_discovery(skill):
+    result = skill.execute(
+        {"action": "stage_checklist", "stage": "discover_repository"}
+    )
+    profile_steps = [step for step in result["steps"] if "profile_urls" in step]
+    profile_conditionals = [
+        conditional
+        for conditional in result["conditionals"]
+        if "profile_urls" in conditional
+    ]
+    assert len(profile_steps) == 1
+    assert "load_repository_profile" in profile_steps[0]
+    assert len(profile_conditionals) == 1
+    assert "universal workflow unchanged" in profile_conditionals[0]
 
 
 def test_stage_checklist_unknown_stage(skill):
@@ -234,18 +270,12 @@ def test_stage_checklist_unknown_stage(skill):
 PROFILE_SOURCE = "https://raw.githubusercontent.com/owner/repo/abc123/ISSUE_RESOLVER.md"
 
 # Canonical JSON SHA-256 values from upstream/main at
-# 0b197edf61fcaf920bea3b5a56bec9fe195cb743, before profile support. Update
-# these only for a deliberate universal workflow contract change.
-FROZEN_V0_2_OUTPUT_SHA256 = {
-    "prepare": "6b1f75f3982a136aefc29415b49abc97783b7526c377b393a57f3836b6c965e7",
-    "workflow_overview": (
-        "46110a4d4b41e0a502fc2b527baa59d9ae5967f4574b7ff955b476265f69123d"
-    ),
+# 0b197edf61fcaf920bea3b5a56bec9fe195cb743, before profile support. The three
+# discovery payloads intentionally extended by v0.3 are frozen separately
+# below; every entry here remains byte-identical to v0.2.
+FROZEN_V0_2_UNCHANGED_OUTPUT_SHA256 = {
     "stage_checklist:discover_issue": (
         "b6c3a78b345fe0bc6fa5c681bed8924e58e0b3d53bbd67bb1e27fbd7e85b4830"
-    ),
-    "stage_checklist:discover_repository": (
-        "e54e5481ba50242c57685a6d18d95aa78e295386cf7fe61664da3cdd82af8fb3"
     ),
     "stage_checklist:analyze": (
         "ccc1fde50de5bc4d5079ee9e942d40f1be8ee70b2c9f0a145c2dfbbcdf9884cb"
@@ -270,6 +300,16 @@ FROZEN_V0_2_OUTPUT_SHA256 = {
     ),
     "validate_commit_message": (
         "2693d8cfd6cd075a11d1b3fac12cdb6299ada387d4fdeaa70dbb0604b26c232e"
+    ),
+}
+
+V0_3_PROFILE_DISCOVERY_OUTPUT_SHA256 = {
+    "prepare": "7f6ccb50cc44987d29d06b542234c605c39d1aab10b64a6a197b79503a2cd064",
+    "workflow_overview": (
+        "bf371c37598469aa9fece7f051505f23c6c6cb30e8d728fac315f0f1ad4e8563"
+    ),
+    "stage_checklist:discover_repository": (
+        "fdb5206d00906661f4b8accfec74776dae0fbec302fa169d6b0bf2b59fe18035"
     ),
 }
 
@@ -472,7 +512,7 @@ def test_existing_actions_remain_profile_free(skill):
         assert "profile_applied" not in payload
 
 
-def test_no_profile_outputs_match_frozen_v0_2_contract(skill):
+def test_profile_discovery_and_unchanged_v0_2_outputs_are_frozen(skill):
     env_without_token = {k: v for k, v in os.environ.items() if k != "GITHUB_TOKEN"}
     with mock.patch.dict(os.environ, env_without_token, clear=True):
         outputs = {
@@ -497,12 +537,21 @@ def test_no_profile_outputs_match_frozen_v0_2_contract(skill):
             ),
         }
 
-    assert outputs.keys() == FROZEN_V0_2_OUTPUT_SHA256.keys()
-    for name, expected_hash in FROZEN_V0_2_OUTPUT_SHA256.items():
+    expected_hashes = {
+        **FROZEN_V0_2_UNCHANGED_OUTPUT_SHA256,
+        **V0_3_PROFILE_DISCOVERY_OUTPUT_SHA256,
+    }
+    assert outputs.keys() == expected_hashes.keys()
+    for name, expected_hash in expected_hashes.items():
         actual_hash = canonical_payload_sha256(outputs[name])
+        contract = (
+            "v0.3 profile-discovery contract"
+            if name in V0_3_PROFILE_DISCOVERY_OUTPUT_SHA256
+            else "unchanged v0.2 contract"
+        )
         assert actual_hash == expected_hash, (
-            f"{name} changed from the frozen v0.2 contract. "
-            "Bump the workflow contract deliberately before updating this snapshot.\n"
+            f"{name} changed from the frozen {contract}. "
+            "Update this snapshot only for a deliberate contract change.\n"
             f"Actual payload:\n{json.dumps(outputs[name], indent=2, sort_keys=True)}"
         )
 

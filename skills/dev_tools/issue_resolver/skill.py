@@ -239,6 +239,16 @@ class IssueResolverSkill(BaseSkill):
                     f"https://raw.githubusercontent.com/{parsed['owner']}"
                     f"/{parsed['repo']}/HEAD/CONTRIBUTING.md"
                 ),
+                "profile_urls": [
+                    (
+                        f"https://raw.githubusercontent.com/{parsed['owner']}"
+                        f"/{parsed['repo']}/HEAD/ISSUE_RESOLVER.md"
+                    ),
+                    (
+                        f"https://raw.githubusercontent.com/{parsed['owner']}"
+                        f"/{parsed['repo']}/HEAD/.github/ISSUE_RESOLVER.md"
+                    ),
+                ],
                 "tree_api_url": (
                     f"https://api.github.com/repos/{parsed['owner']}/{parsed['repo']}"
                     "/git/trees/HEAD?recursive=1"
