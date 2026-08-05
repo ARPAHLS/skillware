@@ -27,6 +27,7 @@ body:
       description: Pick an existing category or propose a new one in the description
       options:
         - compliance
+        - creative
         - data_engineering
         - defi
         - dev_tools
@@ -34,6 +35,7 @@ body:
         - monitoring
         - office
         - optimization
+        - security
         - wellness
         - "Propose new category (describe below)"
     validations:
