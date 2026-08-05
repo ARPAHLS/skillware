@@ -10,6 +10,11 @@
         "description": "Security vulnerabilities, trust model, or constitution updates."
     },
     {
+        "name": "creative",
+        "color": "F5D0FE",
+        "description": "Creative skills, image, video, audio, or generative content."
+    },
+    {
         "name": "packaging",
         "color": "DBD3DC",
         "description": "PyPI wheel, pyproject.toml, MANIFEST.in, or install extras."

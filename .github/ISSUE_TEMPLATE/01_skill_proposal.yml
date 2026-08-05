@@ -9,6 +9,8 @@ body:
         Thanks for helping expand the Skillware ecosystem!
         Please review the [Contribution Guidelines](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md) and start from [templates/python_skill/](https://github.com/ARPAHLS/skillware/tree/main/templates/python_skill).
 
+        See the [Skill categories](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md#skill-categories) table for the list of valid categories used in the dropdown below.
+
         To improve an **existing** skill, use the **Skill Upgrade** template instead.
 
   - type: input
@@ -27,6 +29,7 @@ body:
       description: Pick an existing category or propose a new one in the description
       options:
         - compliance
+        - creative
         - data_engineering
         - defi
         - dev_tools
@@ -34,6 +37,7 @@ body:
         - monitoring
         - office
         - optimization
+        - security
         - wellness
         - "Propose new category (describe below)"
     validations:
