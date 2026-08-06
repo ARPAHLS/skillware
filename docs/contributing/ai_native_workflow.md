@@ -242,7 +242,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md`
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
-- Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
+- Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
 - Logic in `skill.py`; prompts and persona in `instructions.md`
 - Never commit secrets; document `env_vars` in the manifest

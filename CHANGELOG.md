@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **GitHub**: New Skill Proposal template category dropdown synced with the registry (`creative`, `security`); added `creative` label (#279, #277).
+
 ## [0.4.8] - 2026-08-03
 
 ### Added

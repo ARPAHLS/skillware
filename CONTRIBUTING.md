@@ -366,6 +366,8 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
+When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. If the category warrants issue filtering, add a matching entry to [`.github/labels.json`](.github/labels.json) (labels sync via CI on merge to `main`).
+
 ---
 
 ## What to avoid
