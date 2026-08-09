@@ -26,6 +26,7 @@ from typing import List, Sequence
 import yaml
 
 from skillware.core.discovery import bundled_skills_root, list_registry_skill_ids
+from skillware.core.extras import requirement_import_module
 from skillware.core.loader import SkillLoader
 
 BUNDLE_FILES = (
@@ -58,7 +59,7 @@ class SmokeReport:
 def _missing_manifest_requirements(manifest: dict) -> List[str]:
     missing: List[str] = []
     for req in manifest.get("requirements") or []:
-        import_name = SkillLoader._requirement_import_name(req)
+        import_name = requirement_import_module(req)
         if importlib.util.find_spec(import_name) is None:
             missing.append(import_name)
     return missing
