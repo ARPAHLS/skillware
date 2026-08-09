@@ -284,9 +284,7 @@ def build_skill_module_import_error(
     if hints:
         lines.extend(hints)
     else:
-        lines.append(
-            "Add the package to manifest requirements and reinstall extras."
-        )
+        lines.append("Add the package to manifest requirements and reinstall extras.")
     return "\n".join(lines)
 
 
