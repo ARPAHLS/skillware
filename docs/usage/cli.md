@@ -35,6 +35,7 @@ After installation, the `skillware` command is available directly:
 
     skillware
     skillware list
+    skillware doctor
     skillware test
     skillware examples
     skillware --version
@@ -56,6 +57,7 @@ as Python is installed):
     python -m skillware
     python -m skillware list
     python -m skillware test finance/wallet_screening
+    python -m skillware doctor optimization/prompt_rewriter
     python -m skillware list --category compliance
     python -m skillware --help
 
@@ -105,7 +107,8 @@ Available commands:
 | `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `4` / `paths` | Show skill root resolution order, tiers, and shadowing | Available |
-| `5` / `help` | Print rich-formatted help with commands, flags, and examples | Available |
+| `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
+| `6` / `help` | Print rich-formatted help with commands, flags, and examples | Available |
 
 ## Commands
 
@@ -206,6 +209,30 @@ Show where Skillware looks for skills — same order as `SkillLoader.load_skill(
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
 
 Read-only in v0.4.x; persist project/external paths via config is tracked in #246. Interactive menu: **`4` / `paths`**.
+
+### skillware doctor
+
+Check whether skills can load in the current environment — manifest **requirements** pre-flight (**DEPS**) and `skill.py` import (**LOAD**) — without running `execute()`. Uses the same skill roots as `skillware list`.
+
+    skillware doctor
+    skillware doctor finance/wallet_screening
+    skillware doctor --category compliance
+    skillware doctor --skills-root /path/to/my/skills
+
+#### Arguments and flags
+
+| Input | Description |
+| :--- | :--- |
+| *(no args)* | Diagnose all registry skills visible to `list` |
+| `<category>/<skill_name>` | Diagnose one skill |
+| `--category <name>` | Diagnose all skills in a category |
+| `--skills-root <path>` | Override the skills directory for discovery and load |
+
+**DEPS** validates manifest `requirements` (same rules as `SkillLoader.load_skill()`). **LOAD** imports `skill.py` and discovers the `BaseSkill` subclass; it is skipped (shown as `—`) when **DEPS** fails. The **DETAIL** column shows the first line of any error.
+
+Exit code is non-zero when any skill fails **DEPS** or **LOAD**. For full bundle behavior, use `skillware test`.
+
+Interactive menu: **`5` / `doctor`**.
 
 ## Path resolution
 

@@ -568,6 +568,135 @@ def cmd_paths(
     return 0
 
 
+def _doctor_load_target(
+    skill_id: str, skills_root_override: Optional[Path] = None
+) -> str:
+    """Resolve skill path for doctor; honor --skills-root like list discovery."""
+    if skills_root_override is not None:
+        candidate = skills_root_override.expanduser().resolve() / skill_id
+        if candidate.is_dir() and SkillLoader._is_skill_dir(candidate):
+            return str(candidate)
+    return skill_id
+
+
+def _resolve_doctor_skill_ids(
+    skills_root_override: Optional[Path] = None,
+    skill_id: Optional[str] = None,
+    category: Optional[str] = None,
+) -> Tuple[List[str], Optional[str]]:
+    if skill_id and category:
+        return [], "Use either a skill ID or --category, not both."
+
+    if skill_id:
+        return [skill_id.replace("\\", "/").strip("/")], None
+
+    skills = _discover_skills(skills_root_override)
+    if category:
+        skills = [skill for skill in skills if skill["category"] == category]
+
+    if not skills:
+        if category:
+            return [], f"No skills found in category '{category}'."
+        return [], "No skills found."
+
+    return [skill["id"] for skill in skills], None
+
+
+def _diagnose_skill(
+    skill_id: str,
+    skills_root_override: Optional[Path] = None,
+) -> Tuple[str, str, str]:
+    """Return (deps_status, load_status, detail). Status values: ok, fail, skip."""
+    load_target = _doctor_load_target(skill_id, skills_root_override)
+
+    try:
+        SkillLoader.load_skill(
+            load_target,
+            execute_module=False,
+            check_requirements=True,
+        )
+        deps_status = "ok"
+    except ImportError as exc:
+        detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
+        return "fail", "skip", detail
+
+    try:
+        SkillLoader.load_skill(
+            load_target,
+            execute_module=True,
+            check_requirements=False,
+        )
+        return deps_status, "ok", ""
+    except ImportError as exc:
+        detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
+        return deps_status, "fail", detail
+
+
+def cmd_doctor(
+    skills_root_override: Optional[Path] = None,
+    skill_id: Optional[str] = None,
+    category: Optional[str] = None,
+    console=None,
+) -> int:
+    """Check manifest deps and skill.py import without running execute()."""
+    if console is None:
+        console = Console(stderr=True)
+
+    skill_ids, error = _resolve_doctor_skill_ids(
+        skills_root_override=skills_root_override,
+        skill_id=skill_id,
+        category=category,
+    )
+    if error:
+        console.print(error, style="bold #FF9AA2")
+        return 2 if skill_id and category else 1
+
+    table = Table(
+        box=box.SIMPLE_HEAVY,
+        border_style=BORDER_STYLE,
+        header_style=TABLE_STYLE,
+        expand=True,
+    )
+    table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
+    table.add_column("DEPS", no_wrap=True, ratio=1)
+    table.add_column("LOAD", no_wrap=True, ratio=1)
+    table.add_column("DETAIL", style="dim", ratio=4)
+
+    failures = 0
+    for sid in sorted(skill_ids):
+        try:
+            deps_status, load_status, detail = _diagnose_skill(
+                sid, skills_root_override=skills_root_override
+            )
+        except FileNotFoundError as exc:
+            console.print(str(exc), style="bold #FF9AA2")
+            return 1
+
+        if deps_status != "ok" or load_status == "fail":
+            failures += 1
+
+        deps_cell = Text(
+            deps_status,
+            style=ID_STYLE if deps_status == "ok" else "bold #FF9AA2",
+        )
+        if load_status == "skip":
+            load_cell = Text("—", style="dim")
+        elif load_status == "ok":
+            load_cell = Text(load_status, style=ID_STYLE)
+        else:
+            load_cell = Text(load_status, style="bold #FF9AA2")
+
+        table.add_row(sid, deps_cell, load_cell, detail or "—")
+
+    console.print(table)
+    console.print(
+        "DEPS = manifest requirements; LOAD = skill.py import. "
+        "See docs/usage/install_extras.md",
+        style="dim",
+    )
+    return 1 if failures else 0
+
+
 def _prompt_examples_skill_id(console) -> Tuple[Optional[str], bool]:
     """Return (skill_id or None for all, should_run)."""
     try:
@@ -614,6 +743,9 @@ def cmd_help(console=None) -> None:
     console.print("  skillware test <category/name> — run one skill bundle test")
     console.print("  skillware test --category <n> — run tests for a category")
     console.print("  skillware paths               — show skill root resolution")
+    console.print("  skillware doctor              — check deps and skill.py import")
+    console.print("  skillware doctor <id>         — diagnose one skill")
+    console.print("  skillware doctor --category   — diagnose a category")
     console.print("  skillware --version           — print installed version")
     console.print()
 
@@ -622,13 +754,14 @@ def cmd_help(console=None) -> None:
     console.print("  examples  available now", style=ID_STYLE)
     console.print("  test      available now", style=ID_STYLE)
     console.print("  paths     available now", style=ID_STYLE)
+    console.print("  doctor    available now", style=ID_STYLE)
     console.print()
 
     console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
     console.print(
         "  skillware                     — open interactive menu", style="dim"
     )
-    console.print("  1-5 or command name           — select a menu option", style="dim")
+    console.print("  1-6 or command name           — select a menu option", style="dim")
     console.print("  q or Ctrl+C                   — exit", style="dim")
     console.print()
 
@@ -638,6 +771,7 @@ def cmd_help(console=None) -> None:
     console.print("  skillware examples compliance/tos_evaluator", style=MENU_STYLE)
     console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
     console.print("  skillware paths", style=MENU_STYLE)
+    console.print("  skillware doctor --category compliance", style=MENU_STYLE)
     console.print()
 
     console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
@@ -727,7 +861,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("2", "examples", "browse runnable scripts from examples/README.md"),
         ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
         ("4", "paths", "show skill directory resolution order and shadowing"),
-        ("5", "help", "usage guide for any command"),
+        ("5", "doctor", "check manifest deps and skill.py import readiness"),
+        ("6", "help", "usage guide for any command"),
     ]
 
     commands = {
@@ -739,7 +874,9 @@ def cmd_interactive(console=None, parser=None) -> None:
         "test": "test",
         "4": "paths",
         "paths": "paths",
-        "5": "help",
+        "5": "doctor",
+        "doctor": "doctor",
+        "6": "help",
         "help": "help",
     }
 
@@ -768,6 +905,10 @@ def cmd_interactive(console=None, parser=None) -> None:
             cmd_test(console=console)
         elif command == "paths":
             cmd_paths(console=console)
+        elif command == "doctor":
+            rc = cmd_doctor(console=console)
+            if rc:
+                console.print(f"  doctor exited with status {rc}", style="dim #FF9AA2")
         elif command == "help":
             cmd_help(console=console)
         else:
@@ -878,6 +1019,28 @@ def main() -> None:
         help="Override the skills directory path for this command only.",
     )
 
+    doctor_parser = subparsers.add_parser(
+        "doctor",
+        help="Check manifest deps and skill.py import readiness.",
+    )
+    doctor_parser.add_argument(
+        "skill_id",
+        nargs="?",
+        default=None,
+        help="Skill ID (category/skill_name) to diagnose.",
+    )
+    doctor_parser.add_argument(
+        "--skills-root",
+        type=Path,
+        default=None,
+        help="Override the skills directory path.",
+    )
+    doctor_parser.add_argument(
+        "--category",
+        default=None,
+        help="Diagnose all skills in a category.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -905,6 +1068,14 @@ def main() -> None:
         )
     elif args.command == "paths":
         raise SystemExit(cmd_paths(skills_root_override=args.skills_root))
+    elif args.command == "doctor":
+        raise SystemExit(
+            cmd_doctor(
+                skills_root_override=args.skills_root,
+                skill_id=args.skill_id,
+                category=args.category,
+            )
+        )
     else:
         cmd_interactive(parser=parser)
 

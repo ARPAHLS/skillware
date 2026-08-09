@@ -12,7 +12,10 @@ from skillware.cli import (
     _short_description,
     cmd_help,
     cmd_paths,
+    cmd_doctor,
 )
+
+import importlib.util
 
 import pytest
 
@@ -257,11 +260,11 @@ def test_cmd_help_includes_list_examples(capsys):
 
 
 def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
-    """Interactive menu option 5 / help should call cmd_help."""
+    """Interactive menu option 6 / help should call cmd_help."""
     import io
     from rich.console import Console
 
-    responses = iter(["5", "q"])
+    responses = iter(["6", "q"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -679,6 +682,7 @@ def test_cmd_help_includes_paths_command():
     cmd_help(console=console)
     output = buf.getvalue()
     assert "skillware paths" in output
+    assert "skillware doctor" in output
     assert "available now" in output
     assert "coming soon" not in output.lower()
 
@@ -713,3 +717,96 @@ def test_interactive_paths_dispatches(monkeypatch):
     output = buf.getvalue()
     assert "Skill path resolution" in output
     assert "not yet implemented" not in output.lower()
+
+
+def test_interactive_doctor_dispatches(monkeypatch):
+    import io
+    from rich.console import Console
+
+    responses = iter(["5", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_interactive(console=console)
+
+    output = buf.getvalue()
+    assert "DEPS" in output
+    assert "LOAD" in output
+    assert "manifest requirements" in output.lower()
+
+
+def test_cmd_doctor_reports_ok_skill(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    skill_dir = tmp_path / "skills" / "office" / "demo"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: office/demo\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class DemoSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_doctor(skill_id="office/demo", console=console) == 0
+
+    output = buf.getvalue()
+    assert "office/demo" in output
+    assert " ok " in output or "ok" in output
+
+
+def test_cmd_doctor_reports_missing_deps(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    skill_dir = tmp_path / "skills" / "demo" / "needs_pkg"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/needs_pkg\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n"
+        "requirements:\n  - totally_missing_pkg_xyz\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class NeedsPkgSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name, package=None: None)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_doctor(skill_id="demo/needs_pkg", console=console) == 1
+
+    output = buf.getvalue()
+    assert "fail" in output
+    assert "demo/needs_pkg" in output
+
+
+def test_main_doctor_subcommand(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("skillware.cli.cmd_doctor", lambda **kwargs: 0)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "doctor", "office/demo"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
