@@ -236,6 +236,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 
 - Bundle: `manifest.yaml`, `skill.py`, `instructions.md`, `card.json`, `test_skill.py`, plus catalog docs
 - `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
+- `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and `org` optional; no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
@@ -252,7 +253,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - Require a framework feature issue; add tests under `tests/`
 - Do not change `loader.py` unless the issue requires it
 - Issuer metadata is not passed into LLM tool schemas today
-- Update `docs/usage/` when adapter behavior changes
+- Update `docs/usage/` when loader or adapter behavior changes (for example requirement validation, `registry_id`, identity warnings)
 
 ### Documentation
 
@@ -305,8 +306,8 @@ Complete the checklist that matches your issue during Stage 5.
 ### Core framework
 
 - [ ] Framework issue approved
-- [ ] Changes in `skillware/` and relevant `tests/`
-- [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings, `validate_params`)
+- [ ] Changes in `skillware/` and relevant `tests/` (for example `tests/test_loader.py`, `tests/test_requirements_check.py`)
+- [ ] Loader or API docs updated when behavior changes (e.g. `registry_id`, identity warnings, manifest requirement validation, `validate_params`)
 - [ ] `pytest tests/` passes
 - [ ] Usage docs updated if API changed
 - [ ] No undeclared breaking changes

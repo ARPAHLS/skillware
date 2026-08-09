@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Loader:** `SkillLoader.load_skill()` validates manifest `requirements` version specifiers (for example `web3>=6.0.0`) against installed package versions before loading `skill.py`; unpinned entries still require importability only (#14).
 - **GitHub**: New Skill Proposal template category dropdown synced with the registry (`creative`, `security`); added `creative` label (#279, #277).
 
 ## [0.4.8] - 2026-08-03

@@ -8,7 +8,7 @@ This page explains how Skillware resolves and executes skills on disk, and how y
 
 When you load a skill, Skillware executes that skill's skill.py in your host process. Import runs the module's top-level code immediately, and from that point the skill's code has the same reach your process has: the full filesystem and every environment variable in os.environ, including secrets and API keys.
 
-There is no isolation, no permission boundary, and no capability restriction around this execution. SkillLoader checks that a skill's declared requirements are importable, but it does not inspect, restrict, or sandbox what the code does. So the real decision each time you load a skill is: am I willing to hand this code my machine and my secrets?
+There is no isolation, no permission boundary, and no capability restriction around this execution. SkillLoader checks that a skill's declared requirements are importable and, when a manifest entry includes a version specifier, that the installed distribution satisfies it — but it does not inspect, restrict, or sandbox what the code does. So the real decision each time you load a skill is: am I willing to hand this code my machine and my secrets?
 
 The trust tiers in this document describe how much you should trust a skill's origin. They are not isolation levels. To be explicit: none of them are sandboxed today.
 
@@ -65,12 +65,13 @@ A skill's manifest.yaml can declare a constitution — a set of natural-language
 
 A constitution guides the agent (the LLM calling the skill). It does not constrain skill.py. Nothing in the loader enforces a constitution at the Python level — code that ignores every rule in the constitution loads and runs exactly the same. The constitution is a prompt-level norm, not a process-level boundary.
 
-The same distinction applies to other manifest fields. Declaring env_vars documents which variables a skill expects; it does not limit what the code can read. The loader's requirements check confirms that declared packages are importable; it does not inspect what the code does with them. In short:
+The same distinction applies to other manifest fields. Declaring env_vars documents which variables a skill expects; it does not limit what the code can read. The loader's requirements check confirms that declared packages are importable and, when a manifest entry includes a version specifier, that the installed distribution satisfies it — it does not inspect what the code does with them. In short:
 
 | constitution / manifest does | It does not |
 | :--- | :--- |
 | Tell the agent how the skill should be used | Sandbox or restrict skill.py |
 | Document expected env vars and dependencies | Limit which env vars or files the code can access |
+| Validate importability (and version pins when declared) before load | Enforce dependency versions by upgrading packages automatically |
 | Set norms reviewers and agents can rely on | Enforce those norms at runtime |
 
 ### Instruction-only content

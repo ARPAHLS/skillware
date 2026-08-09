@@ -5,7 +5,7 @@ Starter bundle under `skills/<category>/<skill_name>/`. Copy this template from 
 ## Before you submit
 
 1. **Rename** the folder to match your skill ID (e.g. `skills/finance/my_skill`).
-2. **Packaging**: Add empty `__init__.py` files in `skills/<category>/` (new categories only) and in your skill folder so PyPI wheels include the full bundle. List runtime packages in `manifest.yaml` `requirements`, then run `python scripts/sync_extras.py` to update optional extras in `pyproject.toml` (see [Install extras](../../docs/usage/install_extras.md)).
+2. **Packaging**: Add empty `__init__.py` files in `skills/<category>/` (new categories only) and in your skill folder so PyPI wheels include the full bundle. List runtime packages in `manifest.yaml` `requirements` (PEP 508; pin with `>=` when the skill needs a minimum version — see [Install extras](../../docs/usage/install_extras.md#loader-behavior)), then run `python scripts/sync_extras.py` to update optional extras in `pyproject.toml`.
 3. **`manifest.yaml`**: Set real `name` to the full registry ID (`category/skill_name`, matching the folder path), `version`, `description`, `short_description`, `parameters`, `constitution`, and `issuer` (`name` + `email` required; `github` / `org` optional). `SkillLoader.load_skill()` warns when `name` diverges from the path under registry layout; flat private layouts (`skills/<skill_name>/`) are not validated.
 4. **`skill.py`**: Implement deterministic logic with exactly one `BaseSkill` subclass (loaded as `bundle["class"]`); no LLM-generated code in the skill body.
 5. **`instructions.md`**: Tell the agent when and how to use the tool.

@@ -53,6 +53,86 @@ def test_load_skill_missing_requirements_suggests_skill_extra(monkeypatch):
         SkillLoader.load_skill("compliance/mica_module")
 
 
+def test_load_skill_unpinned_requirement_ignores_installed_version(
+    tmp_path, monkeypatch
+):
+    """Unpinned manifest deps only require importability, not a version match."""
+    skill_dir = tmp_path / "skills" / "demo" / "unpinned"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/unpinned\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n"
+        "requirements:\n  - demo_pkg\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class UnpinnedSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        importlib.util, "find_spec", lambda name, package=None: object()
+    )
+
+    bundle = SkillLoader.load_skill("demo/unpinned")
+    assert bundle["manifest"]["name"] == "demo/unpinned"
+
+
+def test_load_skill_rejects_unsatisfied_version_specifier(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "demo" / "pinned"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/pinned\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n"
+        "requirements:\n  - demo_pkg>=2.0.0\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class PinnedSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        importlib.util, "find_spec", lambda name, package=None: object()
+    )
+    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "1.0.0")
+
+    with pytest.raises(ImportError, match="unsatisfied version requirements"):
+        SkillLoader.load_skill("demo/pinned")
+
+
+def test_load_skill_accepts_satisfied_version_specifier(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "demo" / "pinned_ok"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/pinned_ok\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n"
+        "requirements:\n  - demo_pkg>=2.0.0\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class PinnedOkSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        importlib.util, "find_spec", lambda name, package=None: object()
+    )
+    monkeypatch.setattr("skillware.core.extras.version", lambda _name: "2.1.0")
+
+    bundle = SkillLoader.load_skill("demo/pinned_ok")
+    assert bundle["class"].__name__ == "PinnedOkSkill"
+
+
 def test_load_skill_class_is_instantiable():
     bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
     skill = bundle["class"]()

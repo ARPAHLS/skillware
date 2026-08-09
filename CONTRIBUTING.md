@@ -229,7 +229,7 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 - `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
 - `parameters` — valid JSON Schema for LLM tool calling
 - `constitution` — safety boundaries enforced at the prompt level
-- `requirements` — when external packages are needed (for example `requests`, `pandas`)
+- `requirements` — when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version — `SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
 
 **Optional but common:**
 
@@ -308,6 +308,8 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 **Manifest `requirements` and optional extras**
 
 - List runtime packages in the skill's `manifest.yaml` `requirements` (source of truth for loaders and docs).
+- **Unpinned** entries (for example `requests`) — loader checks the importable module exists.
+- **Pinned** entries (for example `rembg>=2.0.0`) — loader also verifies the installed distribution satisfies the specifier before `skill.py` runs. Pin when API or behavior breaks across versions; unpinned is fine for stable deps.
 - Run `python scripts/sync_extras.py` after changing manifests — it regenerates category, per-skill, and `[all]` rows in `pyproject.toml` (see [Install extras](docs/usage/install_extras.md)).
 - Core already includes `requests`, `pyyaml`, and `beautifulsoup4` (manifests may say `bs4`); the sync script omits core packages from extras automatically.
 - Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `agents`) stay above the generated block in `pyproject.toml`.
