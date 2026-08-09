@@ -615,7 +615,6 @@ def _diagnose_skill(
             execute_module=False,
             check_requirements=True,
         )
-        deps_status = "ok"
     except ImportError as exc:
         detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
         return "fail", "skip", detail
