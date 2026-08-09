@@ -145,11 +145,18 @@ pip install "skillware[gemini]"
 
 ## Loader behavior
 
-When `SkillLoader.load_skill(..., check_requirements=True)` (default) finds manifest `requirements` that are not importable, it raises `ImportError` with:
+When `SkillLoader.load_skill(..., check_requirements=True)` (default) validates manifest `requirements`:
 
-1. The missing package names
+1. **Unpinned** entries (for example `requests`) — the importable module must exist.
+2. **Pinned** entries (for example `web3>=6.0.0`) — the module must exist and the installed distribution version must satisfy the specifier.
+
+On failure it raises `ImportError` with:
+
+1. Missing packages and/or version mismatches (required spec vs installed)
 2. Suggested `pip install "skillware[<category>_<skill>]"`
 3. Category and `[all]` fallbacks
+
+The loader does not install or upgrade packages — use pip extras or install the requirement strings yourself.
 
 Packaging smoke tests use `check_requirements=False` so a base wheel install can verify bundles without optional extras ([TESTING.md](../TESTING.md#packaging-smoke-test)).
 

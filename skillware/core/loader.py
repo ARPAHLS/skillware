@@ -18,7 +18,7 @@ from skillware.core.discovery import (
     get_skill_roots,
     is_skill_dir,
 )
-from skillware.core.extras import build_missing_requirements_message
+from skillware.core.extras import check_manifest_requirements
 
 SKILLWARE_SKILL_PATH_ENV = _discovery.SKILLWARE_SKILL_PATH_ENV
 
@@ -27,27 +27,11 @@ class SkillwareIdentityWarning(UserWarning):
     """Emitted when manifest.name does not match the registry folder path (warn-only in v1)."""
 
 
-# PyPI distribution names that differ from their import paths.
-_REQUIREMENT_IMPORT_ALIASES = {
-    "google-genai": "google.genai",
-    "google-generativeai": "google.generativeai",
-    "pymupdf": "fitz",
-    "beautifulsoup4": "bs4",
-    "pyyaml": "yaml",
-    "pillow": "PIL",
-}
-
-
 class SkillLoader:
     """
     Utility to load skills dynamically or by path, bundling their
     manifests, instructions, and logic for LLM usage.
     """
-
-    @staticmethod
-    def _requirement_import_name(requirement: str) -> str:
-        pkg_name = requirement.split(">")[0].split("<")[0].split("=")[0].strip()
-        return _REQUIREMENT_IMPORT_ALIASES.get(pkg_name, pkg_name)
 
     @staticmethod
     def _is_skill_dir(path: Path) -> bool:
@@ -217,16 +201,11 @@ class SkillLoader:
 
         # Check Dependencies
         if check_requirements and "requirements" in manifest:
-            missing = []
-            for req in manifest["requirements"]:
-                import_name = SkillLoader._requirement_import_name(req)
-                if not importlib.util.find_spec(import_name):
-                    missing.append(req)
-
-            if missing:
-                raise ImportError(
-                    build_missing_requirements_message(manifest, registry_id, missing)
-                )
+            check_manifest_requirements(
+                manifest["requirements"],
+                registry_id=registry_id,
+                manifest=manifest,
+            )
 
         # Load Instructions
         instructions = ""
