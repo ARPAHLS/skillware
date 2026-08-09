@@ -29,6 +29,41 @@ def test_load_skill_registry_has_manifest():
     assert SkillLoader.get_skill_class(bundle) is bundle["class"]
 
 
+def test_load_skill_inspect_mode_skips_module_exec():
+    bundle = SkillLoader.load_skill(
+        "optimization/prompt_rewriter",
+        execute_module=False,
+    )
+    assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
+    assert bundle["instructions"]
+    assert bundle["module"] is None
+    assert bundle["class"] is None
+    with pytest.raises(KeyError, match="execute_module=True"):
+        SkillLoader.get_skill_class(bundle)
+
+
+def test_load_skill_module_import_error_after_preflight(tmp_path, monkeypatch):
+    skill_dir = tmp_path / "skills" / "demo" / "hidden_import"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/hidden_import\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "import undeclared_hidden_pkg\n"
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class HiddenImportSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(ImportError, match="Manifest requirement pre-flight passed"):
+        SkillLoader.load_skill("demo/hidden_import")
+
+
 def test_load_skill_can_skip_requirement_check():
     """Packaging smoke installs base wheel only; optional extras may be absent."""
     bundle = SkillLoader.load_skill(

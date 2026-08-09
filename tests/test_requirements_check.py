@@ -84,3 +84,16 @@ def test_build_version_mismatch_message_includes_install_hint():
     assert "web3>=6.0.0" in message
     assert "5.31.0" in message
     assert "skillware[defi_evm_tx_handler]" in message
+
+
+def test_build_skill_module_import_error_includes_hint():
+    from skillware.core.extras import build_skill_module_import_error
+
+    message = build_skill_module_import_error(
+        {"name": "demo/skill"},
+        "demo/skill",
+        "/tmp/skill.py",
+        ModuleNotFoundError("No module named 'hidden_pkg'"),
+    )
+    assert "Manifest requirement pre-flight passed" in message
+    assert "skillware[demo_skill]" in message

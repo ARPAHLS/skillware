@@ -223,9 +223,10 @@ Pytest is configured to collect from `tests/` and `skills/` only (`examples/` is
 Before pushing your code, run the following commands:
 
 1. `skillware list` (verify install and path resolution)
-2. `python -m black --check .` (verify formatting; use `python -m black .` to fix)
-3. `python -m flake8 .` (check quality)
-4. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
-5. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
-6. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
-7. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill
+2. `skillware doctor` (optional — check manifest deps and skill.py import readiness)
+3. `python -m black --check .` (verify formatting; use `python -m black .` to fix)
+4. `python -m flake8 .` (check quality)
+5. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
+6. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
+7. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
+8. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill

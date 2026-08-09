@@ -158,6 +158,8 @@ On failure it raises `ImportError` with:
 
 The loader does not install or upgrade packages — use pip extras or install the requirement strings yourself.
 
+Use `SkillLoader.load_skill(..., execute_module=False)` for inspect-only loads (manifest, instructions, card, and optional requirement pre-flight) without executing `skill.py`. The CLI `skillware doctor` command uses this mode for the **DEPS** column before attempting a full import for **LOAD**.
+
 Packaging smoke tests use `check_requirements=False` so a base wheel install can verify bundles without optional extras ([TESTING.md](../TESTING.md#packaging-smoke-test)).
 
 ## Contributors

@@ -16,7 +16,7 @@ By default, `SkillLoader.load_skill()` validates manifest `requirements` before 
 
 > **Security:** Loading a skill executes its `skill.py` in your process — there is no sandbox, and the first matching id in the search order wins (a local skill can shadow a bundled one). Only load skills you trust, and see the [skill trust model](../security/skill-trust-model.md) before loading external skills.
 
-To list locally available skills, inspect path resolution, or run bundle tests from the terminal, see the [CLI reference](cli.md) (`skillware list`, `skillware paths`, `skillware test`).
+To list locally available skills, inspect path resolution, check load readiness, or run bundle tests from the terminal, see the [CLI reference](cli.md) (`skillware list`, `skillware paths`, `skillware doctor`, `skillware test`).
 
 | Provider | Adapter | Guide | Agent API key (typical) |
 | :--- | :--- | :--- | :--- |
@@ -26,7 +26,7 @@ To list locally available skills, inspect path resolution, or run bundle tests f
 | OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
-| CLI | `skillware list`, `skillware paths`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
+| CLI | `skillware list`, `skillware paths`, `skillware doctor`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).

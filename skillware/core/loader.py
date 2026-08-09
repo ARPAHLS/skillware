@@ -18,7 +18,10 @@ from skillware.core.discovery import (
     get_skill_roots,
     is_skill_dir,
 )
-from skillware.core.extras import check_manifest_requirements
+from skillware.core.extras import (
+    build_skill_module_import_error,
+    check_manifest_requirements,
+)
 
 SKILLWARE_SKILL_PATH_ENV = _discovery.SKILLWARE_SKILL_PATH_ENV
 
@@ -167,18 +170,22 @@ class SkillLoader:
         skill_class = skill_bundle.get("class")
         if skill_class is None:
             raise KeyError(
-                "Skill bundle has no 'class' key; load with SkillLoader.load_skill() first."
+                "Skill bundle has no 'class' key; use SkillLoader.load_skill(..., "
+                "execute_module=True) (default) for a full load."
             )
         return skill_class
 
     @staticmethod
     def load_skill(
-        skill_path: str, *, check_requirements: bool = True
+        skill_path: str,
+        *,
+        check_requirements: bool = True,
+        execute_module: bool = True,
     ) -> Dict[str, Any]:
         """
         Loads a skill and returns a bundled object with:
-        - module: The loaded skill.py module
-        - class: The BaseSkill subclass (uninstantiated)
+        - module: The loaded skill.py module (``None`` when ``execute_module=False``)
+        - class: The BaseSkill subclass (``None`` when ``execute_module=False``)
         - manifest: The YAML metadata
         - instructions: The system prompt content
         - card: The UI card definition
@@ -186,6 +193,9 @@ class SkillLoader:
 
         Set ``check_requirements=False`` for packaging smoke tests that install
         the base wheel without optional skill extras (``[all]``, ``[defi]``, etc.).
+
+        Set ``execute_module=False`` for inspect-only loads (manifest, instructions,
+        card, and optional requirement pre-flight) without executing ``skill.py``.
         """
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
@@ -221,20 +231,38 @@ class SkillLoader:
             with open(card_path, "r", encoding="utf-8") as f:
                 card = json.load(f)
 
+        base_bundle = {
+            "manifest": manifest,
+            "instructions": instructions,
+            "card": card,
+            "registry_id": registry_id,
+        }
+
+        if not execute_module:
+            return {
+                **base_bundle,
+                "module": None,
+                "class": None,
+            }
+
         # Load Python Module
         skill_file = os.path.join(skill_path, "skill.py")
         spec = importlib.util.spec_from_file_location("skill_module", skill_file)
         if spec and spec.loader:
             module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+            try:
+                spec.loader.exec_module(module)
+            except ImportError as exc:
+                raise ImportError(
+                    build_skill_module_import_error(
+                        manifest, registry_id, skill_file, exc
+                    )
+                ) from exc
             skill_class = SkillLoader._discover_skill_class(module, skill_file)
             return {
+                **base_bundle,
                 "module": module,
                 "class": skill_class,
-                "manifest": manifest,
-                "instructions": instructions,
-                "card": card,
-                "registry_id": registry_id,
             }
         return {}
 

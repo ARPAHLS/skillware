@@ -8,6 +8,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Loader:** `SkillLoader.load_skill(..., execute_module=False)` inspect-only load (manifest, instructions, card, requirement pre-flight) without executing `skill.py`; clearer `ImportError` when `skill.py` import fails after pre-flight (#235).
+- **CLI:** `skillware doctor` checks manifest deps and `skill.py` import readiness per skill (`DEPS` / `LOAD` table); optional skill ID, `--category`, and `--skills-root` (#235).
+
 ### Changed
 
 - **Loader:** `SkillLoader.load_skill()` validates manifest `requirements` version specifiers (for example `web3>=6.0.0`) against installed package versions before loading `skill.py`; unpinned entries still require importability only (#14).

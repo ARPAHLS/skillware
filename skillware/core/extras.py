@@ -260,6 +260,36 @@ def build_missing_requirements_message(
     return "\n".join(lines)
 
 
+def build_skill_module_import_error(
+    manifest: Mapping[str, object],
+    registry_id: Optional[str],
+    skill_file: str,
+    exc: BaseException,
+) -> str:
+    """Build a diagnostic when skill.py import fails after manifest pre-flight."""
+    skill_name = str(manifest.get("name") or registry_id or "unknown")
+    lines = [
+        f"Skill '{skill_name}' failed while importing {skill_file}: {exc}",
+        "",
+        "Manifest requirement pre-flight passed; this error usually means",
+        "skill.py imports a package that is missing from manifest requirements",
+        "or is not installed in the current environment.",
+        "",
+    ]
+    missing_name = getattr(exc, "name", None)
+    if missing_name:
+        lines.append(f"Missing module: {missing_name}")
+        lines.append("")
+    hints = _pip_install_hints(registry_id)
+    if hints:
+        lines.extend(hints)
+    else:
+        lines.append(
+            "Add the package to manifest requirements and reinstall extras."
+        )
+    return "\n".join(lines)
+
+
 def build_version_mismatch_message(
     manifest: Mapping[str, object],
     registry_id: Optional[str],
