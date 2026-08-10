@@ -36,6 +36,7 @@ After installation, the `skillware` command is available directly:
     skillware
     skillware list
     skillware doctor
+    skillware config show
     skillware test
     skillware examples
     skillware --version
@@ -208,7 +209,7 @@ Show where Skillware looks for skills — same order as `SkillLoader.load_skill(
 | :--- | :--- |
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
 
-Read-only in v0.4.x; persist project/external paths via config is tracked in #246. Interactive menu: **`4` / `paths`**.
+Read-only in v0.4.x. Interactive menu: **`4` / `paths`**.
 
 ### skillware doctor
 
@@ -234,20 +235,59 @@ Exit code is non-zero when any skill fails **DEPS** or **LOAD**. For full bundle
 
 Interactive menu: **`5` / `doctor`**.
 
+### skillware config
+
+Show merged global + project Skillware configuration (read-only). The `paths` section is active today; other top-level keys are preserved for future settings (themes, chains, etc.).
+
+    skillware config show
+
+**Global config:** `~/.config/skillware/config.yaml` (Linux/macOS), `%APPDATA%/skillware/config.yaml` (Windows), or override with `SKILLWARE_CONFIG_DIR`.
+
+**Project config:** `.skillware.yaml` in the repository root (walks up from cwd). See [`.skillware.yaml.example`](../../.skillware.yaml.example).
+
+Example project file:
+
+```yaml
+paths:
+  project: auto
+  external:
+    - /path/to/private-skills
+resolution:
+  order:
+    - project
+    - external
+    - bundled
+legacy:
+  honor_skillware_skill_path: true
+```
+
+When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled.
+
 ## Path resolution
 
-`skillware list` searches for skills in the same order as `SkillLoader`:
+`skillware list`, `load_skill`, `test`, and `doctor` share the same roots as `SkillLoader`.
+
+**Without config files (default):**
 
 1. Roots listed in `SKILLWARE_SKILL_PATH` (OS path separator between multiple entries)
 2. A `skills/` directory under the current working directory and its parents
 3. Bundled skills installed with the `skillware` package
 
-Run `skillware paths` for a live view of resolved roots, tiers, and shadowing.
+**With `.skillware.yaml` and/or global config:**
 
-To point the CLI at a persistent custom root, set the environment variable:
+1. Tiers in `resolution.order` (default: project → external → bundled)
+2. `paths.project`: `auto` (same walk as above) or an explicit directory
+3. `paths.external`: persisted private/proprietary skill roots
+4. Bundled registry always last-resort fallback (always on)
+
+Run `skillware paths` for a live view of resolved roots, tiers, and shadowing. Run `skillware config show` for merged YAML settings.
+
+To point the CLI at custom roots without config files:
 
     export SKILLWARE_SKILL_PATH=/path/to/my/skills
     skillware list
+
+Or copy `.skillware.yaml.example` to `.skillware.yaml` and list paths under `paths.external`.
 
 Only skills with both `manifest.yaml` and `skill.py` present are shown —
 the same condition `SkillLoader` requires to load a skill successfully.

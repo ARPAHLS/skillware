@@ -8,12 +8,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from skillware.core.config import PathsSettings, SkillwareConfig, load_merged_config
+
 SKILLWARE_SKILL_PATH_ENV = "SKILLWARE_SKILL_PATH"
 _MAX_PARENT_WALK = 6
 
 
 class SkillRootTier(str, Enum):
-    """Provenance tier for a filesystem skills root (aligned with trust doc / #234)."""
+    """Provenance tier for a filesystem skills root (see skill trust model doc)."""
 
     EXTERNAL = "external"
     PROJECT = "project"
@@ -119,6 +121,116 @@ def bundled_skill_root(*, include_missing: bool = False) -> SkillRoot:
     )
 
 
+def _external_roots_from_config(
+    paths: PathsSettings, *, include_missing: bool = False
+) -> List[SkillRoot]:
+    roots: List[SkillRoot] = []
+    seen: set[str] = set()
+
+    for entry in paths.external:
+        path = Path(entry).expanduser()
+        resolved = path.resolve() if path.exists() else path
+        key = str(resolved)
+        if key in seen:
+            continue
+        exists = path.is_dir()
+        if exists or include_missing:
+            seen.add(key)
+            roots.append(
+                SkillRoot(
+                    path=resolved,
+                    tier=SkillRootTier.EXTERNAL,
+                    source="config paths.external",
+                    exists=exists,
+                )
+            )
+
+    if paths.honor_skillware_skill_path:
+        for root in env_skill_roots(include_missing=include_missing):
+            key = str(root.path)
+            if key in seen:
+                continue
+            seen.add(key)
+            roots.append(root)
+
+    return roots
+
+
+def _project_roots_from_config(
+    paths: PathsSettings, *, include_missing: bool = False
+) -> List[SkillRoot]:
+    if paths.project_is_auto():
+        return cwd_skill_roots(include_missing=include_missing)
+
+    path = Path(str(paths.project)).expanduser()
+    resolved = path.resolve() if path.exists() else path
+    exists = path.is_dir()
+    if exists or include_missing:
+        return [
+            SkillRoot(
+                path=resolved,
+                tier=SkillRootTier.PROJECT,
+                source="config paths.project",
+                exists=exists,
+            )
+        ]
+    return []
+
+
+def _configured_skill_roots(
+    config: SkillwareConfig, *, include_missing: bool = False
+) -> List[SkillRoot]:
+    paths = config.paths
+    tier_builders = {
+        SkillRootTier.PROJECT: lambda: _project_roots_from_config(
+            paths, include_missing=include_missing
+        ),
+        SkillRootTier.EXTERNAL: lambda: _external_roots_from_config(
+            paths, include_missing=include_missing
+        ),
+        SkillRootTier.BUNDLED: lambda: [bundled_skill_root(include_missing=True)],
+    }
+
+    roots: List[SkillRoot] = []
+    seen: set[str] = set()
+    for tier_name in paths.resolution_order:
+        try:
+            tier = SkillRootTier(tier_name)
+        except ValueError:
+            continue
+        builder = tier_builders.get(tier)
+        if builder is None:
+            continue
+        for root in builder():
+            key = str(root.path)
+            if key in seen:
+                continue
+            if root.exists or include_missing:
+                seen.add(key)
+                roots.append(root)
+
+    return roots
+
+
+def _legacy_skill_roots(*, include_missing: bool = False) -> List[SkillRoot]:
+    roots: List[SkillRoot] = []
+    seen: set[str] = set()
+
+    for root in (
+        env_skill_roots(include_missing=include_missing)
+        + cwd_skill_roots(include_missing=include_missing)
+        + [bundled_skill_root(include_missing=True)]
+    ):
+        key = str(root.path)
+        if key in seen:
+            continue
+        if root.exists or include_missing:
+            seen.add(key)
+            roots.append(root)
+
+    return roots
+
+
 def get_skill_roots(
     skills_root_override: Optional[Path] = None,
     *,
@@ -127,12 +239,16 @@ def get_skill_roots(
     """
     Return skill roots in loader resolution order.
 
-    When ``for_display`` is False (default), only existing directories are
-    returned — used by ``list``, ``test``, and ``load_skill``.
+    When no global or project config file exists, uses legacy resolution:
+    ``SKILLWARE_SKILL_PATH`` → cwd ``./skills/`` walk → bundled.
 
-    When ``for_display`` is True (``skillware paths``), configured env entries
-    and the bundled root are shown even when missing so operators can diagnose
-    misconfiguration.
+    When config files exist, uses merged YAML (global then project) with
+    ``resolution.order`` (default: project → external → bundled). Bundled is
+    always included. Set ``legacy.honor_skillware_skill_path: false`` to ignore
+    the env var when config is active.
+
+    When ``for_display`` is True (``skillware paths``), missing configured
+    directories are listed so operators can diagnose misconfiguration.
     """
     if skills_root_override is not None:
         exists = skills_root_override.is_dir()
@@ -152,20 +268,11 @@ def get_skill_roots(
         return []
 
     include_missing = for_display
-    roots: List[SkillRoot] = []
-    seen: set[str] = set()
-
-    for root in (
-        env_skill_roots(include_missing=include_missing)
-        + cwd_skill_roots(include_missing=include_missing)
-        + [bundled_skill_root(include_missing=True)]
-    ):
-        key = str(root.path)
-        if key in seen:
-            continue
-        if root.exists or include_missing:
-            seen.add(key)
-            roots.append(root)
+    config = load_merged_config()
+    if config.has_config_files:
+        roots = _configured_skill_roots(config, include_missing=include_missing)
+    else:
+        roots = _legacy_skill_roots(include_missing=include_missing)
 
     if for_display:
         return roots
@@ -227,18 +334,55 @@ def collect_search_paths_for_skill_id(skill_id: str) -> List[str]:
 
 def build_skill_not_found_message(skill_id: str) -> str:
     """Operator-facing error text aligned with ``skillware paths`` output."""
+    config = load_merged_config()
     searched = collect_search_paths_for_skill_id(skill_id)
     lines = [
         f"Skill not found: {skill_id!r}. Searched:",
         *[f"  {path}" for path in searched],
-        f"Set {SKILLWARE_SKILL_PATH_ENV} or pass an absolute path to the skill directory.",
-        "Run `skillware paths` to inspect resolution order and shadowing.",
     ]
+    if config.has_config_files:
+        lines.append(
+            "Check paths in .skillware.yaml or global config "
+            "(skillware config show)."
+        )
+    else:
+        lines.append(
+            f"Set {SKILLWARE_SKILL_PATH_ENV}, add .skillware.yaml, "
+            "or pass an absolute path to the skill directory."
+        )
+    lines.append("Run `skillware paths` to inspect resolution order and shadowing.")
     return "\n".join(lines)
 
 
 def resolution_order_summary() -> List[Tuple[str, str]]:
     """Short tier descriptions for docs and CLI help."""
+    config = load_merged_config()
+    if config.has_config_files:
+        order = " → ".join(config.paths.resolution_order)
+        return [
+            (
+                "Config",
+                f"Merged from {len(config.layers)} file(s); order: {order}",
+            ),
+            (
+                "Project",
+                "Explicit path or auto `./skills/` walk when tier is enabled",
+            ),
+            (
+                "External",
+                "Paths from config `paths.external`"
+                + (
+                    f" and {SKILLWARE_SKILL_PATH_ENV}"
+                    if config.paths.honor_skillware_skill_path
+                    else ""
+                ),
+            ),
+            (
+                "Bundled",
+                "Registry shipped inside the installed skillware package (always on)",
+            ),
+        ]
+
     return [
         (
             "External",

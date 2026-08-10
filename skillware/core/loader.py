@@ -115,9 +115,8 @@ class SkillLoader:
         or a registry skill id (category/skill_name).
 
         Search order when the path is not an existing skill directory:
-        1. SKILLWARE_SKILL_PATH entries (os.pathsep-separated roots)
-        2. ./skills/ under cwd and parent directories
-        3. Bundled skills shipped with the skillware package
+        Uses ``discovery.get_skill_roots()`` (env/cwd/bundled legacy, or merged
+        config when ``.skillware.yaml`` / global config exists).
         """
         raw = skill_path.strip()
         if not raw:

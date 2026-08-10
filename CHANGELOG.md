@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Config:** Persistent YAML configuration (global `config.yaml` and project `.skillware.yaml`); `paths` section drives skill root discovery when present; bundled registry always included (#246).
+- **CLI:** `skillware config show` prints merged configuration (read-only); `skillware paths` tips updated for config files (#246).
 - **Loader:** `SkillLoader.load_skill(..., execute_module=False)` inspect-only load (manifest, instructions, card, requirement pre-flight) without executing `skill.py`; clearer `ImportError` when `skill.py` import fails after pre-flight (#235).
 - **CLI:** `skillware doctor` checks manifest deps and `skill.py` import readiness per skill (`DEPS` / `LOAD` table); optional skill ID, `--category`, and `--skills-root` (#235).
 
