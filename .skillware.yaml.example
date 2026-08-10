@@ -1,0 +1,32 @@
+# Example Skillware configuration.
+# Copy to .skillware.yaml in your repository root (or use global config.yaml).
+#
+# Global config (optional):
+#   Linux/macOS: ~/.config/skillware/config.yaml
+#   Windows:     %APPDATA%/skillware/config.yaml
+#
+# The bundled registry from `pip install skillware` is always available.
+
+paths:
+  # auto = walk up from cwd for ./skills/ (default)
+  # Or set an explicit skills root directory:
+  project: auto
+  external:
+    # - /path/to/private-skills
+    []
+
+resolution:
+  order:
+    - project
+    - external
+    - bundled
+
+legacy:
+  # When true, SKILLWARE_SKILL_PATH is merged as external roots (default).
+  honor_skillware_skill_path: true
+
+# Reserved for future releases (ignored today; preserved by skillware config show):
+# theme:
+#   preset: default
+# chains:
+#   default: []

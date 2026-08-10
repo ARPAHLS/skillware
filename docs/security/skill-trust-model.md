@@ -14,19 +14,23 @@ The trust tiers in this document describe how much you should trust a skill's or
 
 ## 2. How skills are resolved on disk
 
-When you pass a registry id (for example finance/wallet_screening) rather than a path that already exists, the loader searches a fixed set of roots and uses the first match it finds, in this order:
+When you pass a registry id (for example finance/wallet_screening) rather than a path that already exists, the loader searches skill roots and uses the first match it finds.
+
+**Default (no config file):**
 
 1. SKILLWARE_SKILL_PATH — one or more roots, separated by your OS path separator.
-2. ./skills/ in the current working directory, and its parent directories — the loader walks up to six levels of parents looking for a skills/ directory.
+2. `./skills/` in the current working directory, and its parent directories (walk up to six levels).
 3. Bundled skills shipped inside the installed skillware package (for example under site-packages/skills/).
+
+**With config (`.skillware.yaml` or global `config.yaml`):** tiers follow `resolution.order` (default: project → external → bundled). Persist private roots under `paths.external`; set `paths.project` to `auto` or an explicit directory. Bundled registry skills are always included. See `skillware config show` and [CLI config](../usage/cli.md#skillware-config).
 
 If you pass a path that already points at a skill directory (absolute or relative to the current directory), the loader uses it directly and skips the search entirely.
 
 ### Shadowing
 
-Because the search stops at the first matching id, a skill earlier in the order shadows any skill with the same id later in the order. If a finance/wallet_screening exists under SKILLWARE_SKILL_PATH or in a local ./skills/, it is loaded instead of the bundled, maintainer-reviewed copy of the same id — and the bundled copy never runs.
+Because the search stops at the first matching id, a skill earlier in the order shadows any skill with the same id later in the order. If a finance/wallet_screening exists under project or external paths before bundled, it is loaded instead of the bundled, maintainer-reviewed copy — and the bundled copy never runs.
 
-Run `skillware paths` to see which roots are active and which IDs shadow bundled registry skills.
+Run `skillware paths` and `skillware config show` to see which roots are active and which IDs shadow bundled registry skills.
 
 The practical consequence: placing a skill with the same id as an official one, anywhere earlier in the search order, silently replaces the official skill. Shadowing is a normal feature of the resolution order, but it means the id you ask for does not by itself tell you which code will run — the location does.
 

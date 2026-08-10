@@ -17,6 +17,13 @@ from rich import box
 import importlib.metadata
 
 from skillware.core.loader import SkillLoader
+from skillware.core.config import (
+    GLOBAL_CONFIG_FILENAME,
+    PROJECT_CONFIG_FILENAME,
+    format_config_sources,
+    global_config_path,
+    load_merged_config,
+)
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
     find_shadow_conflicts,
@@ -478,7 +485,7 @@ def cmd_paths(
     skills_root_override: Optional[Path] = None,
     console=None,
 ) -> int:
-    """Show skill root resolution order, tiers, and shadowing (read-only; #246 adds config)."""
+    """Show skill root resolution order, tiers, and shadowing (read-only config via skillware config show)."""
     if console is None:
         console = Console()
 
@@ -550,21 +557,85 @@ def cmd_paths(
         style=MENU_STYLE,
     )
     console.print(
-        f"  • Persistent external roots: export {SKILLWARE_SKILL_PATH_ENV}=/path/to/skills",
+        f"  • Persistent paths: {PROJECT_CONFIG_FILENAME} or {global_config_path()}",
         style=MENU_STYLE,
     )
+    console.print(
+        f"  • Legacy env override: export {SKILLWARE_SKILL_PATH_ENV}=/path/to/skills",
+        style=MENU_STYLE,
+    )
+    console.print("  • Inspect merged config: skillware config show", style=MENU_STYLE)
     console.print(
         "  • Trust tiers: docs/security/skill-trust-model.md",
         style=f"dim {SPLASH_STYLE}",
     )
     console.print(
-        "  • Persist project/external paths in config: tracked in #246",
-        style="dim",
-    )
-    console.print(
         "  • Flat-layout skills (<root>/<name>/) load but may not appear in list",
         style="dim",
     )
+    return 0
+
+
+def cmd_config_show(console=None) -> int:
+    """Print merged global + project configuration (read-only)."""
+    if console is None:
+        console = Console()
+
+    config = load_merged_config(refresh=True)
+    paths = config.paths
+    console.print(Text("Skillware config", style=f"bold {TABLE_STYLE}"))
+    console.print()
+
+    console.print(Text("Config files", style=f"bold {TABLE_STYLE}"))
+    console.print(f"  Global (default): {global_config_path()}", style="dim")
+    for line in format_config_sources(config):
+        console.print(f"  Loaded: {line}", style=MENU_STYLE if config.layers else "dim")
+    console.print()
+
+    if not config.has_config_files:
+        console.print(
+            "No config files found — using legacy resolution "
+            f"({SKILLWARE_SKILL_PATH_ENV} → ./skills/ walk → bundled).",
+            style="dim",
+        )
+        console.print(
+            f"Create {PROJECT_CONFIG_FILENAME} or {GLOBAL_CONFIG_FILENAME} to persist settings.",
+            style="dim",
+        )
+        console.print(
+            "  docs/usage/cli.md#skillware-config", style=f"dim {SPLASH_STYLE}"
+        )
+        return 0
+
+    console.print(Text("paths (active)", style=f"bold {TABLE_STYLE}"))
+    project_label = paths.project if paths.project is not None else "auto"
+    console.print(f"  project: {project_label}", style=MENU_STYLE)
+    if paths.external:
+        console.print("  external:", style=MENU_STYLE)
+        for entry in paths.external:
+            console.print(f"    - {entry}", style="dim")
+    else:
+        console.print("  external: []", style=MENU_STYLE)
+
+    order = " → ".join(paths.resolution_order)
+    console.print(f"  resolution.order: {order}", style=MENU_STYLE)
+    console.print(
+        f"  legacy.honor_skillware_skill_path: {paths.honor_skillware_skill_path}",
+        style=MENU_STYLE,
+    )
+    console.print()
+
+    if config.extra:
+        console.print(Text("Other sections (reserved)", style=f"bold {TABLE_STYLE}"))
+        for key in sorted(config.extra):
+            console.print(f"  {key}: (present, not applied yet)", style="dim")
+        console.print()
+
+    console.print(
+        "Bundled registry is always included and cannot be removed via config.",
+        style="dim",
+    )
+    console.print("Edit YAML manually to change settings.", style="dim")
     return 0
 
 
@@ -743,6 +814,7 @@ def cmd_help(console=None) -> None:
     console.print("  skillware test <category/name> — run one skill bundle test")
     console.print("  skillware test --category <n> — run tests for a category")
     console.print("  skillware paths               — show skill root resolution")
+    console.print("  skillware config show         — show merged configuration")
     console.print("  skillware doctor              — check deps and skill.py import")
     console.print("  skillware doctor <id>         — diagnose one skill")
     console.print("  skillware doctor --category   — diagnose a category")
@@ -754,6 +826,7 @@ def cmd_help(console=None) -> None:
     console.print("  examples  available now", style=ID_STYLE)
     console.print("  test      available now", style=ID_STYLE)
     console.print("  paths     available now", style=ID_STYLE)
+    console.print("  config    available now (read-only)", style=ID_STYLE)
     console.print("  doctor    available now", style=ID_STYLE)
     console.print()
 
@@ -771,6 +844,7 @@ def cmd_help(console=None) -> None:
     console.print("  skillware examples compliance/tos_evaluator", style=MENU_STYLE)
     console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
     console.print("  skillware paths", style=MENU_STYLE)
+    console.print("  skillware config show", style=MENU_STYLE)
     console.print("  skillware doctor --category compliance", style=MENU_STYLE)
     console.print()
 
@@ -1041,6 +1115,16 @@ def main() -> None:
         help="Diagnose all skills in a category.",
     )
 
+    config_parser = subparsers.add_parser(
+        "config",
+        help="Show merged Skillware configuration (read-only).",
+    )
+    config_subparsers = config_parser.add_subparsers(dest="config_command")
+    config_subparsers.add_parser(
+        "show",
+        help="Print merged global and project YAML settings.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -1076,6 +1160,11 @@ def main() -> None:
                 category=args.category,
             )
         )
+    elif args.command == "config":
+        if args.config_command == "show":
+            raise SystemExit(cmd_config_show())
+        config_parser.print_help()
+        raise SystemExit(2)
     else:
         cmd_interactive(parser=parser)
 

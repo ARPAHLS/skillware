@@ -810,3 +810,19 @@ def test_main_doctor_subcommand(monkeypatch):
         assert exc.value.code == 0
     finally:
         sys.argv = argv
+
+
+def test_main_config_subcommand(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("skillware.cli.cmd_config_show", lambda **kwargs: 0)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "config", "show"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
