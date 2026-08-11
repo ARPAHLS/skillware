@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/instructions.md` to emphasize concise, append-only skill context over persona starters (#258, #284).
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
 
 ### Fixed
