@@ -97,8 +97,16 @@ The splash shows a gradient-styled **SKILLWARE** ASCII logo, a tagline in the
 form `Skillware v{version} — Skill Management Framework` (same version string
 as `skillware --version`), and dim footer links to the project site and
 repository. The menu accepts both number input (`1`) and command name (`list`).
-After each command completes, the menu re-prints automatically. Press `q` or
-`Ctrl+C` to exit.
+After each command completes, the menu re-prints automatically.
+
+**Navigation (all menu levels):**
+
+| Input | Action |
+| :--- | :--- |
+| `0` | Exit Skillware |
+| `b` / `back` | Return to the previous menu (submenus only) |
+| `q` | Same as `0` (exit) |
+| `Ctrl+C` | Exit from the main menu |
 
 Available commands:
 
@@ -107,9 +115,21 @@ Available commands:
 | `1` / `list` | List all locally installed skills | Available |
 | `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
-| `4` / `paths` | Show skill root resolution order, tiers, and shadowing | Available |
+| `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
 | `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
-| `6` / `help` | Print rich-formatted help with commands, flags, and examples | Available |
+| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, General) with doc links | Available |
+
+## Grouped help
+
+`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`6` / `help`**, then pick a topic (Skills, Examples, Paths, Config, …).
+
+| Group | Topics |
+| :--- | :--- |
+| **Skills** | `list`, `test`, `doctor` |
+| **Examples** | `examples` |
+| **Paths** | `paths`, interactive paths submenu |
+| **Config** | `config show` |
+| **General** | interactive menu, `--help`, `--version` |
 
 ## Commands
 
@@ -165,7 +185,7 @@ List runnable scripts indexed in `examples/README.md` (source of truth — the C
 | *(no args)* | All indexed scripts (script-first view) |
 | `<category>/<skill_name>` | Scripts linked to that skill ID only |
 
-Columns: Script, Skill ID(s), Provider, Required extra, and a **GITHUB** link to the script on `main` (for example `https://github.com/ARPAHLS/skillware/blob/main/examples/gemini_tos_evaluator.py`). Environment variables and longer notes stay in `examples/README.md`; a one-line pointer is printed below the table.
+Columns: Script, Skill ID(s), Provider, Required extra (pip extra name), and **GITHUB** — the script filename as a clickable link to `main` (ctrl+click; full URL not repeated in the cell). Environment variables and longer notes stay in `examples/README.md`; a one-line pointer is printed below the table.
 
 Unknown skill IDs exit with a helpful message and non-zero status.
 
@@ -209,7 +229,21 @@ Show where Skillware looks for skills — same order as `SkillLoader.load_skill(
 | :--- | :--- |
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
 
-Read-only in v0.4.x. Interactive menu: **`4` / `paths`**.
+Non-interactive `skillware paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (menu **`4` / `paths`**) or edit `.skillware.yaml` manually.
+
+#### Interactive paths submenu (menu `4`)
+
+| Input | Action |
+| :--- | :--- |
+| `1` / `view` | Same table as `skillware paths` (resolution, tiers, shadowing) |
+| `2` / `bundled` | Show bundled registry root (read-only; shipped with pip) |
+| `3` / `project` | Set `paths.project` to `auto` or an explicit directory (saved to `.skillware.yaml`) |
+| `4` / `external` | Add or remove `paths.external` entries (saved to project config) |
+| `5` / `shadows` | Shadowing summary only |
+| `6` / `flat` | List flat-layout skills (`<root>/<name>/`) that load but do not appear in `skillware list` |
+| `b` / `back` | Return to the main menu |
+
+Bundled registry paths cannot be edited. Global config (`~/.config/skillware/config.yaml`) is not modified by the submenu — use `skillware config show` to inspect merged settings.
 
 ### skillware doctor
 

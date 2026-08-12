@@ -7,9 +7,12 @@ import pytest
 from skillware.core.config import (
     GLOBAL_CONFIG_DIR_ENV,
     PROJECT_CONFIG_FILENAME,
+    PathsSettings,
     clear_config_cache,
     find_project_config_file,
     load_merged_config,
+    load_project_paths_settings,
+    save_project_config,
 )
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
@@ -206,3 +209,28 @@ def test_cmd_config_show_reports_no_files(tmp_path, monkeypatch):
     output = buf.getvalue()
     assert "No config files found" in output
     assert "legacy resolution" in output
+
+
+def test_save_project_config_persists_paths(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    external = tmp_path / "external-skills"
+    external.mkdir()
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
+
+    paths = PathsSettings(
+        project="auto",
+        external=[str(external.resolve())],
+    )
+    written = save_project_config(paths)
+    assert written == (repo / PROJECT_CONFIG_FILENAME).resolve()
+
+    clear_config_cache()
+    loaded = load_project_paths_settings()
+    assert loaded.project == "auto"
+    assert Path(loaded.external[0]) == external.resolve()
+
+    merged = load_merged_config(refresh=True)
+    assert merged.has_config_files
+    assert any(root.path == external.resolve() for root in get_skill_roots())

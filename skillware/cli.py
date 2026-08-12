@@ -1,4 +1,5 @@
 import argparse
+import builtins
 import re
 import subprocess
 import sys
@@ -12,6 +13,7 @@ import requests
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
+from rich.status import Status
 from rich import box
 
 import importlib.metadata
@@ -23,11 +25,16 @@ from skillware.core.config import (
     format_config_sources,
     global_config_path,
     load_merged_config,
+    load_project_paths_settings,
+    project_config_write_path,
+    save_project_config,
 )
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
+    bundled_skill_root,
     find_shadow_conflicts,
     get_skill_roots,
+    list_flat_layout_skill_names,
     list_registry_skill_ids,
     resolution_order_summary,
 )
@@ -41,6 +48,99 @@ BORDER_STYLE = "#C7CEEA"  # lavender  - table border
 SPLASH_STYLE = "#C7CEEA"  # lavender  - skillware splash color
 MENU_STYLE = "#FFDAC1"  # peach     - menu category
 
+_DOCS_CLI = "docs/usage/cli.md"
+_DOCS_CLI_LIST = f"{_DOCS_CLI}#skillware-list"
+_DOCS_CLI_EXAMPLES = f"{_DOCS_CLI}#skillware-examples"
+_DOCS_CLI_PATHS = f"{_DOCS_CLI}#skillware-paths"
+_DOCS_CLI_CONFIG = f"{_DOCS_CLI}#skillware-config"
+
+HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
+    (
+        "Skills",
+        [
+            ("skillware list", "discover installed registry skills"),
+            ("skillware list --category <n>", "filter by category"),
+            ("skillware list --issuer <h>", "filter by issuer"),
+            ("skillware list --examples", "per-skill example script counts"),
+            ("skillware list --skills-root <path>", "one-shot skills root override"),
+            ("skillware test [id]", "run bundle tests via pytest"),
+            ("skillware test --category <n>", "test all skills in a category"),
+            ("skillware doctor [id]", "check deps and skill.py import"),
+            ("skillware doctor --category <n>", "diagnose a category"),
+        ],
+        _DOCS_CLI_LIST,
+    ),
+    (
+        "Examples",
+        [
+            ("skillware examples", "list runnable scripts from examples/README.md"),
+            ("skillware examples <id>", "scripts for one skill ID"),
+        ],
+        _DOCS_CLI_EXAMPLES,
+    ),
+    (
+        "Paths",
+        [
+            ("skillware paths", "show resolution order, tiers, and shadowing"),
+            ("skillware paths --skills-root <path>", "one-shot root override"),
+            (
+                "skillware (menu 4 / paths)",
+                "interactive paths submenu — view, edit, diagnose",
+            ),
+        ],
+        _DOCS_CLI_PATHS,
+    ),
+    (
+        "Config",
+        [
+            ("skillware config show", "merged global + project YAML (read-only)"),
+        ],
+        _DOCS_CLI_CONFIG,
+    ),
+    (
+        "General",
+        [
+            ("skillware", "interactive menu (splash + numbered options)"),
+            ("skillware --help", "grouped command reference"),
+            ("skillware --version", "installed package version"),
+        ],
+        _DOCS_CLI,
+    ),
+]
+
+_PATHS_SUBMENU = [
+    ("1", "view", "show resolution order, tiers, and shadowing"),
+    ("2", "bundled", "view bundled registry root (read-only)"),
+    ("3", "project", "set project path (auto or explicit directory)"),
+    ("4", "external", "add or remove external skill roots"),
+    ("5", "shadows", "shadowing summary only"),
+    ("6", "flat", "diagnose flat-layout skills not shown in list"),
+]
+
+_NAV_EXIT = "exit"
+_NAV_BACK = "back"
+
+# Interactive help topics: (key, slug, summary, HELP_GROUPS index or special tag)
+_HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
+    ("1", "skills", "list, test, doctor", 0),
+    ("2", "examples", "indexed runnable scripts", 1),
+    ("3", "paths", "resolution and path editor", 2),
+    ("4", "config", "merged YAML settings", 3),
+    ("5", "general", "menu, help, version", 4),
+    ("6", "install", "pip install skillware", "install"),
+    ("7", "docs", "full CLI guide online", "docs"),
+    ("8", "interactive", "numbered splash menu", "interactive"),
+]
+
+_CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
+    "skillware list --category compliance",
+    "skillware list --examples --category dev_tools",
+    "skillware examples compliance/tos_evaluator",
+    "skillware test finance/wallet_screening",
+    "skillware paths",
+    "skillware config show",
+    "skillware doctor --category compliance",
+)
 SPLASH_GRADIENT_START = (0xD4, 0xE4, 0xF1)
 SPLASH_GRADIENT_MID = (0x79, 0xB6, 0xD8)
 SPLASH_GRADIENT_END = (0xEB, 0xD8, 0xDC)
@@ -88,6 +188,12 @@ def _examples_readme_display_path(source: _EXAMPLES_INDEX_SOURCE) -> str:
 def _example_github_url(script: str) -> str:
     """Canonical GitHub blob URL for an indexed example script."""
     return f"{_EXAMPLES_GITHUB_BLOB_BASE}/{script}"
+
+
+def _example_github_cell(script: str) -> Text:
+    """Compact clickable label for the examples table (full URL is the link target)."""
+    url = _example_github_url(script)
+    return Text.from_markup(f'[link="{url}" dim #C7CEEA]{script}[/link]')
 
 
 def _examples_readme_path() -> Optional[Path]:
@@ -461,16 +567,17 @@ def cmd_examples(
     table.add_column("SCRIPT", style=ID_STYLE, no_wrap=True, ratio=2)
     table.add_column("SKILL ID", style=CATEGORY_STYLE, ratio=2)
     table.add_column("PROVIDER", no_wrap=True, ratio=1)
-    table.add_column("EXTRA", style="dim", ratio=1)
-    table.add_column("GITHUB", style=f"dim {SPLASH_STYLE}", ratio=3)
+    table.add_column("EXTRA", style="dim", ratio=2)
+    table.add_column("GITHUB", style=f"dim {SPLASH_STYLE}", no_wrap=True, ratio=1)
 
     for row in rows:
+        script = row["script"]
         table.add_row(
-            row["script"],
+            script,
             ", ".join(row["skill_ids"]),
-            _flatten_table_cell(row["provider"], max_len=32),
-            _flatten_table_cell(row["extra"], max_len=28),
-            _example_github_url(row["script"]),
+            _flatten_table_cell(row["provider"], max_len=36),
+            _flatten_table_cell(row["extra"], max_len=48),
+            _example_github_cell(script),
         )
 
     console.print(table)
@@ -479,6 +586,369 @@ def cmd_examples(
         style="dim",
     )
     return 0
+
+
+def _read_line(prompt: str, input_fn=None) -> Optional[str]:
+    if input_fn is None:
+        input_fn = builtins.input
+    try:
+        return input_fn(prompt).strip()
+    except (KeyboardInterrupt, EOFError):
+        return None
+
+
+def _parse_nav(raw: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Parse menu input. Returns ``(choice, nav)`` where ``nav`` is ``_NAV_EXIT``,
+    ``_NAV_BACK``, or ``None`` for a normal command choice.
+    """
+    if raw is None:
+        return None, _NAV_BACK
+    text = raw.strip()
+    if not text:
+        return "", None
+    key = text.lower()
+    if key in ("0", "q", "quit", "exit"):
+        return None, _NAV_EXIT
+    if key in ("b", "back", "esc", "escape"):
+        return None, _NAV_BACK
+    return text, None
+
+
+def _print_nav_footer(console, *, show_back: bool = True) -> None:
+    console.print("  ---", style="dim")
+    if show_back:
+        console.print("  b — back to previous menu", style="dim")
+    console.print("  0 — exit Skillware", style="dim")
+    console.print()
+
+
+def _print_help_command_group(
+    console, group: Tuple[str, List[Tuple[str, str]], str]
+) -> None:
+    group_name, commands, doc_link = group
+    console.print(Text(group_name, style=f"bold {TABLE_STYLE}"))
+    for command, description in commands:
+        console.print(f"  {command} — {description}", style=MENU_STYLE)
+    console.print(f"  Read more: {doc_link}", style=f"dim {SPLASH_STYLE}")
+    console.print()
+
+
+def _print_help_index(console) -> None:
+    console.print(Text("Usage", style=f"bold {TABLE_STYLE}"))
+    console.print(
+        "  Run skillware and choose help (6) for full topic details.",
+        style="dim",
+    )
+    console.print()
+    console.print(Text("Topics", style=f"bold {TABLE_STYLE}"))
+    for key, slug, summary, _target in _HELP_MENU:
+        console.print(f"  {key} {slug:<12}— {summary}", style=MENU_STYLE)
+    console.print()
+
+
+def _print_cli_usage_examples(console) -> None:
+    console.print(Text("CLI usage examples", style=f"bold {TABLE_STYLE}"))
+    for line in _CLI_USAGE_EXAMPLES:
+        console.print(f"  {line}", style=MENU_STYLE)
+    console.print()
+
+
+def _print_help_static_topic(console, topic: str) -> None:
+    if topic == "install":
+        console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
+        console.print("  pip install skillware", style=MENU_STYLE)
+        console.print('  pip install -e ".[dev,all]"  # local development', style="dim")
+    elif topic == "docs":
+        console.print(Text("Docs", style=f"bold {TABLE_STYLE}"))
+        console.print(
+            "  https://github.com/arpahls/skillware/blob/main/docs/usage/cli.md",
+            style=f"dim {SPLASH_STYLE}",
+        )
+    elif topic == "interactive":
+        console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
+        console.print("  skillware — open splash menu", style=MENU_STYLE)
+        console.print("  1-6 or command name — run a command", style="dim")
+        console.print("  0 — exit from any menu level", style="dim")
+    console.print()
+
+
+def _print_help_groups(console, *, compact: bool = False) -> None:
+    """Print all help groups (legacy flat dump). Prefer cmd_help(brief=True)."""
+    console.print(Text("Usage", style=f"bold {TABLE_STYLE}"))
+    for group in HELP_GROUPS:
+        _print_help_command_group(console, group)
+
+
+def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
+    """Interactive help topics. Returns _NAV_EXIT to quit Skillware."""
+    if console is None:
+        console = Console()
+
+    topic_map = {key: target for key, _slug, _summary, target in _HELP_MENU}
+    topic_map.update({slug: target for key, slug, _summary, target in _HELP_MENU})
+
+    while True:
+        console.print(Text("Help", style=f"bold {TABLE_STYLE}"))
+        for key, slug, summary, _target in _HELP_MENU:
+            console.print(f"    [{key}] {slug:<12}— {summary}", style=MENU_STYLE)
+        _print_nav_footer(console, show_back=True)
+
+        raw = _read_line("  help> ", input_fn)
+        choice, nav = _parse_nav(raw)
+        if nav == _NAV_EXIT:
+            return _NAV_EXIT
+        if nav == _NAV_BACK:
+            return None
+        if not choice:
+            continue
+
+        target = topic_map.get(choice.lower())
+        if target is None:
+            console.print(f"  Unknown topic: '{choice}'", style="dim #FF9AA2")
+            console.print()
+            continue
+
+        if isinstance(target, int):
+            _print_help_command_group(console, HELP_GROUPS[target])
+        else:
+            _print_help_static_topic(console, target)
+
+        pause = _read_line("  Press Enter to return to help topics… ", input_fn)
+        _, pause_nav = _parse_nav(pause if pause else "")
+        if pause_nav == _NAV_EXIT:
+            return _NAV_EXIT
+        if pause_nav == _NAV_BACK:
+            continue
+        console.print()
+
+
+def _print_paths_submenu(console) -> None:
+    console.print(Text("Paths", style=f"bold {TABLE_STYLE}"))
+    console.print(
+        f"  Project config: {project_config_write_path()}",
+        style="dim",
+    )
+    console.print(
+        "  Bundled registry is read-only and always available.",
+        style="dim",
+    )
+    console.print()
+    for key, name, desc in _PATHS_SUBMENU:
+        console.print(f"    [{key}] {name:<10}— {desc}", style=MENU_STYLE)
+    _print_nav_footer(console, show_back=True)
+
+
+def _cmd_paths_show_bundled(console) -> None:
+    root = bundled_skill_root(include_missing=True)
+    console.print(Text("Bundled registry (read-only)", style=f"bold {TABLE_STYLE}"))
+    console.print(f"  path: {root.path}", style=MENU_STYLE)
+    console.print(f"  status: {'ok' if root.exists else 'missing'}", style="dim")
+    if root.exists:
+        skill_ids = list_registry_skill_ids(root.path)
+        console.print(f"  skills: {len(skill_ids)} registry IDs", style=MENU_STYLE)
+        for skill_id in skill_ids[:12]:
+            console.print(f"    - {skill_id}", style="dim")
+        if len(skill_ids) > 12:
+            console.print(f"    … and {len(skill_ids) - 12} more", style="dim")
+    console.print(
+        "  Bundled skills ship with pip install skillware and cannot be edited here.",
+        style="dim",
+    )
+
+
+def _cmd_paths_shadows_only(
+    console, skills_root_override: Optional[Path] = None
+) -> None:
+    roots = get_skill_roots(skills_root_override, for_display=True)
+    conflicts = find_shadow_conflicts(roots)
+    if not conflicts:
+        console.print("No shadowing detected across active roots.", style=MENU_STYLE)
+        return
+
+    console.print(Text("Shadowing (first root wins)", style=f"bold {TABLE_STYLE}"))
+    for conflict in conflicts[:30]:
+        console.print(
+            f"  {conflict.skill_id}: "
+            f"{conflict.winner.tier.value} at {conflict.winner.path} "
+            f"shadows {conflict.shadowed.tier.value} at {conflict.shadowed.path}",
+            style="bold #FF9AA2",
+        )
+    if len(conflicts) > 30:
+        console.print(f"  … and {len(conflicts) - 30} more", style="dim")
+
+
+def _cmd_paths_flat_diagnose(
+    console, skills_root_override: Optional[Path] = None
+) -> None:
+    roots = get_skill_roots(skills_root_override, for_display=True)
+    console.print(
+        Text("Flat-layout skills (loadable, not in list)", style=f"bold {TABLE_STYLE}")
+    )
+    found_any = False
+    for root in roots:
+        if not root.exists:
+            continue
+        flat_names = list_flat_layout_skill_names(root.path)
+        if not flat_names:
+            continue
+        found_any = True
+        console.print(
+            f"  {root.tier.value} @ {root.path}:",
+            style=MENU_STYLE,
+        )
+        for name in flat_names:
+            console.print(f"    - {name}/  (use absolute path or flat ID)", style="dim")
+    if not found_any:
+        console.print(
+            "  No flat-layout skills found under active roots.",
+            style="dim",
+        )
+    console.print(
+        "  Registry layout category/skill_name/ appears in skillware list.",
+        style="dim",
+    )
+
+
+def _cmd_paths_edit_project(console, input_fn=None) -> None:
+    paths = load_project_paths_settings()
+    current = paths.project if paths.project is not None else "auto"
+    console.print(f"  Current project path: {current}", style=MENU_STYLE)
+    console.print(
+        "  Enter 'auto', a directory path, or press Enter to keep.", style="dim"
+    )
+    raw = _read_line("  project> ", input_fn)
+    if raw is None:
+        console.print("  Cancelled.", style="dim")
+        return
+    if not raw:
+        return
+
+    if raw.lower() == "auto":
+        paths.project = "auto"
+    else:
+        candidate = Path(raw).expanduser()
+        if not candidate.is_dir():
+            console.print(f"  Not a directory: {candidate}", style="bold #FF9AA2")
+            return
+        paths.project = str(candidate.resolve())
+
+    target = save_project_config(paths)
+    console.print(f"  Saved project path to {target}", style=ID_STYLE)
+
+
+def _cmd_paths_edit_external(console, input_fn=None) -> None:
+    paths = load_project_paths_settings()
+    while True:
+        console.print(
+            Text("External paths (project config)", style=f"bold {TABLE_STYLE}")
+        )
+        if paths.external:
+            for index, entry in enumerate(paths.external, start=1):
+                console.print(f"    [{index}] {entry}", style=MENU_STYLE)
+        else:
+            console.print("    (none)", style="dim")
+        console.print("  [a] add  [r] remove  [Enter] done", style="dim")
+        raw = _read_line("  external> ", input_fn)
+        if raw is None:
+            console.print("  Cancelled.", style="dim")
+            return
+        if not raw:
+            return
+
+        choice = raw.lower()
+        if choice == "a":
+            path_raw = _read_line("  path> ", input_fn)
+            if path_raw is None:
+                console.print("  Cancelled.", style="dim")
+                return
+            if not path_raw:
+                continue
+            candidate = Path(path_raw).expanduser()
+            if not candidate.is_dir():
+                console.print(f"  Not a directory: {candidate}", style="bold #FF9AA2")
+                continue
+            resolved = str(candidate.resolve())
+            if resolved not in paths.external:
+                paths.external.append(resolved)
+                target = save_project_config(paths)
+                console.print(f"  Added and saved to {target}", style=ID_STYLE)
+            else:
+                console.print("  Path already listed.", style="dim")
+        elif choice == "r":
+            if not paths.external:
+                console.print("  Nothing to remove.", style="dim")
+                continue
+            index_raw = _read_line("  remove #> ", input_fn)
+            if index_raw is None:
+                console.print("  Cancelled.", style="dim")
+                return
+            try:
+                index = int(index_raw)
+            except ValueError:
+                console.print("  Enter a list number.", style="bold #FF9AA2")
+                continue
+            if index < 1 or index > len(paths.external):
+                console.print("  Invalid number.", style="bold #FF9AA2")
+                continue
+            removed = paths.external.pop(index - 1)
+            target = save_project_config(paths)
+            console.print(f"  Removed {removed}; saved to {target}", style=ID_STYLE)
+        else:
+            console.print("  Unknown choice.", style="dim #FF9AA2")
+
+
+def cmd_paths_submenu(
+    skills_root_override: Optional[Path] = None,
+    console=None,
+    input_fn=None,
+) -> Optional[str]:
+    """Interactive paths submenu (menu option 4). Returns _NAV_EXIT to quit Skillware."""
+    if console is None:
+        console = Console()
+
+    submenu_commands = {
+        "1": "view",
+        "view": "view",
+        "2": "bundled",
+        "bundled": "bundled",
+        "3": "project",
+        "project": "project",
+        "4": "external",
+        "external": "external",
+        "5": "shadows",
+        "shadows": "shadows",
+        "6": "flat",
+        "flat": "flat",
+    }
+
+    while True:
+        _print_paths_submenu(console)
+        raw = _read_line("  paths> ", input_fn)
+        choice, nav = _parse_nav(raw)
+        if nav == _NAV_EXIT:
+            return _NAV_EXIT
+        if nav == _NAV_BACK:
+            return None
+        if not choice:
+            continue
+
+        command = submenu_commands.get(choice.lower())
+        if command == "view":
+            cmd_paths(skills_root_override=skills_root_override, console=console)
+        elif command == "bundled":
+            _cmd_paths_show_bundled(console)
+        elif command == "project":
+            _cmd_paths_edit_project(console, input_fn=input_fn)
+        elif command == "external":
+            _cmd_paths_edit_external(console, input_fn=input_fn)
+        elif command == "shadows":
+            _cmd_paths_shadows_only(console, skills_root_override=skills_root_override)
+        elif command == "flat":
+            _cmd_paths_flat_diagnose(console, skills_root_override=skills_root_override)
+        elif command is None:
+            console.print(f"  Unknown choice: '{choice}'", style="dim #FF9AA2")
+        console.print()
 
 
 def cmd_paths(
@@ -635,7 +1105,10 @@ def cmd_config_show(console=None) -> int:
         "Bundled registry is always included and cannot be removed via config.",
         style="dim",
     )
-    console.print("Edit YAML manually to change settings.", style="dim")
+    console.print(
+        "Edit via interactive menu (paths) or YAML manually.",
+        style="dim",
+    )
     return 0
 
 
@@ -734,30 +1207,40 @@ def cmd_doctor(
     table.add_column("DETAIL", style="dim", ratio=4)
 
     failures = 0
-    for sid in sorted(skill_ids):
-        try:
-            deps_status, load_status, detail = _diagnose_skill(
-                sid, skills_root_override=skills_root_override
+    rows: List[Tuple[str, Text, Text, str]] = []
+    spinner_label = (
+        f"Diagnosing {len(skill_ids)} skill(s)…"
+        if len(skill_ids) != 1
+        else f"Diagnosing {skill_ids[0]}…"
+    )
+    with Status(spinner_label, console=console, spinner="dots"):
+        for sid in sorted(skill_ids):
+            try:
+                deps_status, load_status, detail = _diagnose_skill(
+                    sid, skills_root_override=skills_root_override
+                )
+            except FileNotFoundError as exc:
+                console.print(str(exc), style="bold #FF9AA2")
+                return 1
+
+            if deps_status != "ok" or load_status == "fail":
+                failures += 1
+
+            deps_cell = Text(
+                deps_status,
+                style=ID_STYLE if deps_status == "ok" else "bold #FF9AA2",
             )
-        except FileNotFoundError as exc:
-            console.print(str(exc), style="bold #FF9AA2")
-            return 1
+            if load_status == "skip":
+                load_cell = Text("—", style="dim")
+            elif load_status == "ok":
+                load_cell = Text(load_status, style=ID_STYLE)
+            else:
+                load_cell = Text(load_status, style="bold #FF9AA2")
 
-        if deps_status != "ok" or load_status == "fail":
-            failures += 1
+            rows.append((sid, deps_cell, load_cell, detail or "—"))
 
-        deps_cell = Text(
-            deps_status,
-            style=ID_STYLE if deps_status == "ok" else "bold #FF9AA2",
-        )
-        if load_status == "skip":
-            load_cell = Text("—", style="dim")
-        elif load_status == "ok":
-            load_cell = Text(load_status, style=ID_STYLE)
-        else:
-            load_cell = Text(load_status, style="bold #FF9AA2")
-
-        table.add_row(sid, deps_cell, load_cell, detail or "—")
+    for sid, deps_cell, load_cell, detail in rows:
+        table.add_row(sid, deps_cell, load_cell, detail)
 
     console.print(table)
     console.print(
@@ -768,95 +1251,68 @@ def cmd_doctor(
     return 1 if failures else 0
 
 
-def _prompt_examples_skill_id(console) -> Tuple[Optional[str], bool]:
-    """Return (skill_id or None for all, should_run)."""
-    try:
-        raw = input("  skill id (optional, Enter for all): ").strip()
-    except (KeyboardInterrupt, EOFError):
-        console.print("\n  Cancelled.", style="dim")
-        return None, False
-    if not raw:
-        return None, True
-    parts = raw.split("/")
+def _prompt_examples_skill_id(
+    console, input_fn=None
+) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Return (skill_id or None for all, nav).
+    nav is _NAV_EXIT or _NAV_BACK when the user cancels or navigates out.
+    """
+    console.print("  skill id (optional, Enter for all)", style="dim")
+    raw = _read_line("  examples> ", input_fn)
+    choice, nav = _parse_nav(raw if raw is not None else "")
+    if nav == _NAV_EXIT:
+        return None, _NAV_EXIT
+    if nav == _NAV_BACK:
+        return None, _NAV_BACK
+    if raw is None:
+        return None, _NAV_BACK
+    if not choice:
+        return None, None
+    parts = choice.split("/")
     if len(parts) != 2 or not all(parts):
         console.print(
-            f"  Invalid skill ID '{raw}'. Expected category/skill_name.",
+            f"  Invalid skill ID '{choice}'. Expected category/skill_name.",
             style="dim #FF9AA2",
         )
-        return None, False
-    return raw, True
+        return None, _NAV_BACK
+    return choice, None
 
 
 def _print_menu(console, menu) -> None:
     for num, name, desc in menu:
         console.print(f"    [{num}] {name:<20}— {desc}", style=MENU_STYLE)
+    _print_nav_footer(console, show_back=False)
 
-    console.print()
 
-
-def cmd_help(console=None) -> None:
-    """Print rich-formatted help to the console."""
+def cmd_help(console=None, *, brief: bool = True) -> None:
+    """Print CLI help. Brief mode (default) shows topics + examples only."""
     if console is None:
         console = Console()
 
-    console.print(Text("Usage", style=f"bold {TABLE_STYLE}"))
-    console.print("  skillware                     — open interactive menu")
-    console.print("  skillware list                — list all installed skills")
-    console.print("  skillware list --category <n> — filter by category")
-    console.print("  skillware list --issuer <h>   — filter by issuer")
-    console.print("  skillware list --skills-root  — override skills directory")
-    console.print(
-        "  skillware list --examples     — add per-skill example script count"
-    )
-    console.print("  skillware examples            — list indexed runnable scripts")
-    console.print("  skillware examples <id>       — scripts for one skill")
-    console.print("  skillware test                — run all bundle tests")
-    console.print("  skillware test <category/name> — run one skill bundle test")
-    console.print("  skillware test --category <n> — run tests for a category")
-    console.print("  skillware paths               — show skill root resolution")
-    console.print("  skillware config show         — show merged configuration")
-    console.print("  skillware doctor              — check deps and skill.py import")
-    console.print("  skillware doctor <id>         — diagnose one skill")
-    console.print("  skillware doctor --category   — diagnose a category")
-    console.print("  skillware --version           — print installed version")
-    console.print()
+    if brief:
+        _print_help_index(console)
+        _print_cli_usage_examples(console)
+        console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
+        console.print("  pip install skillware", style="dim")
+        console.print()
+        console.print(Text("Docs", style=f"bold {TABLE_STYLE}"))
+        console.print(
+            "  https://github.com/arpahls/skillware/blob/main/docs/usage/cli.md",
+            style=f"dim {SPLASH_STYLE}",
+        )
+        console.print()
+        console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
+        console.print(
+            "  skillware — menu 1-6; help topic drill-down via 6", style="dim"
+        )
+        console.print("  0 — exit from any menu level", style="dim")
+        console.print()
+        return
 
-    console.print(Text("Commands", style=f"bold {TABLE_STYLE}"))
-    console.print("  list      available now", style=ID_STYLE)
-    console.print("  examples  available now", style=ID_STYLE)
-    console.print("  test      available now", style=ID_STYLE)
-    console.print("  paths     available now", style=ID_STYLE)
-    console.print("  config    available now (read-only)", style=ID_STYLE)
-    console.print("  doctor    available now", style=ID_STYLE)
-    console.print()
-
-    console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
-    console.print(
-        "  skillware                     — open interactive menu", style="dim"
-    )
-    console.print("  1-6 or command name           — select a menu option", style="dim")
-    console.print("  q or Ctrl+C                   — exit", style="dim")
-    console.print()
-
-    console.print(Text("Examples", style=f"bold {TABLE_STYLE}"))
-    console.print("  skillware list --category compliance", style=MENU_STYLE)
-    console.print("  skillware list --examples --category dev_tools", style=MENU_STYLE)
-    console.print("  skillware examples compliance/tos_evaluator", style=MENU_STYLE)
-    console.print("  skillware test finance/wallet_screening", style=MENU_STYLE)
-    console.print("  skillware paths", style=MENU_STYLE)
-    console.print("  skillware config show", style=MENU_STYLE)
-    console.print("  skillware doctor --category compliance", style=MENU_STYLE)
-    console.print()
-
-    console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
-    console.print("  pip install skillware", style="dim")
-    console.print()
-
-    console.print(Text("Docs", style=f"bold {TABLE_STYLE}"))
-    console.print(
-        "  https://github.com/arpahls/skillware/blob/main/docs/usage/cli.md",
-        style=f"dim {SPLASH_STYLE}",
-    )
+    for group in HELP_GROUPS:
+        _print_help_command_group(console, group)
+    _print_cli_usage_examples(console)
 
 
 def _rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
@@ -934,7 +1390,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("1", "list", "discover and display all locally installed skills"),
         ("2", "examples", "browse runnable scripts from examples/README.md"),
         ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
-        ("4", "paths", "show skill directory resolution order and shadowing"),
+        ("4", "paths", "paths submenu — view, edit, and diagnose skill roots"),
         ("5", "doctor", "check manifest deps and skill.py import readiness"),
         ("6", "help", "usage guide for any command"),
     ]
@@ -957,34 +1413,47 @@ def cmd_interactive(console=None, parser=None) -> None:
     _print_menu(console, menu)
 
     while True:
-        try:
-            choice = input("  > ").strip().lower()
-        except (KeyboardInterrupt, EOFError):
+        raw = _read_line("  > ")
+        if raw is None:
             console.print("\n  Bye.", style="dim")
             return
-
-        if choice == "q":
+        choice, nav = _parse_nav(raw)
+        if nav == _NAV_EXIT:
             console.print("  Bye.", style="dim")
             return
+        if nav == _NAV_BACK:
+            continue
+        if not choice:
+            continue
 
-        command = commands.get(choice)
+        command = commands.get(choice.lower())
 
         if command == "list":
             cmd_list(console=console)
         elif command == "examples":
-            skill_id, run = _prompt_examples_skill_id(console)
-            if run:
+            skill_id, ex_nav = _prompt_examples_skill_id(console)
+            if ex_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
+            if ex_nav != _NAV_BACK:
                 cmd_examples(skill_id=skill_id, console=console)
         elif command == "test":
+            console.print("  Running bundle tests (pytest)…", style="dim")
             cmd_test(console=console)
         elif command == "paths":
-            cmd_paths(console=console)
+            paths_nav = cmd_paths_submenu(console=console)
+            if paths_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         elif command == "doctor":
             rc = cmd_doctor(console=console)
             if rc:
                 console.print(f"  doctor exited with status {rc}", style="dim #FF9AA2")
         elif command == "help":
-            cmd_help(console=console)
+            help_nav = cmd_help_submenu(console=console)
+            if help_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         else:
             console.print(f"  Unknown command: '{choice}'", style="dim #FF9AA2")
 

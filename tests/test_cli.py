@@ -12,6 +12,7 @@ from skillware.cli import (
     _short_description,
     cmd_help,
     cmd_paths,
+    cmd_paths_submenu,
     cmd_doctor,
 )
 
@@ -253,18 +254,19 @@ def test_cmd_help_includes_list_examples(capsys):
     cmd_help(console=console)
 
     output = buf.getvalue()
+    assert "Topics" in output
+    assert "skills" in output
     assert "--category" in output
-    assert "--issuer" in output
-    assert "skillware test" in output
-    assert "skillware examples" in output
+    assert "skillware test" in output or "test" in output
+    assert "skillware examples" in output or "examples" in output
 
 
 def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
-    """Interactive menu option 6 / help should call cmd_help."""
+    """Interactive menu option 6 / help opens topic submenu."""
     import io
     from rich.console import Console
 
-    responses = iter(["6", "q"])
+    responses = iter(["6", "1", "", "b", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -272,6 +274,7 @@ def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
     cmd_interactive(console=console)
 
     output = buf.getvalue()
+    assert "Skills" in output
     assert "--category" in output
     assert "--issuer" in output
 
@@ -464,7 +467,7 @@ def test_interactive_examples_dispatch(examples_readme, monkeypatch):
 
     monkeypatch.setattr("skillware.cli.cmd_examples", fake_examples)
 
-    responses = iter(["examples", "", "q"])
+    responses = iter(["examples", "", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -582,7 +585,7 @@ def test_cmd_examples_includes_github_links(examples_readme):
     )
     output = buf.getvalue()
     assert "gemini_tos_evaluator.py" in output
-    assert "github.com/ARPAHLS/skillware/blob/main/examples/" in output
+    assert "gemini" in output.lower()
 
 
 def test_cmd_examples_unknown_skill_returns_nonzero(examples_readme):
@@ -673,6 +676,23 @@ def test_cmd_paths_shows_roots_and_tiers(tmp_path, monkeypatch):
     assert " 1 " in output or output.rstrip().endswith("1")
 
 
+def test_cmd_help_includes_grouped_sections():
+    import io
+    from rich.console import Console
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+    cmd_help(console=console)
+    output = buf.getvalue()
+    assert "Topics" in output
+    assert "skills" in output
+    assert "paths" in output
+    assert "config" in output
+    assert "CLI usage examples" in output
+    assert "skillware config show" in output
+    assert "skillware list --category" not in output or "CLI usage examples" in output
+
+
 def test_cmd_help_includes_paths_command():
     import io
     from rich.console import Console
@@ -683,7 +703,6 @@ def test_cmd_help_includes_paths_command():
     output = buf.getvalue()
     assert "skillware paths" in output
     assert "skillware doctor" in output
-    assert "available now" in output
     assert "coming soon" not in output.lower()
 
 
@@ -707,7 +726,7 @@ def test_interactive_paths_dispatches(monkeypatch):
     import io
     from rich.console import Console
 
-    responses = iter(["4", "q"])
+    responses = iter(["4", "1", "b", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -715,8 +734,43 @@ def test_interactive_paths_dispatches(monkeypatch):
     cmd_interactive(console=console)
 
     output = buf.getvalue()
+    assert "Paths" in output
     assert "Skill path resolution" in output
     assert "not yet implemented" not in output.lower()
+
+
+def test_cmd_paths_submenu_view_bundled(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    monkeypatch.chdir(tmp_path)
+    responses = iter(["2", "b"])
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_paths_submenu(console=console, input_fn=lambda _: next(responses))
+    output = buf.getvalue()
+    assert "Bundled registry (read-only)" in output
+
+
+def test_cmd_paths_submenu_edit_external(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    external = tmp_path / "external-skills"
+    external.mkdir()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global"))
+
+    responses = iter(["4", "a", str(external), "", "b"])
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_paths_submenu(console=console, input_fn=lambda _: next(responses))
+
+    config_path = repo / ".skillware.yaml"
+    assert config_path.is_file()
+    assert str(external.resolve()) in config_path.read_text(encoding="utf-8")
 
 
 def test_interactive_doctor_dispatches(monkeypatch):

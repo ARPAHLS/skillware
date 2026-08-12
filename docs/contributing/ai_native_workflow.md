@@ -92,9 +92,9 @@ You must:
 | :--- | :--- |
 | New skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. |
 | Skill upgrade | Same paths as new skill, but only the existing skill ID from the issue; bump `manifest.yaml` version when behavior or schema changes |
-| CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py` |
+| CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
 | Examples | `examples/*.py`, `examples/README.md`, `docs/usage/agent_loops.md`; run `pytest tests/test_registry_docs.py` when the index or matrix changes |
-| Core framework | `skillware/core/`, `tests/test_loader.py`, `docs/usage/` |
+| Core framework | `skillware/core/`, `tests/test_loader.py`, `tests/test_config.py`, `docs/usage/` |
 | Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. Run `pytest tests/test_registry_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
