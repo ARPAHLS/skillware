@@ -32,7 +32,7 @@ Pick the path that matches your issue. Only the **skill** row requires the full 
 | **Skill upgrade** | Existing bundle under `skills/` | `skill upgrade`, `enhancement` | Skill Upgrade issue | Bundle test + catalog/docs as needed |
 | **Documentation** | `docs/`, `README.md`, `CONTRIBUTING.md` | `documentation` | Documentation Fix issue | Links valid; tone consistent |
 | **Core framework** | `skillware/core/`, framework `tests/` | `core framework`, `enhancement` | Framework Feature issue | `pytest tests/`; update usage docs if API changes |
-| **CLI** | `skillware/cli.py`, `docs/usage/cli.md` | `cli` | CLI issue | `pytest tests/test_cli.py` when relevant (`list`, `doctor`, `test`, `paths`, `examples`, menu) |
+| **CLI** | `skillware/cli.py`, `docs/usage/cli.md` | `cli` | CLI issue | `pytest tests/test_cli.py` when relevant (`list`, `doctor`, `test`, `paths`, `examples`, menu); `pytest tests/test_config.py` when config paths or `.skillware.yaml` persistence changes |
 | **Examples** | `examples/*.py`, agent loops, examples index | `examples` | Examples issue | Script runs; `pytest tests/test_registry_docs.py` when index changes |
 | **Packaging** | `pyproject.toml`, `MANIFEST.in`, wheel | `packaging` | Packaging issue | `scripts/wheel_smoke_test.py` after wheel build (see [TESTING.md](docs/TESTING.md#packaging-smoke-test)) |
 | **Bug fix** | Paths named in issue | `bug` | Bug Report | Reproduction or failing test |

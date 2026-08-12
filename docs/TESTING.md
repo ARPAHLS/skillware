@@ -86,7 +86,7 @@ pip install -r requirements.txt
 | :--- | :--- | :--- |
 | Manifest + execute contract for one skill | Bundle test | `skills/compliance/tos_evaluator/test_skill.py` |
 | Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_tos_evaluator.py` |
-| Loader, CLI, registry issuer rules, param validation, manifest requirement pins | Framework test | `tests/test_loader.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_card_ui_schema.py` |
+| Loader, CLI, registry issuer rules, param validation, manifest requirement pins, config and path discovery | Framework test | `tests/test_loader.py`, `tests/test_cli.py`, `tests/test_config.py`, `tests/test_discovery.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_card_ui_schema.py` |
 | End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.
