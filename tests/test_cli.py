@@ -5,6 +5,9 @@ from skillware.cli import (
     _load_examples_index,
     _example_counts_by_skill,
     _example_github_url,
+    _parse_nav,
+    _NAV_EXIT,
+    _NAV_BACK,
     cmd_list,
     cmd_examples,
     cmd_interactive,
@@ -737,6 +740,38 @@ def test_interactive_paths_dispatches(monkeypatch):
     assert "Paths" in output
     assert "Skill path resolution" in output
     assert "not yet implemented" not in output.lower()
+
+
+def test_parse_nav_exit_and_back():
+    assert _parse_nav("0") == (None, _NAV_EXIT)
+    assert _parse_nav("q") == (None, _NAV_EXIT)
+    assert _parse_nav("quit") == (None, _NAV_EXIT)
+    assert _parse_nav("b") == (None, _NAV_BACK)
+    assert _parse_nav("back") == (None, _NAV_BACK)
+    assert _parse_nav("list") == ("list", None)
+    assert _parse_nav(None) == (None, _NAV_BACK)
+    assert _parse_nav("") == ("", None)
+
+
+def test_cmd_paths_submenu_edit_project(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    project_skills = tmp_path / "my-skills"
+    project_skills.mkdir()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global"))
+
+    responses = iter(["3", str(project_skills), "b"])
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_paths_submenu(console=console, input_fn=lambda _: next(responses))
+
+    config_path = repo / ".skillware.yaml"
+    assert config_path.is_file()
+    assert str(project_skills.resolve()) in config_path.read_text(encoding="utf-8")
 
 
 def test_cmd_paths_submenu_view_bundled(tmp_path, monkeypatch):

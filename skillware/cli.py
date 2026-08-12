@@ -1392,7 +1392,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
         ("4", "paths", "paths submenu — view, edit, and diagnose skill roots"),
         ("5", "doctor", "check manifest deps and skill.py import readiness"),
-        ("6", "help", "usage guide for any command"),
+        ("6", "help", "grouped help topics and doc links"),
     ]
 
     commands = {
