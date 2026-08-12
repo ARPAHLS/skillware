@@ -12,11 +12,14 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Config:** Persistent YAML configuration (global `config.yaml` and project `.skillware.yaml`); `paths` section drives skill root discovery when present; bundled registry always included (#246).
 - **CLI:** `skillware config show` prints merged configuration (read-only); `skillware paths` tips updated for config files (#246).
+- **CLI:** Interactive paths submenu (menu `4`) — view bundled registry, persist project/external paths to `.skillware.yaml`, shadowing and flat-layout diagnose; tiered help topics (menu `6`); universal navigation (`0` exit, `b` back); doctor spinner while diagnosing (#247).
 - **Loader:** `SkillLoader.load_skill(..., execute_module=False)` inspect-only load (manifest, instructions, card, requirement pre-flight) without executing `skill.py`; clearer `ImportError` when `skill.py` import fails after pre-flight (#235).
 - **CLI:** `skillware doctor` checks manifest deps and `skill.py` import readiness per skill (`DEPS` / `LOAD` table); optional skill ID, `--category`, and `--skills-root` (#235).
 
 ### Changed
 
+- **CLI:** `skillware examples` table — wider **EXTRA** column; **GITHUB** shows script filename as a clickable link (full URL on ctrl+click) (#247).
+- **Loader:** Skill-not-found errors list searched roots with tier labels (`project`, `external`, `bundled`) (#247).
 - **Loader:** `SkillLoader.load_skill()` validates manifest `requirements` version specifiers (for example `web3>=6.0.0`) against installed package versions before loading `skill.py`; unpinned entries still require importability only (#14).
 - **GitHub**: New Skill Proposal template category dropdown synced with the registry (`creative`, `security`); added `creative` label (#279, #277).
 

@@ -102,6 +102,24 @@ def test_build_skill_not_found_message_includes_paths_tip(monkeypatch, tmp_path)
     message = build_skill_not_found_message("missing/skill")
     assert "missing/skill" in message
     assert "skillware paths" in message
+    assert "bundled:" in message or "project:" in message or "external:" in message
+
+
+def test_build_skill_not_found_message_config_tip(tmp_path, monkeypatch):
+    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+
+    clear_config_cache()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / PROJECT_CONFIG_FILENAME).write_text(
+        "paths:\n  project: auto\n", encoding="utf-8"
+    )
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global"))
+
+    message = build_skill_not_found_message("missing/skill")
+    assert "skillware config show" in message
+    clear_config_cache()
 
 
 def test_loader_uses_discovery_error_message(monkeypatch, tmp_path):

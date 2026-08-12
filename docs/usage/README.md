@@ -12,7 +12,7 @@ How to load Skillware skills and connect them to language models. Each guide cov
 2. A `skills/` directory in the current working directory or its parents
 3. Bundled skills installed with the `skillware` package (for example under `site-packages/skills/`)
 
-**With config:** copy [`.skillware.yaml.example`](../.skillware.yaml.example) to `.skillware.yaml` (or use global `~/.config/skillware/config.yaml`) to persist project and external paths. Default order is project → external → bundled; the bundled registry is always available. See [CLI — config](cli.md#skillware-config) and `skillware config show`.
+**With config:** copy [`.skillware.yaml.example`](../.skillware.yaml.example) to `.skillware.yaml` (or use global `~/.config/skillware/config.yaml`) to persist project and external paths. Use the interactive menu (**`4` / `paths`**) or edit YAML manually. Default order is project → external → bundled; the bundled registry is always available. See [CLI — config](cli.md#skillware-config) and `skillware config show`.
 
 For pip-installed apps, bundled maintainer skills are the default; add private skills under `./skills/<category>/<name>/`, config `paths.external`, or `SKILLWARE_SKILL_PATH`.
 

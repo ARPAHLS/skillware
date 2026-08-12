@@ -325,20 +325,37 @@ def find_shadow_conflicts(roots: Sequence[SkillRoot]) -> List[ShadowConflict]:
 
 def collect_search_paths_for_skill_id(skill_id: str) -> List[str]:
     """Absolute paths tried when resolving a registry ID (existing roots only)."""
-    searched: List[str] = []
+    return [path for _, path in collect_search_attempts_for_skill_id(skill_id)]
+
+
+def collect_search_attempts_for_skill_id(skill_id: str) -> List[Tuple[str, str]]:
+    """Return ``(tier, absolute_path)`` pairs tried for a registry ID."""
+    attempts: List[Tuple[str, str]] = []
     for root in get_skill_roots():
         attempt = (root.path / skill_id).resolve()
-        searched.append(str(attempt))
-    return searched
+        attempts.append((root.tier.value, str(attempt)))
+    return attempts
+
+
+def list_flat_layout_skill_names(root: Path) -> List[str]:
+    """Skill folder names at ``<root>/<name>/`` (excluded from ``skillware list``)."""
+    if not root.is_dir():
+        return []
+
+    names: List[str] = []
+    for child in sorted(root.iterdir()):
+        if is_skill_dir(child):
+            names.append(child.name)
+    return names
 
 
 def build_skill_not_found_message(skill_id: str) -> str:
     """Operator-facing error text aligned with ``skillware paths`` output."""
     config = load_merged_config()
-    searched = collect_search_paths_for_skill_id(skill_id)
+    attempts = collect_search_attempts_for_skill_id(skill_id)
     lines = [
         f"Skill not found: {skill_id!r}. Searched:",
-        *[f"  {path}" for path in searched],
+        *[f"  {tier}: {path}" for tier, path in attempts],
     ]
     if config.has_config_files:
         lines.append(

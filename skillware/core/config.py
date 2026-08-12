@@ -218,3 +218,64 @@ def format_config_sources(config: SkillwareConfig) -> List[str]:
     if not config.layers:
         return ["(none — implicit env/cwd/bundled resolution)"]
     return [str(layer.path) for layer in config.layers]
+
+
+def project_config_write_path(start: Optional[Path] = None) -> Path:
+    """Path where project path settings should be written."""
+    existing = find_project_config_file(start)
+    if existing is not None:
+        return existing
+    return (start or Path.cwd()).resolve() / PROJECT_CONFIG_FILENAME
+
+
+def load_project_paths_settings(*, start: Optional[Path] = None) -> PathsSettings:
+    """Load ``paths`` settings from the project config file only (not global merge)."""
+    path = find_project_config_file(start)
+    if path is None:
+        return PathsSettings()
+    return _merge_layers([_layer_from_file(path)]).paths
+
+
+def paths_settings_to_document(paths: PathsSettings) -> Dict[str, Any]:
+    """Serialize path-related settings for YAML persistence."""
+    document: Dict[str, Any] = {
+        "paths": {
+            "project": paths.project if paths.project is not None else "auto",
+            "external": list(paths.external),
+        },
+        "resolution": {"order": list(paths.resolution_order)},
+        "legacy": {
+            "honor_skillware_skill_path": paths.honor_skillware_skill_path,
+        },
+    }
+    return document
+
+
+def save_project_config(
+    paths: PathsSettings,
+    *,
+    start: Optional[Path] = None,
+    preserve_extra: bool = True,
+) -> Path:
+    """
+    Write project ``paths`` settings to ``.skillware.yaml``.
+
+    Preserves unknown top-level keys from an existing project file when
+    ``preserve_extra`` is True. Clears the merged config cache.
+    """
+    target = project_config_write_path(start)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    document = paths_settings_to_document(paths)
+    if preserve_extra and target.is_file():
+        existing = _read_yaml(target)
+        for key, value in existing.items():
+            if key not in _KNOWN_TOP_LEVEL_KEYS:
+                document[key] = value
+
+    target.write_text(
+        yaml.safe_dump(document, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
+    clear_config_cache()
+    return target.resolve()

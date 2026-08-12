@@ -138,7 +138,9 @@ your PATH — use `python -m skillware list` as a fallback. See
 
 ### 3. Configuration
 
-Copy the environment template and add your keys.
+**Skill paths (optional):** copy [`.skillware.yaml.example`](.skillware.yaml.example) to `.skillware.yaml` in your project root, or use the interactive menu (**`4` / `paths`**) to persist project and external skill roots. Inspect merged settings with `skillware config show`. See [CLI — config](docs/usage/cli.md#skillware-config).
+
+**API keys:** copy the environment template and add your keys.
 
 **Unix / macOS:**
 

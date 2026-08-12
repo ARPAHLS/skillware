@@ -34,7 +34,8 @@ These are read by Skillware itself (loader and CLI), not by individual skills:
 
 | Variable | Purpose |
 | :--- | :--- |
-| `SKILLWARE_SKILL_PATH` | Extra filesystem roots for skill discovery (OS path separator between multiple entries). See [CLI reference](cli.md#path-resolution). |
+| `SKILLWARE_SKILL_PATH` | Extra filesystem roots for skill discovery (OS path separator between multiple entries). Without a config file, these are checked first (legacy order). When `.skillware.yaml` or global `config.yaml` exists, entries are merged into the **external** tier unless `legacy.honor_skillware_skill_path: false`. See [CLI — path resolution](cli.md#path-resolution). |
+| `SKILLWARE_CONFIG_DIR` | Override directory for global `config.yaml` (default: XDG `~/.config/skillware/` or `%APPDATA%/skillware/` on Windows). |
 | `SKILLWARE_NO_VERSION_CHECK` | Set to `1` to disable the CLI version advisory (useful in CI and automation). See [CLI reference](cli.md#version-advisory). |
 
 Skill-specific names remain on each skill's catalog page and in `manifest.yaml` `env_vars`.
