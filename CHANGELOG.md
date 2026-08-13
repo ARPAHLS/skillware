@@ -8,6 +8,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Added
+
+- **CI:** `tests/test_registry_identity.py` - CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280).
+
 ## [0.4.9] - 2026-08-12
 
 ### Added

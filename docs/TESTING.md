@@ -16,6 +16,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | `[all]` extra covers bundle-test runtime deps | Done |
 | CLI `skillware test` for bundle discovery | Done |
 | Doc-drift guards (`test_registry_docs.py`) | Done |
+| Registry identity guard (`test_registry_identity.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
 | Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`) | Done |
@@ -65,6 +66,7 @@ pip install -r requirements.txt
 - `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, presence of `test_skill.py` in every skill bundle, and rejects legacy manifest `output:` keys.
 - `tests/test_card_ui_schema.py` validates output-card `ui_schema.fields[].key` dot paths against fixtures in `tests/fixtures/card_ui_schema/` (#199).
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
+- `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique (#280).
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 
