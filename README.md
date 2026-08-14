@@ -125,12 +125,15 @@ skillware paths
 ```
 
 This prints a table of all locally available skills and confirms the install
-and path resolution are working. `skillware paths` shows the same root order
-the loader uses (external → project → bundled), tier labels, and shadowing.
-Running `skillware` with no arguments opens the interactive menu. As optional
-checks you can also run `skillware test` to execute bundle tests, and
-`skillware examples` to browse the runnable example index (fetched from GitHub
-when no local `examples/README.md` is present).
+and path resolution are working. `skillware paths` shows the **live** root order
+the loader uses (legacy without config: external → project → bundled; with
+`.skillware.yaml` or global config: project → external → bundled by default),
+tier labels, and shadowing. **Bundled registry skills from `pip install skillware`
+are always available** — an empty or missing local `skills/` folder does not
+disable them. Running `skillware` with no arguments opens the interactive menu.
+As optional checks you can also run `skillware test` to execute bundle tests,
+and `skillware examples` to browse the runnable example index (fetched from
+GitHub when no local `examples/README.md` is present).
 
 If `skillware` is not recognized, Python's `Scripts` directory may not be on
 your PATH — use `python -m skillware list` as a fallback. See

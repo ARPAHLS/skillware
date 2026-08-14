@@ -22,7 +22,7 @@ When you pass a registry id (for example finance/wallet_screening) rather than a
 2. `./skills/` in the current working directory, and its parent directories (walk up to six levels).
 3. Bundled skills shipped inside the installed skillware package (for example under site-packages/skills/).
 
-**With config (`.skillware.yaml` or global `config.yaml`):** tiers follow `resolution.order` (default: project → external → bundled). Persist private roots under `paths.external`; set `paths.project` to `auto` or an explicit directory. Bundled registry skills are always included. See `skillware config show` and [CLI config](../usage/cli.md#skillware-config).
+**With config (`.skillware.yaml` or global `config.yaml`):** tiers follow `resolution.order` (default: project → external → bundled). Persist private roots under `paths.external`; set `paths.project` to `auto` or an explicit directory. Bundled registry skills are always included and remain available when you have no local `skills/` tree (only existing roots are searched). See `skillware config show` and [CLI config](../usage/cli.md#skillware-config).
 
 If you pass a path that already points at a skill directory (absolute or relative to the current directory), the loader uses it directly and skips the search entirely.
 
