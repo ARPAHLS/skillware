@@ -12,7 +12,7 @@ How to load Skillware skills and connect them to language models. Each guide cov
 2. A `skills/` directory in the current working directory or its parents
 3. Bundled skills installed with the `skillware` package (for example under `site-packages/skills/`)
 
-**With config:** copy [`.skillware.yaml.example`](../.skillware.yaml.example) to `.skillware.yaml` (or use global `~/.config/skillware/config.yaml`) to persist project and external paths. Use the interactive menu (**`4` / `paths`**) or edit YAML manually. Default order is project → external → bundled; the bundled registry is always available. See [CLI — config](cli.md#skillware-config) and `skillware config show`.
+**With config:** copy [`.skillware.yaml.example`](../.skillware.yaml.example) to `.skillware.yaml` (or use global `~/.config/skillware/config.yaml`) to persist project and external paths. Use the interactive menu (**`4` / `paths`**) or edit YAML manually. Default order is project → external → bundled; the **bundled registry is always included** and remains the fallback when you have no local `skills/` tree (typical after `pip install skillware` only). See [CLI — config](cli.md#skillware-config) and `skillware config show`.
 
 For pip-installed apps, bundled maintainer skills are the default; add private skills under `./skills/<category>/<name>/`, config `paths.external`, or `SKILLWARE_SKILL_PATH`.
 
@@ -30,7 +30,7 @@ To list locally available skills, inspect path resolution, show config, check lo
 | OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
-| CLI | `skillware list`, `skillware paths`, `skillware config`, `skillware doctor`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
+| CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).

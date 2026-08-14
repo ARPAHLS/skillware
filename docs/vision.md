@@ -45,7 +45,7 @@ Multi-layer screening runs locally in one `execute()` call. No generated scraper
 Skillware is designed so agents and their operators can discover, vet, and integrate capabilities without reinventing the wheel.
 
 - **Manifests** declare inputs, outputs, dependencies, and constitution in `manifest.yaml`.
-- **`skillware list`**, **`skillware doctor`**, **`skillware examples`** / **`skillware list --examples`**, and **`skillware test`** (CLI) surface the local registry, check load readiness, browse the runnable example index, and run bundle tests.
+- **`skillware list`**, **`skillware paths`**, **`skillware config show`**, **`skillware doctor`**, **`skillware examples`** / **`skillware list --examples`**, and **`skillware test`** (CLI) surface the local registry, path tiers, merged config, load readiness, the runnable example index, and bundle tests.
 - **[Examples index](../examples/README.md)** maps runnable provider scripts to skills.
 - **[Usage guides](usage/README.md)** show the same load / tool-call / execute loop for Gemini, Claude, OpenAI, DeepSeek, and Ollama.
 - **[Agent contribution workflow](contributing/ai_native_workflow.md)** documents how supervised agents propose scoped changes and open PRs.
@@ -106,8 +106,8 @@ Honest snapshot for **v0** (current v0.4.x line):
 
 - **Registry**: Skills under `skills/` with docs in [docs/skills/](skills/README.md).
 - **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats.
-- **CLI**: `skillware list`, `skillware doctor`, `skillware test`, and an interactive menu, included with `pip install skillware`. Use `skillware list --examples` and `skillware examples` to browse the runnable script index from the terminal.
-- **Active work**: Wallet screening enhancements ([RFC #115](https://github.com/ARPAHLS/skillware/issues/115)), contributor docs, and good first issues across docs and framework.
+- **CLI**: `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external → project → bundled); with `.skillware.yaml`, default order is project → external → bundled — bundled registry skills are always on, even with no local `skills/` folder. Use `skillware list --examples` and `skillware examples` to browse the runnable script index from the terminal.
+- **Active work**: Contributor docs, registry integrity guards, and good first issues across docs and framework.
 
 Browse [open good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22) if you want a low-risk entry point.
 

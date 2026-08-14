@@ -121,7 +121,20 @@ Available commands:
 
 ## Grouped help
 
-`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`6` / `help`**, then pick a topic (Skills, Examples, Paths, Config, …).
+`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`6` / `help`**, then pick a topic:
+
+| Input | Topic |
+| :--- | :--- |
+| `1` / `skills` | `list`, `test`, `doctor` |
+| `2` / `examples` | indexed runnable scripts |
+| `3` / `paths` | resolution and paths submenu |
+| `4` / `config` | merged YAML settings |
+| `5` / `general` | menu, `--help`, `--version` |
+| `6` / `install` | pip install skillware |
+| `7` / `docs` | link to this CLI guide |
+| `8` / `interactive` | numbered splash menu |
+
+Brief `--help` groups (same topics, less detail):
 
 | Group | Topics |
 | :--- | :--- |
@@ -218,7 +231,12 @@ Exit code matches pytest (non-zero on failures or missing test paths).
 
 ### skillware paths
 
-Show where Skillware looks for skills — same order as `SkillLoader.load_skill()` — with tier labels (**external**, **project**, **bundled**), per-root skill counts, and shadowing warnings when the same registry ID exists in multiple roots.
+Show where Skillware looks for skills — same order as `SkillLoader.load_skill()` —
+with tier labels (**project**, **external**, **bundled**; order depends on
+legacy vs config — see [Path resolution](#path-resolution)), per-root skill
+counts, and shadowing warnings when the same registry ID exists in multiple roots.
+Only **existing** roots are searched at load time; missing project directories
+are skipped, and bundled skills from `pip install skillware` remain available.
 
     skillware paths
     skillware paths --skills-root /path/to/my/skills
@@ -295,7 +313,7 @@ legacy:
   honor_skillware_skill_path: true
 ```
 
-When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled.
+When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
 
 ## Path resolution
 
