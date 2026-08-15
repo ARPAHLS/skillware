@@ -16,6 +16,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | `[all]` extra covers bundle-test runtime deps | Done |
 | CLI `skillware test` for bundle discovery | Done |
 | Doc-drift guards (`test_registry_docs.py`) | Done |
+| Registry identity guard (`test_registry_identity.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
 | Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`) | Done |
@@ -65,6 +66,7 @@ pip install -r requirements.txt
 - `tests/test_skill_issuer.py` also enforces registry packaging (`__init__.py`), issuer metadata, presence of `test_skill.py` in every skill bundle, and rejects legacy manifest `output:` keys.
 - `tests/test_card_ui_schema.py` validates output-card `ui_schema.fields[].key` dot paths against fixtures in `tests/fixtures/card_ui_schema/` (#199).
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
+- `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique (#280).
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 
@@ -86,7 +88,7 @@ pip install -r requirements.txt
 | :--- | :--- | :--- |
 | Manifest + execute contract for one skill | Bundle test | `skills/compliance/tos_evaluator/test_skill.py` |
 | Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_tos_evaluator.py` |
-| Loader, CLI, registry issuer rules, param validation, manifest requirement pins, config and path discovery | Framework test | `tests/test_loader.py`, `tests/test_cli.py`, `tests/test_config.py`, `tests/test_discovery.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_card_ui_schema.py` |
+| Loader, CLI, registry issuer rules, param validation, manifest requirement pins, config and path discovery | Framework test | `tests/test_loader.py`, `tests/test_cli.py`, `tests/test_config.py`, `tests/test_discovery.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_card_ui_schema.py`, `tests/test_registry_identity.py` |
 | End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |
 
 **Rule of thumb:** if it ships with the skill and must pass before merge → **bundle test** (CI + local). If it is extra regression depth for clone-repo work → **maintainer test** (optional). If it proves provider integration → **example**, not pytest.

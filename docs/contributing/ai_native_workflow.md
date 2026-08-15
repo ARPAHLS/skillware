@@ -286,6 +286,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes
 - [ ] `pytest tests/test_registry_docs.py` passes (catalog index, examples index, and agent-loops parity)
+- [ ] `pytest tests/test_registry_identity.py` passes (`manifest.name` matches folder path; globally unique across the registry)
 - [ ] `SkillLoader.load_skill("<category>/<skill_name>")` works or deps are documented
 - [ ] `examples/README.md` updated if a new or changed script lives under `examples/`
 - [ ] No placeholders under `skills/`
