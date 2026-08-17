@@ -126,6 +126,8 @@ finance_wallet_screening = []
 
 monitoring_token_limiter = []
 
+office_gmail_handler = []
+
 office_pdf_form_filler = [
     "pymupdf",
     "anthropic",

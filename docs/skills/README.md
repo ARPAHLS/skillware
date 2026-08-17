@@ -10,6 +10,7 @@ Skills for document processing, email automation, and productivity.
 | Skill | ID | Issuer | Description |
 | :--- | :--- | :--- | :--- |
 | **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
+| **[Gmail Handler](gmail_handler.md)** | `office/gmail_handler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Structured Gmail send, search, read, and reply via IMAP/SMTP with address-book resolution and confirmation gates. |
 
 ## Creative
 Skills for image processing, media editing, and creative utilities.
