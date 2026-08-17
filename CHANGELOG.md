@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Removed
+
+- **Meta:** Removed maintainer-only GitHub release draft (`.github/RELEASE_v0.4.9.md`); use `CHANGELOG.md` + GitHub Releases UI instead.
+
 ### Added
 
 - **CI:** `tests/test_registry_identity.py` - CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280).

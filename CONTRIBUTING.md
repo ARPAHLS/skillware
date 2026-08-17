@@ -421,7 +421,7 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | `pyproject.toml` → `[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
 | `CHANGELOG.md` | **Yes** | Move `[Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`; leave a fresh empty `[Unreleased]` |
 | `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
-| GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269) |
+| GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269). Paste release notes from `CHANGELOG.md` in the GitHub Releases UI — **do not commit** maintainer draft files such as `.github/RELEASE_*.md` to the public tree. |
 | PyPI upload | **Yes** | After tag / CI as usual |
 | `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used” is enough |
 | `skillware/version_policy.py` + `SECURITY.md` | **Only when support windows change** | Not every release |
