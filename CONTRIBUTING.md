@@ -354,7 +354,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
 | `dev_tools` | Developer workflows, issue resolution, repo tooling | `issue_resolver` |
 | `finance` | Blockchain, risk, financial analysis | `wallet_screening`, `uk_companies_house_handler` |
-| `office` | Documents, productivity | `pdf_form_filler` |
+| `office` | Documents, productivity, email | `pdf_form_filler`, `gmail_handler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
 | `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
 | `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall` |

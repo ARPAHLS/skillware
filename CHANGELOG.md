@@ -14,6 +14,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill:** `office/gmail_handler` — deterministic Gmail IMAP/SMTP handler for agent mail workflows: recipient resolution via editable address book, preview/confirm send and reply, inbox search/read, sent-folder and send-ledger search, scan cursor, and context carry-forward (#208).
+- **Examples:** `examples/gmail_handler_demo.py` — mocked resolve, preview, search, and read flow (no live Gmail credentials); `examples/gemini_gmail_handler.py` — interactive Gemini tool loop (demo mode via `GMAIL_HANDLER_EXAMPLE_DEMO=1`).
+- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — integration guide, env setup, action reference, and address book schema.
 - **CI:** `tests/test_registry_identity.py` - CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280).
 
 ## [0.4.9] - 2026-08-12
