@@ -10,12 +10,18 @@ readme = "README.md"
 authors = [
   { name = "ARPA Hellenic Logical Systems", email = "skillware-os@arpacorp.net" },
 ]
-urls = { "Homepage" = "https://arpacorp.net", "Repository" = "https://github.com/arpahls/skillware", "DOI" = "https://doi.org/10.5281/zenodo.21552745" }
 license = { file = "LICENSE" }
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
     "requests",
@@ -27,6 +33,16 @@ dependencies = [
     "rich>=13.0",
 ]
 requires-python = ">=3.10"
+
+keywords = ["ai", "agents", "skills", "llm", "tools", "framework", "agent-tools", "registry"]
+
+[project.urls]
+Homepage = "https://arpacorp.net"
+Repository = "https://github.com/arpahls/skillware"
+Documentation = "https://github.com/arpahls/skillware/blob/main/docs/introduction.md"
+Issues = "https://github.com/arpahls/skillware/issues"
+Changelog = "https://github.com/arpahls/skillware/blob/main/CHANGELOG.md"
+DOI = "https://doi.org/10.5281/zenodo.21552745"
 
 [project.scripts]
 skillware = "skillware.cli:main"
