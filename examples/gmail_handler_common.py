@@ -35,6 +35,15 @@ MOCK_MESSAGE: Dict[str, Any] = {
     "references": [],
     "untrusted_content": True,
     "snippet": "Can we still meet this Friday?",
+    "attachments": [
+        {
+            "part_index": 2,
+            "filename": "agenda.pdf",
+            "content_type": "application/pdf",
+            "size_bytes": 4096,
+        }
+    ],
+    "attachment_count": 1,
 }
 
 
@@ -72,5 +81,7 @@ def print_step(title: str, payload: Dict[str, Any]) -> None:
                 "from": msg.get("from"),
                 "subject": msg.get("subject"),
                 "body_plain": (msg.get("body_plain") or "")[:120],
+                "attachment_count": msg.get("attachment_count"),
+                "attachments": msg.get("attachments"),
             },
         )

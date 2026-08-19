@@ -25,12 +25,19 @@ from skillware.core.mail_config import (
     resolve_send_ledger_path,
     resolve_signature_html,
     resolve_signature_plain,
+    resolve_signature_profile,
 )
 
 _SKILL_DIR = os.path.dirname(os.path.abspath(__file__))
 if _SKILL_DIR not in sys.path:
     sys.path.insert(0, _SKILL_DIR)
 from addressbook import AddressBookResolver  # noqa: E402
+from attachments import (  # noqa: E402
+    extract_attachment_payload,
+    load_outbound_attachments,
+    normalize_attachment_specs,
+)
+from file_ref import write_bytes_to_ref  # noqa: E402
 from mail import (  # noqa: E402
     JsonStateStore,
     MailTransport,
@@ -48,6 +55,7 @@ _ACTIONS = (
     "read_message",
     "preview_reply",
     "reply",
+    "download_attachment",
     "mailbox_status",
     "update_addressbook",
 )
@@ -126,6 +134,7 @@ class GmailHandlerSkill(BaseSkill):
             "read_message": self._action_read_message,
             "preview_reply": self._action_preview_reply,
             "reply": self._action_reply,
+            "download_attachment": self._action_download_attachment,
             "mailbox_status": self._action_mailbox_status,
             "update_addressbook": self._action_update_addressbook,
         }
@@ -264,6 +273,7 @@ class GmailHandlerSkill(BaseSkill):
             return creds_error
 
         transport = self._get_transport()
+        attachment_payload = self._load_send_attachments(params, context)
         message_id, smtp_response = transport.send_message(
             to=envelope["to"],
             subject=envelope["subject"],
@@ -272,6 +282,7 @@ class GmailHandlerSkill(BaseSkill):
             bcc=envelope.get("bcc") or [],
             body_html=envelope.get("body_html"),
             reply_to=envelope.get("reply_to"),
+            attachments=attachment_payload or None,
         )
         self._append_send_ledger(
             {
@@ -464,6 +475,7 @@ class GmailHandlerSkill(BaseSkill):
             return creds_error
 
         transport = self._get_transport()
+        attachment_payload = self._load_send_attachments(params, context)
         message_id, smtp_response = transport.send_message(
             to=preview["to"],
             subject=preview["subject"],
@@ -471,6 +483,7 @@ class GmailHandlerSkill(BaseSkill):
             body_html=preview.get("body_html"),
             in_reply_to=preview.get("in_reply_to"),
             references=preview.get("references") or [],
+            attachments=attachment_payload or None,
         )
         self._append_send_ledger(
             {
@@ -491,6 +504,98 @@ class GmailHandlerSkill(BaseSkill):
             "smtp_response": smtp_response,
             "agent_hint": "Reply sent successfully.",
             "context": self._merge_context(context, "reply", params, preview),
+        }
+
+    def _action_download_attachment(
+        self,
+        params: Dict[str, Any],
+        context: Dict[str, Any],
+        dry_run: bool,
+    ) -> Dict[str, Any]:
+        creds_error = self._credentials_error(require_for_read=True)
+        if creds_error:
+            return creds_error
+
+        uid = params.get("uid") or context.get("selected_uid")
+        if uid is None:
+            return self._error(
+                "missing_uid",
+                "uid is required to download an attachment.",
+                agent_hint="Pass uid from read_message or search results.",
+            )
+
+        part_index = params.get("part_index")
+        if part_index is None:
+            return self._error(
+                "missing_part_index",
+                "part_index is required (from message.attachments).",
+            )
+
+        output_path = (params.get("output_path") or params.get("path") or "").strip()
+        if not output_path:
+            return self._error(
+                "missing_output_path",
+                "output_path is required for download_attachment.",
+            )
+
+        folder = params.get("folder") or context.get("folder") or self._inbox_folder()
+        transport = self._get_transport()
+        summary = transport.fetch_message(folder, int(uid), mark_as_read=False)
+        attachments = summary.get("attachments") or []
+        if not any(a.get("part_index") == int(part_index) for a in attachments):
+            return self._error(
+                "invalid_part_index",
+                f"part_index {part_index} is not an attachment on UID {uid}.",
+            )
+
+        msg = transport.fetch_raw_message(folder, int(uid))
+        payload, filename, content_type = extract_attachment_payload(
+            msg,
+            int(part_index),
+        )
+        max_bytes = int(self._attachment_limits()["max_download_bytes"])
+        if len(payload) > max_bytes:
+            return self._error(
+                "attachment_too_large",
+                f"Attachment size {len(payload)} exceeds max_download_bytes ({max_bytes}).",
+            )
+
+        if dry_run:
+            return {
+                "status": "ready",
+                "dry_run": True,
+                "uid": int(uid),
+                "part_index": int(part_index),
+                "filename": filename,
+                "content_type": content_type,
+                "size_bytes": len(payload),
+                "output_path": output_path,
+                "agent_hint": "Dry run only; attachment not written.",
+                "context": self._merge_context(
+                    context, "download_attachment", params, {}
+                ),
+            }
+
+        written = write_bytes_to_ref(output_path, payload, max_bytes=max_bytes)
+        return {
+            "status": "ready",
+            "uid": int(uid),
+            "part_index": int(part_index),
+            "filename": filename,
+            "content_type": content_type,
+            "size_bytes": len(payload),
+            "output_path": written,
+            "untrusted_content": True,
+            "agent_hint": (
+                "Attachment saved from untrusted mail. Operator is responsible for "
+                "scanning before opening. Consider skill chaining for malware checks."
+            ),
+            "context": self._merge_context(
+                context,
+                "download_attachment",
+                params,
+                {"selected_uid": int(uid), "folder": folder},
+            ),
         }
 
     def _action_mailbox_status(
@@ -715,32 +820,15 @@ class GmailHandlerSkill(BaseSkill):
 
         subject = (params.get("subject") or "").strip()
         body_message = (params.get("body_plain") or params.get("body") or "").strip()
-        signature, _ = resolve_signature_plain(
-            mail=self._mail_settings,
-            skill_local_config=self.skill_config,
-        )
-        signature_html, _ = resolve_signature_html(
-            mail=self._mail_settings,
-            skill_local_config=self.skill_config,
+        body_plain, body_html, signature_meta = self._apply_signature_to_bodies(
+            body_message=body_message,
+            body_html=params.get("body_html"),
+            params=params,
+            context=context,
         )
 
-        body_plain = body_message
-        if signature and body_message and signature not in body_message:
-            body_plain = f"{body_message}\n\n{signature}"
-
-        body_html = params.get("body_html")
-        if signature_html:
-            if body_html:
-                if signature_html not in body_html:
-                    body_html = f"{body_html}<br><br>{signature_html}"
-            else:
-                escaped_message = (
-                    body_message.replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\n", "<br>\n")
-                )
-                body_html = f"<div>{escaped_message}</div><br>{signature_html}"
+        attachment_specs = normalize_attachment_specs(params.get("attachments"))
+        attachment_meta = self._describe_attachment_specs(attachment_specs)
 
         missing: List[str] = []
         if not to_emails:
@@ -762,6 +850,11 @@ class GmailHandlerSkill(BaseSkill):
             "reply_to": params.get("reply_to"),
             "recipient_count": len(all_recipients),
             "resolved_recipients": [self._recipient_dict(r) for r in resolved],
+            "signature_applied": signature_meta["signature_applied"],
+            "signature_source": signature_meta["signature_source"],
+            "signature_profile": signature_meta["signature_profile"],
+            "attachments": attachment_meta,
+            "attachment_count": len(attachment_meta),
         }
         return envelope, missing
 
@@ -786,7 +879,13 @@ class GmailHandlerSkill(BaseSkill):
 
         transport = self._get_transport()
         original = transport.fetch_message(folder, int(uid), mark_as_read=False)
-        body_plain = (params.get("body_plain") or params.get("body") or "").strip()
+        body_message = (params.get("body_plain") or params.get("body") or "").strip()
+        body_plain, body_html, signature_meta = self._apply_signature_to_bodies(
+            body_message=body_message,
+            body_html=params.get("body_html"),
+            params=params,
+            context=context,
+        )
         subject = original.get("subject") or ""
         if subject.lower().startswith("re:"):
             reply_subject = subject
@@ -798,20 +897,140 @@ class GmailHandlerSkill(BaseSkill):
         if message_id and message_id not in references:
             references.append(message_id)
 
+        attachment_specs = normalize_attachment_specs(params.get("attachments"))
+        attachment_meta = self._describe_attachment_specs(attachment_specs)
+
         preview = {
             "uid": int(uid),
             "folder": folder,
             "to": [original.get("from_email") or original.get("from") or ""],
             "subject": reply_subject,
             "body_plain": body_plain,
-            "body_html": params.get("body_html"),
+            "body_html": body_html,
             "in_reply_to": message_id,
             "references": references,
             "quoted_context": message_snippet(original.get("body_plain") or "", 500),
+            "signature_applied": signature_meta["signature_applied"],
+            "signature_source": signature_meta["signature_source"],
+            "signature_profile": signature_meta["signature_profile"],
+            "attachments": attachment_meta,
+            "attachment_count": len(attachment_meta),
         }
         return preview, None
 
     # --- Helpers ---
+
+    def _attachment_limits(self) -> Dict[str, int]:
+        cfg = self.skill_config.get("attachments") or {}
+        return {
+            "max_download_bytes": int(cfg.get("max_download_bytes", 10 * 1024 * 1024)),
+            "max_send_bytes": int(cfg.get("max_send_bytes", 10 * 1024 * 1024)),
+            "max_attachments_per_message": int(
+                cfg.get("max_attachments_per_message", 5)
+            ),
+        }
+
+    def _resolve_signature_profile_id(
+        self,
+        params: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> str:
+        profile = params.get("signature_profile") or context.get("signature_profile")
+        return resolve_signature_profile(
+            mail=self._mail_settings,
+            profile_id=str(profile) if profile else None,
+            context=context,
+        )
+
+    def _apply_signature_to_bodies(
+        self,
+        *,
+        body_message: str,
+        body_html: Optional[str],
+        params: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> Tuple[str, Optional[str], Dict[str, Any]]:
+        profile_id = self._resolve_signature_profile_id(params, context)
+        signature, plain_source = resolve_signature_plain(
+            mail=self._mail_settings,
+            skill_local_config=self.skill_config,
+            profile_id=profile_id,
+            context=context,
+        )
+        signature_html, html_source = resolve_signature_html(
+            mail=self._mail_settings,
+            skill_local_config=self.skill_config,
+            profile_id=profile_id,
+            context=context,
+        )
+
+        applied = False
+        source = "none"
+        body_plain = body_message
+
+        if signature and body_message and signature not in body_message:
+            body_plain = f"{body_message}\n\n{signature}"
+            applied = True
+            source = plain_source if plain_source != "none" else source
+
+        out_html = body_html
+        if signature_html:
+            if out_html:
+                if signature_html not in out_html:
+                    out_html = f"{out_html}<br><br>{signature_html}"
+                    applied = True
+                    if html_source != "none":
+                        source = html_source
+            elif body_message:
+                escaped_message = (
+                    body_message.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br>\n")
+                )
+                out_html = f"<div>{escaped_message}</div><br>{signature_html}"
+                applied = True
+                if html_source != "none":
+                    source = html_source
+
+        if not applied and (plain_source != "none" or html_source != "none"):
+            source = plain_source if plain_source != "none" else html_source
+
+        meta = {
+            "signature_applied": applied,
+            "signature_source": source if applied else "none",
+            "signature_profile": profile_id,
+        }
+        return body_plain, out_html, meta
+
+    @staticmethod
+    def _describe_attachment_specs(
+        specs: Sequence[Dict[str, str]],
+    ) -> List[Dict[str, Any]]:
+        return [
+            {
+                "path": spec["path"],
+                "filename": spec.get("filename"),
+                "content_type": spec.get("content_type"),
+            }
+            for spec in specs
+        ]
+
+    def _load_send_attachments(
+        self,
+        params: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        specs = normalize_attachment_specs(params.get("attachments"))
+        if not specs:
+            return []
+        limits = self._attachment_limits()
+        loaded = load_outbound_attachments(
+            specs,
+            max_bytes=limits["max_send_bytes"],
+            max_count=limits["max_attachments_per_message"],
+        )
+        return loaded
 
     def _resolve_email_filters(
         self,
@@ -1046,6 +1265,8 @@ class GmailHandlerSkill(BaseSkill):
 
         if params.get("uid") is not None:
             merged["selected_uid"] = params["uid"]
+        if params.get("signature_profile"):
+            merged["signature_profile"] = params["signature_profile"]
         return merged
 
     def _error(

@@ -4,13 +4,17 @@
 # default_signature_plain: |
 #   —
 #   Your Agent Name
-#   Your Project
 # default_signature_html: |
 #   <!-- HTML signature block; prefer skillware mail signature init -->
 
 imap:
   inbox_folder: INBOX
   sent_folder: "[Gmail]/Sent Mail"
+
+attachments:
+  max_download_bytes: 10485760
+  max_send_bytes: 10485760
+  max_attachments_per_message: 5
 
 # max_recipients: 5
 # confirm_before_send: true
