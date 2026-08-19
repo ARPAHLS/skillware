@@ -192,23 +192,6 @@ def test_extra_config_sections_preserved(tmp_path, monkeypatch):
     config = load_merged_config(refresh=True)
     assert "theme" in config.extra
     assert "chains" in config.extra
-
-
-def test_extra_config_sections_preserved(tmp_path, monkeypatch):
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    _write_config(
-        repo / PROJECT_CONFIG_FILENAME,
-        "paths:\n  project: auto\n"
-        "theme:\n  preset: dark\n"
-        "chains:\n  default: []\n",
-    )
-    monkeypatch.chdir(repo)
-    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
-
-    config = load_merged_config(refresh=True)
-    assert "theme" in config.extra
-    assert "chains" in config.extra
     assert "mail" not in config.extra
 
 
