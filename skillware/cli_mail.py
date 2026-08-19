@@ -15,6 +15,7 @@ from skillware.core.mail_config import (
     ENV_SIGNATURE_HTML_PATH,
     ENV_SIGNATURE_PATH,
     ENV_SIGNATURE_PLAIN,
+    ENV_SIGNATURE_PROFILE,
     add_addressbook_contact,
     count_addressbook_contacts,
     default_global_addressbook_path,
@@ -22,6 +23,7 @@ from skillware.core.mail_config import (
     format_mail_config_lines,
     init_addressbook_file,
     init_signature_bundle,
+    list_signature_profiles,
     load_addressbook_yaml,
     load_merged_mail_settings,
     load_project_mail_settings,
@@ -29,10 +31,13 @@ from skillware.core.mail_config import (
     resolve_addressbook_path,
     resolve_signature_html,
     resolve_signature_plain,
+    resolve_signature_profile,
     clear_mail_signature_settings,
     save_global_mail_settings,
     save_project_mail_settings,
+    set_active_signature_profile,
     slugify_contact_id,
+    upsert_signature_profile,
     validate_addressbook_data,
     validate_signature_text,
 )
@@ -56,6 +61,9 @@ _MAIL_SUBMENU = [
     ("8", "signature set", "paste text or --file"),
     ("9", "signature validate", "non-empty, length, secret patterns"),
     ("10", "signature clear", "remove signature from project config"),
+    ("11", "signature profiles", "list named signature profiles"),
+    ("12", "signature set-profile", "set active signature profile"),
+    ("13", "signature add-profile", "register plain/HTML paths for a profile"),
 ]
 
 ReadLineFn = Optional[Callable[[str], Optional[str]]]
@@ -462,6 +470,92 @@ def cmd_mail_signature_clear(console: Optional[Console] = None) -> int:
     return 0
 
 
+def cmd_mail_signature_profiles(console: Optional[Console] = None) -> int:
+    if console is None:
+        console = Console()
+    mail = load_merged_mail_settings(refresh=True)
+    active = resolve_signature_profile(mail=mail)
+    profiles = list_signature_profiles(mail=mail)
+    console.print(Text("Signature profiles", style=f"bold {TABLE_STYLE}"))
+    console.print(f"  active: {active}", style=ID_STYLE)
+    if not profiles:
+        console.print("  (none — use signature init or add-profile)", style="dim")
+        return 0
+    for profile_id in sorted(profiles):
+        block = profiles[profile_id]
+        marker = " *" if profile_id == active else ""
+        html_path = block.get("signature_html_path") or "(none)"
+        plain_path = (
+            block.get("signature_path") or block.get("signature_plain") or "(none)"
+        )
+        console.print(
+            f"  {profile_id}{marker}: plain={plain_path} html={html_path}",
+            style=MENU_STYLE,
+        )
+    return 0
+
+
+def cmd_mail_signature_set_profile(
+    console: Optional[Console] = None,
+    *,
+    profile_id: Optional[str] = None,
+    input_fn: ReadLineFn = None,
+) -> int:
+    if console is None:
+        console = Console()
+    pid = (profile_id or "").strip()
+    if not pid:
+        pid = (_read_line("  Profile id: ", input_fn) or "").strip()
+    if not pid:
+        console.print("  profile id is required.", style="bold #FF9AA2")
+        return 1
+    target = set_active_signature_profile(pid)
+    console.print(f"  Active signature profile: {pid}", style=ID_STYLE)
+    console.print(f"  Saved to {target}", style="dim")
+    return 0
+
+
+def cmd_mail_signature_add_profile(
+    console: Optional[Console] = None,
+    *,
+    profile_id: Optional[str] = None,
+    html_path: Optional[Path] = None,
+    plain_path: Optional[Path] = None,
+    input_fn: ReadLineFn = None,
+) -> int:
+    if console is None:
+        console = Console()
+    pid = (profile_id or "").strip()
+    if not pid:
+        pid = (_read_line("  Profile id: ", input_fn) or "").strip()
+    if not pid:
+        console.print("  profile id is required.", style="bold #FF9AA2")
+        return 1
+    if html_path is None and plain_path is None:
+        console.print(
+            "  Provide --html and/or --plain path to signature files.",
+            style="bold #FF9AA2",
+        )
+        return 1
+    if plain_path is not None and not plain_path.is_file():
+        console.print(f"  Plain file not found: {plain_path}", style="bold #FF9AA2")
+        return 1
+    if html_path is not None and not html_path.is_file():
+        console.print(f"  HTML file not found: {html_path}", style="bold #FF9AA2")
+        return 1
+
+    target = upsert_signature_profile(
+        pid,
+        signature_path=str(plain_path.expanduser().resolve()) if plain_path else None,
+        signature_html_path=(
+            str(html_path.expanduser().resolve()) if html_path else None
+        ),
+    )
+    console.print(f"  Registered profile {pid!r}", style=ID_STYLE)
+    console.print(f"  Saved to {target}", style="dim")
+    return 0
+
+
 def cmd_mail_show(console: Optional[Console] = None) -> int:
     """Summary of resolved mail settings (read-only)."""
     if console is None:
@@ -477,6 +571,7 @@ def cmd_mail_show(console: Optional[Console] = None) -> int:
         ENV_SIGNATURE_PATH,
         ENV_SIGNATURE_PLAIN,
         ENV_SIGNATURE_HTML_PATH,
+        ENV_SIGNATURE_PROFILE,
     ):
         if key in os.environ:
             console.print(f"    {key}=set", style="dim")
@@ -511,6 +606,12 @@ def cmd_mail_submenu(
         "signature validate": "signature validate",
         "10": "signature clear",
         "signature clear": "signature clear",
+        "11": "signature profiles",
+        "signature profiles": "signature profiles",
+        "12": "signature set-profile",
+        "signature set-profile": "signature set-profile",
+        "13": "signature add-profile",
+        "signature add-profile": "signature add-profile",
     }
 
     while True:
@@ -545,6 +646,12 @@ def cmd_mail_submenu(
             cmd_mail_signature_validate(console)
         elif command == "signature clear":
             cmd_mail_signature_clear(console)
+        elif command == "signature profiles":
+            cmd_mail_signature_profiles(console)
+        elif command == "signature set-profile":
+            cmd_mail_signature_set_profile(console, input_fn=input_fn)
+        elif command == "signature add-profile":
+            cmd_mail_signature_add_profile(console, input_fn=input_fn)
         elif command is None:
             console.print(f"  Unknown choice: {choice!r}", style="dim #FF9AA2")
         else:
@@ -613,6 +720,20 @@ def cmd_mail(
                 console,
                 file_path=kwargs.get("file_path"),
                 text=kwargs.get("text"),
+            )
+        if action == "profiles":
+            return cmd_mail_signature_profiles(console)
+        if action == "set-profile":
+            return cmd_mail_signature_set_profile(
+                console,
+                profile_id=kwargs.get("profile_id"),
+            )
+        if action == "add-profile":
+            return cmd_mail_signature_add_profile(
+                console,
+                profile_id=kwargs.get("profile_id"),
+                html_path=kwargs.get("html_path"),
+                plain_path=kwargs.get("plain_path"),
             )
         console.print(f"  Unknown signature action: {action}", style="bold #FF9AA2")
         return 1

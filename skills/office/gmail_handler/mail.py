@@ -15,6 +15,11 @@ from email.utils import formataddr, parseaddr, parsedate_to_datetime
 from html import unescape
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+try:
+    from attachments import attach_files_to_message, list_attachment_metadata
+except ImportError:
+    from .attachments import attach_files_to_message, list_attachment_metadata
+
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
@@ -268,6 +273,32 @@ class MailTransport:
                 pass
         return summaries
 
+    def fetch_raw_message(
+        self,
+        folder: str,
+        uid: int,
+    ) -> email.message.Message:
+        """Fetch one message as a parsed RFC822 object (does not mark read)."""
+        client = self._imap_login()
+        try:
+            status, _ = client.select(folder, readonly=True)
+            if status != "OK":
+                raise RuntimeError(f"IMAP select failed for {folder!r}: {status}")
+
+            status, data = client.uid("fetch", str(uid), "(BODY.PEEK[])")
+            if status != "OK" or not data or not isinstance(data[0], tuple):
+                raise RuntimeError(f"Message UID {uid} not found in {folder!r}")
+
+            raw = data[0][1]
+            if not isinstance(raw, (bytes, bytearray)):
+                raise RuntimeError(f"Unexpected IMAP payload for UID {uid}")
+            return email.message_from_bytes(raw)
+        finally:
+            try:
+                client.logout()
+            except Exception:
+                pass
+
     def fetch_message(
         self,
         folder: str,
@@ -306,6 +337,8 @@ class MailTransport:
             if mark_as_read:
                 client.uid("store", str(uid), "+FLAGS", "(\\Seen)")
 
+            attachments = list_attachment_metadata(msg)
+
             return {
                 "uid": uid,
                 "folder": folder,
@@ -320,6 +353,8 @@ class MailTransport:
                 "in_reply_to": msg.get("In-Reply-To", ""),
                 "references": references,
                 "untrusted_content": True,
+                "attachments": attachments,
+                "attachment_count": len(attachments),
                 "snippet": message_snippet(plain),
             }
         finally:
@@ -339,6 +374,7 @@ class MailTransport:
         reply_to: Optional[str] = None,
         in_reply_to: Optional[str] = None,
         references: Optional[Sequence[str]] = None,
+        attachments: Optional[Sequence[Dict[str, Any]]] = None,
     ) -> Tuple[str, str]:
         msg = EmailMessage()
         msg["From"] = self.address
@@ -358,6 +394,9 @@ class MailTransport:
         msg.set_content(body_plain or "")
         if body_html:
             msg.add_alternative(body_html, subtype="html")
+
+        if attachments:
+            attach_files_to_message(msg, attachments)
 
         smtp_response = self._smtp_send(msg)
         message_id = msg.get("Message-ID") or ""

@@ -1,11 +1,14 @@
 import json
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 
 from .addressbook import AddressBookResolver
+from .attachments import list_attachment_metadata, normalize_attachment_specs
+from .file_ref import read_bytes_from_ref, write_bytes_to_ref
 from .mail import extract_bodies, message_snippet, strip_html
 from .skill import GmailHandlerSkill
 
@@ -421,3 +424,144 @@ def test_strip_html_helper():
 def test_message_snippet_truncates():
     text = "word " * 100
     assert message_snippet(text, limit=20).endswith("…")
+
+
+@patch.object(GmailHandlerSkill, "_get_transport")
+def test_preview_reply_applies_signature(mock_transport, skill, monkeypatch):
+    monkeypatch.setenv("GMAIL_SIGNATURE_PLAIN", "— Agent Sig")
+    refreshed = GmailHandlerSkill(config={})
+    refreshed._addressbook_path = skill._addressbook_path
+    refreshed._addressbook = skill._addressbook
+
+    transport = MagicMock()
+    transport.fetch_message.return_value = {
+        "uid": 55,
+        "from_email": "peter@capgemini.com",
+        "subject": "Sync next week",
+        "body_plain": "Tuesday works",
+        "message_id": "<orig@mail>",
+        "references": [],
+    }
+    mock_transport.return_value = transport
+
+    result = refreshed.execute(
+        {
+            "action": "preview_reply",
+            "uid": 55,
+            "body_plain": "Can we do 10:30 instead?",
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["preview"]["signature_applied"] is True
+    assert "Agent Sig" in result["preview"]["body_plain"]
+    assert result["preview"]["signature_profile"] == "default"
+
+
+@patch.object(GmailHandlerSkill, "_get_transport")
+def test_read_message_includes_attachments(mock_transport, skill):
+    transport = MagicMock()
+    transport.fetch_message.return_value = {
+        "uid": 55,
+        "from_email": "john@skillware.site",
+        "body_plain": "See attached",
+        "attachments": [
+            {
+                "part_index": 2,
+                "filename": "doc.pdf",
+                "content_type": "application/pdf",
+                "size_bytes": 1024,
+            }
+        ],
+        "attachment_count": 1,
+        "untrusted_content": True,
+    }
+    mock_transport.return_value = transport
+
+    result = skill.execute({"action": "read_message", "uid": 55})
+    assert result["message"]["attachment_count"] == 1
+    assert result["message"]["attachments"][0]["filename"] == "doc.pdf"
+
+
+@patch.object(GmailHandlerSkill, "_get_transport")
+def test_download_attachment_writes_file(mock_transport, skill, tmp_path):
+    from email.message import EmailMessage
+
+    msg = EmailMessage()
+    msg.set_content("body")
+    msg.add_attachment(
+        b"hello file", maintype="text", subtype="plain", filename="a.txt"
+    )
+    part_index = list_attachment_metadata(msg)[0]["part_index"]
+
+    transport = MagicMock()
+    transport.fetch_message.return_value = {
+        "uid": 9,
+        "attachments": [{"part_index": part_index, "filename": "a.txt"}],
+    }
+    transport.fetch_raw_message.return_value = msg
+    mock_transport.return_value = transport
+
+    out = tmp_path / "saved.txt"
+    result = skill.execute(
+        {
+            "action": "download_attachment",
+            "uid": 9,
+            "part_index": part_index,
+            "output_path": str(out),
+        }
+    )
+    assert result["status"] == "ready"
+    assert out.read_bytes() == b"hello file"
+    assert result["untrusted_content"] is True
+
+
+@patch.object(GmailHandlerSkill, "_get_transport")
+def test_send_with_attachment(mock_transport, skill, tmp_path):
+    attach = tmp_path / "note.txt"
+    attach.write_text("attach me", encoding="utf-8")
+    transport = MagicMock()
+    transport.send_message.return_value = ("<msg-id@test>", "250 OK")
+    mock_transport.return_value = transport
+
+    result = skill.execute(
+        {
+            "action": "send",
+            "confirmed": True,
+            "to": ["George"],
+            "subject": "Files",
+            "body_plain": "See attached",
+            "attachments": [{"path": str(attach)}],
+        }
+    )
+    assert result["status"] == "sent"
+    kwargs = transport.send_message.call_args.kwargs
+    assert kwargs["attachments"]
+    assert kwargs["attachments"][0]["filename"] == "note.txt"
+
+
+def test_list_attachment_metadata():
+    from email.message import EmailMessage
+
+    msg = EmailMessage()
+    msg.set_content("Hello")
+    msg.add_attachment(b"data", maintype="application", subtype="pdf", filename="x.pdf")
+    meta = list_attachment_metadata(msg)
+    assert len(meta) == 1
+    assert meta[0]["filename"] == "x.pdf"
+
+
+def test_normalize_attachment_specs():
+    specs = normalize_attachment_specs([{"path": "/tmp/a.pdf", "filename": "a.pdf"}])
+    assert specs[0]["path"] == "/tmp/a.pdf"
+
+
+def test_file_ref_local_roundtrip(tmp_path):
+    source = tmp_path / "in.bin"
+    source.write_bytes(b"abc123")
+    data, name, ctype = read_bytes_from_ref(str(source), max_bytes=1024)
+    assert data == b"abc123"
+    assert name == "in.bin"
+
+    dest = tmp_path / "out.bin"
+    written = write_bytes_to_ref(str(dest), data, max_bytes=1024)
+    assert Path(written).read_bytes() == b"abc123"

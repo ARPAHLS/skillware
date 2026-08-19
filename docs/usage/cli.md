@@ -327,7 +327,7 @@ When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` 
 
 ### skillware mail
 
-Operator UX for **`office/gmail_handler`** address book and email signatures — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, persistence).
+Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
 
     skillware mail
     skillware mail addressbook init
@@ -342,6 +342,9 @@ Operator UX for **`office/gmail_handler`** address book and email signatures —
     skillware mail signature set --file ./signature.txt
     skillware mail signature validate
     skillware mail signature clear
+    skillware mail signature profiles
+    skillware mail signature set-profile formal
+    skillware mail signature add-profile formal --html ~/.config/skillware/signatures/formal.html
 
 **Nothing is configured by default.** Run **`addressbook init`** and **`signature init`** once to create files under your user config dir (`~/.config/skillware/` or `%APPDATA%/skillware/`). That data **survives skillware upgrades and reinstalls**; it is not stored inside the pip wheel.
 

@@ -1,6 +1,6 @@
 {
   "name": "Gmail Handler",
-  "description": "Structured Gmail send, search, read, and reply for agent mail workflows.",
+  "description": "Gmail send, search, read, reply, and attachments for agent mail workflows.",
   "issuer": {
     "name": "Ross Peili",
     "email": "vpeilivanidis@gmail.com",
