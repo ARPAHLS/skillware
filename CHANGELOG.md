@@ -15,6 +15,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **CLI:** `skillware config show` displays merged resolved `mail.*` settings including signature source (#292).
 - **Skill:** `office/gmail_handler` reads signature from merged config when skill-local `default_signature_plain` is unset; ships `data/config.yaml.example` (#292).
 - **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — address book setup and email signatures (Gmail UI vs SMTP); [`docs/usage/cli.md`](docs/usage/cli.md) — mail submenu reference (#292).
+- **Packaging:** PyPI metadata — `keywords`, expanded `classifiers` (development status, intended audience, Python 3.10-3.12, AI and library topics), and `Documentation`, `Issues` and `Changelog` entries in `[project.urls]`. Metadata only; wheel contents are unchanged (#299).
 
 ## [0.5.0] - 2026-08-18
 
