@@ -1709,6 +1709,44 @@ def main() -> None:
     )
     mail_signature_sub.add_parser("validate", help="Validate configured signature.")
     mail_signature_sub.add_parser("clear", help="Remove signature from project config.")
+    mail_signature_sub.add_parser(
+        "profiles",
+        help="List named signature profiles and active profile.",
+    )
+    sig_profile = mail_signature_sub.add_parser(
+        "set-profile",
+        help="Set active signature profile in project config.",
+    )
+    sig_profile.add_argument(
+        "profile_id",
+        nargs="?",
+        default=None,
+        help="Profile id (e.g. default, formal).",
+    )
+    sig_add = mail_signature_sub.add_parser(
+        "add-profile",
+        help="Register plain/HTML paths for a named signature profile.",
+    )
+    sig_add.add_argument(
+        "profile_id",
+        nargs="?",
+        default=None,
+        help="Profile id to create or update.",
+    )
+    sig_add.add_argument(
+        "--html",
+        type=Path,
+        dest="html_path",
+        default=None,
+        help="Path to HTML signature file.",
+    )
+    sig_add.add_argument(
+        "--plain",
+        type=Path,
+        dest="plain_path",
+        default=None,
+        help="Path to plain-text signature file.",
+    )
     sig_set = mail_signature_sub.add_parser(
         "set",
         help="Set signature from --file or inline text argument.",
@@ -1792,6 +1830,12 @@ def main() -> None:
             elif action == "set":
                 kwargs["file_path"] = getattr(args, "signature_file", None)
                 kwargs["text"] = getattr(args, "text", None)
+            elif action == "set-profile":
+                kwargs["profile_id"] = getattr(args, "profile_id", None)
+            elif action == "add-profile":
+                kwargs["profile_id"] = getattr(args, "profile_id", None)
+                kwargs["html_path"] = getattr(args, "html_path", None)
+                kwargs["plain_path"] = getattr(args, "plain_path", None)
         raise SystemExit(cmd_mail(args.mail_area, action, **kwargs))
     else:
         cmd_interactive(parser=parser)

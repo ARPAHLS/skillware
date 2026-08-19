@@ -29,8 +29,11 @@ from skillware.core.mail_config import (
     resolve_addressbook_path,
     resolve_signature_html,
     resolve_signature_plain,
+    resolve_signature_profile,
     save_global_mail_settings,
     save_project_mail_settings,
+    set_active_signature_profile,
+    upsert_signature_profile,
     slugify_contact_id,
     validate_addressbook_data,
     validate_signature_text,
@@ -208,7 +211,7 @@ def test_resolve_signature_html_from_config(tmp_path, monkeypatch):
     mail = MailSettings(signature_html_path=str(html_file))
     text, source = resolve_signature_html(mail=mail)
     assert text == "<p>HTML sig</p>"
-    assert source == "config_html_path"
+    assert source == "profile_html_path:default"
 
 
 def test_save_global_mail_settings(tmp_path, monkeypatch):
@@ -218,3 +221,34 @@ def test_save_global_mail_settings(tmp_path, monkeypatch):
     )
     assert target.is_file()
     assert "addressbook_path" in target.read_text(encoding="utf-8")
+
+
+def test_signature_profiles_resolve(tmp_path):
+    html_a = tmp_path / "a.html"
+    html_b = tmp_path / "b.html"
+    html_a.write_text("<p>A</p>", encoding="utf-8")
+    html_b.write_text("<p>B</p>", encoding="utf-8")
+    mail = MailSettings(
+        signature_profile="formal",
+        signatures={
+            "default": {"signature_html_path": str(html_a)},
+            "formal": {"signature_html_path": str(html_b)},
+        },
+    )
+    text, source = resolve_signature_html(mail=mail, profile_id="formal")
+    assert text == "<p>B</p>"
+    assert source == "profile_html_path:formal"
+    assert resolve_signature_profile(mail=mail) == "formal"
+
+
+def test_upsert_and_set_signature_profile(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    monkeypatch.chdir(repo)
+    html = tmp_path / "sig.html"
+    html.write_text("<p>Formal</p>", encoding="utf-8")
+    upsert_signature_profile("formal", signature_html_path=str(html))
+    set_active_signature_profile("formal")
+    project = load_project_mail_settings()
+    assert project.signature_profile == "formal"
+    assert project.signatures["formal"]["signature_html_path"] == str(html)

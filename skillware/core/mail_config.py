@@ -14,6 +14,7 @@ ENV_ADDRESSBOOK_PATH = "GMAIL_ADDRESSBOOK_PATH"
 ENV_SIGNATURE_PLAIN = "GMAIL_SIGNATURE_PLAIN"
 ENV_SIGNATURE_PATH = "GMAIL_SIGNATURE_PATH"
 ENV_SIGNATURE_HTML_PATH = "GMAIL_SIGNATURE_HTML_PATH"
+ENV_SIGNATURE_PROFILE = "GMAIL_SIGNATURE_PROFILE"
 ENV_SCAN_STATE_PATH = "GMAIL_SCAN_STATE_PATH"
 ENV_SEND_LEDGER_PATH = "GMAIL_SEND_LEDGER_PATH"
 
@@ -89,6 +90,8 @@ class MailSettings:
     signature_path: Optional[str] = None
     signature_html_path: Optional[str] = None
     signature_plain: Optional[str] = None
+    signature_profile: Optional[str] = None
+    signatures: Optional[Dict[str, Any]] = None
     scan_state_path: Optional[str] = None
     send_ledger_path: Optional[str] = None
 
@@ -102,6 +105,10 @@ class MailSettings:
             block["signature_html_path"] = self.signature_html_path
         if self.signature_plain is not None:
             block["signature_plain"] = self.signature_plain
+        if self.signature_profile is not None:
+            block["signature_profile"] = self.signature_profile
+        if self.signatures is not None:
+            block["signatures"] = self.signatures
         if self.scan_state_path is not None:
             block["scan_state_path"] = self.scan_state_path
         if self.send_ledger_path is not None:
@@ -112,11 +119,16 @@ class MailSettings:
 def parse_mail_block(raw: Any) -> MailSettings:
     if not isinstance(raw, dict):
         return MailSettings()
+    signatures = raw.get("signatures")
+    if signatures is not None and not isinstance(signatures, dict):
+        signatures = None
     return MailSettings(
         addressbook_path=_optional_str(raw.get("addressbook_path")),
         signature_path=_optional_str(raw.get("signature_path")),
         signature_html_path=_optional_str(raw.get("signature_html_path")),
         signature_plain=_optional_str(raw.get("signature_plain")),
+        signature_profile=_optional_str(raw.get("signature_profile")),
+        signatures=signatures if isinstance(signatures, dict) else None,
         scan_state_path=_optional_str(raw.get("scan_state_path")),
         send_ledger_path=_optional_str(raw.get("send_ledger_path")),
     )
@@ -141,6 +153,18 @@ def merge_mail_settings(layers: Sequence[MailSettings]) -> MailSettings:
             merged.signature_html_path = layer.signature_html_path
         if layer.signature_plain is not None:
             merged.signature_plain = layer.signature_plain
+        if layer.signature_profile is not None:
+            merged.signature_profile = layer.signature_profile
+        if layer.signatures is not None:
+            existing = dict(merged.signatures or {})
+            for profile_id, profile in layer.signatures.items():
+                if isinstance(profile, dict):
+                    base = dict(existing.get(profile_id) or {})
+                    base.update(profile)
+                    existing[profile_id] = base
+                else:
+                    existing[profile_id] = profile
+            merged.signatures = existing
         if layer.scan_state_path is not None:
             merged.scan_state_path = layer.scan_state_path
         if layer.send_ledger_path is not None:
@@ -242,38 +266,128 @@ def _read_signature_file(path: Path) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
+def resolve_signature_profile(
+    *,
+    mail: Optional[MailSettings] = None,
+    profile_id: Optional[str] = None,
+    context: Optional[Mapping[str, Any]] = None,
+) -> str:
+    """Return active signature profile id (default ``default``)."""
+    if profile_id and str(profile_id).strip():
+        return str(profile_id).strip()
+
+    ctx = context or {}
+    ctx_profile = ctx.get("signature_profile")
+    if isinstance(ctx_profile, str) and ctx_profile.strip():
+        return ctx_profile.strip()
+
+    env_profile = os.environ.get(ENV_SIGNATURE_PROFILE, "").strip()
+    if env_profile:
+        return env_profile
+
+    settings = mail if mail is not None else load_merged_mail_settings()
+    if settings.signature_profile:
+        return settings.signature_profile
+
+    return "default"
+
+
+def _profile_block(
+    mail: MailSettings,
+    profile_id: str,
+) -> Dict[str, Any]:
+    profiles = mail.signatures if isinstance(mail.signatures, dict) else {}
+    block = profiles.get(profile_id)
+    if isinstance(block, dict):
+        return block
+    if profile_id == "default":
+        legacy: Dict[str, Any] = {}
+        if mail.signature_path:
+            legacy["signature_path"] = mail.signature_path
+        if mail.signature_html_path:
+            legacy["signature_html_path"] = mail.signature_html_path
+        if mail.signature_plain:
+            legacy["signature_plain"] = mail.signature_plain
+        return legacy
+    return {}
+
+
+def list_signature_profiles(
+    *,
+    mail: Optional[MailSettings] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Return known signature profiles with resolved path hints."""
+    settings = mail if mail is not None else load_merged_mail_settings()
+    profiles: Dict[str, Dict[str, Any]] = {}
+    if isinstance(settings.signatures, dict):
+        for profile_id, block in settings.signatures.items():
+            if isinstance(block, dict):
+                profiles[str(profile_id)] = dict(block)
+    if "default" not in profiles and (
+        settings.signature_path
+        or settings.signature_html_path
+        or settings.signature_plain
+    ):
+        profiles["default"] = _profile_block(settings, "default")
+    active = resolve_signature_profile(mail=settings)
+    for profile_id in profiles:
+        profiles[profile_id]["active"] = profile_id == active
+    return profiles
+
+
 def resolve_signature_plain(
     *,
     mail: Optional[MailSettings] = None,
     skill_local_config: Optional[Mapping[str, Any]] = None,
+    profile_id: Optional[str] = None,
+    context: Optional[Mapping[str, Any]] = None,
 ) -> Tuple[str, str]:
     """
     Return (signature_text, source_label).
 
     source_label is one of: env_path, env_plain, config_path, config_plain,
-    skill_local, none.
+    profile_path, profile_plain, skill_local, none.
     """
+    active_profile = resolve_signature_profile(
+        mail=mail,
+        profile_id=profile_id,
+        context=context,
+    )
+
     env_path = os.environ.get(ENV_SIGNATURE_PATH, "").strip()
-    if env_path:
+    if env_path and active_profile == "default":
         return _read_signature_file(_expand_path(env_path)), "env_path"
 
     env_plain = os.environ.get(ENV_SIGNATURE_PLAIN, "").strip()
-    if env_plain:
+    if env_plain and active_profile == "default":
         return env_plain, "env_plain"
 
     settings = mail if mail is not None else load_merged_mail_settings()
+    profile = _profile_block(settings, active_profile)
 
-    if settings.signature_path:
-        text = _read_signature_file(_expand_path(settings.signature_path))
+    if profile.get("signature_path"):
+        text = _read_signature_file(_expand_path(str(profile["signature_path"])))
         if text:
-            return text, "config_path"
+            return text, f"profile_path:{active_profile}"
 
-    if settings.signature_plain:
-        return settings.signature_plain.strip(), "config_plain"
+    if profile.get("signature_plain"):
+        return (
+            str(profile["signature_plain"]).strip(),
+            f"profile_plain:{active_profile}",
+        )
+
+    if active_profile == "default":
+        if settings.signature_path:
+            text = _read_signature_file(_expand_path(settings.signature_path))
+            if text:
+                return text, "config_path"
+
+        if settings.signature_plain:
+            return settings.signature_plain.strip(), "config_plain"
 
     local = skill_local_config or {}
     local_sig = (local.get("default_signature_plain") or "").strip()
-    if local_sig:
+    if local_sig and active_profile == "default":
         return local_sig, "skill_local"
 
     return "", "none"
@@ -283,22 +397,37 @@ def resolve_signature_html(
     *,
     mail: Optional[MailSettings] = None,
     skill_local_config: Optional[Mapping[str, Any]] = None,
+    profile_id: Optional[str] = None,
+    context: Optional[Mapping[str, Any]] = None,
 ) -> Tuple[str, str]:
     """Return (html_signature, source_label)."""
+    active_profile = resolve_signature_profile(
+        mail=mail,
+        profile_id=profile_id,
+        context=context,
+    )
+
     env_path = os.environ.get(ENV_SIGNATURE_HTML_PATH, "").strip()
-    if env_path:
+    if env_path and active_profile == "default":
         return _read_signature_file(_expand_path(env_path)), "env_html_path"
 
     settings = mail if mail is not None else load_merged_mail_settings()
+    profile = _profile_block(settings, active_profile)
 
-    if settings.signature_html_path:
-        text = _read_signature_file(_expand_path(settings.signature_html_path))
+    if profile.get("signature_html_path"):
+        text = _read_signature_file(_expand_path(str(profile["signature_html_path"])))
         if text:
-            return text, "config_html_path"
+            return text, f"profile_html_path:{active_profile}"
+
+    if active_profile == "default":
+        if settings.signature_html_path:
+            text = _read_signature_file(_expand_path(settings.signature_html_path))
+            if text:
+                return text, "config_html_path"
 
     local = skill_local_config or {}
     local_html = (local.get("default_signature_html") or "").strip()
-    if local_html:
+    if local_html and active_profile == "default":
         return local_html, "skill_local_html"
 
     return "", "none"
@@ -625,6 +754,46 @@ def save_global_mail_settings(
     return target.resolve()
 
 
+def upsert_signature_profile(
+    profile_id: str,
+    *,
+    signature_path: Optional[str] = None,
+    signature_html_path: Optional[str] = None,
+    signature_plain: Optional[str] = None,
+    start: Optional[Path] = None,
+) -> Path:
+    """Add or update one named signature profile in project config."""
+    profile_id = (profile_id or "").strip()
+    if not profile_id:
+        raise ValueError("profile_id is required")
+
+    project = load_project_mail_settings(start=start)
+    profiles = dict(project.signatures or {})
+    block = dict(profiles.get(profile_id) or {})
+    if signature_path is not None:
+        block["signature_path"] = signature_path
+    if signature_html_path is not None:
+        block["signature_html_path"] = signature_html_path
+    if signature_plain is not None:
+        block["signature_plain"] = signature_plain
+    profiles[profile_id] = block
+    project.signatures = profiles
+    return save_project_mail_settings(project, start=start)
+
+
+def set_active_signature_profile(
+    profile_id: str,
+    *,
+    start: Optional[Path] = None,
+) -> Path:
+    profile_id = (profile_id or "").strip()
+    if not profile_id:
+        raise ValueError("profile_id is required")
+    project = load_project_mail_settings(start=start)
+    project.signature_profile = profile_id
+    return save_project_mail_settings(project, start=start)
+
+
 def persist_global_mail_paths(
     *,
     addressbook_path: Optional[str] = None,
@@ -661,6 +830,10 @@ def clear_mail_signature_settings() -> List[Path]:
             continue
         changed = False
         for key in ("signature_path", "signature_html_path", "signature_plain"):
+            if key in mail_block:
+                del mail_block[key]
+                changed = True
+        for key in ("signature_profile", "signatures"):
             if key in mail_block:
                 del mail_block[key]
                 changed = True
@@ -701,6 +874,7 @@ def format_mail_config_lines(
         mail=mail,
         skill_local_config=skill_local_config,
     )
+    active_profile = resolve_signature_profile(mail=mail)
     scan_path = resolve_scan_state_path(mail=mail, skill_data_dir=skill_data_dir)
     ledger_path = resolve_send_ledger_path(mail=mail, skill_data_dir=skill_data_dir)
 
@@ -722,6 +896,11 @@ def format_mail_config_lines(
         lines.append(f"  signature_html (resolved, {sig_html_source}): present")
     else:
         lines.append("  signature_html: (none)")
+
+    lines.append(f"  signature_profile (active): {active_profile}")
+    profiles = list_signature_profiles(mail=mail)
+    if profiles:
+        lines.append(f"  signature_profiles: {', '.join(sorted(profiles))}")
 
     lines.append(f"  scan_state_path (resolved): {scan_path}")
     lines.append(f"  send_ledger_path (resolved): {ledger_path}")

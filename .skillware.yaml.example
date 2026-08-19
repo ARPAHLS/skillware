@@ -30,6 +30,13 @@ legacy:
 #   addressbook_path: ~/.config/skillware/addressbook.yaml
 #   signature_path: ~/.config/skillware/mail_signature.txt
 #   signature_html_path: ~/.config/skillware/mail_signature.html
+#   signature_profile: default
+#   signatures:
+#     default:
+#       signature_path: ~/.config/skillware/mail_signature.txt
+#       signature_html_path: ~/.config/skillware/mail_signature.html
+#     formal:
+#       signature_html_path: ~/.config/skillware/signatures/formal.html
 #   signature_plain: |
 #     —
 #     Agent Name
