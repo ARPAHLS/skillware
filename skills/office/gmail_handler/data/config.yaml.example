@@ -1,0 +1,17 @@
+# Optional skill-local overrides for office/gmail_handler.
+# Prefer skillware mail CLI or top-level mail: in .skillware.yaml / global config.yaml.
+#
+# default_signature_plain: |
+#   —
+#   Your Agent Name
+#   Your Project
+# default_signature_html: |
+#   <!-- HTML signature block; prefer skillware mail signature init -->
+
+imap:
+  inbox_folder: INBOX
+  sent_folder: "[Gmail]/Sent Mail"
+
+# max_recipients: 5
+# confirm_before_send: true
+# redact_logs: true

@@ -25,6 +25,21 @@ legacy:
   # When true, SKILLWARE_SKILL_PATH is merged as external roots (default).
   honor_skillware_skill_path: true
 
+# Mail operator settings for office/gmail_handler (active in Skillware 0.5+):
+# mail:
+#   addressbook_path: ~/.config/skillware/addressbook.yaml
+#   signature_path: ~/.config/skillware/mail_signature.txt
+#   signature_html_path: ~/.config/skillware/mail_signature.html
+#   signature_plain: |
+#     —
+#     Agent Name
+#     Skillware Project
+#   scan_state_path: ~/.config/skillware/gmail_scan_state.json
+#   send_ledger_path: ~/.config/skillware/gmail_send_ledger.json
+#
+# Precedence: env (GMAIL_*) > project YAML > global YAML > skill bundled defaults.
+# CLI: skillware mail addressbook init | skillware mail signature set
+
 # Reserved for future releases (ignored today; preserved by skillware config show):
 # theme:
 #   preset: default

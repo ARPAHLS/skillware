@@ -8,6 +8,14 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Config:** Top-level `mail:` section in `.skillware.yaml` and global `config.yaml` — address book path, plain-text signature (inline or file), scan state, and send ledger paths for `office/gmail_handler` (#292).
+- **CLI:** `skillware mail` submenu — address book init/show/validate/set-path/**add**; signature init/show/set/validate/clear; default HTML signature with Skillware logo (40px) and links; interactive menu option `7` / `mail` (#292).
+- **CLI:** `skillware config show` displays merged resolved `mail.*` settings including signature source (#292).
+- **Skill:** `office/gmail_handler` reads signature from merged config when skill-local `default_signature_plain` is unset; ships `data/config.yaml.example` (#292).
+- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — address book setup and email signatures (Gmail UI vs SMTP); [`docs/usage/cli.md`](docs/usage/cli.md) — mail submenu reference (#292).
+
 ## [0.5.0] - 2026-08-18
 
 ### Removed

@@ -12,11 +12,20 @@ import copy
 import os
 import re
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import yaml
 
 from skillware.core.base_skill import BaseSkill
+from skillware.core.mail_config import (
+    load_merged_mail_settings,
+    resolve_addressbook_path,
+    resolve_scan_state_path,
+    resolve_send_ledger_path,
+    resolve_signature_html,
+    resolve_signature_plain,
+)
 
 _SKILL_DIR = os.path.dirname(os.path.abspath(__file__))
 if _SKILL_DIR not in sys.path:
@@ -55,9 +64,27 @@ class GmailHandlerSkill(BaseSkill):
         self._skill_dir = os.path.dirname(os.path.abspath(__file__))
         self._data_dir = os.path.join(self._skill_dir, "data")
         self.skill_config = self._load_yaml(os.path.join(self._data_dir, "config.yaml"))
-        self._addressbook_path = self._resolve_addressbook_path()
-        self._scan_state_path = self._resolve_scan_state_path()
-        self._send_ledger_path = self._resolve_send_ledger_path()
+        self._mail_settings = load_merged_mail_settings()
+        self._bundled_addressbook = Path(self._data_dir) / "addressbook.yaml"
+        self._addressbook_path = str(
+            resolve_addressbook_path(
+                mail=self._mail_settings,
+                skill_data_dir=Path(self._data_dir),
+                bundled_addressbook=self._bundled_addressbook,
+            )
+        )
+        self._scan_state_path = str(
+            resolve_scan_state_path(
+                mail=self._mail_settings,
+                skill_data_dir=Path(self._data_dir),
+            )
+        )
+        self._send_ledger_path = str(
+            resolve_send_ledger_path(
+                mail=self._mail_settings,
+                skill_data_dir=Path(self._data_dir),
+            )
+        )
         self._addressbook = self._load_addressbook()
         self._transport: Optional[MailTransport] = None
 
@@ -687,10 +714,33 @@ class GmailHandlerSkill(BaseSkill):
             )
 
         subject = (params.get("subject") or "").strip()
-        body_plain = (params.get("body_plain") or params.get("body") or "").strip()
-        signature = (self.skill_config.get("default_signature_plain") or "").strip()
-        if signature and body_plain and signature not in body_plain:
-            body_plain = f"{body_plain}\n\n{signature}"
+        body_message = (params.get("body_plain") or params.get("body") or "").strip()
+        signature, _ = resolve_signature_plain(
+            mail=self._mail_settings,
+            skill_local_config=self.skill_config,
+        )
+        signature_html, _ = resolve_signature_html(
+            mail=self._mail_settings,
+            skill_local_config=self.skill_config,
+        )
+
+        body_plain = body_message
+        if signature and body_message and signature not in body_message:
+            body_plain = f"{body_message}\n\n{signature}"
+
+        body_html = params.get("body_html")
+        if signature_html:
+            if body_html:
+                if signature_html not in body_html:
+                    body_html = f"{body_html}<br><br>{signature_html}"
+            else:
+                escaped_message = (
+                    body_message.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br>\n")
+                )
+                body_html = f"<div>{escaped_message}</div><br>{signature_html}"
 
         missing: List[str] = []
         if not to_emails:
@@ -708,7 +758,7 @@ class GmailHandlerSkill(BaseSkill):
             "bcc": list(bcc_raw),
             "subject": subject,
             "body_plain": body_plain,
-            "body_html": params.get("body_html"),
+            "body_html": body_html,
             "reply_to": params.get("reply_to"),
             "recipient_count": len(all_recipients),
             "resolved_recipients": [self._recipient_dict(r) for r in resolved],
@@ -846,36 +896,6 @@ class GmailHandlerSkill(BaseSkill):
         with open(path, "r", encoding="utf-8") as handle:
             data = yaml.safe_load(handle)
         return data if isinstance(data, dict) else {}
-
-    def _resolve_addressbook_path(self) -> str:
-        env_key = (self.skill_config.get("addressbook") or {}).get(
-            "env_path_var"
-        ) or "GMAIL_ADDRESSBOOK_PATH"
-        override = os.environ.get(env_key, "").strip()
-        if override:
-            return os.path.abspath(override)
-        default_rel = (self.skill_config.get("addressbook") or {}).get(
-            "default_path"
-        ) or "data/addressbook.yaml"
-        return os.path.join(self._skill_dir, default_rel)
-
-    def _resolve_scan_state_path(self) -> str:
-        env_key = (self.skill_config.get("scan_state") or {}).get(
-            "env_path_var"
-        ) or "GMAIL_SCAN_STATE_PATH"
-        override = os.environ.get(env_key, "").strip()
-        if override:
-            return os.path.abspath(override)
-        return os.path.join(self._data_dir, ".gmail_scan_state.json")
-
-    def _resolve_send_ledger_path(self) -> str:
-        env_key = (self.skill_config.get("send_ledger") or {}).get(
-            "env_path_var"
-        ) or "GMAIL_SEND_LEDGER_PATH"
-        override = os.environ.get(env_key, "").strip()
-        if override:
-            return os.path.abspath(override)
-        return os.path.join(self._data_dir, "send_ledger.json")
 
     def _load_addressbook(self) -> Dict[str, Any]:
         path = self._addressbook_path

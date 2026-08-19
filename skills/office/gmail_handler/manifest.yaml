@@ -146,6 +146,15 @@ env_vars:
   GMAIL_ADDRESSBOOK_PATH:
     description: Optional override path to addressbook.yaml.
     required: false
+  GMAIL_SIGNATURE_PATH:
+    description: Optional path to plain-text signature file for outbound new mail.
+    required: false
+  GMAIL_SIGNATURE_PLAIN:
+    description: Optional inline plain-text signature (path env wins if both set).
+    required: false
+  GMAIL_SIGNATURE_HTML_PATH:
+    description: Optional path to HTML signature file (logo + links) for outbound new mail.
+    required: false
   GMAIL_SCAN_STATE_PATH:
     description: Optional override path for incremental scan cursor JSON.
     required: false

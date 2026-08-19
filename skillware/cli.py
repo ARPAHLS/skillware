@@ -29,6 +29,8 @@ from skillware.core.config import (
     project_config_write_path,
     save_project_config,
 )
+from skillware.core.mail_config import format_mail_config_lines
+from skillware.cli_mail import cmd_mail, cmd_mail_submenu
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
     bundled_skill_root,
@@ -53,6 +55,7 @@ _DOCS_CLI_LIST = f"{_DOCS_CLI}#skillware-list"
 _DOCS_CLI_EXAMPLES = f"{_DOCS_CLI}#skillware-examples"
 _DOCS_CLI_PATHS = f"{_DOCS_CLI}#skillware-paths"
 _DOCS_CLI_CONFIG = f"{_DOCS_CLI}#skillware-config"
+_DOCS_CLI_MAIL = f"{_DOCS_CLI}#skillware-mail"
 
 HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
     (
@@ -98,6 +101,20 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         _DOCS_CLI_CONFIG,
     ),
     (
+        "Mail",
+        [
+            ("skillware mail", "resolved address book and signature paths"),
+            ("skillware mail addressbook init", "create user config addressbook.yaml"),
+            ("skillware mail addressbook add", "interactive contact wizard"),
+            ("skillware mail addressbook show", "resolved path and contact count"),
+            ("skillware mail addressbook validate", "schema check"),
+            ("skillware mail signature set", "paste or --file signature text"),
+            ("skillware mail signature init", "default plain + HTML signature with logo"),
+            ("skillware (menu 7 / mail)", "interactive mail submenu"),
+        ],
+        _DOCS_CLI_MAIL,
+    ),
+    (
         "General",
         [
             ("skillware", "interactive menu (splash + numbered options)"),
@@ -126,10 +143,11 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
     ("2", "examples", "indexed runnable scripts", 1),
     ("3", "paths", "resolution and path editor", 2),
     ("4", "config", "merged YAML settings", 3),
-    ("5", "general", "menu, help, version", 4),
-    ("6", "install", "pip install skillware", "install"),
-    ("7", "docs", "full CLI guide online", "docs"),
-    ("8", "interactive", "numbered splash menu", "interactive"),
+    ("5", "mail", "address book and signature setup", 4),
+    ("6", "general", "menu, help, version", 5),
+    ("7", "install", "pip install skillware", "install"),
+    ("8", "docs", "full CLI guide online", "docs"),
+    ("9", "interactive", "numbered splash menu", "interactive"),
 ]
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
@@ -139,6 +157,7 @@ _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware test finance/wallet_screening",
     "skillware paths",
     "skillware config show",
+    "skillware mail addressbook show",
     "skillware doctor --category compliance",
 )
 SPLASH_GRADIENT_START = (0xD4, 0xE4, 0xF1)
@@ -1075,6 +1094,10 @@ def cmd_config_show(console=None) -> int:
         console.print(
             "  docs/usage/cli.md#skillware-config", style=f"dim {SPLASH_STYLE}"
         )
+        console.print()
+        console.print(Text("mail (resolved defaults)", style=f"bold {TABLE_STYLE}"))
+        for line in format_mail_config_lines(config.mail):
+            console.print(line, style=MENU_STYLE)
         return 0
 
     console.print(Text("paths (active)", style=f"bold {TABLE_STYLE}"))
@@ -1095,6 +1118,11 @@ def cmd_config_show(console=None) -> int:
     )
     console.print()
 
+    console.print(Text("mail (active)", style=f"bold {TABLE_STYLE}"))
+    for line in format_mail_config_lines(config.mail):
+        console.print(line, style=MENU_STYLE)
+    console.print()
+
     if config.extra:
         console.print(Text("Other sections (reserved)", style=f"bold {TABLE_STYLE}"))
         for key in sorted(config.extra):
@@ -1106,7 +1134,7 @@ def cmd_config_show(console=None) -> int:
         style="dim",
     )
     console.print(
-        "Edit via interactive menu (paths) or YAML manually.",
+        "Edit via interactive menu (paths, mail) or YAML manually.",
         style="dim",
     )
     return 0
@@ -1393,6 +1421,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("4", "paths", "paths submenu — view, edit, and diagnose skill roots"),
         ("5", "doctor", "check manifest deps and skill.py import readiness"),
         ("6", "help", "grouped help topics and doc links"),
+        ("7", "mail", "address book and signature for office/gmail_handler"),
     ]
 
     commands = {
@@ -1408,6 +1437,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         "doctor": "doctor",
         "6": "help",
         "help": "help",
+        "7": "mail",
+        "mail": "mail",
     }
 
     _print_menu(console, menu)
@@ -1449,6 +1480,11 @@ def cmd_interactive(console=None, parser=None) -> None:
             rc = cmd_doctor(console=console)
             if rc:
                 console.print(f"  doctor exited with status {rc}", style="dim #FF9AA2")
+        elif command == "mail":
+            mail_nav = cmd_mail_submenu(console=console)
+            if mail_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         elif command == "help":
             help_nav = cmd_help_submenu(console=console)
             if help_nav == _NAV_EXIT:
@@ -1594,6 +1630,100 @@ def main() -> None:
         help="Print merged global and project YAML settings.",
     )
 
+    mail_parser = subparsers.add_parser(
+        "mail",
+        help="Address book and signature settings for office/gmail_handler.",
+    )
+    mail_subparsers = mail_parser.add_subparsers(dest="mail_area")
+    mail_addressbook = mail_subparsers.add_parser(
+        "addressbook",
+        help="Manage addressbook.yaml path and validation.",
+    )
+    mail_addressbook_sub = mail_addressbook.add_subparsers(dest="mail_action")
+    mail_addressbook_sub.add_parser(
+        "show", help="Show resolved path and contact count."
+    )
+    ab_init = mail_addressbook_sub.add_parser(
+        "init", help="Create template address book."
+    )
+    ab_init.add_argument(
+        "--path",
+        type=Path,
+        default=None,
+        help="Target file path (default: resolved path).",
+    )
+    ab_init.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing file.",
+    )
+    mail_addressbook_sub.add_parser("validate", help="Validate address book schema.")
+    ab_add = mail_addressbook_sub.add_parser(
+        "add",
+        help="Add a contact (interactive wizard or flags).",
+    )
+    ab_add.add_argument("--name", dest="display_name", default=None)
+    ab_add.add_argument("--email", default=None)
+    ab_add.add_argument("--aliases", default=None, help="Comma-separated aliases.")
+    ab_add.add_argument("--org", default=None)
+    ab_add.add_argument("--id", dest="contact_id", default=None)
+    ab_set = mail_addressbook_sub.add_parser(
+        "set-path",
+        help="Persist mail.addressbook_path in project config.",
+    )
+    ab_set.add_argument(
+        "path",
+        nargs="?",
+        default=None,
+        help="Path to addressbook.yaml.",
+    )
+
+    mail_signature = mail_subparsers.add_parser(
+        "signature",
+        help="Manage outbound mail signature (plain text).",
+    )
+    mail_signature_sub = mail_signature.add_subparsers(dest="mail_action")
+    mail_signature_sub.add_parser("show", help="Show resolved signature.")
+    sig_init = mail_signature_sub.add_parser(
+        "init",
+        help="Create template signature file or inline config.",
+    )
+    sig_init.add_argument(
+        "--path",
+        type=Path,
+        default=None,
+        help="Target signature file path.",
+    )
+    sig_init.add_argument(
+        "--inline",
+        action="store_true",
+        help="Store default signature in mail.signature_plain instead of a file.",
+    )
+    sig_init.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing signature file.",
+    )
+    mail_signature_sub.add_parser("validate", help="Validate configured signature.")
+    mail_signature_sub.add_parser("clear", help="Remove signature from project config.")
+    sig_set = mail_signature_sub.add_parser(
+        "set",
+        help="Set signature from --file or inline text argument.",
+    )
+    sig_set.add_argument(
+        "--file",
+        type=Path,
+        dest="signature_file",
+        default=None,
+        help="Read signature text from a file.",
+    )
+    sig_set.add_argument(
+        "text",
+        nargs="?",
+        default=None,
+        help="Signature plain text (use --file for multi-line).",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -1634,6 +1764,32 @@ def main() -> None:
             raise SystemExit(cmd_config_show())
         config_parser.print_help()
         raise SystemExit(2)
+    elif args.command == "mail":
+        if args.mail_area is None:
+            raise SystemExit(cmd_mail())
+        action = getattr(args, "mail_action", None) or "show"
+        kwargs = {}
+        if args.mail_area == "addressbook":
+            if action == "init":
+                kwargs["path"] = getattr(args, "path", None)
+                kwargs["force"] = getattr(args, "force", False)
+            elif action == "add":
+                kwargs["display_name"] = getattr(args, "display_name", None)
+                kwargs["email"] = getattr(args, "email", None)
+                kwargs["aliases"] = getattr(args, "aliases", None)
+                kwargs["org"] = getattr(args, "org", None)
+                kwargs["contact_id"] = getattr(args, "contact_id", None)
+            elif action == "set-path":
+                kwargs["path"] = getattr(args, "path", None)
+        elif args.mail_area == "signature":
+            if action == "init":
+                kwargs["path"] = getattr(args, "path", None)
+                kwargs["inline"] = getattr(args, "inline", False)
+                kwargs["force"] = getattr(args, "force", False)
+            elif action == "set":
+                kwargs["file_path"] = getattr(args, "signature_file", None)
+                kwargs["text"] = getattr(args, "text", None)
+        raise SystemExit(cmd_mail(args.mail_area, action, **kwargs))
     else:
         cmd_interactive(parser=parser)
 

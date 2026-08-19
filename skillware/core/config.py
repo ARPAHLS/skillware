@@ -9,6 +9,12 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import yaml
 
+from skillware.core.mail_config import (
+    MailSettings,
+    merge_mail_settings,
+    parse_mail_block,
+)
+
 GLOBAL_CONFIG_DIR_ENV = "SKILLWARE_CONFIG_DIR"
 PROJECT_CONFIG_FILENAME = ".skillware.yaml"
 GLOBAL_CONFIG_FILENAME = "config.yaml"
@@ -16,7 +22,7 @@ _MAX_PARENT_WALK = 6
 
 _DEFAULT_RESOLUTION_ORDER: Tuple[str, ...] = ("project", "external", "bundled")
 _VALID_ORDER_TIERS = frozenset({"project", "external", "bundled"})
-_KNOWN_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy"})
+_KNOWN_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy", "mail"})
 
 
 @dataclass(frozen=True)
@@ -45,12 +51,13 @@ class SkillwareConfig:
     """
     Merged Skillware configuration.
 
-    ``paths`` is implemented today. Additional top-level YAML sections (for
-    example ``theme``, ``chains``, skill presets) are preserved in ``extra``
+    ``paths`` and ``mail`` are implemented today. Additional top-level YAML
+    sections (for example ``theme``, ``chains``) are preserved in ``extra``
     for forward compatibility and shown by ``skillware config show``.
     """
 
     paths: PathsSettings = field(default_factory=PathsSettings)
+    mail: MailSettings = field(default_factory=MailSettings)
     extra: Dict[str, Any] = field(default_factory=dict)
     layers: Tuple[ConfigLayer, ...] = ()
 
@@ -146,10 +153,15 @@ def _merge_extra_section(
 
 def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
     paths = PathsSettings()
+    mail_layers: List[MailSettings] = []
     extra: Dict[str, Any] = {}
 
     for layer in layers:
         extra = _merge_extra_section(extra, layer.data)
+
+        mail_raw = layer.data.get("mail")
+        if mail_raw is not None:
+            mail_layers.append(parse_mail_block(mail_raw))
 
         paths_block = layer.data.get("paths")
         if isinstance(paths_block, dict):
@@ -182,7 +194,8 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
                 legacy_block.get("honor_skillware_skill_path")
             )
 
-    return SkillwareConfig(paths=paths, extra=extra, layers=tuple(layers))
+    mail = merge_mail_settings(mail_layers)
+    return SkillwareConfig(paths=paths, mail=mail, extra=extra, layers=tuple(layers))
 
 
 def load_merged_config(*, refresh: bool = False) -> SkillwareConfig:

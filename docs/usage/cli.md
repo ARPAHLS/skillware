@@ -37,6 +37,7 @@ After installation, the `skillware` command is available directly:
     skillware list
     skillware doctor
     skillware config show
+    skillware mail addressbook show
     skillware test
     skillware examples
     skillware --version
@@ -117,7 +118,8 @@ Available commands:
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
 | `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
-| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, General) with doc links | Available |
+| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, Mail, General) with doc links | Available |
+| `7` / `mail` | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
 
 ## Grouped help
 
@@ -289,7 +291,7 @@ Interactive menu: **`5` / `doctor`**.
 
 ### skillware config
 
-Show merged global + project Skillware configuration (read-only). The `paths` section is active today; other top-level keys are preserved for future settings (themes, chains, etc.).
+Show merged global + project Skillware configuration (read-only). The `paths` and `mail` sections are active today; other top-level keys are preserved for future settings (themes, chains, etc.).
 
     skillware config show
 
@@ -311,9 +313,65 @@ resolution:
     - bundled
 legacy:
   honor_skillware_skill_path: true
+mail:
+  addressbook_path: ~/.config/skillware/addressbook.yaml
+  signature_path: ~/.config/skillware/mail_signature.txt
+  signature_html_path: ~/.config/skillware/mail_signature.html
+  signature_plain: |
+    —
+    Agent Name
+    Skillware Project
 ```
 
 When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
+
+### skillware mail
+
+Operator UX for **`office/gmail_handler`** address book and email signatures — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, persistence).
+
+    skillware mail
+    skillware mail addressbook init
+    skillware mail addressbook add
+    skillware mail addressbook add --name "Jane" --email jane@example.com
+    skillware mail addressbook show
+    skillware mail addressbook validate
+    skillware mail addressbook set-path ~/.config/skillware/addressbook.yaml
+    skillware mail signature init
+    skillware mail signature init --force
+    skillware mail signature show
+    skillware mail signature set --file ./signature.txt
+    skillware mail signature validate
+    skillware mail signature clear
+
+**Nothing is configured by default.** Run **`addressbook init`** and **`signature init`** once to create files under your user config dir (`~/.config/skillware/` or `%APPDATA%/skillware/`). That data **survives skillware upgrades and reinstalls**; it is not stored inside the pip wheel.
+
+**Precedence:** environment variables (`GMAIL_*`) → project `.skillware.yaml` → global `config.yaml` → skill bundled read-only defaults.
+
+| Area | Actions |
+|------|---------|
+| Address book | **init**, **add** (wizard or `--name` / `--email` / `--aliases` / `--org` / `--id`), **show**, **validate**, **set-path** |
+| Signature | **init** (plain + HTML + logo; `--force` overwrite), **show**, **set** (paste or `--file`), **validate**, **clear** |
+
+**User config files** (after init):
+
+| File | Purpose |
+|------|---------|
+| `addressbook.yaml` | Contacts |
+| `mail_signature.txt` | Plain signature (`text/plain` MIME part) |
+| `mail_signature.html` | HTML signature (logo, `—`, links — what Gmail shows) |
+| `skillware_logo.png` | Local logo copy |
+| `config.yaml` | Registers `mail.*` paths |
+
+**Env overrides** (optional): `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`.
+
+Interactive menu: **`7` / `mail`**. Submenu mirrors the commands above.
+
+Test signature in your inbox (requires `.env` credentials):
+
+    python examples/gmail_signature_test_send.py --to you@example.com --preview-only
+    python examples/gmail_signature_test_send.py --to you@example.com
+
+Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
 
 ## Path resolution
 
