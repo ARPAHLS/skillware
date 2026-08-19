@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skillware"
-version = "0.5.0"
+version = "0.5.1"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
@@ -37,11 +37,11 @@ requires-python = ">=3.10"
 keywords = ["ai", "agents", "skills", "llm", "tools", "framework", "agent-tools", "registry"]
 
 [project.urls]
-Homepage = "https://arpacorp.net"
-Repository = "https://github.com/arpahls/skillware"
-Documentation = "https://github.com/arpahls/skillware/blob/main/docs/introduction.md"
-Issues = "https://github.com/arpahls/skillware/issues"
-Changelog = "https://github.com/arpahls/skillware/blob/main/CHANGELOG.md"
+Homepage = "https://skillware.site"
+Repository = "https://github.com/ARPAHLS/skillware"
+Documentation = "https://github.com/ARPAHLS/skillware/blob/main/docs/introduction.md"
+Issues = "https://github.com/ARPAHLS/skillware/issues"
+Changelog = "https://github.com/ARPAHLS/skillware/blob/main/CHANGELOG.md"
 DOI = "https://doi.org/10.5281/zenodo.21552745"
 
 [project.scripts]

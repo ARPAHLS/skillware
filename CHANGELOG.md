@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-19
+
 ### Added
 
 - **Skill (`office/gmail_handler` v0.2):** Reply signature parity, preview metadata (`signature_applied`, `signature_source`, `signature_profile`); attachment list on `read_message`, `download_attachment`, and outbound send/reply attachments via flexible paths (local, `file://`, HTTP(S), optional cloud URIs with fsspec); multi-profile signatures via `mail.signatures` and `skillware mail signature profiles|add-profile|set-profile` (#293).
@@ -17,6 +19,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Skill:** `office/gmail_handler` reads signature from merged config when skill-local `default_signature_plain` is unset; ships `data/config.yaml.example` (#292).
 - **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — attachments, multi-profile signatures, untrusted attachment disclaimer; [`docs/usage/cli.md`](docs/usage/cli.md) and [`docs/usage/api_keys.md`](docs/usage/api_keys.md) updated (#293).
 - **Packaging:** PyPI metadata — `keywords`, expanded `classifiers` (development status, intended audience, Python 3.10-3.12, AI and library topics), and `Documentation`, `Issues` and `Changelog` entries in `[project.urls]`. Metadata only; wheel contents are unchanged (#299).
+
+### Changed
+
+- **Packaging:** PyPI `Homepage` → `https://skillware.site`; canonical `ARPAHLS` casing on GitHub URLs in `[project.urls]` (release chore).
 
 ## [0.5.0] - 2026-08-18
 
