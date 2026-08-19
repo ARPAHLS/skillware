@@ -33,6 +33,10 @@ def _write_registry_skill(root: Path, category: str, name: str) -> None:
 
 
 def test_get_skill_roots_order_env_project_bundled(tmp_path, monkeypatch):
+    empty_config = tmp_path / "empty_config"
+    empty_config.mkdir()
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(empty_config))
+
     env_root = tmp_path / "external"
     env_root.mkdir()
     project_root = tmp_path / "project" / "skills"

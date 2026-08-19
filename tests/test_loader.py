@@ -361,6 +361,10 @@ def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
 
 
 def test_resolve_skill_prefers_env_over_cwd(tmp_path, monkeypatch):
+    empty_config = tmp_path / "empty_config"
+    empty_config.mkdir()
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(empty_config))
+
     env_root = tmp_path / "env_root"
     env_skill = env_root / "shared_id"
     env_skill.mkdir(parents=True)
