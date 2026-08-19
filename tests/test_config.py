@@ -192,6 +192,45 @@ def test_extra_config_sections_preserved(tmp_path, monkeypatch):
     config = load_merged_config(refresh=True)
     assert "theme" in config.extra
     assert "chains" in config.extra
+    assert "mail" not in config.extra
+
+
+def test_mail_section_merged_not_in_extra(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _write_config(
+        repo / PROJECT_CONFIG_FILENAME,
+        "paths:\n  project: auto\n" "mail:\n  signature_plain: Test sig\n",
+    )
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
+
+    config = load_merged_config(refresh=True)
+    assert config.mail.signature_plain == "Test sig"
+    assert "mail" not in config.extra
+
+
+def test_cmd_config_show_includes_mail(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    from skillware.cli import cmd_config_show
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _write_config(
+        repo / PROJECT_CONFIG_FILENAME,
+        "paths:\n  project: auto\n" "mail:\n  signature_plain: |\n    Agent Sig\n",
+    )
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=100)
+    assert cmd_config_show(console=console) == 0
+    output = buf.getvalue()
+    assert "mail (active)" in output
+    assert "config_plain" in output or "Agent Sig" in output
 
 
 def test_cmd_config_show_reports_no_files(tmp_path, monkeypatch):
@@ -209,6 +248,7 @@ def test_cmd_config_show_reports_no_files(tmp_path, monkeypatch):
     output = buf.getvalue()
     assert "No config files found" in output
     assert "legacy resolution" in output
+    assert "mail (resolved defaults)" in output
 
 
 def test_save_project_config_persists_paths(tmp_path, monkeypatch):

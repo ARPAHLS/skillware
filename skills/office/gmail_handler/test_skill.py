@@ -151,6 +151,27 @@ def test_preview_send_ready(skill):
     assert result["preview"]["recipient_count"] == 1
 
 
+def test_preview_send_appends_config_signature(skill, monkeypatch, tmp_path):
+    html_file = tmp_path / "sig.html"
+    html_file.write_text("<p>HTML Agent Sig</p>", encoding="utf-8")
+    monkeypatch.setenv("GMAIL_SIGNATURE_PLAIN", "—\nAgent via Skillware")
+    monkeypatch.setenv("GMAIL_SIGNATURE_HTML_PATH", str(html_file))
+    refreshed = GmailHandlerSkill(config={})
+    result = refreshed.execute(
+        {
+            "action": "preview_send",
+            "to": ["George"],
+            "subject": "Hello",
+            "body_plain": "Body text",
+        }
+    )
+    assert "Agent via Skillware" in result["preview"]["body_plain"]
+    html = result["preview"]["body_html"] or ""
+    assert "HTML Agent Sig" in html
+    assert "Body text" in html
+    assert "Give your agents their own mailbox" not in html
+
+
 def test_send_requires_confirmation(skill):
     result = skill.execute(
         {

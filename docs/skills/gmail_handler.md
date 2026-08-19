@@ -32,6 +32,9 @@ Structured Gmail IMAP/SMTP operations for a **dedicated agent mailbox**: resolve
 | `GMAIL_ADDRESS` | Yes (live mail) | **Dedicated agent-only** Gmail address (not your personal inbox) |
 | `GMAIL_APP_PASSWORD` | Yes (live mail) | App Password for that dedicated account (not your Google account password) |
 | `GMAIL_ADDRESSBOOK_PATH` | No | Override path to `addressbook.yaml` |
+| `GMAIL_SIGNATURE_PATH` | No | Override path to plain-text signature file (wins over `GMAIL_SIGNATURE_PLAIN`) |
+| `GMAIL_SIGNATURE_HTML_PATH` | No | Override path to HTML signature file (logo + links) |
+| `GMAIL_SIGNATURE_PLAIN` | No | Inline plain-text signature for outbound **new** mail |
 | `GMAIL_SCAN_STATE_PATH` | No | Override path for incremental scan cursor JSON |
 | `GMAIL_SEND_LEDGER_PATH` | No | Override path for outbound send ledger JSON |
 
@@ -62,11 +65,140 @@ load_env_file()
 
 > **Address book vs mailbox:** `GMAIL_ADDRESS` is who the agent **sends as**. Contacts in `addressbook.yaml` are people the agent can **send to** or **search for** (for example names like "John" → `john@example.com`). Keep those separate.
 
-## Address book
+## Fresh install checklist
 
-Default bundled file: `skills/office/gmail_handler/data/addressbook.yaml` (empty template). Override with `GMAIL_ADDRESSBOOK_PATH` pointing at a writable copy.
+After `pip install "skillware[office_gmail_handler]"` (or dev checkout + `pip install -e ".[office_gmail_handler]"`):
 
-Example:
+| Step | Required? | What you get |
+| :--- | :--- | :--- |
+| Skill bundled in wheel | Automatic | `office/gmail_handler` actions, empty read-only `data/addressbook.yaml`, no signature |
+| Agent Gmail + App Password in `.env` | **Yes** (live mail) | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` — dedicated agent mailbox only |
+| `skillware mail signature init` | **Recommended** | User-writable plain + HTML signatures, logo copy, paths in global `config.yaml` |
+| `skillware mail addressbook init` | **Recommended** (if using names/aliases) | Writable `addressbook.yaml` under user config |
+| `skillware mail addressbook add` | Optional | Contacts via CLI wizard (or edit YAML / skill `update_addressbook`) |
+| Project `.skillware.yaml` | Optional | Override paths per repo; see [`.skillware.yaml.example`](../../.skillware.yaml.example) |
+
+**Out of the box (no init):** skill loads and can send to raw email addresses. **No signature** is appended. Address book reads bundled empty template; **writes fail or target read-only wheel paths** until you `init`.
+
+**One-time operator setup (typical):**
+
+```bash
+# 1) Credentials (.env — never commit)
+#    GMAIL_ADDRESS=agent@example.com
+#    GMAIL_APP_PASSWORD=...
+
+# 2) Signatures + address book (persists across skillware upgrades)
+skillware mail signature init
+skillware mail addressbook init
+skillware mail addressbook add
+
+# 3) Inspect merged settings
+skillware config show
+skillware mail
+
+# 4) Test signature in inbox
+python examples/gmail_signature_test_send.py --to you@example.com --preview-only
+python examples/gmail_signature_test_send.py --to you@example.com
+```
+
+Interactive menu: `skillware` → **`7` / `mail`**.
+
+### Config precedence (all mail paths)
+
+**Environment variables** → **project** `.skillware.yaml` → **global** `~/.config/skillware/config.yaml` → **skill bundled defaults**.
+
+| Setting | Env override | YAML key (`mail:`) |
+| :--- | :--- | :--- |
+| Address book | `GMAIL_ADDRESSBOOK_PATH` | `addressbook_path` |
+| Plain signature file | `GMAIL_SIGNATURE_PATH` | `signature_path` |
+| HTML signature file | `GMAIL_SIGNATURE_HTML_PATH` | `signature_html_path` |
+| Inline plain signature | `GMAIL_SIGNATURE_PLAIN` | `signature_plain` |
+| Scan cursor JSON | `GMAIL_SCAN_STATE_PATH` | `scan_state_path` |
+| Send ledger JSON | `GMAIL_SEND_LEDGER_PATH` | `send_ledger_path` |
+
+Plain vs HTML signature: **HTML** (`mail_signature.html`) is what Gmail shows (logo + `—` separator + links). **Plain** (`mail_signature.txt`) is the `text/plain` MIME part for plain-only clients — not duplicated in the HTML view.
+
+## Address book setup
+
+**Fresh install:** No signature or writable address book exists until you run `init` (or configure paths manually). The skill can **read** the empty bundled template inside the installed wheel, but **writes** (CLI add, `update_addressbook`) need a user-writable file.
+
+**Where data lives (persists across `pip install --upgrade skillware`):**
+
+| File | Default location |
+| :--- | :--- |
+| Address book | `~/.config/skillware/addressbook.yaml` (after `init`) |
+| Plain signature | `~/.config/skillware/mail_signature.txt` |
+| HTML signature | `~/.config/skillware/mail_signature.html` |
+| Logo copy | `~/.config/skillware/skillware_logo.png` |
+| Global config | `~/.config/skillware/config.yaml` |
+| Scan cursor (optional) | `~/.config/skillware/gmail_scan_state.json` |
+| Send ledger (optional) | `~/.config/skillware/gmail_send_ledger.json` |
+
+CLI reference: [`docs/usage/cli.md`](../usage/cli.md#skillware-mail).
+
+On Windows, `~/.config/skillware/` is `%APPDATA%/skillware/`. These paths are **outside** the Python wheel — uninstalling or upgrading skillware does **not** delete them unless you remove the folder or run destructive CLI commands.
+
+**Precedence:** `GMAIL_ADDRESSBOOK_PATH` → project/global `mail.addressbook_path` → bundled skill template (read-only) → global default path above.
+
+### Operator setup (recommended)
+
+```bash
+skillware mail addressbook init          # creates ~/.config/skillware/addressbook.yaml
+skillware mail addressbook add           # wizard: name, email, aliases, org
+skillware mail addressbook show
+skillware mail addressbook validate
+```
+
+Non-interactive add:
+
+```bash
+skillware mail addressbook add --name "John Taller" --email john@example.com --aliases "John,Jon" --org Skillware
+```
+
+Or edit YAML manually / use skill `update_addressbook`. The agent should call `resolve_recipients` when the user mentions a name rather than an email.
+
+## Email signatures
+
+**Gmail Settings → Signature does not apply to agent SMTP sends.** The dedicated agent mailbox sends via App Password + SMTP; Gmail’s web UI signature is never attached automatically. Configure a **skillware-managed signature** instead.
+
+**Default signature is not active until you run `skillware mail signature init`** (or set env/config manually). Init creates:
+
+- Plain-text signature (links + disclaimer)
+- HTML signature with **Skillware logo (40px height)**, `—` separator, tagline, disclaimer, and links to [skillware.site](https://skillware.site), [GitHub](https://github.com/ARPAHLS/skillware), and [arpacorp.net](https://arpacorp.net)
+- A local copy of the logo in your config dir (HTML uses the hosted logo URL for mail client compatibility)
+
+The skill appends signatures to outbound **new mail** (`preview_send` / `send`) when the body does not already contain them. **Plain** and **HTML** signatures are separate MIME parts: plain-text clients get `mail_signature.txt`; HTML clients get your message plus the HTML block (logo + links) only — not both stacked in the rich view.
+
+### How to set a signature
+
+1. **CLI (recommended):** `skillware mail signature init` — then edit `~/.config/skillware/mail_signature.txt` / `.html` if needed (`init --force` to overwrite templates)
+2. **Project/global config:** `mail.signature_path`, `mail.signature_html_path`, or `mail.signature_plain` in YAML
+3. **Skill-local fallback:** `default_signature_plain` / `default_signature_html` in skill `data/config.yaml` (see `config.yaml.example`)
+4. **Manual copy from Gmail UI:** copy text only — no auto-sync; paste into signature files or config
+
+**Precedence (plain):** `GMAIL_SIGNATURE_PATH` → `GMAIL_SIGNATURE_PLAIN` → config → skill-local.
+
+**Precedence (HTML):** `GMAIL_SIGNATURE_HTML_PATH` → config `mail.signature_html_path` → skill-local `default_signature_html`.
+
+```bash
+skillware mail signature show
+skillware mail signature validate
+skillware mail signature clear   # clears project + global YAML keys; env still wins
+```
+
+### Test send (verify signature in your inbox)
+
+From the repo root (Windows **cmd** or **PowerShell** — one command per line):
+
+```bash
+skillware mail signature init
+python examples/gmail_signature_test_send.py --to you@example.com --preview-only
+python examples/gmail_signature_test_send.py --to you@example.com
+```
+
+The second command sends live mail when `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` are in `.env`.
+
+## Address book (schema)
 
 ```yaml
 contacts:
@@ -87,8 +219,6 @@ org_domains:
       - Capgemini
 ```
 
-Use `update_addressbook` or edit the YAML directly. The agent should call `resolve_recipients` when the user mentions a name rather than an email.
-
 ## Agent notes
 
 - **Agent drafts prose; skill executes mail ops.** Subject/body/tone are agent responsibilities.
@@ -108,8 +238,9 @@ See [examples/README.md](../../examples/README.md).
 
 | Script | Mode |
 | :--- | :--- |
-| `examples/gmail_handler_demo.py` | Mocked IMAP/SMTP demo (no credentials) |
-| `examples/gemini_gmail_handler.py` | Interactive Gemini tool loop (live Gmail + `GOOGLE_API_KEY`) |
+| `gmail_handler_demo.py` | Mocked IMAP/SMTP demo (no credentials) |
+| `gmail_signature_test_send.py` | Preview or send one test message to verify signature (see [Fresh install checklist](#fresh-install-checklist)) |
+| `gemini_gmail_handler.py` | Interactive Gemini tool loop (live Gmail + `GOOGLE_API_KEY`) |
 
 ### Direct execute (resolve recipients)
 

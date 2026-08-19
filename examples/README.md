@@ -63,6 +63,7 @@ pip install -e ".[dev,all,agents]"
 | `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | `[finance_uk_companies_house_handler]` | None | Runs a scripted sequence (resolve, profile, officers, pscs, filings) with mocked HTTP responses (no API keys needed). |
 | `bg_remover_demo.py` | `creative/bg_remover` | Local execute | `[creative_bg_remover]` | None | Demonstrates offline background removal from a local image and optionally writes a transparent PNG. |
 | `gmail_handler_demo.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | None | Mocked resolve, preview/send gate, search, and read flow (no Gmail credentials). |
+| `gmail_signature_test_send.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`; run `skillware mail signature init` first | Preview or send one test message to verify plain + HTML signature. |
 | `gemini_gmail_handler.py` | `office/gmail_handler` | Gemini | `[office_gmail_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` (dedicated agent mailbox; demo: `GMAIL_HANDLER_EXAMPLE_DEMO=1`) | Interactive Gemini loop for resolve, search, read, preview/send mail. |
 
 ## Notes
