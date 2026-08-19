@@ -217,8 +217,7 @@ def test_mail_section_merged_not_in_extra(tmp_path, monkeypatch):
     repo.mkdir()
     _write_config(
         repo / PROJECT_CONFIG_FILENAME,
-        "paths:\n  project: auto\n"
-        "mail:\n  signature_plain: Test sig\n",
+        "paths:\n  project: auto\n" "mail:\n  signature_plain: Test sig\n",
     )
     monkeypatch.chdir(repo)
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
@@ -238,8 +237,7 @@ def test_cmd_config_show_includes_mail(tmp_path, monkeypatch):
     repo.mkdir()
     _write_config(
         repo / PROJECT_CONFIG_FILENAME,
-        "paths:\n  project: auto\n"
-        "mail:\n  signature_plain: |\n    Agent Sig\n",
+        "paths:\n  project: auto\n" "mail:\n  signature_plain: |\n    Agent Sig\n",
     )
     monkeypatch.chdir(repo)
     monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))

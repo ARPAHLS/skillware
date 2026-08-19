@@ -12,12 +12,15 @@ from skillware.core.config import (
     load_merged_config,
 )
 from skillware.core.mail_config import (
+    ARPACORP_URL,
     DEFAULT_SIGNATURE_HTML,
     DEFAULT_SIGNATURE_PLAIN,
     ENV_ADDRESSBOOK_PATH,
     ENV_SIGNATURE_HTML_PATH,
     ENV_SIGNATURE_PLAIN,
     MailSettings,
+    SKILLWARE_GITHUB_URL,
+    SKILLWARE_SITE_URL,
     add_addressbook_contact,
     clear_mail_signature_settings,
     init_signature_bundle,
@@ -165,9 +168,9 @@ def test_init_addressbook_file(tmp_path):
 
 
 def test_default_signature_includes_links():
-    assert "skillware.site" in DEFAULT_SIGNATURE_PLAIN
-    assert "github.com/ARPAHLS/skillware" in DEFAULT_SIGNATURE_PLAIN
-    assert "arpacorp.net" in DEFAULT_SIGNATURE_PLAIN
+    assert SKILLWARE_SITE_URL in DEFAULT_SIGNATURE_PLAIN
+    assert SKILLWARE_GITHUB_URL in DEFAULT_SIGNATURE_PLAIN
+    assert ARPACORP_URL in DEFAULT_SIGNATURE_PLAIN
     assert (
         'height="40"' in DEFAULT_SIGNATURE_HTML
         or "height: 40px" in DEFAULT_SIGNATURE_HTML

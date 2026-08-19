@@ -109,7 +109,10 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware mail addressbook show", "resolved path and contact count"),
             ("skillware mail addressbook validate", "schema check"),
             ("skillware mail signature set", "paste or --file signature text"),
-            ("skillware mail signature init", "default plain + HTML signature with logo"),
+            (
+                "skillware mail signature init",
+                "default plain + HTML signature with logo",
+            ),
             ("skillware (menu 7 / mail)", "interactive mail submenu"),
         ],
         _DOCS_CLI_MAIL,
