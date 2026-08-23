@@ -20,8 +20,8 @@ version tagline, and footer links. The block art (from `skillware/cli.py`):
 ```
 
 Tagline: `Skillware v{version} — Skill Management Framework`. Gradient colors
-are listed under [Color theme](#color-theme). See [Interactive menu](#interactive-menu)
-for a terminal screenshot.
+follow the active [color theme](#color-themes). See
+[Interactive menu](#interactive-menu) for a terminal screenshot.
 
 ## Installation
 
@@ -118,6 +118,7 @@ Available commands:
 | `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
 | `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
 | `6` / `help` | Grouped help (Skills, Examples, Paths, Config, General) with doc links | Available |
+| `7` / `theme` | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
 
 ## Grouped help
 
@@ -141,7 +142,7 @@ Brief `--help` groups (same topics, less detail):
 | **Skills** | `list`, `test`, `doctor` |
 | **Examples** | `examples` |
 | **Paths** | `paths`, interactive paths submenu |
-| **Config** | `config show` |
+| **Config** | `config show`, interactive theme picker |
 | **General** | interactive menu, `--help`, `--version` |
 
 ## Commands
@@ -289,7 +290,9 @@ Interactive menu: **`5` / `doctor`**.
 
 ### skillware config
 
-Show merged global + project Skillware configuration (read-only). The `paths` section is active today; other top-level keys are preserved for future settings (themes, chains, etc.).
+Show merged global + project Skillware configuration (read-only). The `paths`
+and `presentation` sections are active; other top-level keys are preserved for
+future settings.
 
     skillware config show
 
@@ -311,9 +314,22 @@ resolution:
     - bundled
 legacy:
   honor_skillware_skill_path: true
+presentation:
+  theme: ocean
 ```
 
 When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
+
+`skillware config show` reports the effective `presentation.theme`. To change
+the global theme without editing YAML, run `skillware`, choose **`7` / `theme`**,
+then select a built-in theme by number or name. The picker writes only
+`presentation.theme` in the global config and preserves unrelated settings.
+
+A project `.skillware.yaml` value overrides the global selection while the CLI
+runs inside that project. The picker still saves the global preference and
+prints a notice that the project theme remains active. Remove or change the
+project `presentation.theme` value to use the global selection there. Missing,
+malformed, or unknown theme values fall back safely to `pastel`.
 
 ## Path resolution
 
@@ -357,18 +373,28 @@ the same condition `SkillLoader` requires to load a skill successfully.
 
 `skillware list` always shows the **path-derived ID**; it does not read `manifest["name"]` for the ID column. Keep manifest `name` aligned with that ID so agent loops and `SkillLoader.to_*_tool()` stay consistent. `SkillLoader.load_skill()` warns via `SkillwareIdentityWarning` when a registry-layout skill has a missing or mismatched `name` (flat private skills under `<skill_root>/<skill_name>/` are not checked). See [Agent loops](agent_loops.md#tool-name-matching).
 
-## Color theme
+## Color themes
 
-The CLI uses a pastel color palette consistent with the project's visual identity:
+The selected theme is applied to tables, headings, categories, skill IDs,
+menus, links, statuses, errors, and the splash gradient.
 
-| Element | Color | Hex |
+| Theme | Description | Splash gradient |
 | :--- | :--- | :--- |
-| Table headers and borders | Lavender | `#C7CEEA` |
-| Category column | Peach | `#FFDAC1` |
-| Skill ID column | Mint | `#B5EAD7` |
-| Splash logo and tagline | Gradient (ice → sky → blush) | `#D4E4F1` → `#79B6D8` → `#EBD8DC` |
-| Splash footer links | Lavender | `#C7CEEA` |
-| Interactive menu | Peach | `#FFDAC1` |
+| `pastel` | Default and fallback; preserves the original Skillware lavender, peach, mint, ice, sky, and blush palette | `#D4E4F1` → `#79B6D8` → `#EBD8DC` |
+| `ocean` | Deep blue, sky blue, and cyan | `#0C4A6E` → `#0284C7` → `#7DD3FC` |
+| `mono` | Grayscale presentation | `#F0F0F0` → `#A0A0A0` → `#606060` |
+
+Choose a theme interactively:
+
+```text
+skillware
+> 7
+theme> ocean
+```
+
+The selection takes effect for subsequent output in the same session and is
+used on the next CLI start. The splash is printed once at startup, so restart
+the CLI to see the newly selected splash gradient.
 
 ## short_description field
 
@@ -379,4 +405,3 @@ a concise one-line summary shown in `skillware list`:
 
 If `short_description` is absent, the CLI falls back to the first sentence
 of `description`, truncated to 80 characters.
-

@@ -12,11 +12,14 @@ import yaml
 GLOBAL_CONFIG_DIR_ENV = "SKILLWARE_CONFIG_DIR"
 PROJECT_CONFIG_FILENAME = ".skillware.yaml"
 GLOBAL_CONFIG_FILENAME = "config.yaml"
+DEFAULT_PRESENTATION_THEME = "pastel"
+SUPPORTED_PRESENTATION_THEMES: Tuple[str, ...] = ("pastel", "ocean", "mono")
 _MAX_PARENT_WALK = 6
 
 _DEFAULT_RESOLUTION_ORDER: Tuple[str, ...] = ("project", "external", "bundled")
 _VALID_ORDER_TIERS = frozenset({"project", "external", "bundled"})
-_KNOWN_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy"})
+_PATH_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy"})
+_KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {"presentation"}
 
 
 @dataclass(frozen=True)
@@ -41,16 +44,24 @@ class PathsSettings:
 
 
 @dataclass
+class PresentationSettings:
+    """CLI presentation settings from merged configuration."""
+
+    theme: str = DEFAULT_PRESENTATION_THEME
+
+
+@dataclass
 class SkillwareConfig:
     """
     Merged Skillware configuration.
 
-    ``paths`` is implemented today. Additional top-level YAML sections (for
-    example ``theme``, ``chains``, skill presets) are preserved in ``extra``
-    for forward compatibility and shown by ``skillware config show``.
+    ``paths`` and ``presentation`` are active settings. Additional top-level
+    YAML sections (for example ``chains`` and skill presets) are preserved in
+    ``extra`` for forward compatibility and shown by ``skillware config show``.
     """
 
     paths: PathsSettings = field(default_factory=PathsSettings)
+    presentation: PresentationSettings = field(default_factory=PresentationSettings)
     extra: Dict[str, Any] = field(default_factory=dict)
     layers: Tuple[ConfigLayer, ...] = ()
 
@@ -129,6 +140,16 @@ def _parse_resolution_order(raw: Any) -> Tuple[str, ...]:
     return tuple(tiers) if tiers else _DEFAULT_RESOLUTION_ORDER
 
 
+def normalize_presentation_theme(raw: Any) -> str:
+    """Return a supported theme name, falling back safely to pastel."""
+    if not isinstance(raw, str):
+        return DEFAULT_PRESENTATION_THEME
+    theme = raw.strip().lower()
+    if theme not in SUPPORTED_PRESENTATION_THEMES:
+        return DEFAULT_PRESENTATION_THEME
+    return theme
+
+
 def _layer_from_file(path: Path) -> ConfigLayer:
     return ConfigLayer(path=path.resolve(), data=_read_yaml(path))
 
@@ -146,6 +167,7 @@ def _merge_extra_section(
 
 def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
     paths = PathsSettings()
+    presentation = PresentationSettings()
     extra: Dict[str, Any] = {}
 
     for layer in layers:
@@ -182,7 +204,21 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
                 legacy_block.get("honor_skillware_skill_path")
             )
 
-    return SkillwareConfig(paths=paths, extra=extra, layers=tuple(layers))
+        if "presentation" in layer.data:
+            presentation_block = layer.data.get("presentation")
+            if isinstance(presentation_block, dict) and "theme" in presentation_block:
+                presentation.theme = normalize_presentation_theme(
+                    presentation_block.get("theme")
+                )
+            elif not isinstance(presentation_block, dict):
+                presentation.theme = DEFAULT_PRESENTATION_THEME
+
+    return SkillwareConfig(
+        paths=paths,
+        presentation=presentation,
+        extra=extra,
+        layers=tuple(layers),
+    )
 
 
 def load_merged_config(*, refresh: bool = False) -> SkillwareConfig:
@@ -270,8 +306,32 @@ def save_project_config(
     if preserve_extra and target.is_file():
         existing = _read_yaml(target)
         for key, value in existing.items():
-            if key not in _KNOWN_TOP_LEVEL_KEYS:
+            if key not in _PATH_TOP_LEVEL_KEYS:
                 document[key] = value
+
+    target.write_text(
+        yaml.safe_dump(document, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
+    clear_config_cache()
+    return target.resolve()
+
+
+def save_global_presentation_theme(theme: str) -> Path:
+    """Persist a supported presentation theme without replacing other settings."""
+    normalized = str(theme).strip().lower()
+    if normalized not in SUPPORTED_PRESENTATION_THEMES:
+        supported = ", ".join(SUPPORTED_PRESENTATION_THEMES)
+        raise ValueError(f"Unknown presentation theme '{theme}'. Choose: {supported}.")
+
+    target = global_config_path()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    document = dict(_read_yaml(target)) if target.is_file() else {}
+
+    raw_presentation = document.get("presentation")
+    presentation = dict(raw_presentation) if isinstance(raw_presentation, dict) else {}
+    presentation["theme"] = normalized
+    document["presentation"] = presentation
 
     target.write_text(
         yaml.safe_dump(document, sort_keys=False, default_flow_style=False),

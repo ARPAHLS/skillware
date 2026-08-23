@@ -17,11 +17,27 @@ from skillware.cli import (
     cmd_paths,
     cmd_paths_submenu,
     cmd_doctor,
+    cmd_theme_picker,
 )
 
 import importlib.util
 
 import pytest
+
+from skillware.core.config import clear_config_cache
+
+
+@pytest.fixture
+def isolated_theme_environment(tmp_path, monkeypatch):
+    """Keep theme reads and writes away from the user's real configuration."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    config_dir = tmp_path / "global-config"
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(config_dir))
+    clear_config_cache()
+    yield repo, config_dir
+    clear_config_cache()
 
 
 def test_discover_skills_returns_skills(tmp_path):
@@ -280,6 +296,146 @@ def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
     assert "Skills" in output
     assert "--category" in output
     assert "--issuer" in output
+
+
+def test_builtin_theme_palettes_match_intended_roles():
+    import skillware.cli as cli
+
+    assert set(cli.THEMES) == {"pastel", "ocean", "mono"}
+
+    pastel = cli.THEMES["pastel"]
+    assert pastel.heading_style == "bold #C7CEEA"
+    assert pastel.menu_style == "#FFDAC1"
+    assert pastel.gradient_mid == (0x79, 0xB6, 0xD8)
+
+    ocean = cli.THEMES["ocean"]
+    for red, green, blue in (
+        ocean.gradient_start,
+        ocean.gradient_mid,
+        ocean.gradient_end,
+    ):
+        assert blue > red
+        assert blue >= green
+
+    mono = cli.THEMES["mono"]
+    for red, green, blue in (
+        mono.gradient_start,
+        mono.gradient_mid,
+        mono.gradient_end,
+    ):
+        assert red == green == blue
+
+
+@pytest.mark.parametrize("theme_name", ["pastel", "ocean", "mono"])
+def test_builtin_theme_smoke_render(theme_name, isolated_theme_environment):
+    import io
+
+    from rich.console import Console
+
+    import skillware.cli as cli
+    from skillware.core.config import save_global_presentation_theme
+
+    save_global_presentation_theme(theme_name)
+    buf = io.StringIO()
+    cmd_help(console=Console(file=buf, force_terminal=False))
+
+    palette = cli.THEMES[theme_name]
+    assert cli._active_theme() == palette
+    assert cli.TABLE_STYLE == palette.heading_style
+    assert cli.MENU_STYLE == palette.menu_style
+    assert cli.ERROR_STYLE == f"bold {palette.error_color}"
+    assert cli._gradient_splash_text(("TEST",)).plain == "TEST\n"
+    assert "Topics" in buf.getvalue()
+
+
+def test_theme_picker_persists_and_preserves_global_config(
+    isolated_theme_environment,
+):
+    import io
+
+    import yaml
+    from rich.console import Console
+
+    import skillware.cli as cli
+
+    _repo, config_dir = isolated_theme_environment
+    config_path = config_dir / "config.yaml"
+    config_dir.mkdir()
+    config_path.write_text(
+        "paths:\n  project: auto\nchains:\n  default: []\n",
+        encoding="utf-8",
+    )
+    responses = iter(["unknown", "2"])
+    buf = io.StringIO()
+
+    assert (
+        cmd_theme_picker(
+            console=Console(file=buf, force_terminal=False),
+            input_fn=lambda _prompt: next(responses),
+        )
+        is None
+    )
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["presentation"]["theme"] == "ocean"
+    assert saved["paths"] == {"project": "auto"}
+    assert saved["chains"] == {"default": []}
+    assert cli.TABLE_STYLE == cli.THEMES["ocean"].heading_style
+    assert "Unknown theme: 'unknown'" in buf.getvalue()
+    assert "Saved global theme 'ocean'" in buf.getvalue()
+
+
+def test_interactive_theme_dispatches_and_refreshes(
+    isolated_theme_environment, monkeypatch
+):
+    import io
+
+    import yaml
+    from rich.console import Console
+
+    import skillware.cli as cli
+
+    _repo, config_dir = isolated_theme_environment
+    responses = iter(["7", "3", "q"])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(responses))
+    buf = io.StringIO()
+
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+
+    saved = yaml.safe_load((config_dir / "config.yaml").read_text(encoding="utf-8"))
+    assert saved["presentation"]["theme"] == "mono"
+    assert cli.TABLE_STYLE == cli.THEMES["mono"].heading_style
+    assert "Current: pastel" in buf.getvalue()
+    assert "Saved global theme 'mono'" in buf.getvalue()
+
+
+def test_theme_picker_reports_project_override(isolated_theme_environment):
+    import io
+
+    import yaml
+    from rich.console import Console
+
+    from skillware.core.config import load_merged_config
+
+    repo, config_dir = isolated_theme_environment
+    (repo / ".skillware.yaml").write_text(
+        "presentation:\n  theme: ocean\n",
+        encoding="utf-8",
+    )
+    clear_config_cache()
+    buf = io.StringIO()
+
+    cmd_theme_picker(
+        console=Console(file=buf, force_terminal=False),
+        input_fn=lambda _prompt: "3",
+    )
+
+    global_config = yaml.safe_load(
+        (config_dir / "config.yaml").read_text(encoding="utf-8")
+    )
+    assert global_config["presentation"]["theme"] == "mono"
+    assert load_merged_config().presentation.theme == "ocean"
+    assert "Project config keeps 'ocean' active" in buf.getvalue()
 
 
 def test_version_flag(capsys):

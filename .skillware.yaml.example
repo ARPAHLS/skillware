@@ -25,8 +25,11 @@ legacy:
   # When true, SKILLWARE_SKILL_PATH is merged as external roots (default).
   honor_skillware_skill_path: true
 
+# Optional project override for the global CLI theme.
+# Supported values: pastel (default/fallback), ocean, mono.
+# presentation:
+#   theme: ocean
+
 # Reserved for future releases (ignored today; preserved by skillware config show):
-# theme:
-#   preset: default
 # chains:
 #   default: []
