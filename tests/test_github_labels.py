@@ -92,7 +92,9 @@ def test_rfc_template_labels_exist():
 def test_registry_category_labels_present():
     """Every registry category has a matching cat: label."""
     names = set(_label_map())
-    expected = {f"{CATEGORY_LABEL_PREFIX}{category}" for category in REGISTRY_CATEGORIES}
+    expected = {
+        f"{CATEGORY_LABEL_PREFIX}{category}" for category in REGISTRY_CATEGORIES
+    }
     missing = expected - names
     assert not missing, f"Missing category labels in labels.json: {sorted(missing)}"
 
@@ -104,9 +106,9 @@ def test_category_labels_share_color_and_prefix():
         labels[f"{CATEGORY_LABEL_PREFIX}{category}"] for category in REGISTRY_CATEGORIES
     ]
     colors = {entry["color"].upper() for entry in category_labels}
-    assert colors == {CATEGORY_LABEL_COLOR}, (
-        f"All cat: labels must use #{CATEGORY_LABEL_COLOR}; got {sorted(colors)}"
-    )
+    assert colors == {
+        CATEGORY_LABEL_COLOR
+    }, f"All cat: labels must use #{CATEGORY_LABEL_COLOR}; got {sorted(colors)}"
     for category in REGISTRY_CATEGORIES:
         name = f"{CATEGORY_LABEL_PREFIX}{category}"
         assert name in labels
@@ -123,4 +125,3 @@ def test_category_labels_do_not_collide_with_repo_labels():
     )
     assert "security" in names
     assert f"{CATEGORY_LABEL_PREFIX}security" in names
-
