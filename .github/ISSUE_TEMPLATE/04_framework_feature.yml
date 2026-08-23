@@ -6,9 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this for changes to `skillware/core/` (loader, env, base_skill, model adapters).
+        Use this for changes to `skillware/core/` (loader, env, base_skill, model adapters, config merge).
 
-        - **CLI** (`skillware/cli.py`, menu, `list` / `test` / `examples`) — use the **CLI** template
+        - **`skillware/core/config.py`** — use **Framework Feature** if merge/loader logic changes; use **CLI** if only menu / `config show` UX changes
+        - **CLI** (`skillware/cli.py`, menu, submenus) — use the **CLI** template
         - **Packaging** (PyPI wheel, `pyproject.toml`, `MANIFEST.in`) — use **Packaging** or an RFC for large changes
         - **New registry skills** — use **New Skill Proposal**
         - **Upgrades to existing skills** — use **Skill Upgrade**
@@ -33,7 +34,7 @@ body:
     id: affected_paths
     attributes:
       label: Affected paths (optional)
-      placeholder: skillware/core/loader.py, tests/test_loader.py
+      placeholder: skillware/core/config.py, skillware/core/loader.py, tests/test_config.py
     validations:
       required: false
 

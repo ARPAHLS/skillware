@@ -15,6 +15,11 @@
         "description": "Creative skills, image, video, audio, or generative content."
     },
     {
+        "name": "office",
+        "color": "FFE4B5",
+        "description": "Office and productivity skills (email, documents)."
+    },
+    {
         "name": "packaging",
         "color": "DBD3DC",
         "description": "PyPI wheel, pyproject.toml, MANIFEST.in, or install extras."
@@ -37,12 +42,12 @@
     {
         "name": "core framework",
         "color": "79B6D8",
-        "description": "Changes to loader, env, base classes, or model adapters."
+        "description": "Changes to loader, env, config merge (skillware/core/config.py), base classes, or model adapters."
     },
     {
         "name": "cli",
         "color": "79B6D8",
-        "description": "skillware CLI, interactive menu, or docs/usage/cli.md."
+        "description": "skillware CLI — doctor, paths, config show, mail submenu, interactive menu, or docs/usage/cli.md."
     },
     {
         "name": "enhancement",

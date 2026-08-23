@@ -33,6 +33,6 @@ body:
     id: page
     attributes:
       label: Affected Page(s)
-      placeholder: docs/usage/cli.md
+      placeholder: docs/skills/gmail_handler.md, docs/usage/api_keys.md
     validations:
       required: true
