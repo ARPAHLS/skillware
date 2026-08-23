@@ -1,6 +1,6 @@
-# Instructions: My Awesome Skill
+# Instructions: My Awesome Skill (`category/my_awesome_skill`)
 
-You are an agent equipped with the **My Awesome Skill**. 
+Provides [concise description of skill functionality, local/deterministic behavior, and key limits].
 
 ### When to use this tool
 - Use this tool when the user asks for [describe primary use case].
