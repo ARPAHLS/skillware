@@ -24,7 +24,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
-When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI.
+When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI. [`tests/test_github_labels.py`](../../tests/test_github_labels.py) enforces repo-wide labels, every registry `cat: <category>` label (shared pastel color, no collision with repo-wide names like `security`), and alignment with the category dropdown in `01_skill_proposal.yml`.
 
 ## Quick Setup
 
