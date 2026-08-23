@@ -1,13 +1,13 @@
 name: finance/uk_companies_house_handler
-version: 1.1.0
+version: 1.2.0
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing, filing
-  history, and intent-to-operation mapping with UK corporate terminology
-  translation. Returns status-based responses (ready, partial, needs_input, error) with
-  disambiguation support. The agent owns natural-language dialogue; the skill
-  returns structured candidates and next actions.
-short_description: "UK Companies House search, officers, PSC, and filings via structured actions."
+  history, pipeline orchestration, and intent-to-operation mapping with UK corporate
+  terminology translation. Returns status-based responses (ready, partial,
+  needs_input, error) with disambiguation support. The agent owns natural-language
+  dialogue; the skill returns structured candidates and next actions.
+short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
 issuer:
   name: Areen Agrawal
   email: agrawalareen09@gmail.com
@@ -20,7 +20,8 @@ parameters:
       type: string
       description: >
         The operation to perform. One of: resolve_company, get_company_profile,
-        get_officers, get_pscs, get_filing_history, map_intent.
+        get_officers, get_pscs, get_filing_history, map_intent, run_pipeline,
+        resolve_and_get_officers, resolve_and_get_filings.
       enum:
         - resolve_company
         - get_company_profile
@@ -28,9 +29,15 @@ parameters:
         - get_pscs
         - get_filing_history
         - map_intent
+        - run_pipeline
+        - resolve_and_get_officers
+        - resolve_and_get_filings
     query:
       type: string
       description: "Company name or partial name for search (resolve_company)."
+    company_query:
+      type: string
+      description: "Company name query for composite actions (resolve_and_get_officers, resolve_and_get_filings)."
     company_number:
       type: string
       description: "8-character UK company number (required for profile/officers/pscs/filing)."
@@ -42,13 +49,36 @@ parameters:
       description: "Max results to return (resolve_company). Default 5."
     category:
       type: string
-      description: "Filing category filter (get_filing_history)."
+      description: "Filing category filter (get_filing_history, resolve_and_get_filings)."
+    officer_filter:
+      type: string
+      description: "Name or filter term for officers."
+    role_hint:
+      type: string
+      description: "Requested role or title hint (e.g. 'ceo', 'cfo', 'chairman') for officers lookup and UK terminology note."
     intent_keywords:
       type: string
       description: "Comma-separated keywords from user intent for map_intent action."
     entities:
       type: object
       description: "Extracted entities for map_intent (e.g. company_query, role)."
+    steps:
+      type: array
+      description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline)."
+      items:
+        type: object
+        properties:
+          action:
+            type: string
+          params:
+            type: object
+        required:
+          - action
+    stop_on:
+      type: array
+      description: "List of status strings on which run_pipeline should pause/halt execution. Default: ['needs_input', 'error']."
+      items:
+        type: string
     context:
       type: object
       description: "State carried over from prior skill turns (e.g. company_number, company_name)."

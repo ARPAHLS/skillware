@@ -81,8 +81,12 @@ intent_to_action:
   lookup: resolve_company
   look_up: resolve_company
   who_is: get_officers
+  director: get_officers
   directors: get_officers
+  officer: get_officers
   officers: get_officers
+  officer_name: get_officers
+  officer_names: get_officers
   board: get_officers
   management: get_officers
   leadership: get_officers
