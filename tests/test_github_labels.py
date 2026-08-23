@@ -6,6 +6,7 @@ from pathlib import Path
 
 LABELS_PATH = Path(__file__).resolve().parent.parent / ".github" / "labels.json"
 HEX_COLOR = re.compile(r"^[0-9A-Fa-f]{6}$")
+GITHUB_LABEL_DESCRIPTION_MAX = 100
 
 # Keep in sync with .github/ISSUE_TEMPLATE/01_skill_proposal.yml category dropdown.
 REGISTRY_CATEGORIES = (
@@ -80,6 +81,10 @@ def test_label_entries_well_formed():
         names.add(name)
         assert HEX_COLOR.match(color), f"Bad color for {name}: {color!r}"
         assert description and isinstance(description, str)
+        assert len(description) <= GITHUB_LABEL_DESCRIPTION_MAX, (
+            f"Label {name!r} description is {len(description)} chars; "
+            f"GitHub maximum is {GITHUB_LABEL_DESCRIPTION_MAX}"
+        )
 
 
 def test_rfc_template_labels_exist():

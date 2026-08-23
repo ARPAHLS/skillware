@@ -12,6 +12,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
 
+### Fixed
+
+- **Meta:** Shorten `cat: security` label description to fit GitHub's 100-character limit; enforce max length in label sync and tests.
+
 ## [0.5.1] - 2026-08-19
 
 ### Added

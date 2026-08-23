@@ -132,7 +132,7 @@
     {
         "name": "cat: security",
         "color": "E6D9F5",
-        "description": "Registry skill category — security skills (`skills/security/`). For vulnerabilities or trust-model work, use the repo-wide security label."
+        "description": "Registry skill category — security (`skills/security/`)."
     },
     {
         "name": "cat: wellness",
