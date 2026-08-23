@@ -1,0 +1,3 @@
+# Runtime state written by the skill when GMAIL_*_PATH env vars are unset.
+send_ledger.json
+.gmail_scan_state.json

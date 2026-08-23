@@ -11,7 +11,39 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
-- **CI:** `tests/test_registry_identity.py` - CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280).
+
+## [0.5.1] - 2026-08-19
+
+### Added
+
+- **Skill (`office/gmail_handler` v0.2):** Reply signature parity, preview metadata (`signature_applied`, `signature_source`, `signature_profile`); attachment list on `read_message`, `download_attachment`, and outbound send/reply attachments via flexible paths (local, `file://`, HTTP(S), optional cloud URIs with fsspec); multi-profile signatures via `mail.signatures` and `skillware mail signature profiles|add-profile|set-profile` (#293).
+- **Config:** Top-level `mail:` section in `.skillware.yaml` and global `config.yaml` — address book path, plain-text signature (inline or file), scan state, and send ledger paths for `office/gmail_handler` (#292).
+- **CLI:** `skillware mail` submenu — address book init/show/validate/set-path/**add**; signature init/show/set/validate/clear; default HTML signature with Skillware logo (40px) and links; interactive menu option `7` / `mail` (#292).
+- **CLI:** `skillware config show` displays merged resolved `mail.*` settings including signature source (#292).
+- **Skill:** `office/gmail_handler` reads signature from merged config when skill-local `default_signature_plain` is unset; ships `data/config.yaml.example` (#292).
+- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — attachments, multi-profile signatures, untrusted attachment disclaimer; [`docs/usage/cli.md`](docs/usage/cli.md) and [`docs/usage/api_keys.md`](docs/usage/api_keys.md) updated (#293).
+- **Packaging:** PyPI metadata — `keywords`, expanded `classifiers` (development status, intended audience, Python 3.10-3.12, AI and library topics), and `Documentation`, `Issues` and `Changelog` entries in `[project.urls]`. Metadata only; wheel contents are unchanged (#299).
+
+### Changed
+
+- **Packaging:** PyPI `Homepage` → `https://skillware.site`; canonical `ARPAHLS` casing on GitHub URLs in `[project.urls]` (release chore).
+
+## [0.5.0] - 2026-08-18
+
+### Removed
+
+- **Meta:** Removed maintainer-only GitHub release draft (`.github/RELEASE_v0.4.9.md`); use `CHANGELOG.md` + GitHub Releases UI instead (#290).
+
+### Added
+
+- **Skill:** `office/gmail_handler` — deterministic Gmail IMAP/SMTP handler for agent mail workflows: recipient resolution via editable address book, preview/confirm send and reply, inbox search/read, sent-folder and send-ledger search, scan cursor, and context carry-forward (#208, #291).
+- **Examples:** `examples/gmail_handler_demo.py` — mocked resolve, preview, search, and read flow (no live Gmail credentials); `examples/gemini_gmail_handler.py` — interactive Gemini tool loop (demo mode via `GMAIL_HANDLER_EXAMPLE_DEMO=1`).
+- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — integration guide, env setup, action reference, and address book schema.
+- **CI:** `tests/test_registry_identity.py` — CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280, #288).
+
+### Changed
+
+- **Documentation:** README, introduction, vision, skill trust model, and CLI usage docs — clarify legacy vs config path resolution, tier order, and that bundled registry skills remain available without a local `skills/` tree (#289).
 
 ## [0.4.9] - 2026-08-12
 

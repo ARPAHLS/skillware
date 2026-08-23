@@ -147,6 +147,26 @@ Report security concerns per [SECURITY.md](../../SECURITY.md).
 
 These patterns apply to many skills; see individual skill pages for exact variable names and requirements.
 
+### Dedicated agent mailbox (Gmail) — same rule as a dedicated agent wallet
+
+`office/gmail_handler` signs into Gmail as **`GMAIL_ADDRESS`** using **`GMAIL_APP_PASSWORD`**. Treat this like `AGENT_WALLET_PRIVATE_KEY` for `defi/evm_tx_handler`:
+
+| Do | Do not |
+| :--- | :--- |
+| Create a **new Gmail account** used only by the agent | Reuse your personal, work, or primary inbox |
+| Generate an **App Password** after 2FA ([Google App Passwords](https://myaccount.google.com/apppasswords)) | Paste the App Password into chat, tool args, or git |
+| Enable **IMAP** in Gmail settings for that account | Store credentials in `skill.py` or committed YAML |
+| Revoke the App Password when retiring the agent | Grant org-wide or shared-mailbox access without explicit operator consent |
+
+```bash
+export GMAIL_ADDRESS="agent-mailbox@example.com"
+export GMAIL_APP_PASSWORD="your-16-char-app-password"
+```
+
+Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware mail`](cli.md#skillware-mail) and [Gmail Handler](../skills/gmail_handler.md#fresh-install-checklist).
+
+Preview and confirmation gates apply before send/reply; read the skill `instructions.md` before enabling live mail on any host agent.
+
 ### External data API (required key)
 
 A skill that fetches on-chain data may require a provider key before `execute()` returns useful results. Set the name from its manifest (illustrative):

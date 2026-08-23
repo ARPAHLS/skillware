@@ -396,7 +396,7 @@ def test_interactive_theme_dispatches_and_refreshes(
     import skillware.cli as cli
 
     _repo, config_dir = isolated_theme_environment
-    responses = iter(["7", "3", "q"])
+    responses = iter(["8", "3", "q"])
     monkeypatch.setattr("builtins.input", lambda _prompt: next(responses))
     buf = io.StringIO()
 
@@ -1071,3 +1071,66 @@ def test_main_config_subcommand(monkeypatch):
         assert exc.value.code == 0
     finally:
         sys.argv = argv
+
+
+def test_cmd_help_includes_mail_command():
+    import io
+    from rich.console import Console
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+    cmd_help(console=console)
+    output = buf.getvalue()
+    assert "skillware mail" in output
+
+
+def test_main_mail_subcommand(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("skillware.cli.cmd_mail", lambda *a, **k: 0)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "mail", "addressbook", "show"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+
+def test_cmd_mail_addressbook_add(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    from skillware.cli_mail import cmd_mail_addressbook_add
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=100)
+    rc = cmd_mail_addressbook_add(
+        console=console,
+        display_name="Test User",
+        email="test@example.com",
+    )
+    assert rc == 0
+    ab = tmp_path / "cfg" / "addressbook.yaml"
+    assert ab.is_file()
+
+
+def test_interactive_mail_dispatches(monkeypatch):
+    import io
+    from rich.console import Console
+
+    from skillware.cli import cmd_interactive
+
+    responses = iter(["7", "1", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_interactive(console=console)
+
+    output = buf.getvalue()
+    assert "mail>" in output.lower() or "Address book" in output

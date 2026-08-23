@@ -1,0 +1,26 @@
+# Default address book for office/gmail_handler.
+# Copy to a writable path and set GMAIL_ADDRESSBOOK_PATH for production use.
+#
+# Example entry (uncomment and customize — use fictional or your own contacts):
+#
+# contacts:
+#   john_taller:
+#     display_name: John Taller
+#     emails:
+#       - john@example.com
+#     aliases:
+#       - John
+#       - Jon
+#     org: Example Corp
+#     notes: Primary contact
+#
+# org_domains:
+#   example_corp:
+#     domains:
+#       - example.com
+#     keywords:
+#       - Example Corp
+
+contacts: {}
+
+org_domains: {}

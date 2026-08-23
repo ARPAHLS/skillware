@@ -1,0 +1,12 @@
+{
+  "name": "Gmail Handler",
+  "description": "Gmail send, search, read, reply, and attachments for agent mail workflows.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "envelope",
+  "color": "blue"
+}
