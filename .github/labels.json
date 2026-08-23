@@ -10,11 +10,6 @@
         "description": "Security vulnerabilities, trust model, or constitution updates."
     },
     {
-        "name": "creative",
-        "color": "F5D0FE",
-        "description": "Creative skills, image, video, audio, or generative content."
-    },
-    {
         "name": "packaging",
         "color": "DBD3DC",
         "description": "PyPI wheel, pyproject.toml, MANIFEST.in, or install extras."
@@ -37,12 +32,12 @@
     {
         "name": "core framework",
         "color": "79B6D8",
-        "description": "Changes to loader, env, base classes, or model adapters."
+        "description": "Changes to loader, env, config merge (skillware/core/config.py), base classes, or model adapters."
     },
     {
         "name": "cli",
         "color": "79B6D8",
-        "description": "skillware CLI, interactive menu, or docs/usage/cli.md."
+        "description": "skillware CLI — doctor, paths, config show, mail submenu, interactive menu, or docs/usage/cli.md."
     },
     {
         "name": "enhancement",
@@ -88,5 +83,60 @@
         "name": "wontfix",
         "color": "F0EFEB",
         "description": "This will not be worked on."
+    },
+    {
+        "name": "cat: compliance",
+        "color": "E6D9F5",
+        "description": "Registry skill category — compliance (`skills/compliance/`)."
+    },
+    {
+        "name": "cat: creative",
+        "color": "E6D9F5",
+        "description": "Registry skill category — creative (`skills/creative/`)."
+    },
+    {
+        "name": "cat: data_engineering",
+        "color": "E6D9F5",
+        "description": "Registry skill category — data_engineering (`skills/data_engineering/`)."
+    },
+    {
+        "name": "cat: defi",
+        "color": "E6D9F5",
+        "description": "Registry skill category — defi (`skills/defi/`)."
+    },
+    {
+        "name": "cat: dev_tools",
+        "color": "E6D9F5",
+        "description": "Registry skill category — dev_tools (`skills/dev_tools/`)."
+    },
+    {
+        "name": "cat: finance",
+        "color": "E6D9F5",
+        "description": "Registry skill category — finance (`skills/finance/`)."
+    },
+    {
+        "name": "cat: monitoring",
+        "color": "E6D9F5",
+        "description": "Registry skill category — monitoring (`skills/monitoring/`)."
+    },
+    {
+        "name": "cat: office",
+        "color": "E6D9F5",
+        "description": "Registry skill category — office (`skills/office/`)."
+    },
+    {
+        "name": "cat: optimization",
+        "color": "E6D9F5",
+        "description": "Registry skill category — optimization (`skills/optimization/`)."
+    },
+    {
+        "name": "cat: security",
+        "color": "E6D9F5",
+        "description": "Registry skill category — security skills (`skills/security/`). For vulnerabilities or trust-model work, use the repo-wide security label."
+    },
+    {
+        "name": "cat: wellness",
+        "color": "E6D9F5",
+        "description": "Registry skill category — wellness (`skills/wellness/`)."
     }
 ]

@@ -15,7 +15,7 @@ from typing import Any
 LABELS_FILE = Path(__file__).resolve().parent.parent / "labels.json"
 API_ROOT = "https://api.github.com"
 # Labels removed from labels.json — deleted on sync so GitHub UI does not keep stale pills.
-DEPRECATED_LABELS = ["core-framework"]
+DEPRECATED_LABELS = ["core-framework", "creative", "office"]
 
 
 def _request(

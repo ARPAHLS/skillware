@@ -63,6 +63,8 @@ Check [existing issues](https://github.com/ARPAHLS/skillware/issues) before star
 
 Issue chooser links: [CONTRIBUTING](CONTRIBUTING.md), [good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22), [Skill Library](docs/skills/README.md). Labels are defined in [`.github/labels.json`](.github/labels.json) and synced automatically on merge to `main` (see [sync-labels workflow](.github/workflows/sync-labels.yml)).
 
+**Label taxonomy:** Repo-wide labels describe contribution type or area (`bug`, `cli`, `security`, …). Registry **category** labels use the `cat:` prefix (`cat: office`, `cat: security`, …) so they never collide with repo-wide names — for example `security` is for vulnerabilities and trust-model work, while `cat: security` filters issues about skills under `skills/security/`. All `cat:` labels share one pastel color (`#E6D9F5`). Maintainers may add a `cat:` label when triaging skill issues and PRs.
+
 Wait for maintainer feedback on non-trivial work before investing in a large PR.
 
 ### 2. Fork and clone
@@ -368,7 +370,7 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
-When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. If the category warrants issue filtering, add a matching entry to [`.github/labels.json`](.github/labels.json) (labels sync via CI on merge to `main`).
+When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Labels sync via CI on merge to `main`.
 
 ---
 
@@ -407,7 +409,7 @@ When a new top-level category lands under `skills/`, update this table and the c
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |
-| [`.github/labels.json`](.github/labels.json) | Label names, colors, descriptions (synced via CI) |
+| [`.github/labels.json`](.github/labels.json) | Repo-wide and `cat: <category>` label taxonomy (synced via CI) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
 | [CITATION.cff](CITATION.cff) | Preferred software citation (Zenodo concept DOI `10.5281/zenodo.21552745`) |
 | [Security policy](SECURITY.md) | Reporting vulnerabilities |

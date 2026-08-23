@@ -8,6 +8,8 @@ body:
       value: |
         Use this for **existing** skills under `skills/<category>/<name>/` — new actions, data updates, manifest version bumps, test expansion.
 
+        For credential-heavy skills (e.g. `office/gmail_handler`, `defi/evm_tx_handler`), mention env vars, dry-run behavior, and confirmation gates in the issue body.
+
         For a **new** registry skill, use **New Skill Proposal** instead.
 
   - type: input
@@ -15,7 +17,7 @@ body:
     attributes:
       label: Skill ID
       description: Full registry ID
-      placeholder: finance/wallet_screening
+      placeholder: office/gmail_handler
     validations:
       required: true
 
@@ -57,3 +59,5 @@ body:
         - label: test_skill.py
         - label: docs/skills/<name>.md and catalog row
         - label: examples/*.py or examples/README.md
+        - label: data/ bundled files (address book, config templates)
+        - label: manifest.yaml env_vars and docs/usage/api_keys.md
