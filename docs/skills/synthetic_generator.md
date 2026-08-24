@@ -3,6 +3,9 @@
 **Domain:** `data_engineering`
 **Skill ID:** `data_engineering/synthetic_generator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `0.1.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[data_engineering_synthetic_generator]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -193,6 +196,32 @@ The skill constructs a response validating the pipeline and containing the raw s
 *   **Heuristic Entropy**: The `zlib` entropy score evaluates lexical byte-variance, not semantic variance. It serves as a guardrail against robotic boilerplate repetition but is not mathematically bulletproof.
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`data_engineering/synthetic_generator`](https://github.com/ARPAHLS/skillware/tree/main/skills/data_engineering/synthetic_generator)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0f81d1f`](https://github.com/ARPAHLS/skillware/commit/0f81d1f) | Backfill bundle tests for six registry skills missing test_skill.py. | 10 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`14807be`](https://github.com/ARPAHLS/skillware/commit/14807be) | style: format codebase with Black (#153) | 3 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`52cce29`](https://github.com/ARPAHLS/skillware/commit/52cce29) | docs: clarify runnable examples across skill pages (#121) | 24 May 2026 | `0.1.0` | [@narutamaaurum](https://github.com/narutamaaurum) |
+| [`7ddedb2`](https://github.com/ARPAHLS/skillware/commit/7ddedb2) | feat: migrate from google-generativeai to google-genai SDK (#97) | 23 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`a3a7ac8`](https://github.com/ARPAHLS/skillware/commit/a3a7ac8) | docs: update Gemini snippets to google-genai (#92) | 23 May 2026 | `0.1.0` | [@kunal-9090](https://github.com/kunal-9090) |
+| [`cca7334`](https://github.com/ARPAHLS/skillware/commit/cca7334) | docs: skill docs revamp — remove emojis, add breadcrumbs, fix index, add missing sections (closes #52) (#82) | 21 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e465dc4`](https://github.com/ARPAHLS/skillware/commit/e465dc4) | Fix skill path resolution and PyPI skill packaging. (#79) | 18 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b18e21`](https://github.com/ARPAHLS/skillware/commit/5b18e21) | Document per-skill usage examples across providers. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`39487f8`](https://github.com/ARPAHLS/skillware/commit/39487f8) | Add generic API keys guide for skills requiring external calls. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f800f41`](https://github.com/ARPAHLS/skillware/commit/f800f41) | Add skill issuer attribution across registry and docs. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e658e7e`](https://github.com/ARPAHLS/skillware/commit/e658e7e) | docs: update enterprise disclaimer heading and scope to ARPA catalog skills only | 16 May 2026 | `0.1.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`891f5cc`](https://github.com/ARPAHLS/skillware/commit/891f5cc) | docs: add standard enterprise disclaimer to all skill documentation pages (#59) | 16 May 2026 | `0.1.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`3ca49b6`](https://github.com/ARPAHLS/skillware/commit/3ca49b6) | chore: fix flake8 linting errors and bump version to 0.2.2 | 3 Apr 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`8f8a963`](https://github.com/ARPAHLS/skillware/commit/8f8a963) | feat: implement high-entropy synthetic data generator skill (Issue #22) | 3 Apr 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

@@ -3,6 +3,9 @@
 **Domain:** `data_engineering`
 **Skill ID:** `data_engineering/novelty_extractor`
 **Issuer:** [@rizzoMartin](https://github.com/rizzoMartin)
+<!-- skill-doc-meta:begin -->
+**Version**: `0.1.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[data_engineering_novelty_extractor]"`. See [Install extras](../usage/install_extras.md).
 
@@ -219,3 +222,17 @@ On error:
   text. Results on other languages may vary.
 - **Threshold sensitivity**: Results depend on the chosen `novelty_threshold`.
   A value between 0.80 and 0.90 works well for most corpora.
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`data_engineering/novelty_extractor`](https://github.com/ARPAHLS/skillware/tree/main/skills/data_engineering/novelty_extractor)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`b994606`](https://github.com/ARPAHLS/skillware/commit/b994606) | fix(novelty_extractor): mock embeddings in bundle tests for offline CI | 13 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`5030981`](https://github.com/ARPAHLS/skillware/commit/5030981) | Feat/issue 24 novelty extractor (#116) | 25 May 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+<!-- skill-history:end -->

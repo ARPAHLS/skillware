@@ -10,6 +10,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Documentation:** Skill catalog pages include a **Version** header and **Skill history** table (commit links, dates, versions, and linked GitHub contributor handles); [docs/skills/README.md](docs/skills/README.md) adds a **Version** column to category tables.
+- **Tests:** `test_catalog_pages_have_version_and_history_blocks()` and `test_skill_library_index_has_version_column()` in `tests/test_registry_docs.py` guard catalog version/history coverage.
+
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Phase v2b upgrade — `run_pipeline` for sequential multi-step execution with automatic halting on `needs_input` (disambiguation) or `error`, step-slicing resumption (`steps[prior_completed:]`), placeholder auto-substitution (`<from_resolve>`), and cumulative data payload merging (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Composite actions `resolve_and_get_officers` and `resolve_and_get_filings` to resolve companies and fetch target records in single-turn operations (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Default limit 10 previews with `partial` response status and `agent_hint` metadata for officers and filing history (#220).

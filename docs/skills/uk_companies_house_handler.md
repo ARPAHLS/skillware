@@ -2,6 +2,9 @@
 
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `1.2.0` — 24 Aug 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -391,6 +394,21 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 - **Not legal advice**: Company information is provided as-is. This is not legal, accounting, or regulatory advice.
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`finance/uk_companies_house_handler`](https://github.com/ARPAHLS/skillware/tree/main/skills/finance/uk_companies_house_handler)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`01cd620`](https://github.com/ARPAHLS/skillware/commit/01cd620) | feat(uk_companies_house_handler): upgrade to v2b with pipeline orchestration and composites (#220) (#308) | 24 Aug 2026 | `1.2.0` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
+| [`84cd790`](https://github.com/ARPAHLS/skillware/commit/84cd790) | feat: complete uk companies house handler v2a (#220) (#255) | 22 Jul 2026 | `1.1.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `1.0.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`8251e89`](https://github.com/ARPAHLS/skillware/commit/8251e89) | feat: add UK Companies House handler skill (#172) (#218) | 8 Jul 2026 | `1.0.0` | [@Areen-09](https://github.com/Areen-09) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

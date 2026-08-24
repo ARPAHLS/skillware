@@ -2,6 +2,9 @@
 
 **ID**: `defi/evm_tx_handler`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `0.2.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[defi_evm_tx_handler]"`. See [Install extras](../usage/install_extras.md).
 
@@ -181,3 +184,21 @@ client = OpenAI(
 - Fail closed on missing RPC, registry entries, missing wallet key, or USD price when `max_trade_usd` is set.  
 - `confirm_before_send` blocks execute/transfer until `confirmed: true`.  
 - Not financial or legal advice; agents can mis-parse NL — always preview.
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`defi/evm_tx_handler`](https://github.com/ARPAHLS/skillware/tree/main/skills/defi/evm_tx_handler)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `0.2.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`91bef48`](https://github.com/ARPAHLS/skillware/commit/91bef48) | docs: document manifest ID alignment and provider tool names (#201) | 1 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`673e227`](https://github.com/ARPAHLS/skillware/commit/673e227) | fix: align pdf_form_filler and evm_tx_handler manifest names with registry paths | 1 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`6ecd350`](https://github.com/ARPAHLS/skillware/commit/6ecd350) | style(defi): format evm_tx_handler for black CI (#142) | 5 Jun 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`cad61be`](https://github.com/ARPAHLS/skillware/commit/cad61be) | docs(defi): polish evm_tx_handler for merge (#142) | 4 Jun 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`0c9c475`](https://github.com/ARPAHLS/skillware/commit/0c9c475) | feat(defi): implement evm_tx_handler execute flow (#142) | 2 Jun 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`93117b4`](https://github.com/ARPAHLS/skillware/commit/93117b4) | feat(defi): add evm_tx_handler PR1 (quote, preview, transfer) Introduce defi/evm_tx_handler for a dedicated EVM agent wallet on Ethereum and Base. First PR ships resolve, quote, preview, transfer, balances, wallet_info, and update_preferences with YAML registries and mocked Web3 tests. Swap execute is stubbed for a follow-up PR. | 1 Jun 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
+<!-- skill-history:end -->
