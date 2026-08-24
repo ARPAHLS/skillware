@@ -38,6 +38,13 @@ _ACTIONS_REQUIRING_COMPANY_NUMBER = {
     "get_filing_history",
 }
 
+_OPERATIONAL_RETRY_HINT = (
+    "Retry after a short backoff. Companies House allows 600 requests per "
+    "5 minutes per API key. If you know the 8-character company_number, "
+    "pass it directly. Otherwise check spelling and pass a clean company "
+    "name in query (no conversational prefixes)."
+)
+
 
 class UkCompaniesHouseHandlerSkill(BaseSkill):
     """Deterministic UK Companies House API handler for agents."""
@@ -188,7 +195,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             if status_code == 429:
                 return self._error_response(
                     "rate_limited",
-                    "Companies House API rate limit exceeded. " "Wait and retry.",
+                    "Companies House API rate limit exceeded. Wait and retry.",
+                    agent_hint=_OPERATIONAL_RETRY_HINT,
                     context=context,
                 )
             return self._error_response(
@@ -200,12 +208,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             return self._error_response(
                 "timeout",
                 "Companies House API request timed out.",
+                agent_hint=_OPERATIONAL_RETRY_HINT,
                 context=context,
             )
         except requests.exceptions.ConnectionError:
             return self._error_response(
                 "connection_error",
                 "Could not connect to the Companies House API.",
+                agent_hint=_OPERATIONAL_RETRY_HINT,
                 context=context,
             )
         except Exception as exc:
@@ -220,7 +230,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _resolve_company(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Search for companies by name and return ranked candidates."""
         query = params.get("query")
-        if not query or not query.strip():
+        if not query or not str(query).strip():
+            return self._error_response(
+                "missing_query",
+                "The 'query' parameter is required for " "resolve_company.",
+            )
+
+        query = self._normalize_company_query(str(query))
+        if not query:
             return self._error_response(
                 "missing_query",
                 "The 'query' parameter is required for " "resolve_company.",
@@ -231,7 +248,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         data = self._request(
             "GET",
             "/search/companies",
-            params={"q": query.strip(), "items_per_page": limit},
+            params={"q": query, "items_per_page": limit},
         )
 
         items = data.get("items", [])
@@ -564,7 +581,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             keywords = keywords_raw
         else:
             keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
-        entities = params.get("entities", {})
+        entities = params.get("entities") or {}
 
         if not keywords and not entities:
             return self._error_response(
@@ -574,52 +591,75 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         role_map = self.terminology_map.get("role_mappings", {})
         intent_map = self.terminology_map.get("intent_to_action", {})
+        document_types = self.terminology_map.get("document_types", {})
+        entity_types = self.terminology_map.get("entity_types", {})
+        status_mappings = self.terminology_map.get("status_mappings", {})
 
-        # Build terminology translations
-        terminology_translations = {}
+        terminology_translations: Dict[str, str] = {}
+        filing_categories: List[str] = []
         for kw in keywords:
-            normalized = kw.lower().strip().replace(" ", "_")
-            if normalized in role_map:
-                terminology_translations[kw] = role_map[normalized]
+            normalized = self._normalize_keyword(kw)
+            role = self._lookup_terminology(normalized, role_map)
+            if role:
+                terminology_translations[kw] = role
+            doc_type = self._lookup_terminology(normalized, document_types)
+            if doc_type:
+                terminology_translations[kw] = doc_type
+                if doc_type not in filing_categories:
+                    filing_categories.append(doc_type)
+            entity = self._lookup_terminology(normalized, entity_types)
+            if entity:
+                terminology_translations[kw] = entity
+            status = self._lookup_terminology(normalized, status_mappings)
+            if status:
+                terminology_translations[kw] = status
 
-        # Determine suggested actions from keywords
-        suggested_actions = []
-        seen_actions = set()
+        suggested_actions: List[str] = []
+        seen_actions: set = set()
         for kw in keywords:
-            normalized = kw.lower().strip().replace(" ", "_")
-            action = intent_map.get(normalized)
+            normalized = self._normalize_keyword(kw)
+            action = self._lookup_terminology(normalized, intent_map)
             if action and action not in seen_actions:
                 suggested_actions.append(action)
                 seen_actions.add(action)
 
-        # Build a suggested pipeline
-        pipeline = []
-        company_query = entities.get("company_query", "")
+        company_query = str(entities.get("company_query") or "").strip()
 
-        # Check if any suggested action requires a company number
         needs_resolve = any(
             action in _ACTIONS_REQUIRING_COMPANY_NUMBER for action in suggested_actions
         )
 
-        # If we have a company query, or if any action needs a resolve, always start with resolve
+        if needs_resolve and not company_query:
+            return self._needs_input_response(
+                "missing_company_query",
+                [],
+                agent_hint=(
+                    "Ask the user which UK company they mean, then call "
+                    "map_intent again with entities.company_query or call "
+                    "resolve_company / a composite action with a clean query."
+                ),
+                next_actions=["resolve_company"],
+            )
+
+        pipeline: List[Dict[str, Any]] = []
         if company_query or needs_resolve:
             pipeline.append(
                 {
                     "action": "resolve_company",
-                    "params": {"query": company_query or "<insert_company_name_here>"},
+                    "params": {"query": company_query},
                 }
             )
 
-        # Add the unique suggested actions
         for action in suggested_actions:
             if action == "resolve_company":
-                continue  # Already added above (or handled)
-            step = {"action": action, "params": {}}
+                continue
+            step: Dict[str, Any] = {"action": action, "params": {}}
             if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
                 step["params"]["company_number"] = "<from_resolve>"
+            if action == "get_filing_history" and filing_categories:
+                step["params"]["category"] = filing_categories[0]
             pipeline.append(step)
 
-        # If no pipeline could be built, suggest a generic search
         if not pipeline and company_query:
             pipeline.append(
                 {
@@ -628,7 +668,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 }
             )
 
-        # Build relevant endpoints list
         endpoint_index = self.api_index.get("endpoints", {})
         relevant_endpoints = []
         for action in suggested_actions:
@@ -821,35 +860,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
-        query_str = str(query).strip()
-        lower_query = query_str.lower()
-        for prefix in (
-            "who is the ceo of ",
-            "who is the cfo of ",
-            "who is the chairman of ",
-            "who is the director of ",
-            "ceo of ",
-            "cfo of ",
-            "chairman of ",
-            "director of ",
-            "officers of ",
-            "directors of ",
-        ):
-            if lower_query.startswith(prefix):
-                query_str = query_str[len(prefix) :].strip()
-                if "ceo" in prefix:
-                    officer_params["role_hint"] = "ceo"
-                    context["role_hint"] = "ceo"
-                elif "cfo" in prefix:
-                    officer_params["role_hint"] = "cfo"
-                    context["role_hint"] = "cfo"
-                elif "chairman" in prefix:
-                    officer_params["role_hint"] = "chairman"
-                    context["role_hint"] = "chairman"
-                elif "director" in prefix:
-                    officer_params["role_hint"] = "director"
-                    context["role_hint"] = "director"
-                break
+        query_str = self._normalize_company_query(str(query))
+        if not query_str:
+            return self._error_response(
+                "missing_query",
+                "Action 'resolve_and_get_officers' requires "
+                "'query' or 'company_number'.",
+                context=context,
+            )
 
         resolve_params: Dict[str, Any] = {"query": query_str}
         if "limit" in params:
@@ -895,7 +913,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
-        resolve_params: Dict[str, Any] = {"query": str(query).strip()}
+        resolve_params: Dict[str, Any] = {
+            "query": self._normalize_company_query(str(query))
+        }
         if "limit" in params:
             resolve_params["limit"] = params["limit"]
 
@@ -1050,6 +1070,29 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return response
 
     # --- Data Loaders ---
+
+    @staticmethod
+    def _normalize_company_query(query: str) -> str:
+        """Strip whitespace and trailing punctuation from a company search query."""
+        normalized = str(query).strip()
+        while normalized and normalized[-1] in "?.,!;:":
+            normalized = normalized[:-1].strip()
+        return normalized
+
+    @staticmethod
+    def _normalize_keyword(keyword: str) -> str:
+        """Normalize intent/terminology keywords for YAML map lookup."""
+        return keyword.lower().strip().replace(" ", "_").replace("-", "_")
+
+    @staticmethod
+    def _lookup_terminology(normalized: str, mapping: Dict[str, str]) -> str:
+        """Look up a normalized keyword in a terminology map with alias tolerance."""
+        if normalized in mapping:
+            return mapping[normalized]
+        compact = normalized.replace("_", "")
+        if compact in mapping:
+            return mapping[compact]
+        return ""
 
     @staticmethod
     def _load_json(path: str) -> Dict[str, Any]:

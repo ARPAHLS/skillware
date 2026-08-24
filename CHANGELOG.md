@@ -15,15 +15,17 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Default limit 10 previews with `partial` response status and `agent_hint` metadata for officers and filing history (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Session context carry-forward across sequential turns (`company_number`, `company_name`, `role_hint`, `officer_filter`, `next_actions`) (#220).
 - **Documentation:** [`docs/skills/uk_companies_house_handler.md`](docs/skills/uk_companies_house_handler.md) — updated architecture reference for 9 action handlers, partial response previews, and pipeline orchestration (#220).
-- **Tests:** Expanded unit test suite in `skills/finance/uk_companies_house_handler/test_skill.py` (48 tests) covering pipeline resumption, composite actions, partial response previews, and compound intent routing (#220).
+- **Tests:** Expanded unit test suite in `skills/finance/uk_companies_house_handler/test_skill.py` covering pipeline resumption, composite actions, partial previews, map_intent guards, and punctuation-safe queries (#220).
 
 ### Changed
 
 - **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/instructions.md` to emphasize concise, append-only skill context over persona starters (#258, #284).
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
-- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Updated contextual UK corporate terminology notes to only display CEO/director disclaimers when executive roles are queried (#220).
-- **Documentation:** [`skills/finance/uk_companies_house_handler/instructions.md`](skills/finance/uk_companies_house_handler/instructions.md) — updated system instructions for multi-intent workflows, disambiguation resumption, and mandatory active record list rendering (#220).
-- **Manifest:** [`skills/finance/uk_companies_house_handler/manifest.yaml`](skills/finance/uk_companies_house_handler/manifest.yaml) — declared `role_hint`, `steps`, `stop_on`, `pipeline`, `context`, `entities`, and `intent_keywords` parameters (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** `get_officers` default `active_only` is now **true** (v1.x default was false) — resigned officers are excluded unless `active_only: false` (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Removed conversational prefix stripping from composite actions; agents must pass clean `query` / `company_query` plus optional `role_hint`. `map_intent` returns `needs_input` when a company name is required but missing (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** `map_intent` wires `document_types`, `entity_types`, and `status_mappings` from `terminology_map.yaml` into `terminology_map` output; richer `agent_hint` on rate-limit, timeout, and connection errors (#220).
+- **Documentation:** [`skills/finance/uk_companies_house_handler/instructions.md`](skills/finance/uk_companies_house_handler/instructions.md) — skill-context instructions, disambiguation playbook, and parameter-hygiene guidance aligned with #258/#284 (#220).
+- **Examples:** [`examples/uk_companies_house_handler_demo.py`](examples/uk_companies_house_handler_demo.py) and shared helpers updated for v2b composites, pipelines, partial previews, and disambiguation resume (#220).
 
 ### Fixed
 

@@ -43,7 +43,7 @@ parameters:
       description: "8-character UK company number (required for profile/officers/pscs/filing)."
     active_only:
       type: boolean
-      description: "Filter to current/active records only. Default false."
+      description: "Filter to current/active records only. Default true for get_officers."
     limit:
       type: integer
       description: "Max results to return (resolve_company). Default 5."
@@ -87,6 +87,43 @@ parameters:
       description: "State of an executing multi-step pipeline (e.g. completed_steps, total_steps) to carry forward."
   required:
     - action
+outputs:
+  status:
+    type: string
+    description: "Envelope status: ready, partial, needs_input, or error."
+  source:
+    type: string
+    description: "Data provenance (typically companies_house_api)."
+  fetched_at:
+    type: string
+    description: "UTC ISO timestamp when the response was built."
+  context:
+    type: object
+    description: "Session state to pass on the next call (company_number, role_hint, next_actions, pipeline)."
+  pipeline:
+    type: object
+    description: "Multi-step progress when using run_pipeline or composite actions."
+  agent_hint:
+    type: string
+    description: "Optional guidance for the host agent (disambiguation, partial previews, retries)."
+  company_number:
+    type: string
+    description: "Resolved 8-character company number when applicable."
+  company_name:
+    type: string
+    description: "Registered company name when applicable."
+  officers:
+    type: array
+    description: "Officer records from get_officers or merged pipeline output."
+  filings:
+    type: array
+    description: "Filing records from get_filing_history or merged pipeline output."
+  suggested_pipeline:
+    type: array
+    description: "Ordered steps suggested by map_intent."
+  terminology_map:
+    type: object
+    description: "Keyword-to-UK-registry translations from map_intent."
 constitution: |
   1. Use only publicly available Companies House data.
   2. Require COMPANIES_HOUSE_API_KEY via environment; never hardcode or log the key.

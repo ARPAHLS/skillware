@@ -9,6 +9,33 @@
       "company_status": "active",
       "company_type": "ltd",
       "next_actions": ["get_officers"]
+    },
+    {
+      "status": "partial",
+      "source": "companies_house_api",
+      "fetched_at": "2026-07-19T12:00:00Z",
+      "company_number": "00102498",
+      "company_name": "BP P.L.C.",
+      "company_status": "active",
+      "agent_hint": "Showing 10 active officers out of 11 active on file (74 total on record).",
+      "officers": [
+        {
+          "name": "EXAMPLE, Director",
+          "officer_role": "director",
+          "appointed_on": "2020-01-01"
+        }
+      ]
+    },
+    {
+      "status": "ready",
+      "source": "companies_house_api",
+      "fetched_at": "2026-07-19T12:00:00Z",
+      "company_number": "00102498",
+      "company_name": "BP P.L.C.",
+      "company_status": "active",
+      "pipeline": {"completed_steps": 2, "total_steps": 2},
+      "officers": [],
+      "filings": []
     }
   ]
 }

@@ -12,7 +12,7 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 
 - **Company Search and Disambiguation**: Search by name, receive ranked candidates, handle ambiguous queries (e.g. "BP") with structured `needs_input` responses.
 - **Company Profile**: Full profile by company number — status, type, SIC codes, registered address, charges, insolvency flags.
-- **Officers (Directors and Secretaries)**: List current and past officers with optional `active_only` filtering. Includes UK terminology notes (CEO -> director).
+- **Officers (Directors and Secretaries)**: List current and past officers with optional `active_only` filtering (**default `true`**). Includes UK terminology notes when `role_hint` indicates executive roles (CEO → director).
 - **Persons with Significant Control (PSC)**: List beneficial owners with natures of control, equivalent to the US concept of "beneficial owner" or "shareholder".
 - **Filing History**: List filings (accounts, confirmation statements, incorporations) with optional category filtering and document metadata links.
 - **Pipeline Orchestration (`run_pipeline`)**: Execute ordered steps sequentially, halting on disambiguation (`needs_input`) or `error`, and preserving execution progress in `pipeline`.
@@ -25,11 +25,11 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 The skill is self-contained in `skills/finance/uk_companies_house_handler/`.
 
 ### 1. The Mind (`instructions.md`)
-The system prompt teaches the AI to:
-- Map US business terminology to UK equivalents (CEO -> director, owner -> PSC).
-- Always map intent first before taking actions to build the correct action pipeline and resolve the company by name.
-- Handle disambiguation by presenting candidates to the user.
-- Cite company number and data timestamp in all responses.
+Skill-context instructions (registry ID opener, not a persona). The host agent:
+- Passes **clean** `query` / `company_number` parameters and optional `role_hint` — the skill does not strip conversational prefixes.
+- Handles disambiguation when search returns `needs_input`, then resumes with `context` / `run_pipeline`.
+- Uses `terminology_map.yaml` as a reference lexicon; maps US/informal terms via reasoning plus `map_intent` hints.
+- Renders full `officers[]` / `filings[]` lists, including `partial` previews (default limit 10).
 
 ### 2. The Body (`skill.py`)
 A single `execute()` entry point dispatches to nine action handlers:

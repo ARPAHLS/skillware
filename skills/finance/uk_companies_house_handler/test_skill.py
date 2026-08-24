@@ -1,3 +1,4 @@
+import json
 import os
 from unittest.mock import MagicMock, patch
 
@@ -529,6 +530,59 @@ def test_map_intent_officer_and_filings(skill):
     ]
 
 
+def test_map_intent_missing_company_query(skill):
+    """map_intent without entities.company_query returns needs_input, not placeholders."""
+    result = skill.execute(
+        {
+            "action": "map_intent",
+            "intent_keywords": "leadership",
+        }
+    )
+    assert result["status"] == "needs_input"
+    assert result["reason"] == "missing_company_query"
+    assert "suggested_pipeline" not in result
+    assert "insert_company_name_here" not in json.dumps(result)
+
+
+def test_map_intent_10k_document_terminology(skill):
+    """map_intent translates 10-K-style keywords via document_types."""
+    result = skill.execute(
+        {
+            "action": "map_intent",
+            "intent_keywords": "10k,accounts",
+            "entities": {"company_query": "Tesco"},
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["terminology_map"]["10k"] == "accounts"
+    filing_step = next(
+        s for s in result["suggested_pipeline"] if s["action"] == "get_filing_history"
+    )
+    assert filing_step["params"]["category"] == "accounts"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_resolve_company_strips_trailing_punctuation(mock_request, skill):
+    """resolve_company normalizes trailing punctuation in search queries."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {
+                "company_number": "01026167",
+                "title": "BARCLAYS BANK PLC",
+                "company_status": "active",
+            }
+        ]
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
+
+    result = skill.execute({"action": "resolve_company", "query": "Barclays?"})
+
+    assert result["status"] == "ready"
+    assert mock_request.call_args.kwargs["params"]["q"] == "Barclays"
+
+
 def test_map_intent_missing_input(skill):
     """map_intent without keywords or entities returns error."""
     result = skill.execute({"action": "map_intent"})
@@ -876,10 +930,8 @@ def test_run_pipeline_resumed_progress_tracking(mock_request, skill):
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
-def test_run_pipeline_full_resubmission_skips_completed_and_substitutes_placeholder(
-    mock_request, skill
-):
-    """When caller passes full 3-step pipeline on resume, step 0 is skipped and placeholder substituted."""
+def test_run_pipeline_resume_skips_done_steps(mock_request, skill):
+    """Resume skips completed steps and substitutes <from_resolve> placeholders."""
     mock_officers = MagicMock()
     mock_officers.json.return_value = {
         "items": [
@@ -1400,10 +1452,8 @@ def test_resolve_and_get_filings_missing_query(skill):
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
-def test_run_pipeline_resumes_from_context_next_actions_when_steps_omitted(
-    mock_request, skill
-):
-    """run_pipeline automatically falls back to context next_actions when steps is omitted."""
+def test_run_pipeline_resumes_from_next_actions(mock_request, skill):
+    """run_pipeline falls back to context next_actions when steps is omitted."""
     mock_officers = MagicMock()
     mock_officers.json.return_value = {
         "items": [
@@ -1444,8 +1494,8 @@ def test_run_pipeline_resumes_from_context_next_actions_when_steps_omitted(
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
-def test_resolve_and_get_officers_extracts_ceo_from_natural_query(mock_request, skill):
-    """resolve_and_get_officers extracts 'ceo' from natural query and passes to get_officers."""
+def test_resolve_and_get_officers_with_role_hint(mock_request, skill):
+    """resolve_and_get_officers uses clean query and explicit role_hint."""
     mock_search = MagicMock()
     mock_search.json.return_value = {
         "items": [
@@ -1477,7 +1527,8 @@ def test_resolve_and_get_officers_extracts_ceo_from_natural_query(mock_request, 
     result = skill.execute(
         {
             "action": "resolve_and_get_officers",
-            "query": "who is the ceo of tesco",
+            "query": "Tesco",
+            "role_hint": "ceo",
         }
     )
 
@@ -1485,3 +1536,5 @@ def test_resolve_and_get_officers_extracts_ceo_from_natural_query(mock_request, 
     assert result["company_number"] == "00445790"
     assert "CEO" in result["terminology_note"]
     assert result["context"]["role_hint"] == "ceo"
+    search_params = mock_request.call_args_list[0].kwargs["params"]
+    assert search_params["q"] == "Tesco"

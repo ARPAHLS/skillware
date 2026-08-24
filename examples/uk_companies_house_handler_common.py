@@ -15,6 +15,40 @@ SKILL_ID = "finance/uk_companies_house_handler"
 
 # --- Mock Data ---
 
+MOCK_BARCLAYS_SEARCH_RESPONSE = {
+    "items": [
+        {
+            "company_number": "01026167",
+            "title": "BARCLAYS BANK PLC",
+            "company_status": "active",
+            "company_type": "plc",
+            "address_snippet": "1 Churchill Place, London, E14 5HP",
+            "date_of_creation": "1896-07-20",
+        },
+        {
+            "company_number": "01026167",
+            "title": "BARCLAYS EXECUTIVE NOMINEES LIMITED",
+            "company_status": "active",
+            "company_type": "ltd",
+            "address_snippet": "1 Churchill Place, London, E14 5HP",
+            "date_of_creation": "1985-03-12",
+        },
+    ]
+}
+
+MOCK_BP_SINGLE_SEARCH_RESPONSE = {
+    "items": [
+        {
+            "company_number": "00102498",
+            "title": "BP P.L.C.",
+            "company_status": "active",
+            "company_type": "plc",
+            "address_snippet": "1 St James's Square, London, SW1Y 4PD",
+            "date_of_creation": "1909-04-14",
+        }
+    ]
+}
+
 MOCK_SEARCH_RESPONSE = {
     "items": [
         {
@@ -87,6 +121,20 @@ MOCK_OFFICERS_RESPONSE = {
     "active_count": 2,
 }
 
+MOCK_OFFICERS_PARTIAL_RESPONSE = {
+    "items": [
+        {
+            "name": f"DIRECTOR-{idx}, Example",
+            "officer_role": "director",
+            "appointed_on": "2020-01-01",
+        }
+        for idx in range(15)
+    ],
+    "total_results": 15,
+    "active_count": 15,
+    "company_name": "BP P.L.C.",
+}
+
 MOCK_PSC_RESPONSE = {
     "items": [
         {
@@ -128,72 +176,68 @@ MOCK_FILING_RESPONSE = {
 
 
 def run_scripted_flow(skill: Any) -> None:
-    """Deterministic agent-style sequence: map_intent, resolve, profile, officers, PSC, filings."""
-    print("=== uk_companies_house_handler scripted flow ===\n")
-    print("User Query: Who is the CEO of BP?")
+    """Deterministic v2b flows: composite, pipeline, partial preview, disambiguation."""
+    print("=== uk_companies_house_handler v2b scripted flows ===\n")
 
-    # Step 0: Map intent
-    intent_result = skill.execute(
+    print(
+        "--- Flow A: composite resolve_and_get_officers (clean query + role_hint) ---"
+    )
+    print('User: "Who is the CEO of BP?" -> agent passes query="BP", role_hint="ceo"\n')
+    composite = skill.execute(
+        {
+            "action": "resolve_and_get_officers",
+            "query": "BP",
+            "role_hint": "ceo",
+        }
+    )
+    print(json.dumps(composite, indent=2))
+    context = composite.get("context", {})
+
+    print("\n--- Flow B: map_intent + run_pipeline (officers and filings) ---")
+    intent = skill.execute(
         {
             "action": "map_intent",
-            "intent_keywords": "CEO",
+            "intent_keywords": "officers, filings",
             "entities": {"company_query": "BP"},
         }
     )
-    print(json.dumps(intent_result, indent=2))
-    context = intent_result.get("context", {})
-
-    # Step 1: Resolve company
-    resolve_result = skill.execute(
-        {"action": "resolve_company", "query": "BP", "limit": 5, "context": context}
-    )
-    context = resolve_result.get("context", context)
-    print(json.dumps(resolve_result, indent=2))
-
-    # Pick the first candidate
-    if resolve_result["status"] == "needs_input":
-        company_number = resolve_result["candidates"][0]["company_number"]
-        company_name = resolve_result["candidates"][0]["title"]
-        print(f"\nUser selects: {company_name} ({company_number})\n")
-        context["company_number"] = company_number
-        context["company_name"] = company_name
-    elif resolve_result["status"] == "ready":
-        company_number = resolve_result["company_number"]
-        company_name = resolve_result.get("company_name", "")
-        print(f"\nSingle match: {company_name} ({company_number})\n")
-        context["company_number"] = company_number
-        context["company_name"] = company_name
-    else:
-        print(f"\nError: {resolve_result.get('message', 'unknown')}")
-        return
-
-    # Step 2: Get company profile
-    profile_result = skill.execute(
-        {"action": "get_company_profile", "context": context}
-    )
-    context = profile_result.get("context", context)
-    print(json.dumps(profile_result, indent=2))
-
-    # Step 3: Get officers (active only)
-    officers_result = skill.execute(
+    print(json.dumps(intent, indent=2))
+    pipeline = skill.execute(
         {
-            "action": "get_officers",
-            "active_only": True,
+            "action": "run_pipeline",
+            "steps": intent["suggested_pipeline"],
             "context": context,
         }
     )
-    context = officers_result.get("context", context)
-    print(json.dumps(officers_result, indent=2))
+    print(json.dumps(pipeline, indent=2))
+    context = pipeline.get("context", context)
 
-    # Step 4: Get PSCs
-    psc_result = skill.execute({"action": "get_pscs", "context": context})
-    context = psc_result.get("context", context)
-    print(json.dumps(psc_result, indent=2))
+    print("\n--- Flow C: disambiguation resume (Barclays-style needs_input) ---")
+    disambig = skill.execute({"action": "resolve_company", "query": "Barclays"})
+    print(json.dumps(disambig, indent=2))
+    if disambig["status"] == "needs_input":
+        picked = disambig["candidates"][0]
+        context["company_number"] = picked["company_number"]
+        context["company_name"] = picked["title"]
+        print(f"\nUser selects: {picked['title']} ({picked['company_number']})\n")
+        resumed = skill.execute(
+            {
+                "action": "get_officers",
+                "role_hint": "ceo",
+                "context": context,
+            }
+        )
+        print(json.dumps(resumed, indent=2))
 
-    # Step 5: Get filing history
-    filing_result = skill.execute({"action": "get_filing_history", "context": context})
-    context = filing_result.get("context", context)
-    print(json.dumps(filing_result, indent=2))
+    print("\n--- Flow D: partial officers preview (limit 10 of many) ---")
+    partial = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": context.get("company_number", "00102498"),
+            "limit": 10,
+        }
+    )
+    print(json.dumps(partial, indent=2))
 
     print("\n=== flow complete ===")
 
