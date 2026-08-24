@@ -2,6 +2,9 @@
 
 **ID**: `office/gmail_handler`  
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `0.2.0` — 19 Aug 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[office_gmail_handler]"`. See [Install extras](../usage/install_extras.md).
 
@@ -377,6 +380,18 @@ Catalog snippets only for Claude, OpenAI, DeepSeek, and Ollama — follow [skill
 - Fail closed on missing credentials or ambiguous recipients.
 - Recipient cap (`max_recipients`, default 5) blocks bulk sends.
 - Confirmation gate on `send` and `reply` when `confirm_before_send` is true (default).
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`office/gmail_handler`](https://github.com/ARPAHLS/skillware/tree/main/skills/office/gmail_handler)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`907c7dc`](https://github.com/ARPAHLS/skillware/commit/907c7dc) | feat(gmail_handler): v0.2 attachments, reply signatures, and multi-profile sigs | 19 Aug 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`a1bab61`](https://github.com/ARPAHLS/skillware/commit/a1bab61) | Add mail CLI and config for gmail_handler operator UX (#292) | 19 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`13473ce`](https://github.com/ARPAHLS/skillware/commit/13473ce) | feat(office/gmail_handler): add Gmail IMAP/SMTP skill for agent mail workflows (#208) (#291) | 17 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

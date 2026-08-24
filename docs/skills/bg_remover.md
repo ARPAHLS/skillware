@@ -2,6 +2,9 @@
 
 **ID**: `creative/bg_remover`
 **Issuer**: [@AyushSrivastava1818](https://github.com/AyushSrivastava1818)
+<!-- skill-doc-meta:begin -->
+**Version**: `0.2.0` — 2 Aug 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[creative_bg_remover]"`. See [Install extras](../usage/install_extras.md).
 **Category**: Creative
@@ -322,6 +325,17 @@ print(json.dumps(result, indent=2))
 - The skill does not fetch URLs or cloud objects directly
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`creative/bg_remover`](https://github.com/ARPAHLS/skillware/tree/main/skills/creative/bg_remover)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`d32260e`](https://github.com/ARPAHLS/skillware/commit/d32260e) | feat(bg_remover): harden skill to v0.2.0 (#268) | 2 Aug 2026 | `0.2.0` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818), [@rosspeili](https://github.com/rosspeili) |
+| [`c6d4c53`](https://github.com/ARPAHLS/skillware/commit/c6d4c53) | feat(creative): add offline background removal skill (#244) | 16 Jul 2026 | `0.1.0` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818), [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

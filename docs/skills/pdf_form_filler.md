@@ -2,6 +2,9 @@
 
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `0.1.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[office_pdf_form_filler]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -194,6 +197,34 @@ The skill returns a JSON object with the result of the operation.
 *   **LLM Dependency**: Requires an active internet connection and valid API key for the semantic mapping step.
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`office/pdf_form_filler`](https://github.com/ARPAHLS/skillware/tree/main/skills/office/pdf_form_filler)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `0.1.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`91bef48`](https://github.com/ARPAHLS/skillware/commit/91bef48) | docs: document manifest ID alignment and provider tool names (#201) | 1 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`673e227`](https://github.com/ARPAHLS/skillware/commit/673e227) | fix: align pdf_form_filler and evm_tx_handler manifest names with registry paths | 1 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0f81d1f`](https://github.com/ARPAHLS/skillware/commit/0f81d1f) | Backfill bundle tests for six registry skills missing test_skill.py. | 10 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`52cce29`](https://github.com/ARPAHLS/skillware/commit/52cce29) | docs: clarify runnable examples across skill pages (#121) | 24 May 2026 | `0.1.0` | [@narutamaaurum](https://github.com/narutamaaurum) |
+| [`a3a7ac8`](https://github.com/ARPAHLS/skillware/commit/a3a7ac8) | docs: update Gemini snippets to google-genai (#92) | 23 May 2026 | `0.1.0` | [@kunal-9090](https://github.com/kunal-9090) |
+| [`cca7334`](https://github.com/ARPAHLS/skillware/commit/cca7334) | docs: skill docs revamp — remove emojis, add breadcrumbs, fix index, add missing sections (closes #52) (#82) | 21 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e465dc4`](https://github.com/ARPAHLS/skillware/commit/e465dc4) | Fix skill path resolution and PyPI skill packaging. (#79) | 18 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b18e21`](https://github.com/ARPAHLS/skillware/commit/5b18e21) | Document per-skill usage examples across providers. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`39487f8`](https://github.com/ARPAHLS/skillware/commit/39487f8) | Add generic API keys guide for skills requiring external calls. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f800f41`](https://github.com/ARPAHLS/skillware/commit/f800f41) | Add skill issuer attribution across registry and docs. | 17 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e658e7e`](https://github.com/ARPAHLS/skillware/commit/e658e7e) | docs: update enterprise disclaimer heading and scope to ARPA catalog skills only | 16 May 2026 | `0.1.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`891f5cc`](https://github.com/ARPAHLS/skillware/commit/891f5cc) | docs: add standard enterprise disclaimer to all skill documentation pages (#59) | 16 May 2026 | `0.1.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`b6b8180`](https://github.com/ARPAHLS/skillware/commit/b6b8180) | feat: Make Skillware pip-installable and add release workflow (closes #7) | 15 Feb 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`3838724`](https://github.com/ARPAHLS/skillware/commit/3838724) | feat: Add automated testing and strict linting (closes #8) | 15 Feb 2026 | `—` | [@rosspeili](https://github.com/rosspeili) |
+| [`34e966c`](https://github.com/ARPAHLS/skillware/commit/34e966c) | feat(skills): add pdf_form_filler skill (Fixes #4) | 15 Feb 2026 | `—` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

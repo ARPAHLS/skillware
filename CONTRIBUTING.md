@@ -321,14 +321,15 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).
-- Include **ID**, **Issuer**, and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
+- Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR.
 
 ### 7. Registry index row
 
-- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Issuer, Description).
+- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
 
 ### Issuer attribution
 

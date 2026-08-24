@@ -10,6 +10,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Documentation:** Skill catalog pages include a **Version** header and **Skill history** table (commit links, dates, versions, and linked GitHub contributor handles); [docs/skills/README.md](docs/skills/README.md) adds a **Version** column to category tables.
+- **Tests:** `test_catalog_pages_have_version_and_history_blocks()` and `test_skill_library_index_has_version_column()` in `tests/test_registry_docs.py` guard catalog version/history coverage.
+
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Phase v2b upgrade — `run_pipeline` for sequential multi-step execution with automatic halting on `needs_input` (disambiguation) or `error`, step-slicing resumption (`steps[prior_completed:]`), placeholder auto-substitution (`<from_resolve>`), and cumulative data payload merging (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Composite actions `resolve_and_get_officers` and `resolve_and_get_filings` to resolve companies and fetch target records in single-turn operations (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Default limit 10 previews with `partial` response status and `agent_hint` metadata for officers and filing history (#220).
@@ -19,7 +22,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
-- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/instructions.md` to emphasize concise, append-only skill context over persona starters (#258, #284).
+- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/` to emphasize concise, append-only skill context over persona starters (#258, #284).
+- **Docs:** Aligned `ai_native_workflow.md` and `templates/python_skill/README.md` checklists with catalog **Version** and **Skill history** requirements.
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** `get_officers` default `active_only` is now **true** (v1.x default was false) — resigned officers are excluded unless `active_only: false` (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Removed conversational prefix stripping from composite actions; agents must pass clean `query` / `company_query` plus optional `role_hint`. `map_intent` returns `needs_input` when a company name is required but missing (#220).

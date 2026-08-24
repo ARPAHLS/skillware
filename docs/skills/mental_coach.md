@@ -3,6 +3,9 @@
 **Domain:** `wellness`
 **Skill ID:** `wellness/mental_coach`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) (AO) · **Contact:** masa88keith@gmail.com
+<!-- skill-doc-meta:begin -->
+**Version**: `0.1.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[wellness_mental_coach]"`. See [Install extras](../usage/install_extras.md).
 
@@ -169,3 +172,15 @@ Always include `disclaimers_required` in the user-facing reply.
 - English-first v0.1; non-English input routes to CAUTION with resources.
 - Public KB only; no private corpus in the published package.
 - Crisis gate uses conservative keyword signals; over-escalation is intentional.
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`wellness/mental_coach`](https://github.com/ARPAHLS/skillware/tree/main/skills/wellness/mental_coach)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`6cbe140`](https://github.com/ARPAHLS/skillware/commit/6cbe140) | Add wellness/mental_coach skill resolving #148 (#174) | 22 Jun 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+<!-- skill-history:end -->
