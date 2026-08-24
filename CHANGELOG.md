@@ -22,7 +22,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
-- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/instructions.md` to emphasize concise, append-only skill context over persona starters (#258, #284).
+- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/` to emphasize concise, append-only skill context over persona starters (#258, #284).
+- **Docs:** Aligned `ai_native_workflow.md` and `templates/python_skill/README.md` checklists with catalog **Version** and **Skill history** requirements.
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** `get_officers` default `active_only` is now **true** (v1.x default was false) — resigned officers are excluded unless `active_only: false` (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Removed conversational prefix stripping from composite actions; agents must pass clean `query` / `company_query` plus optional `role_hint`. `map_intent` returns `needs_input` when a company name is required but missing (#220).
