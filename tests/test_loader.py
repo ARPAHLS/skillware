@@ -394,6 +394,10 @@ def test_resolve_skill_prefers_env_over_cwd(tmp_path, monkeypatch):
 
     monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
     monkeypatch.chdir(tmp_path)
+    # Isolate from any operator-level global config.yaml so the legacy
+    # env-over-cwd resolution is asserted deterministically, regardless of
+    # the developer's machine state (see #302).
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global-config"))
     bundle = SkillLoader.load_skill("shared_id")
     assert bundle["manifest"]["name"] == "from_env"
 
