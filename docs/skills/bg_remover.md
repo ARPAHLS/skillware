@@ -1,7 +1,7 @@
 # Background Remover
 
 **ID**: `creative/bg_remover`
-**Issuer**: [@AyushSrivastava1818](https://github.com/AyushSrivastava1818)
+**Issuer**: [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.2.0` — 2 Aug 2026
 <!-- skill-doc-meta:end -->

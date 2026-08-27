@@ -2,7 +2,7 @@
 
 **Domain:** `security`
 **Skill ID:** `security/prompt_injection_firewall`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) (AO) · **Contact:** masa88keith@gmail.com
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), AO) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 31 Jul 2026
 <!-- skill-doc-meta:end -->

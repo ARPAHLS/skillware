@@ -340,9 +340,21 @@ The manifest is the **source of truth** for issuer data. Use real contact detail
 | `issuer.name` | Yes | Display name of the contributor or maintainer |
 | `issuer.email` | Yes | Contact email for the skill author |
 | `issuer.github` | No | GitHub username without `@` |
-| `issuer.org` | No | GitHub organization or affiliation |
+| `issuer.org` | No | Optional affiliation / design-ownership org (see [Issuer org](#issuer-org)) |
 
 Registry-wide issuer rules are enforced in `tests/test_skill_issuer.py` (skills under `skills/` only; templates are excluded).
+
+### Issuer org
+
+`issuer.org` is an **optional single string** for affiliation or design ownership — not necessarily who wrote every line of code. Individual credit stays in `issuer.name`, `email`, and `github`. Omit `org` when no org applies. Use comma-separated values when multiple orgs apply (for example `ARPAHLS, AO`).
+
+| Situation | `issuer.org` | Catalog Issuer line |
+| :--- | :--- | :--- |
+| **ARPA-maintainer / ARPA-audited skill** | `ARPAHLS` | `[@author](…) ([@ARPAHLS](…))` |
+| **Third-party–driven skill** | contributor org or omit | `[@author](…) (AO)` or author only |
+| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](…) ([@ARPAHLS](…), AO)` |
+
+Separate multiple orgs with a comma in the single `org` string (for example `org: ARPAHLS, AO`). Match the catalog **Issuer** line to the manifest value.
 
 ---
 

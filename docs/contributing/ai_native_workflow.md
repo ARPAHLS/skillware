@@ -238,7 +238,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
 - `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
-- `issuer.name` and `issuer.email` required; `github` and `org` optional; no template placeholders in registry paths
+- `issuer.name` and `issuer.email` required; `github` and optional `org` per [Issuer org](../../CONTRIBUTING.md#issuer-org); no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
 - Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
 - Update `docs/skills/<skill_name>.md` and `docs/skills/README.md` (**Version**, **Skill history**, and index columns per [CONTRIBUTING.md § catalog page](../../CONTRIBUTING.md#6-docsskillsskill_namemd-catalog-page))
