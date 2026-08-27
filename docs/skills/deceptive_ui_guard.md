@@ -142,7 +142,7 @@ Commits that touched this skill bundle or its catalog page ([`security/deceptive
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(pending merge)* | feat(security): add deceptive_ui_guard v1 for issue #78 | 27 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`68da6ed`](https://github.com/ARPAHLS/skillware/commit/68da6ed) | feat(security): add deceptive_ui_guard v1 for issue #78 (#313) | 27 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer

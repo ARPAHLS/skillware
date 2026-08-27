@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-08-27
+
 ### Added
 
 - **Skill (`security/deceptive_ui_guard` v0.1.0):** Deterministic deceptive UI surface scanner for web HTML — dual DOM vs visible extraction, structural/lexical heuristics, corroboration gates, trust score, and agent guidance for pre-click and pre-context guardrails (#78).
