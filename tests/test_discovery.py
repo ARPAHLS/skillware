@@ -39,6 +39,10 @@ def test_get_skill_roots_order_env_project_bundled(tmp_path, monkeypatch):
     project_root.mkdir(parents=True)
     monkeypatch.chdir(tmp_path / "project")
     monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    # Isolate from any operator-level global config.yaml so the legacy
+    # skill-root order (env -> cwd project -> bundled) is asserted
+    # deterministically, regardless of the developer's machine state.
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "no-global-config"))
 
     roots = get_skill_roots()
     tiers = [root.tier for root in roots]
