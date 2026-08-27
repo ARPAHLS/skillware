@@ -99,6 +99,7 @@ skills in one harness.
 | `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
 | `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `security/deceptive_ui_guard` | `deceptive_ui_guard_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `optimization/prompt_rewriter` | `prompt_compression_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

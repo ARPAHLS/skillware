@@ -1,0 +1,83 @@
+name: security/deceptive_ui_guard
+version: 0.1.0
+description: >
+  Offline deterministic scanner for deceptive web UI surfaces and anti-agent tricks.
+  Analyzes HTML (or optional public URL fetch) with dual DOM vs visible-surface extraction,
+  structural and lexical heuristics, corroboration gates, trust scoring, and agent guidance
+  for pre-click and pre-context guardrails. Does not click, submit forms, or call LLMs.
+short_description: "Deceptive UI guard with dual-surface scan, trust score, and agent guidance."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: security
+parameters:
+  type: object
+  properties:
+    html_content:
+      type: string
+      description: Sanitized HTML or DOM snapshot to analyze (preferred for offline use).
+    url:
+      type: string
+      description: Optional public http(s) URL to fetch when html_content is not supplied.
+    sensitivity:
+      type: string
+      description: Detection strictness level.
+      enum:
+        - strict
+        - balanced
+        - lenient
+      default: balanced
+    intended_action:
+      type: string
+      description: Optional natural-language task (e.g. complete checkout) to tune agent guidance.
+  required: []
+outputs:
+  status:
+    type: string
+    description: Aggregate posture (ok, caution, warning, blocked).
+  trust_score:
+    type: integer
+    description: Page trust score from 0 (untrusted) to 100 (clean).
+  surface_integrity:
+    type: string
+    description: Surface integrity summary (ok, degraded, compromised).
+  is_safe:
+    type: boolean
+    description: True when status is ok and risk is none or low.
+  risk_level:
+    type: string
+    description: Aggregated risk level (none, low, medium, high, critical).
+  detected_threat:
+    type: string
+    description: Primary finding summary when signals cross the publish threshold.
+  findings:
+    type: array
+    description: Structured findings with type, severity, selector, snippet, channels, and evidence.
+  agent_guidance:
+    type: object
+    description: Pre-click and pre-context guidance including do_not_click and verify_before_payment.
+  sanitized_excerpt:
+    type: string
+    description: Visible-surface text excerpt safe to pass toward downstream LLM context.
+  fetch_status:
+    type: string
+    description: skipped, ok, or error details when url fetch was attempted.
+  offline:
+    type: boolean
+    description: False only when a url fetch was performed; analysis remains deterministic.
+  sensitivity:
+    type: string
+    description: Sensitivity level used for the scan.
+requirements: []
+constitution: |
+  1. WARN ONLY: Never click, submit forms, accept cookies, or complete checkout flows.
+  2. DETERMINISTIC CORE: Identical HTML input yields identical findings; no LLM-in-the-loop detection.
+  3. HTML-FIRST: Prefer html_content from the host browser; optional public url fetch with SSRF guards.
+  4. EXPLAINABLE: Every published finding includes selector, snippet, channels, and corroboration evidence.
+  5. COMPOSABLE: Does not call other skills; hosts may chain prompt_injection_firewall separately.
+  6. HONEST LIMITS: Semantic manipulation without structural or lexical signals may be missed until v2 OCR.
+presentation:
+  icon: shield
+  color: "#1f2937"

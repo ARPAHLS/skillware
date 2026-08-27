@@ -151,6 +151,8 @@ office_pdf_form_filler = [
 
 optimization_prompt_rewriter = []
 
+security_deceptive_ui_guard = []
+
 security_prompt_injection_firewall = []
 
 wellness_mental_coach = [

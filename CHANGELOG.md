@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Deterministic deceptive UI surface scanner for web HTML — dual DOM vs visible extraction, structural/lexical heuristics, corroboration gates, trust score, and agent guidance for pre-click and pre-context guardrails (#78).
+
 - **Documentation:** Skill catalog pages include a **Version** header and **Skill history** table (commit links, dates, versions, and linked GitHub contributor handles); [docs/skills/README.md](docs/skills/README.md) adds a **Version** column to category tables.
 - **Tests:** `test_catalog_pages_have_version_and_history_blocks()` and `test_skill_library_index_has_version_column()` in `tests/test_registry_docs.py` guard catalog version/history coverage.
 
@@ -22,6 +24,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Production deception lexicon with taxonomy metadata and eight categories; standalone agent instructions; demo fixtures recreating documented dark patterns; `install_extras` security category row (#78).
 - **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/` to emphasize concise, append-only skill context over persona starters (#258, #284).
 - **Docs:** Aligned `ai_native_workflow.md` and `templates/python_skill/README.md` checklists with catalog **Version** and **Skill history** requirements.
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
