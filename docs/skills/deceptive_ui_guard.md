@@ -45,7 +45,7 @@ Deterministic scanner for **deceptive web UI surfaces** and **anti-agent tricks*
 * `risk_level` (string): `none`, `low`, `medium`, `high`, or `critical`.
 * `detected_threat` (string): Primary published finding summary.
 * `findings` (array): Structured findings with selector, snippet, channels, and evidence.
-* `agent_guidance` (object): `do_not_click`, `verify_before_payment`, `summary`, `skill_chain_hint`.
+* `agent_guidance` (object): `do_not_click`, `verify_before_payment`, `summary`.
 * `sanitized_excerpt` (string): Visible-surface excerpt for downstream LLM context.
 * `fetch_status` (string): `skipped`, `ok`, or error detail.
 * `offline` (boolean): False only when `url` fetch ran; analysis remains deterministic.
@@ -86,7 +86,7 @@ Sample user message: *Scan this checkout HTML for deceptive UI before the agent 
 
 ### Runnable examples
 
-- Local execute: [`examples/deceptive_ui_guard_demo.py`](../../examples/deceptive_ui_guard_demo.py)
+- Local execute: [`examples/deceptive_ui_guard_demo.py`](../../examples/deceptive_ui_guard_demo.py) — loads sanitized HTML fixtures under [`examples/fixtures/deceptive_ui/`](../../examples/fixtures/deceptive_ui/) (documented dark-pattern recreations, not live scrapes)
 
 ### Direct execute
 

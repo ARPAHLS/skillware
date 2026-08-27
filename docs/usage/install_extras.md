@@ -77,7 +77,7 @@ Union of non-core `requirements` from every skill in the category.
 | `monitoring` | `monitoring/token_limiter` | *(none today)* |
 | `office` | `office/pdf_form_filler` | `anthropic`, `pymupdf` |
 | `optimization` | `optimization/prompt_rewriter` | *(none today)* |
-| `security` | `security/prompt_injection_firewall` | *(none today)* |
+| `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 
 ```bash

@@ -89,12 +89,19 @@ class ScanResult:
 
 def _load_lexicon() -> Dict[str, List[str]]:
     path = _KB_DIR / "deception_lexicon.json"
-    if path.exists():
-        return json.loads(path.read_text(encoding="utf-8"))
+    if not path.exists():
+        return {
+            "confirm_shaming": [],
+            "urgency": [],
+            "hidden_fee": [],
+        }
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data.get("categories"), dict):
+        return data["categories"]
     return {
-        "confirm_shaming": [],
-        "urgency": [],
-        "hidden_fee": [],
+        key: value
+        for key, value in data.items()
+        if key != "_meta" and isinstance(value, list)
     }
 
 
@@ -295,7 +302,8 @@ def _lexical_signal(element: Tag, lexicon: Dict[str, List[str]]) -> List[RawSign
         return []
     hidden = _is_hidden_element(element)
     severity: RiskLevel = "medium" if hidden else "low"
-    if "hidden_fee" in hits and _element_zone(element) == "checkout":
+    checkout_lexicon = {"hidden_fee", "forced_continuity"}
+    if checkout_lexicon.intersection(hits) and _element_zone(element) == "checkout":
         severity = "high"
     return [
         RawSignal(
@@ -346,7 +354,10 @@ def _corroborate(
                 publish = True
                 confidence = 0.8
                 corroborated_by = ["textual", signal.zone]
-            elif signal.subtype == "hidden_fee" and signal.zone == "checkout":
+            elif (
+                signal.subtype in {"hidden_fee", "forced_continuity"}
+                and signal.zone == "checkout"
+            ):
                 publish = True
                 confidence = 0.75
                 corroborated_by = ["textual", "checkout_zone"]
@@ -434,7 +445,10 @@ def _build_guidance(
     verify_payment = False
     for item in findings:
         selectors.add(str(item.get("selector", "")))
-        if item.get("zone") == "checkout" or item.get("subtype") == "hidden_fee":
+        if item.get("zone") == "checkout" or item.get("subtype") in {
+            "hidden_fee",
+            "forced_continuity",
+        }:
             verify_payment = True
         if item.get("type") == "mislabeled_cta":
             selectors.add(str(item.get("selector", "")))
@@ -450,6 +464,8 @@ def _build_guidance(
         )
     if any(f.get("subtype") == "hidden_fee" for f in findings):
         summary_parts.append("Copy suggests fees may appear late in checkout.")
+    if any(f.get("subtype") == "forced_continuity" for f in findings):
+        summary_parts.append("Copy suggests automatic renewal or post-trial billing.")
 
     action_lower = (intended_action or "").lower()
     if (
@@ -464,10 +480,6 @@ def _build_guidance(
         "verify_before_payment": verify_payment,
         "summary": " ".join(summary_parts)
         or "No deceptive UI signals crossed the publish threshold.",
-        "skill_chain_hint": (
-            "Optionally run security/prompt_injection_firewall on sanitized_excerpt "
-            "before feeding page text to the host LLM."
-        ),
     }
 
 
@@ -499,7 +511,6 @@ def scan_surface(
                     "do_not_click": [],
                     "verify_before_payment": True,
                     "summary": "Page could not be fetched safely.",
-                    "skill_chain_hint": "",
                 },
                 sanitized_excerpt="",
                 fetch_status=f"error: {exc}",
@@ -520,7 +531,6 @@ def scan_surface(
                 "do_not_click": [],
                 "verify_before_payment": False,
                 "summary": "Provide html_content or a public url.",
-                "skill_chain_hint": "",
             },
             sanitized_excerpt="",
             fetch_status=fetch_status,

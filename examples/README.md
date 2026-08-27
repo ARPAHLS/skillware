@@ -50,7 +50,7 @@ pip install -e ".[dev,all,agents]"
 | `openai_compatible_host.py` | `compliance/tos_evaluator` | Groq (OpenAI-compatible) | `[compliance_tos_evaluator]`, `[openai]` | `GROQ_API_KEY`, `GROQ_MODEL` | Runs the terms-of-service evaluator through Groq's OpenAI-compatible API. |
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | `[compliance_pii_masker]` | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_injection_firewall_demo.py` | `security/prompt_injection_firewall` | Local execute | `[security_prompt_injection_firewall]` | None | Offline prompt-injection scan and sanitization with no API keys. |
-| `deceptive_ui_guard_demo.py` | `security/deceptive_ui_guard` | Local execute | `[security_deceptive_ui_guard]` | None | Offline deceptive UI surface scan with trust score and agent guidance (HTML input). |
+| `deceptive_ui_guard_demo.py` | `security/deceptive_ui_guard` | Local execute | `[security_deceptive_ui_guard]` | None | Offline deceptive UI scan using fixture HTML recreations of documented dark patterns (confirm shaming, drip pricing, forced continuity, mislabeled CTAs). |
 | `prompt_compression_demo.py` | `optimization/prompt_rewriter` | Local execute | `[optimization_prompt_rewriter]` | None | Demonstrates prompt compression without a provider loop. |
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | `[data_engineering_novelty_extractor]` | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |
 | `gemini_novelty_extractor.py` | `data_engineering/novelty_extractor` | Gemini | `[data_engineering_novelty_extractor]`, `[gemini]` | `GOOGLE_API_KEY` | Runs the novelty extractor with a Gemini function-calling loop. |

@@ -86,6 +86,19 @@ def test_mislabeled_cta_detected(skill):
     assert any(f["type"] == "mislabeled_cta" for f in result["findings"])
 
 
+def test_deception_lexicon_is_production_kb():
+    lexicon = guard_module._load_lexicon()
+    assert "confirm_shaming" in lexicon
+    assert "hidden_fee" in lexicon
+    assert "forced_continuity" in lexicon
+    assert len(lexicon["confirm_shaming"]) >= 10
+    assert len(lexicon["urgency"]) >= 15
+    assert len(lexicon["hidden_fee"]) >= 15
+    assert "fee applied at confirmation" in [
+        phrase.lower() for phrase in lexicon["hidden_fee"]
+    ]
+
+
 def test_hidden_fee_in_checkout_detected(skill):
     html = """
     <html><body>
@@ -100,6 +113,26 @@ def test_hidden_fee_in_checkout_detected(skill):
         }
     )
     assert result["findings"]
+    assert result["agent_guidance"]["verify_before_payment"] is True
+
+
+def test_forced_continuity_in_checkout_detected(skill):
+    html = """
+    <html><body>
+      <section id="checkout">
+        <p>Free trial then $14.99/month. Subscription renews automatically unless you cancel.</p>
+      </section>
+    </body></html>
+    """
+    result = skill.execute(
+        {
+            "html_content": html,
+            "sensitivity": "balanced",
+            "intended_action": "start subscription trial",
+        }
+    )
+    assert result["findings"]
+    assert any(f.get("subtype") == "forced_continuity" for f in result["findings"])
     assert result["agent_guidance"]["verify_before_payment"] is True
 
 

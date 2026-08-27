@@ -24,6 +24,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Production deception lexicon with taxonomy metadata and eight categories; standalone agent instructions; demo fixtures recreating documented dark patterns; `install_extras` security category row (#78).
 - **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/` to emphasize concise, append-only skill context over persona starters (#258, #284).
 - **Docs:** Aligned `ai_native_workflow.md` and `templates/python_skill/README.md` checklists with catalog **Version** and **Skill history** requirements.
 - **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).

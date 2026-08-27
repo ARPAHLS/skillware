@@ -24,8 +24,7 @@
       "agent_guidance": {
         "do_not_click": ["span#hidden-instruction"],
         "verify_before_payment": false,
-        "summary": "Hidden text is present that does not appear in the visible surface.",
-        "skill_chain_hint": "Optionally run security/prompt_injection_firewall on sanitized_excerpt before feeding page text to the host LLM."
+        "summary": "Hidden text is present that does not appear in the visible surface."
       },
       "sanitized_excerpt": "Welcome to the demo checkout page.",
       "fetch_status": "skipped",
