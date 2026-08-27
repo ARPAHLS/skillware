@@ -106,6 +106,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
+| `security_deceptive_ui_guard` | `security/deceptive_ui_guard` | *(none today)* | Offline HTML analysis; optional url fetch uses `requests` (core) |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` | |
 
 ```bash

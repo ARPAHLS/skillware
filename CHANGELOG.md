@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Deterministic deceptive UI surface scanner for web HTML — dual DOM vs visible extraction, structural/lexical heuristics, corroboration gates, trust score, and agent guidance for pre-click and pre-context guardrails (#78).
+
 - **Documentation:** Skill catalog pages include a **Version** header and **Skill history** table (commit links, dates, versions, and linked GitHub contributor handles); [docs/skills/README.md](docs/skills/README.md) adds a **Version** column to category tables.
 - **Tests:** `test_catalog_pages_have_version_and_history_blocks()` and `test_skill_library_index_has_version_column()` in `tests/test_registry_docs.py` guard catalog version/history coverage.
 

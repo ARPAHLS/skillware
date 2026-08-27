@@ -1,0 +1,25 @@
+{
+  "confirm_shaming": [
+    "no thanks",
+    "i don't want",
+    "i do not want",
+    "no i don't care",
+    "i hate saving",
+    "don't care about saving"
+  ],
+  "urgency": [
+    "only 1 left",
+    "only 2 left",
+    "expires in",
+    "limited time",
+    "act now",
+    "offer ends"
+  ],
+  "hidden_fee": [
+    "fee applied at confirmation",
+    "service fee applied",
+    "additional charge",
+    "charged separately",
+    "price shown before taxes and fees"
+  ]
+}

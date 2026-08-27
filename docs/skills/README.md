@@ -64,6 +64,7 @@ Offline and local-first defenses for untrusted input before it reaches model con
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) (AO) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+| **[Deceptive UI Guard](deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.1.0` (27 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Dual-surface HTML scan for deceptive UI, trust scoring, and pre-click agent guidance (issue #78). |
 
 ## Dev Tools
 Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.

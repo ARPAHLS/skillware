@@ -361,7 +361,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `office` | Documents, productivity, email | `pdf_form_filler`, `gmail_handler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
 | `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
-| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall` |
+| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall`, `deceptive_ui_guard` |
 | `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
 ### Choosing a category
