@@ -2,7 +2,7 @@
 
 **Domain:** `wellness`
 **Skill ID:** `wellness/mental_coach`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) (AO) · **Contact:** masa88keith@gmail.com
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 16 Jul 2026
 <!-- skill-doc-meta:end -->
