@@ -6,7 +6,7 @@ issuer:
   name: Martin Rizzo Lozano
   email: rizzolozanomartin@gmail.com
   github: rizzoMartin
-  org: ""
+  org: ARPAHLS
 parameters:
   type: object
   properties:

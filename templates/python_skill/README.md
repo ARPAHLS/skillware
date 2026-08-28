@@ -18,6 +18,8 @@ Do not commit template placeholders (`Your Name`, `you@example.com`, `YOUR ORG`,
 
 ## Issuer block (manifest.yaml)
 
+See [Issuer org](../../CONTRIBUTING.md#issuer-org) for when to set `org: ARPAHLS`, a contributor org, comma-separated co-affiliations, or omit.
+
 ```yaml
 issuer:
   name: Your Name

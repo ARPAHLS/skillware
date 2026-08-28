@@ -17,7 +17,7 @@ Skills for image processing, media editing, and creative utilities.
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Background Remover](bg_remover.md)** | `creative/bg_remover` | `0.2.0` (2 Aug 2026) | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
+| **[Background Remover](bg_remover.md)** | `creative/bg_remover` | `0.2.0` (2 Aug 2026) | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS)) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
 
 ## Finance
 Tools for financial analysis, blockchain interaction, and regulatory compliance.
@@ -47,7 +47,7 @@ Skills tailored for generating, parsing, and orchestrating large datasets for ma
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
-| **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
+| **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 
 ## Compliance
 Enforces privacy, guardrails, and secure handling of sensitive data before it reaches external endpoints.
@@ -63,7 +63,7 @@ Offline and local-first defenses for untrusted input before it reaches model con
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) (AO) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
 | **[Deceptive UI Guard](deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.1.0` (27 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Dual-surface HTML scan for deceptive UI, trust scoring, and pre-click agent guidance (issue #78). |
 
 ## Dev Tools
@@ -85,7 +85,7 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
 ---
 

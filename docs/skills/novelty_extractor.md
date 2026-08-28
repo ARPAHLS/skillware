@@ -2,7 +2,7 @@
 
 **Domain:** `data_engineering`
 **Skill ID:** `data_engineering/novelty_extractor`
-**Issuer:** [@rizzoMartin](https://github.com/rizzoMartin)
+**Issuer:** [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 16 Jul 2026
 <!-- skill-doc-meta:end -->
