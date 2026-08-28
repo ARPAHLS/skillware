@@ -35,11 +35,20 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     ),
     (
         "deceptive_ui_guard_demo.py",
-        ["security/deceptive_ui_guard", "Confirm shaming", "Drip pricing", "trust_score:"],
+        [
+            "security/deceptive_ui_guard",
+            "Confirm shaming",
+            "Drip pricing",
+            "trust_score:",
+        ],
     ),
     (
         "token_limiter_loop.py",
-        ["Simulating a runaway scrape task", "FORCE_TERMINATE", "Loop stopped as expected:"],
+        [
+            "Simulating a runaway scrape task",
+            "FORCE_TERMINATE",
+            "Loop stopped as expected:",
+        ],
     ),
     (
         "uk_companies_house_handler_demo.py",
@@ -55,7 +64,10 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     ),
     (
         "bg_remover_demo.py",
-        ["Loading Background Remover...", "Input image not found: examples/sample_input.png"],
+        [
+            "Loading Background Remover...",
+            "Input image not found: examples/sample_input.png",
+        ],
     ),
 ]
 
