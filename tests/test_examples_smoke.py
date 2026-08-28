@@ -1,4 +1,4 @@
-﻿"""CI smoke tests for local-execute examples (no live API keys required).
+"""CI smoke tests for local-execute examples (no live API keys required).
 
 Addresses #237: automated regression net for offline demo scripts under examples/
 to catch import breaks, SkillLoader regressions, and manifest dispatch errors
@@ -55,7 +55,7 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     ),
     (
         "bg_remover_demo.py",
-        ["Loading Background Remover..."],
+        ["Loading Background Remover...", "Input image not found: examples/sample_input.png"],
     ),
 ]
 
