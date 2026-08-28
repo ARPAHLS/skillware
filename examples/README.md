@@ -1,6 +1,6 @@
 # Skillware Examples Index
 
-> **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). See [TESTING.md](../docs/TESTING.md).
+> **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). Local-execute demo scripts are smoke-tested in CI via `tests/test_examples_smoke.py` to guard against import and loader regressions. See [TESTING.md](../docs/TESTING.md).
 
 Runnable examples in this directory show how to load Skillware skills, adapt them for a provider, execute local skill logic, and return tool results to an agent loop. After `pip install skillware`, run `skillware examples` or `skillware list --examples` from any directory to browse the index in the terminal; when no local `examples/README.md` is present, the index is fetched from GitHub (network required); see [CLI reference](../docs/usage/cli.md). Provider setup details live in the usage guides:
 

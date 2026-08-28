@@ -8,6 +8,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Tests (`tests/test_examples_smoke.py`):** Added automated CI smoke test suite for local-execute offline demo scripts under `examples/`, catching import regressions and SkillLoader dispatch errors without requiring live API keys (#237).
+- **Docs (`docs/TESTING.md`):** Documented the example smoke testing layer and skip policy for live model provider loops in CI (#237).
+
 ### Changed
 
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
