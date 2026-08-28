@@ -351,8 +351,8 @@ Registry-wide issuer rules are enforced in `tests/test_skill_issuer.py` (skills 
 | Situation | `issuer.org` | Catalog Issuer line |
 | :--- | :--- | :--- |
 | **ARPA-maintainer / ARPA-audited skill** | `ARPAHLS` | `[@author](…) ([@ARPAHLS](…))` |
-| **Third-party–driven skill** | contributor org or omit | `[@author](…) (AO)` or author only |
-| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](…) ([@ARPAHLS](…), AO)` |
+| **Third-party–driven skill** | contributor org or omit | `[@author](…) ([AO](https://github.com/0x-AO-Protocol))` or author only |
+| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](…) ([@ARPAHLS](…), [AO](https://github.com/0x-AO-Protocol))` |
 
 Separate multiple orgs with a comma in the single `org` string (for example `org: ARPAHLS, AO`). Match the catalog **Issuer** line to the manifest value.
 

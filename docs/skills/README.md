@@ -63,7 +63,7 @@ Offline and local-first defenses for untrusted input before it reaches model con
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), AO) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
 | **[Deceptive UI Guard](deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.1.0` (27 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Dual-surface HTML scan for deceptive UI, trust scoring, and pre-click agent guidance (issue #78). |
 
 ## Dev Tools
@@ -85,7 +85,7 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
 ---
 
