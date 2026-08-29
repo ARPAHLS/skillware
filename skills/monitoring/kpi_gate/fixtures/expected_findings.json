@@ -1,0 +1,24 @@
+{
+  "status": "completed",
+  "policy_id": "coaching_funnel_demo_v1",
+  "benchmark_version": "demo-1",
+  "findings": [
+    {
+      "finding": "NO_BOOKING",
+      "severity": "error",
+      "detail": {"metric": "bookings", "threshold": ">= 1", "observed": 0},
+      "action": "blocked — requires operator override"
+    },
+    {
+      "finding": "DOWNLOAD_RATE_BELOW_DOCTRINE",
+      "severity": "warning",
+      "detail": {"metric": "download_rate_pct", "threshold": ">= 25.0 (benchmark)", "observed": 12.2},
+      "action": "none — surfaced for the operator"
+    },
+    {
+      "state": "insufficient_data",
+      "detail": {"metric": "reply_to_booking_rate_pct"},
+      "reason": "cohort_attribution_unavailable"
+    }
+  ]
+}

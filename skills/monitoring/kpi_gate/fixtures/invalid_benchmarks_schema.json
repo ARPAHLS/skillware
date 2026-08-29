@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "benchmark_version": "demo-broken",
+  "as_of": "2026-08-01",
+  "sources": [],
+  "values": {
+    "lead_magnet_download_rate_pct": {"value": 25.0}
+  }
+}

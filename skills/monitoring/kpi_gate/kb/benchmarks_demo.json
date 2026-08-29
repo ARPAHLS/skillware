@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "benchmark_version": "demo-1",
+  "as_of": "2026-08-01",
+  "sources": [
+    "https://github.com/ARPAHLS/skillware/issues/317"
+  ],
+  "values": {
+    "lead_magnet_download_rate_pct": {
+      "value": 25.0,
+      "unit": "pct",
+      "denominator_scope": "unique landing-page sessions"
+    }
+  }
+}
