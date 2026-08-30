@@ -1,75 +1,85 @@
-# UK Companies House Handler — Instructions
+# UK Companies House Handler
 
-You are an agent equipped with the `finance/uk_companies_house_handler` skill. This tool lets you query the UK Companies House registry for company information, officers, ownership, and filing history through structured actions.
+You are using the `finance/uk_companies_house_handler` skill.
+
+This skill wraps the UK Companies House REST API (`api.company-information.service.gov.uk`) with deterministic actions. It returns structured JSON envelopes (`ready`, `partial`, `needs_input`, `error`) — it does not parse conversational user text. **You** infer intent, choose actions, pass clean parameters (`query`, `company_number`, `role_hint`, `category`), handle disambiguation with the user, and render record lists in your reply.
+
+`data/terminology_map.yaml` is a **reference lexicon** for UK/US/finance term equivalents and keyword hints; it is not a substitute for your reasoning. Prefer explicit parameters over relying on keyword routing alone.
 
 ## When to use
 
 Use this skill when the user:
 
-- Asks about a UK company (registered in England, Wales, Scotland, or Northern Ireland).
-- Wants to know who runs, owns, or controls a UK company.
-- Asks about directors, officers, or "the CEO" of a UK company.
-- Requests filing history, accounts, or annual returns for a UK company.
-- Mentions "Companies House" or refers to a UK company number (8 characters, e.g. 00102498).
-- Asks about beneficial owners, PSCs, or persons with significant control.
+- Asks about a UK company (England, Wales, Scotland, or Northern Ireland).
+- Wants directors, officers, secretaries, PSCs, or filing history for a UK entity.
+- Mentions Companies House or a UK company number (8 characters, e.g. `00445790`).
+- Needs multi-step registry lookups that benefit from `run_pipeline` or composite actions.
 
-## UK Terminology — Critical
+## UK terminology (present only when the user used non-UK terms)
 
-UK companies do **not** use the term "CEO" in a legal sense. When a user says "CEO", "president", or "chairman", you should look up **directors** via the `get_officers` action. The skill includes a terminology map:
-
-| User says | UK equivalent | Skill action |
+| User may say | UK registry term | Typical action |
 | :--- | :--- | :--- |
-| CEO, president, chairman | Director | `get_officers` |
+| CEO, president, chairman | Director | `get_officers` + optional `role_hint: "ceo"` |
 | Owner, shareholder, beneficial owner | Person with Significant Control (PSC) | `get_pscs` |
 | Secretary, corporate secretary | Secretary | `get_officers` |
-| Annual report, 10-K, financials | Accounts / Confirmation Statement | `get_filing_history` |
+| Annual report, 10-K, financials | Accounts / confirmation statement | `get_filing_history` (+ optional `category`) |
 | Company, corporation, LLC | Ltd, PLC, LLP | `resolve_company` |
 
-Always inform the user about these terminology differences when presenting results.
+Only explain terminology when the user used informal or US-centric wording. Do not add disclaimers during disambiguation prompts.
 
 ## Available actions
 
-| Action | Purpose | Required params |
-| :--- | :--- | :--- |
-| `resolve_company` | Search by name, get ranked candidates | `query` |
-| `get_company_profile` | Full profile by company number | `company_number` |
-| `get_officers` | List directors and secretaries | `company_number` |
-| `get_pscs` | List persons with significant control | `company_number` |
-| `get_filing_history` | List filings (accounts, returns, etc.) | `company_number` |
-| `map_intent` | Translate intent keywords to action pipeline | `intent_keywords` or `entities` |
+| Action | Purpose | Required params | Optional params |
+| :--- | :--- | :--- | :--- |
+| `resolve_company` | Search by name; ranked candidates | `query` (clean company name) | `limit` |
+| `get_company_profile` | Full profile by number | `company_number` | |
+| `get_officers` | Directors and secretaries | `company_number` | `active_only` (default **true**), `limit`, `role_hint`, `officer_filter` |
+| `get_pscs` | Persons with significant control | `company_number` | `active_only` |
+| `get_filing_history` | Filings (accounts, returns, etc.) | `company_number` | `category`, `limit` |
+| `map_intent` | Suggest an action pipeline from keywords | `intent_keywords` and/or `entities` | `entities.company_query` when actions need a company |
+| `run_pipeline` | Run ordered atomic steps; halt on `needs_input`/`error` | `steps` or resume via `context` | `company_number`, `pipeline`, `stop_on`, `context` |
+| `resolve_and_get_officers` | Resolve + list officers in one call | `query` **or** `company_number` | `role_hint`, `active_only`, `limit`, `officer_filter` |
+| `resolve_and_get_filings` | Resolve + list filings in one call | `query` **or** `company_number` | `category`, `limit` |
 
-## Workflow — Always map intent first
+**Parameter hygiene:** Pass a **clean** company name in `query` / `entities.company_query` (e.g. `Barclays`, not `Who is the CEO of Barclays?`). Pass conversational role intent via `role_hint` (e.g. `"ceo"`, `"chairman"`). Strip trailing punctuation (`?`, `.`) yourself or rely on the skill's light normalization.
 
-1. **Always map intent first.** For every new user request, you MUST start by calling the `map_intent` action with the user's `intent_keywords` (as a comma-separated string) and `entities` (if applicable).
-2. Read the `suggested_pipeline` returned by the `map_intent` action.
-3. Follow the actions exactly as ordered in the `suggested_pipeline`.
-4. If a step (like `resolve_company`) returns a status of `needs_input`, present the candidates to the user and wait for their choice before proceeding.
-5. Once you have a confirmed `company_number`, continue with the remaining specific actions (`get_officers`, `get_pscs`, etc.) in your pipeline.
-6. **State Tracking (Context)**: Every response from the skill includes a `context` object. You MUST pass this exact `context` object back as an argument to subsequent tool calls in the same session. This allows the skill to remember the active `company_number` and `company_name` without you having to manually extract and pass them every time.
+## Playbook — disambiguation and multi-step queries
+
+### Example: "Who is the CEO of Barclays?"
+
+1. **Do not** pass the full sentence as `query`. Call `resolve_and_get_officers` with `query: "Barclays"`, `role_hint: "ceo"` (or `run_pipeline` / `map_intent` + pipeline if you prefer).
+2. If `status` is **`needs_input`**, present `candidates` (e.g. Barclays Bank PLC vs other Barclays entities) and ask the user to pick.
+3. After confirmation, call `get_officers` with the chosen `company_number` (and `role_hint` if still relevant), or resume `run_pipeline` with `company_number` + remaining `steps` / `context`.
+4. Answer the role question using UK director terminology when appropriate, then **render the full `officers[]` list** (name, role, appointed date).
+
+### Multi-intent queries
+
+For combined asks (e.g. *"officers and filings for BP"*):
+
+1. Optionally call `map_intent` with `intent_keywords: "officers, filings"` and `entities: {"company_query": "BP"}` to obtain `suggested_pipeline`.
+2. Execute via `run_pipeline` with atomic steps only (`resolve_company`, `get_officers`, `get_filing_history`, …). Never nest composites inside `run_pipeline`.
+3. On `needs_input`, pause, disambiguate, then resume with `company_number` and updated `context` / `pipeline`.
+
+### Single-intent shortcuts
+
+- Officers only: `resolve_and_get_officers` with clean `query` + optional `role_hint`.
+- Filings only: `resolve_and_get_filings` with clean `query` + optional `category`.
 
 ## Understanding responses
 
-Every response includes a `status` field:
+| Status | Meaning |
+| :--- | :--- |
+| `ready` | Complete result — present data clearly. |
+| `partial` | Preview (default limit 10 officers or filings). **Always list returned records** and state total counts from the envelope / `agent_hint`. |
+| `needs_input` | Ambiguous search or missing company name for pipeline — use `candidates` or `agent_hint`. |
+| `error` | Check `error_code` and `message`. Use `agent_hint` for retry guidance (`rate_limited`, `timeout`, `connection_error`). |
 
-- **`ready`**: The data was fetched successfully. Present it to the user.
-- **`partial`**: (Note: v2b prep, not currently used) The operation succeeded, but the data returned is incomplete (e.g., due to pagination or a missing sub-resource). Inform the user that there is more information available or synthesize the available data.
-- **`needs_input`**: Multiple matches or missing information. Present the `candidates` to the user and ask for clarification. Use the `agent_hint` for guidance.
-- **`error`**: Something went wrong. Check `error_code` and `message`. Common errors:
-  - `not_found`: Company number does not exist.
-  - `rate_limited`: Too many requests; wait and retry.
-  - `missing_company_number`: You need to resolve a company first.
+Every response includes `fetched_at`, `source`, and usually `context`. Pipeline/composite responses may include `pipeline: {"completed_steps": N, "total_steps": M}`.
 
-Every response includes `fetched_at` (UTC timestamp), `source`, and a `context` block — always cite the timestamp and source when presenting data. Responses may also include an optional `pipeline` object (Note: v2b prep, not currently used; e.g. `{"completed_steps": 1, "total_steps": 2}`) representing the partial pipeline state if a multi-step operation is paused.
+Common `error_code` values: `not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`.
 
 ## Limitations
 
-- **v1 scope only**: Search, profile, officers, PSC, and filing history. Charges, insolvency registers, and document downloads are not yet supported.
-- **No filing submission**: This skill is read-only; it cannot submit documents to Companies House.
-- **Rate limits**: Companies House API allows 600 requests per 5 minutes per key.
-- **Public data only**: Only publicly available data is returned. No confidential or protected information.
-
-## Safety
-
-- This skill provides company information. **It is not legal or accounting advice.**
-- Always include this disclaimer when presenting company data to users.
-- Always cite the `company_number` and `fetched_at` timestamp so the user knows the data source and currency.
+- Read-only public registry data; no document downloads or filing submission (later v2 phases).
+- Rate limit: 600 requests per 5 minutes per API key.
+- Not legal or accounting advice — cite `company_number` and `fetched_at` when presenting data.

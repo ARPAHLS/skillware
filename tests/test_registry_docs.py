@@ -220,3 +220,38 @@ def test_catalog_pages_have_skill_specific_recommended_install(
     assert not missing, "Missing skill-specific recommended install:\n" + "\n".join(
         f"  - {item}" for item in missing
     )
+
+
+def test_catalog_pages_have_version_and_history_blocks(
+    manifested_skills: set[str],
+):
+    """Every catalog page exposes synced version metadata and skill history."""
+    docs_root = REPO_ROOT / "docs" / "skills"
+    missing = []
+
+    for skill_id in sorted(manifested_skills):
+        page = docs_root / f"{Path(skill_id).name}.md"
+        content = page.read_text(encoding="utf-8")
+        checks = [
+            ("<!-- skill-doc-meta:begin -->", "version metadata begin marker"),
+            ("**Version**:", "version header"),
+            ("<!-- skill-doc-meta:end -->", "version metadata end marker"),
+            ("<!-- skill-history:begin -->", "skill history begin marker"),
+            ("## Skill history", "skill history heading"),
+            ("<!-- skill-history:end -->", "skill history end marker"),
+        ]
+        for needle, label in checks:
+            if needle not in content:
+                missing.append(f"{page.name}: missing {label}")
+
+    assert not missing, "Missing skill version/history blocks:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )
+
+
+def test_skill_library_index_has_version_column():
+    """Skill library tables include a Version column with manifest values."""
+    readme = (REPO_ROOT / "docs" / "skills" / "README.md").read_text(encoding="utf-8")
+    assert "| Skill | ID | Version | Issuer | Description |" in readme
+    assert "| :--- | :--- | :--- | :--- | :--- |" in readme
+    assert "`1.2.0` (24 Aug 2026)" in readme  # spot-check latest merged skill

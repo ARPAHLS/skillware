@@ -3,6 +3,9 @@
 **Domain:** `dev_tools`
 **Skill ID:** `dev_tools/issue_resolver`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `0.3.0` — 3 Aug 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -368,6 +371,26 @@ response = client.chat.completions.create(
 Skill history and version notes: [CHANGELOG.md](../../CHANGELOG.md) (#56, #143, #145).
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`dev_tools/issue_resolver`](https://github.com/ARPAHLS/skillware/tree/main/skills/dev_tools/issue_resolver)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`e90ba2f`](https://github.com/ARPAHLS/skillware/commit/e90ba2f) | chore(release): 0.4.8 — skills, profiles, version policy | 3 Aug 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`1e039a2`](https://github.com/ARPAHLS/skillware/commit/1e039a2) | feat: add repository profiles to issue resolver (#271) | 3 Aug 2026 | `0.3.0` | [@TheDarkniteFalls](https://github.com/TheDarkniteFalls) |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `0.2.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f14a993`](https://github.com/ARPAHLS/skillware/commit/f14a993) | fix(issue_resolver): replace wide emoji regex for CodeQL py/overly-large-range (#146) | 29 May 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`eea3fdd`](https://github.com/ARPAHLS/skillware/commit/eea3fdd) | feat(issue_resolver): universal workflow v0.2, examples, and release 0.3.3 (#144) | 29 May 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`52cce29`](https://github.com/ARPAHLS/skillware/commit/52cce29) | docs: clarify runnable examples across skill pages (#121) | 24 May 2026 | `0.1.0` | [@narutamaaurum](https://github.com/narutamaaurum) |
+| [`a3a7ac8`](https://github.com/ARPAHLS/skillware/commit/a3a7ac8) | docs: update Gemini snippets to google-genai (#92) | 23 May 2026 | `0.1.0` | [@kunal-9090](https://github.com/kunal-9090) |
+| [`fd9f65d`](https://github.com/ARPAHLS/skillware/commit/fd9f65d) | Add dev_tools/issue_resolver skill. (#85) | 22 May 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

@@ -3,6 +3,9 @@
 **Domain:** `monitoring`
 **Skill ID:** `monitoring/token_limiter`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `1.0.0` — 16 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[monitoring_token_limiter]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -264,6 +267,19 @@ print(json.dumps(result, indent=2))
 - Turn cache is in-memory per skill instance; restart the process to clear all cache.
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`monitoring/token_limiter`](https://github.com/ARPAHLS/skillware/tree/main/skills/monitoring/token_limiter)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `1.0.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f959510`](https://github.com/ARPAHLS/skillware/commit/f959510) | feat(monitoring): add token_limiter skill for agent loop budgets (#207) | 30 Jun 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

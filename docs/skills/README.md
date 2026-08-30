@@ -7,84 +7,85 @@ Browse by category below, or run `skillware list` after `pip install skillware` 
 ## Office
 Skills for document processing, email automation, and productivity.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
-| **[Gmail Handler](gmail_handler.md)** | `office/gmail_handler` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
+| **[Gmail Handler](gmail_handler.md)** | `office/gmail_handler` | `0.2.0` (19 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
 
 ## Creative
 Skills for image processing, media editing, and creative utilities.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Background Remover](bg_remover.md)** | `creative/bg_remover` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Background Remover](bg_remover.md)** | `creative/bg_remover` | `0.2.0` (2 Aug 2026) | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS)) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
 
 ## Finance
 Tools for financial analysis, blockchain interaction, and regulatory compliance.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
-| **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers, PSC, filing history, and UK terminology mapping via structured actions. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | `1.0.1` (23 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
+| **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `1.2.0` (24 Aug 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers, PSC, filing history, pipeline orchestration, and UK corporate terminology translation via structured actions. |
 
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | [@Hendobox](https://github.com/Hendobox) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.2.0` (16 Jul 2026) | [@Hendobox](https://github.com/Hendobox) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent. |
 
 ## Optimization
 Middleware skills that operate on text or state to increase performance, security, or efficiency.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Prompt Token Rewriter](prompt_rewriter.md)** | `optimization/prompt_rewriter` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Aggressively compresses massive prompts or context histories while retaining semantic meaning to save tokens. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Prompt Token Rewriter](prompt_rewriter.md)** | `optimization/prompt_rewriter` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Aggressively compresses massive prompts or context histories while retaining semantic meaning to save tokens. |
 
 ## Data Engineering
 Skills tailored for generating, parsing, and orchestrating large datasets for machine learning or analytics workflows.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
-| **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | [@rizzoMartin](https://github.com/rizzoMartin) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
+| **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 
 ## Compliance
 Enforces privacy, guardrails, and secure handling of sensitive data before it reaches external endpoints.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[PII Masker](pii_masker.md)** | `compliance/pii_masker` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | High-precision, local PII (Personally Identifiable Information) detection and redaction using the micro-f1-mask model. |
-| **[MiCA Module](mica_module.md)** | `compliance/mica_module` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
-| **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[PII Masker](pii_masker.md)** | `compliance/pii_masker` | `0.1.0` (20 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | High-precision, local PII (Personally Identifiable Information) detection and redaction using the micro-f1-mask model. |
+| **[MiCA Module](mica_module.md)** | `compliance/mica_module` | `0.1.0` (20 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
+| **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
 
 ## Security
 Offline and local-first defenses for untrusted input before it reaches model context or host agents.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Prompt Injection Firewall](prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.1.0` (31 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
+| **[Deceptive UI Guard](deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.1.0` (27 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Dual-surface HTML scan for deceptive UI, trust scoring, and pre-click agent guidance (issue #78). |
 
 ## Dev Tools
 Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | `0.3.0` (3 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
 ## Monitoring
 Observability and guardrails for long-running autonomous agent loops.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Token Limiter](token_limiter.md)** | `monitoring/token_limiter` | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Token Limiter](token_limiter.md)** | `monitoring/token_limiter` | `1.0.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
 
 ## Wellness
 Supportive coaching guardrails, crisis triage, and grounded psychoeducation for host agents.
 
-| Skill | ID | Issuer | Description |
-| :--- | :--- | :--- | :--- |
-| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | [@mrmasa88](https://github.com/mrmasa88) (AO) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
 ---
 

@@ -14,8 +14,9 @@ from typing import Any
 
 LABELS_FILE = Path(__file__).resolve().parent.parent / "labels.json"
 API_ROOT = "https://api.github.com"
+GITHUB_LABEL_DESCRIPTION_MAX = 100
 # Labels removed from labels.json — deleted on sync so GitHub UI does not keep stale pills.
-DEPRECATED_LABELS = ["core-framework"]
+DEPRECATED_LABELS = ["core-framework", "creative", "office"]
 
 
 def _request(
@@ -57,6 +58,11 @@ def _load_labels() -> list[dict[str, str]]:
         description = entry.get("description", "").strip()
         if not name:
             raise ValueError("Each label entry requires a name")
+        if len(description) > GITHUB_LABEL_DESCRIPTION_MAX:
+            raise ValueError(
+                f"Label {name!r} description is {len(description)} chars; "
+                f"GitHub maximum is {GITHUB_LABEL_DESCRIPTION_MAX}"
+            )
         if len(color) != 6 or any(c not in "0123456789ABCDEF" for c in color):
             raise ValueError(f"Label {name!r} has invalid color {color!r}")
         if name in seen:

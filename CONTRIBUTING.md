@@ -63,6 +63,8 @@ Check [existing issues](https://github.com/ARPAHLS/skillware/issues) before star
 
 Issue chooser links: [CONTRIBUTING](CONTRIBUTING.md), [good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22), [Skill Library](docs/skills/README.md). Labels are defined in [`.github/labels.json`](.github/labels.json) and synced automatically on merge to `main` (see [sync-labels workflow](.github/workflows/sync-labels.yml)).
 
+**Label taxonomy:** Repo-wide labels describe contribution type or area (`bug`, `cli`, `security`, …). Registry **category** labels use the `cat:` prefix (`cat: office`, `cat: security`, …) so they never collide with repo-wide names — for example `security` is for vulnerabilities and trust-model work, while `cat: security` filters issues about skills under `skills/security/`. All `cat:` labels share one pastel color (`#E6D9F5`). Maintainers may add a `cat:` label when triaging skill issues and PRs.
+
 Wait for maintainer feedback on non-trivial work before investing in a large PR.
 
 ### 2. Fork and clone
@@ -273,11 +275,12 @@ requirements:
 
 ### 3. `instructions.md` (cognition)
 
-The primary guide for the host LLM.
+The primary guide for the host LLM. Skill instructions should be a concise, append-only block focusing on this skill's context rather than assigning an overarching persona (host agents and LLMs already have their own system prompts).
 
-- Open with context such as: "You are an agent equipped with [Skill Name]..."
-- Explain **when** to invoke the tool.
-- Explain how to interpret outputs and handle edge cases.
+- **Prefer skill context**: Open with what the skill does, its registry ID (`category/skill_name`), deterministic behavior, and key limits.
+- **When to invoke / when not to invoke**: Clearly explain primary use cases and anti-patterns.
+- **Outputs and errors**: Detail how to interpret returned fields (`image_base64`, paths, structured dicts) and handle error states.
+- **Avoid persona starters**: Avoid opening with "You are an agent equipped with...", "You are an expert...", or narrative personality instructions that can conflict when multiple skills are appended to context.
 - Keep prompts and persona here, not in `skill.py`.
 
 ### 4. `card.json` (presentation)
@@ -318,14 +321,15 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).
-- Include **ID**, **Issuer**, and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
+- Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR.
 
 ### 7. Registry index row
 
-- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Issuer, Description).
+- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
 
 ### Issuer attribution
 
@@ -336,9 +340,21 @@ The manifest is the **source of truth** for issuer data. Use real contact detail
 | `issuer.name` | Yes | Display name of the contributor or maintainer |
 | `issuer.email` | Yes | Contact email for the skill author |
 | `issuer.github` | No | GitHub username without `@` |
-| `issuer.org` | No | GitHub organization or affiliation |
+| `issuer.org` | No | Optional affiliation / design-ownership org (see [Issuer org](#issuer-org)) |
 
 Registry-wide issuer rules are enforced in `tests/test_skill_issuer.py` (skills under `skills/` only; templates are excluded).
+
+### Issuer org
+
+`issuer.org` is an **optional single string** for affiliation or design ownership — not necessarily who wrote every line of code. Individual credit stays in `issuer.name`, `email`, and `github`. Omit `org` when no org applies. Use comma-separated values when multiple orgs apply (for example `ARPAHLS, AO`).
+
+| Situation | `issuer.org` | Catalog Issuer line |
+| :--- | :--- | :--- |
+| **ARPA-maintainer / ARPA-audited skill** | `ARPAHLS` | `[@author](…) ([@ARPAHLS](…))` |
+| **Third-party–driven skill** | contributor org or omit | `[@author](…) ([AO](https://github.com/0x-AO-Protocol))` or author only |
+| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](…) ([@ARPAHLS](…), [AO](https://github.com/0x-AO-Protocol))` |
+
+Separate multiple orgs with a comma in the single `org` string (for example `org: ARPAHLS, AO`). Match the catalog **Issuer** line to the manifest value.
 
 ---
 
@@ -357,7 +373,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `office` | Documents, productivity, email | `pdf_form_filler`, `gmail_handler` |
 | `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
 | `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
-| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall` |
+| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall`, `deceptive_ui_guard` |
 | `wellness` | Coaching guardrails, mental health support | `mental_coach` |
 
 ### Choosing a category
@@ -368,7 +384,7 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
-When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. If the category warrants issue filtering, add a matching entry to [`.github/labels.json`](.github/labels.json) (labels sync via CI on merge to `main`).
+When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Labels sync via CI on merge to `main`.
 
 ---
 
@@ -407,7 +423,7 @@ When a new top-level category lands under `skills/`, update this table and the c
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |
-| [`.github/labels.json`](.github/labels.json) | Label names, colors, descriptions (synced via CI) |
+| [`.github/labels.json`](.github/labels.json) | Repo-wide and `cat: <category>` label taxonomy (synced via CI) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
 | [CITATION.cff](CITATION.cff) | Preferred software citation (Zenodo concept DOI `10.5281/zenodo.21552745`) |
 | [Security policy](SECURITY.md) | Reporting vulnerabilities |

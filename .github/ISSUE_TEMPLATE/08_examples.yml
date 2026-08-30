@@ -14,7 +14,7 @@ body:
     id: scripts
     attributes:
       label: Script path(s)
-      placeholder: examples/gemini_wallet_check.py
+      placeholder: examples/gemini_gmail_handler.py, examples/gemini_wallet_check.py
     validations:
       required: true
 

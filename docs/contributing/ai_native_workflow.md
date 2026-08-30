@@ -29,7 +29,7 @@ This document is written **for you**, the contributing agent. Read it before you
 
 ## How you should operate
 
-1. **Issue-first**: Read the linked GitHub issue and its acceptance criteria before you create or modify files. If there is no issue, tell your operator to open one via the [issue chooser](https://github.com/ARPAHLS/skillware/issues/new/choose) (New Skill, Skill Upgrade, CLI, Examples, Framework Feature, Bug Report, Documentation Fix, RFC). Labels are defined in [`.github/labels.json`](../../.github/labels.json).
+1. **Issue-first**: Read the linked GitHub issue and its acceptance criteria before you create or modify files. If there is no issue, tell your operator to open one via the [issue chooser](https://github.com/ARPAHLS/skillware/issues/new/choose) (New Skill, Skill Upgrade, CLI, Examples, Framework Feature, Bug Report, Documentation Fix, RFC). Labels are defined in [`.github/labels.json`](../../.github/labels.json). Repo-wide labels (`bug`, `cli`, `security`, …) describe contribution type or area; registry categories use the `cat:` prefix (`cat: office`, `cat: security`, …) so category filters never collide with repo-wide `security` (vulnerabilities/trust model). See [CONTRIBUTING.md — Label taxonomy](../../CONTRIBUTING.md#getting-started).
 2. **Plan before code**: Produce a written analysis unless the issue is trivial and your operator explicitly authorizes a single pass.
 3. **Scope discipline**: Change only what the issue requires. Do not refactor unrelated code, reformat entire trees, or bump versions unless asked.
 4. **Determinism**: Skill logic is ordinary Python with predictable outputs. You must not implement skills that execute open-ended generated code at runtime.
@@ -90,7 +90,7 @@ You must:
 
 | If the issue involves... | You must also inspect |
 | :--- | :--- |
-| New skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/`, `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. |
+| New skill | `skills/<category>/<name>/`, `docs/skills/<name>.md`, `docs/skills/README.md`, `templates/python_skill/` (ensure `instructions.md` uses append-only skill context rather than persona starters), `tests/test_skill_issuer.py`, and when documenting integration: `docs/usage/README.md`, [agent_loops.md](../usage/agent_loops.md), [skill_usage_template.md](../usage/skill_usage_template.md), matching `examples/*.py` if present, and a row in `examples/README.md` if a runnable script is added or renamed. Doc-drift guards in `tests/test_registry_docs.py` verify that `docs/skills/README.md`, `examples/README.md`, and `docs/usage/agent_loops.md` stay in sync with manifests and scripts on disk — these run automatically via `pytest tests/`. Maintainers may apply `cat: <category>` from [labels.json](../../.github/labels.json) when triaging. |
 | Skill upgrade | Same paths as new skill, but only the existing skill ID from the issue; bump `manifest.yaml` version when behavior or schema changes |
 | CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
 | Examples | `examples/*.py`, `examples/README.md`, `docs/usage/agent_loops.md`; run `pytest tests/test_registry_docs.py` when the index or matrix changes |
@@ -238,10 +238,10 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
 - `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
-- `issuer.name` and `issuer.email` required; `github` and `org` optional; no template placeholders in registry paths
+- `issuer.name` and `issuer.email` required; `github` and optional `org` per [Issuer org](../../CONTRIBUTING.md#issuer-org); no template placeholders in registry paths
 - `card.json` issuer must match manifest `name` and `email` when present
 - Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
-- Update `docs/skills/<skill_name>.md` and `docs/skills/README.md`
+- Update `docs/skills/<skill_name>.md` and `docs/skills/README.md` (**Version**, **Skill history**, and index columns per [CONTRIBUTING.md § catalog page](../../CONTRIBUTING.md#6-docsskillsskill_namemd-catalog-page))
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
 - Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
@@ -281,7 +281,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `card.json`: `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)
 - [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
-- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (include **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
+- [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (**Version** from manifest, **Skill history** with linked GitHub usernames, **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
 - [ ] After changing `manifest.yaml` `requirements`, run `python scripts/sync_extras.py` and confirm `python scripts/sync_extras.py --check` passes
 - [ ] **Usage Examples** on the catalog page (all five providers per [skill usage template](../usage/skill_usage_template.md)); link to `docs/usage/` and list skill `env_vars` without duplicating [api_keys.md](../usage/api_keys.md)
 - [ ] `pytest tests/test_skill_issuer.py` passes

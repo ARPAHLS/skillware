@@ -1,6 +1,6 @@
 # Skillware Examples Index
 
-> **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). See [TESTING.md](../docs/TESTING.md).
+> **These are usage examples, not tests.** Runnable provider demos live here; automated tests live in `skills/**/test_skill.py` (bundle) and `tests/` (framework and optional maintainer depth). Local-execute demo scripts are smoke-tested in CI via `tests/test_examples_smoke.py` to guard against import and loader regressions. See [TESTING.md](../docs/TESTING.md).
 
 Runnable examples in this directory show how to load Skillware skills, adapt them for a provider, execute local skill logic, and return tool results to an agent loop. After `pip install skillware`, run `skillware examples` or `skillware list --examples` from any directory to browse the index in the terminal; when no local `examples/README.md` is present, the index is fetched from GitHub (network required); see [CLI reference](../docs/usage/cli.md). Provider setup details live in the usage guides:
 
@@ -50,6 +50,7 @@ pip install -e ".[dev,all,agents]"
 | `openai_compatible_host.py` | `compliance/tos_evaluator` | Groq (OpenAI-compatible) | `[compliance_tos_evaluator]`, `[openai]` | `GROQ_API_KEY`, `GROQ_MODEL` | Runs the terms-of-service evaluator through Groq's OpenAI-compatible API. |
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | `[compliance_pii_masker]` | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_injection_firewall_demo.py` | `security/prompt_injection_firewall` | Local execute | `[security_prompt_injection_firewall]` | None | Offline prompt-injection scan and sanitization with no API keys. |
+| `deceptive_ui_guard_demo.py` | `security/deceptive_ui_guard` | Local execute | `[security_deceptive_ui_guard]` | None | Offline deceptive UI scan using fixture HTML recreations of documented dark patterns (confirm shaming, drip pricing, forced continuity, mislabeled CTAs). |
 | `prompt_compression_demo.py` | `optimization/prompt_rewriter` | Local execute | `[optimization_prompt_rewriter]` | None | Demonstrates prompt compression without a provider loop. |
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | `[data_engineering_novelty_extractor]` | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |
 | `gemini_novelty_extractor.py` | `data_engineering/novelty_extractor` | Gemini | `[data_engineering_novelty_extractor]`, `[gemini]` | `GOOGLE_API_KEY` | Runs the novelty extractor with a Gemini function-calling loop. |
@@ -59,8 +60,8 @@ pip install -e ".[dev,all,agents]"
 | `token_limiter_loop.py` | `monitoring/token_limiter` | Local execute | `[monitoring_token_limiter]` | None | Simulates a runaway task hitting a token ceiling with deterministic budget checks. |
 | `gemini_token_limiter.py` | `monitoring/token_limiter` | Gemini | `[monitoring_token_limiter]`, `[gemini]` | Optional `GOOGLE_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Gemini tool loop. |
 | `claude_token_limiter.py` | `monitoring/token_limiter` | Claude | `[monitoring_token_limiter]`, `[claude]` | Optional `ANTHROPIC_API_KEY` for Phase 2 live loop | Local budget simulation plus optional Claude tool loop. |
-| `gemini_uk_companies_house_handler.py` | `finance/uk_companies_house_handler` | Gemini | `[finance_uk_companies_house_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `COMPANIES_HOUSE_API_KEY` | Resolve company, officers, filings via Gemini tool loop. |
-| `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | `[finance_uk_companies_house_handler]` | None | Runs a scripted sequence (resolve, profile, officers, pscs, filings) with mocked HTTP responses (no API keys needed). |
+| `gemini_uk_companies_house_handler.py` | `finance/uk_companies_house_handler` | Gemini | `[finance_uk_companies_house_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `COMPANIES_HOUSE_API_KEY` | Interactive v2b loop: composites, pipelines, disambiguation, partial previews. |
+| `uk_companies_house_handler_demo.py` | `finance/uk_companies_house_handler` | Local execute | `[finance_uk_companies_house_handler]` | None | Mocked v2b flows: composite, run_pipeline, disambiguation resume, partial officers preview. |
 | `bg_remover_demo.py` | `creative/bg_remover` | Local execute | `[creative_bg_remover]` | None | Demonstrates offline background removal from a local image and optionally writes a transparent PNG. |
 | `gmail_handler_demo.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | None | Mocked resolve, preview/send gate, search, and read flow (no Gmail credentials). |
 | `gmail_signature_test_send.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`; run `skillware mail signature init` first | Preview or send one test message to verify plain + HTML signature. |

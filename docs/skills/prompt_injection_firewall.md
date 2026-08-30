@@ -2,7 +2,10 @@
 
 **Domain:** `security`
 **Skill ID:** `security/prompt_injection_firewall`
-**Issuer:** [@mrmasa88](https://github.com/mrmasa88) (AO) · **Contact:** masa88keith@gmail.com
+**Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
+<!-- skill-doc-meta:begin -->
+**Version**: `0.1.0` — 31 Jul 2026
+<!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[security_prompt_injection_firewall]"`. See [Install extras](../usage/install_extras.md).
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -202,6 +205,16 @@ pytest skills/security/prompt_injection_firewall/test_skill.py
 ```
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`security/prompt_injection_firewall`](https://github.com/ARPAHLS/skillware/tree/main/skills/security/prompt_injection_firewall)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`1071c08`](https://github.com/ARPAHLS/skillware/commit/1071c08) | Add security/prompt_injection_firewall skill (#267) | 31 Jul 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

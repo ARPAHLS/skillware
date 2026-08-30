@@ -6,9 +6,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Scope: `skillware/cli.py`, `skillware/__main__.py`, and [docs/usage/cli.md](https://github.com/ARPAHLS/skillware/blob/main/docs/usage/cli.md).
+        Scope: `skillware/cli.py`, `skillware/cli_mail.py`, `skillware/__main__.py`, and [docs/usage/cli.md](https://github.com/ARPAHLS/skillware/blob/main/docs/usage/cli.md).
 
-        For loader/path resolution logic in `skillware/core/loader.py`, use **Framework Feature** or **Bug Report** (Core Framework).
+        Also in scope when the change touches merged YAML config: `skillware/core/config.py` (`.skillware.yaml`, global `config.yaml` under `SKILLWARE_CONFIG_DIR` / `%APPDATA%\\skillware` on Windows).
+
+        Splash menu (v0.5.1): `1=list`, `2=examples`, `3=test`, `4=paths`, `5=doctor`, `6=help`, `7=mail`.
+
+        For loader/path **resolution logic** in `skillware/core/loader.py` (not CLI UX), use **Framework Feature** or **Bug Report** (Core Framework).
 
   - type: dropdown
     id: change_type
@@ -30,9 +34,15 @@ body:
         - skillware list
         - skillware test
         - skillware examples
+        - skillware doctor
+        - skillware config show
+        - skillware paths (read-only)
+        - skillware (menu 4 / paths) — interactive paths submenu
+        - skillware mail
+        - skillware (menu 7 / mail) — interactive mail submenu
+        - skillware (menu 6 / help) — tiered help
         - skillware --help / --version
         - python -m skillware
-        - Path resolution / SKILLWARE_SKILL_PATH
         - Other
     validations:
       required: true
@@ -52,7 +62,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: Expected vs actual behavior, or the feature you want.
+      description: Expected vs actual behavior, or the feature you want. Note whether the change affects global config, project `.skillware.yaml`, or read-only CLI output.
     validations:
       required: true
 
@@ -61,7 +71,7 @@ body:
     attributes:
       label: Steps to reproduce (bugs)
       placeholder: |
-        skillware examples
+        skillware mail signature show
         Expected: ...
         Actual: ...
     validations:
@@ -72,6 +82,7 @@ body:
     attributes:
       label: Environment
       placeholder: |
-        Windows 11, Python 3.12, skillware 0.5.1
+        Windows 11, Python 3.12, skillware 0.5.2
+        Config: ~/.config/skillware/config.yaml and/or .skillware.yaml
     validations:
       required: false

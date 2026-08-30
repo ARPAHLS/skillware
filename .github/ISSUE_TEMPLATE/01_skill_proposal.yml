@@ -9,7 +9,9 @@ body:
         Thanks for helping expand the Skillware ecosystem!
         Please review the [Contribution Guidelines](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md) and start from [templates/python_skill/](https://github.com/ARPAHLS/skillware/tree/main/templates/python_skill).
 
-        See the [Skill categories](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md#skill-categories) table for the list of valid categories used in the dropdown below.
+        See the [Skill categories](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md#skill-categories) table for the list of valid categories used in the dropdown below. Maintainers may apply the matching `cat: <category>` label when triaging (see [label taxonomy](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md#getting-started)).
+
+        **Issuer org:** Optional `issuer.org` — `ARPAHLS` for ARPA-driven registry skills, contributor org for third-party skills, comma-separated values for co-affiliation (e.g. `ARPAHLS, AO`), or omit. See [Issuer org](https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md#issuer-org).
 
         To improve an **existing** skill, use the **Skill Upgrade** template instead.
 

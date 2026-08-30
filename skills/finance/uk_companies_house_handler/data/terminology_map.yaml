@@ -81,8 +81,12 @@ intent_to_action:
   lookup: resolve_company
   look_up: resolve_company
   who_is: get_officers
+  director: get_officers
   directors: get_officers
+  officer: get_officers
   officers: get_officers
+  officer_name: get_officers
+  officer_names: get_officers
   board: get_officers
   management: get_officers
   leadership: get_officers
@@ -98,6 +102,10 @@ intent_to_action:
   filing: get_filing_history
   accounts: get_filing_history
   annual_return: get_filing_history
+  annual_report: get_filing_history
+  10k: get_filing_history
+  10_k: get_filing_history
+  financial_statements: get_filing_history
   documents: get_filing_history
   profile: get_company_profile
   details: get_company_profile
@@ -105,3 +113,6 @@ intent_to_action:
   information: get_company_profile
   status: get_company_profile
   registered: get_company_profile
+  secretary: get_officers
+  corporate_secretary: get_officers
+  beneficial_ownership: get_pscs

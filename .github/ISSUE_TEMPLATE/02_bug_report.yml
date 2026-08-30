@@ -14,7 +14,7 @@ body:
       label: Affected Component
       options:
         - Core Framework (loader, env, base_skill, adapters)
-        - CLI (skillware list, test, examples, menu)
+        - CLI (list, test, examples, doctor, paths, config show, mail, menu, help)
         - Specific Skill
         - Examples / agent loops
         - Documentation
@@ -71,7 +71,8 @@ body:
       placeholder: |
         Windows 11
         Python 3.12
-        pip install skillware[gemini]==0.5.1
+        pip install skillware[gemini]==0.5.2
         google-genai 1.0.0
+        Config: ~/.config/skillware/config.yaml and/or .skillware.yaml
     validations:
       required: false

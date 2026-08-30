@@ -1,9 +1,8 @@
 """
-Mocked demo script for finance/uk_companies_house_handler.
+Mocked demo script for finance/uk_companies_house_handler (v2b).
 
-Runs a scripted sequence (map_intent -> resolve_company -> get_company_profile
--> get_officers -> get_pscs -> get_filing_history) using mocked HTTP responses.
-No live API key is required.
+Runs scripted v2b flows (composite actions, run_pipeline, disambiguation
+resume, partial previews) using mocked HTTP responses. No live API key required.
 
 Usage:
   python examples/uk_companies_house_handler_demo.py
@@ -18,11 +17,11 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from uk_companies_house_handler_common import (  # noqa: E402
+    MOCK_BARCLAYS_SEARCH_RESPONSE,
+    MOCK_BP_SINGLE_SEARCH_RESPONSE,
     MOCK_FILING_RESPONSE,
+    MOCK_OFFICERS_PARTIAL_RESPONSE,
     MOCK_OFFICERS_RESPONSE,
-    MOCK_PROFILE_RESPONSE,
-    MOCK_PSC_RESPONSE,
-    MOCK_SEARCH_RESPONSE,
     SKILL_ID,
     run_scripted_flow,
 )
@@ -39,11 +38,14 @@ def demo_skill() -> Iterator[Any]:
 
     call_counter = {"n": 0}
     ordered_responses = [
-        MOCK_SEARCH_RESPONSE,
-        MOCK_PROFILE_RESPONSE,
+        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # composite resolve_and_get_officers
         MOCK_OFFICERS_RESPONSE,
-        MOCK_PSC_RESPONSE,
+        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # run_pipeline resolve
+        MOCK_OFFICERS_RESPONSE,
         MOCK_FILING_RESPONSE,
+        MOCK_BARCLAYS_SEARCH_RESPONSE,  # disambiguation
+        MOCK_OFFICERS_RESPONSE,  # resumed get_officers
+        MOCK_OFFICERS_PARTIAL_RESPONSE,  # partial preview
     ]
 
     def mock_request(method, url, **kwargs):

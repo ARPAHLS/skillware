@@ -21,10 +21,11 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |
 | Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`) | Done |
 | Card UI schema vs execute output (`tests/test_card_ui_schema.py`) | Done |
+| Local-execute example smoke tests in CI (`tests/test_examples_smoke.py`) | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
-When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI.
+When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI. [`tests/test_github_labels.py`](../../tests/test_github_labels.py) enforces repo-wide labels, every registry `cat: <category>` label (shared pastel color, no collision with repo-wide names like `security`), and alignment with the category dropdown in `01_skill_proposal.yml`.
 
 ## Quick Setup
 
@@ -47,7 +48,7 @@ pip install -r requirements.txt
 | **Skill bundle test** | `skills/<category>/<skill_name>/test_skill.py` | Yes | Yes |
 | **Framework test** | `tests/test_*.py` (not under `tests/skills/`) | No (clone only) | Yes |
 | **Maintainer skill test** | `tests/skills/<category>/test_<name>.py` | No (clone only) | Yes when present |
-| **Usage example** | `examples/*.py` | No | No — not pytest |
+| **Usage example** | `examples/*.py` | No | Smoke only for local scripts; no for live loops |
 
 ### Skill bundle test
 
@@ -67,6 +68,7 @@ pip install -r requirements.txt
 - `tests/test_card_ui_schema.py` validates output-card `ui_schema.fields[].key` dot paths against fixtures in `tests/fixtures/card_ui_schema/` (#199).
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
 - `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique (#280).
+- `tests/test_examples_smoke.py` provides an automated regression net for local-execute demo scripts under `examples/` without making network requests or requiring API keys (#237).
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 
@@ -78,8 +80,9 @@ pip install -r requirements.txt
 
 ### Usage example
 
-- Runnable provider demos under `examples/` — **not tests**.
-- Never collected by pytest; never run in CI. May need real API keys.
+- Runnable provider demos under `examples/`.
+- **Local-execute scripts** (e.g., `mental_coach_demo.py`, `prompt_injection_firewall_demo.py`, `token_limiter_loop.py`) are smoke-tested in CI via `tests/test_examples_smoke.py` to ensure imports and SkillLoader dispatch remain stable.
+- **Provider agent loops** (Gemini, Claude, OpenAI, DeepSeek, Ollama) require live API keys or local servers and are not run in CI.
 - See [examples/README.md](../examples/README.md).
 
 ## Which tests go where?

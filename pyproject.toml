@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skillware"
-version = "0.5.1"
+version = "0.5.2"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
@@ -150,6 +150,8 @@ office_pdf_form_filler = [
 ]
 
 optimization_prompt_rewriter = []
+
+security_deceptive_ui_guard = []
 
 security_prompt_injection_firewall = []
 

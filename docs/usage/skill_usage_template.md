@@ -8,4 +8,4 @@ For Gemini sections, ensure the dispatch matches the sanitized tool name (e.g. `
 
 Link to [agent_loops.md](agent_loops.md), [install_extras.md](install_extras.md), and [README.md](README.md). List skill-specific env vars in an **Environment** table; link to [api_keys.md](api_keys.md) for setup.
 
-Do not duplicate the full API keys guide on skill pages.
+Do not duplicate the full API keys guide on skill pages. For authoring `instructions.md` within the skill bundle itself, see [CONTRIBUTING.md (§3 instructions.md)](../../CONTRIBUTING.md#3-instructionsmd-cognition) for append-only skill context guidelines.

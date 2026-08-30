@@ -2,6 +2,9 @@
 
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
+<!-- skill-doc-meta:begin -->
+**Version**: `1.0.1` — 23 Jul 2026
+<!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_wallet_screening]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
@@ -244,6 +247,39 @@ The skill returns a rich forensic report. Agents act on this data. `metadata.war
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
+
+<!-- skill-history:begin -->
+## Skill history
+
+Commits that touched this skill bundle or its catalog page ([`finance/wallet_screening`](https://github.com/ARPAHLS/skillware/tree/main/skills/finance/wallet_screening)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`0b308d3`](https://github.com/ARPAHLS/skillware/commit/0b308d3) | feat(wallet_screening): paginate Etherscan txlist and surface warnings (#214) (#215) | 23 Jul 2026 | `1.0.1` | [@Hendobox](https://github.com/Hendobox) |
+| [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f301088`](https://github.com/ARPAHLS/skillware/commit/f301088) | Implement manifest param validation and standardize outputs key. (#253) | 12 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `1.0.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`a941a92`](https://github.com/ARPAHLS/skillware/commit/a941a92) | docs(wallet_screening): align examples and docs with finance/wallet_s… (#175) | 20 Jun 2026 | `1.0.0` | [@Akanksha-H](https://github.com/Akanksha-H) |
+| [`280ff40`](https://github.com/ARPAHLS/skillware/commit/280ff40) | fix(wallet_screening): address #165 review — bundle test, CHANGELOG, manifest name | 15 Jun 2026 | `1.0.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`904e18b`](https://github.com/ARPAHLS/skillware/commit/904e18b) | fix(wallet_screening): load manifest.yaml in skill.manifest property | 13 Jun 2026 | `1.0.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`0f81d1f`](https://github.com/ARPAHLS/skillware/commit/0f81d1f) | Backfill bundle tests for six registry skills missing test_skill.py. | 10 Jun 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`2c7c2b9`](https://github.com/ARPAHLS/skillware/commit/2c7c2b9) | feat(wallet_screening): unify TRM/scam tx risk index for analysis (#140) | 29 May 2026 | `1.0.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `1.0.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`9f17292`](https://github.com/ARPAHLS/skillware/commit/9f17292) | feat(wallet_screening): FTM publicKey matching and ETH sanctions index (#128) | 26 May 2026 | `1.0.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`52cce29`](https://github.com/ARPAHLS/skillware/commit/52cce29) | docs: clarify runnable examples across skill pages (#121) | 24 May 2026 | `1.0.0` | [@narutamaaurum](https://github.com/narutamaaurum) |
+| [`a3a7ac8`](https://github.com/ARPAHLS/skillware/commit/a3a7ac8) | docs: update Gemini snippets to google-genai (#92) | 23 May 2026 | `1.0.0` | [@kunal-9090](https://github.com/kunal-9090) |
+| [`cca7334`](https://github.com/ARPAHLS/skillware/commit/cca7334) | docs: skill docs revamp — remove emojis, add breadcrumbs, fix index, add missing sections (closes #52) (#82) | 21 May 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e465dc4`](https://github.com/ARPAHLS/skillware/commit/e465dc4) | Fix skill path resolution and PyPI skill packaging. (#79) | 18 May 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`5b18e21`](https://github.com/ARPAHLS/skillware/commit/5b18e21) | Document per-skill usage examples across providers. | 17 May 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`39487f8`](https://github.com/ARPAHLS/skillware/commit/39487f8) | Add generic API keys guide for skills requiring external calls. | 17 May 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`f800f41`](https://github.com/ARPAHLS/skillware/commit/f800f41) | Add skill issuer attribution across registry and docs. | 17 May 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`e658e7e`](https://github.com/ARPAHLS/skillware/commit/e658e7e) | docs: update enterprise disclaimer heading and scope to ARPA catalog skills only | 16 May 2026 | `1.0.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`891f5cc`](https://github.com/ARPAHLS/skillware/commit/891f5cc) | docs: add standard enterprise disclaimer to all skill documentation pages (#59) | 16 May 2026 | `1.0.0` | [@shaansatsangi](https://github.com/shaansatsangi) |
+| [`3838724`](https://github.com/ARPAHLS/skillware/commit/3838724) | feat: Add automated testing and strict linting (closes #8) | 15 Feb 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`6b2e357`](https://github.com/ARPAHLS/skillware/commit/6b2e357) | Refactor: Move skills and templates to root to decouple content from framework | 23 Jan 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`cc327c8`](https://github.com/ARPAHLS/skillware/commit/cc327c8) | Initial commit: Skillware Framework v1.0 | 20 Jan 2026 | `—` | [@rosspeili](https://github.com/rosspeili) |
+<!-- skill-history:end -->
 
 ## Enterprise disclaimer
 

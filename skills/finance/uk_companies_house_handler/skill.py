@@ -26,6 +26,9 @@ _VALID_ACTIONS = {
     "get_pscs",
     "get_filing_history",
     "map_intent",
+    "run_pipeline",
+    "resolve_and_get_officers",
+    "resolve_and_get_filings",
 }
 
 _ACTIONS_REQUIRING_COMPANY_NUMBER = {
@@ -34,6 +37,13 @@ _ACTIONS_REQUIRING_COMPANY_NUMBER = {
     "get_pscs",
     "get_filing_history",
 }
+
+_OPERATIONAL_RETRY_HINT = (
+    "Retry after a short backoff. Companies House allows 600 requests per "
+    "5 minutes per API key. If you know the 8-character company_number, "
+    "pass it directly. Otherwise check spelling and pass a clean company "
+    "name in query (no conversational prefixes)."
+)
 
 
 class UkCompaniesHouseHandlerSkill(BaseSkill):
@@ -90,11 +100,23 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
-        # Fallback parameters from context if not explicitly provided
-        if "company_number" not in params and "company_number" in context:
-            params["company_number"] = context["company_number"]
+        # Fallback parameters from context if not explicitly provided or if set to placeholder
+        if (
+            "company_number" not in params
+            or not params["company_number"]
+            or str(params["company_number"]).strip().startswith("<")
+        ):
+            if (
+                "company_number" in context
+                and context["company_number"]
+                and not str(context["company_number"]).strip().startswith("<")
+            ):
+                params["company_number"] = context["company_number"]
+
         if "officer_filter" not in params and "officer_filter" in context:
             params["officer_filter"] = context["officer_filter"]
+        if "role_hint" not in params and "role_hint" in context:
+            params["role_hint"] = context["role_hint"]
         if (
             "selected_transaction_id" not in params
             and "selected_transaction_id" in context
@@ -121,6 +143,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "get_pscs": self._get_pscs,
             "get_filing_history": self._get_filing_history,
             "map_intent": self._map_intent,
+            "run_pipeline": self._run_pipeline,
+            "resolve_and_get_officers": self._resolve_and_get_officers,
+            "resolve_and_get_filings": self._resolve_and_get_filings,
         }
 
         try:
@@ -132,18 +157,29 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "company_name": context.get("company_name"),
                 "last_action": action,
                 "officer_filter": context.get("officer_filter"),
+                "role_hint": context.get("role_hint"),
+                "next_actions": context.get("next_actions"),
                 "selected_transaction_id": context.get("selected_transaction_id"),
             }
+            if "context" in result and isinstance(result["context"], dict):
+                for k, v in result["context"].items():
+                    if v is not None:
+                        new_context[k] = v
             if result.get("company_number"):
                 new_context["company_number"] = result["company_number"]
             if result.get("company_name"):
                 new_context["company_name"] = result["company_name"]
             if "officer_filter" in params:
                 new_context["officer_filter"] = params["officer_filter"]
+            if "role_hint" in params:
+                new_context["role_hint"] = params["role_hint"]
+            if result.get("next_actions"):
+                new_context["next_actions"] = result["next_actions"]
             if "selected_transaction_id" in params:
                 new_context["selected_transaction_id"] = params[
                     "selected_transaction_id"
                 ]
+            new_context["last_action"] = action
 
             result["context"] = new_context
             return result
@@ -159,7 +195,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             if status_code == 429:
                 return self._error_response(
                     "rate_limited",
-                    "Companies House API rate limit exceeded. " "Wait and retry.",
+                    "Companies House API rate limit exceeded. Wait and retry.",
+                    agent_hint=_OPERATIONAL_RETRY_HINT,
                     context=context,
                 )
             return self._error_response(
@@ -171,12 +208,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             return self._error_response(
                 "timeout",
                 "Companies House API request timed out.",
+                agent_hint=_OPERATIONAL_RETRY_HINT,
                 context=context,
             )
         except requests.exceptions.ConnectionError:
             return self._error_response(
                 "connection_error",
                 "Could not connect to the Companies House API.",
+                agent_hint=_OPERATIONAL_RETRY_HINT,
                 context=context,
             )
         except Exception as exc:
@@ -191,7 +230,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _resolve_company(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Search for companies by name and return ranked candidates."""
         query = params.get("query")
-        if not query or not query.strip():
+        if not query or not str(query).strip():
+            return self._error_response(
+                "missing_query",
+                "The 'query' parameter is required for " "resolve_company.",
+            )
+
+        query = self._normalize_company_query(str(query))
+        if not query:
             return self._error_response(
                 "missing_query",
                 "The 'query' parameter is required for " "resolve_company.",
@@ -202,7 +248,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         data = self._request(
             "GET",
             "/search/companies",
-            params={"q": query.strip(), "items_per_page": limit},
+            params={"q": query, "items_per_page": limit},
         )
 
         items = data.get("items", [])
@@ -307,17 +353,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """List officers (directors, secretaries) for a company."""
         company_number = params["company_number"].strip()
-        active_only = params.get("active_only", False)
+        active_only = params.get("active_only", True)
+        limit = params.get("limit", 10)
 
-        request_params = {}
-        limit = params.get("limit")
-        if limit:
-            request_params["items_per_page"] = limit
+        request_params: Dict[str, Any] = {
+            "items_per_page": min(limit * 3 if active_only else limit, 100)
+        }
 
         data = self._request(
             "GET",
             f"/company/{company_number}/officers",
-            params=request_params if request_params else None,
+            params=request_params,
         )
 
         officers = []
@@ -337,6 +383,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 continue
 
             officers.append(officer)
+            if len(officers) >= limit:
+                break
 
         company_name = data.get("company_name", "")
         # Fallback to context first
@@ -347,22 +395,65 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if not company_name:
             try:
                 profile = self._get_company_profile({"company_number": company_number})
-                if profile.get("status") == "ready":
+                if profile.get("status") in ("ready", "partial"):
                     company_name = profile.get("company_name", "")
             except Exception:
                 pass
 
+        officer_filter = str(params.get("officer_filter") or "").lower()
+        role_hint = str(
+            params.get("role_hint") or params.get("context", {}).get("role_hint") or ""
+        ).lower()
+        query_hint = str(
+            params.get("query")
+            or params.get("company_query")
+            or params.get("intent_keywords")
+            or params.get("context", {}).get("query")
+            or ""
+        ).lower()
+
+        if any(
+            term in officer_filter or term in role_hint or term in query_hint
+            for term in ("ceo", "chief_executive", "president", "coo", "cfo")
+        ):
+            terminology_note = (
+                "UK companies use directors, not CEOs; this list "
+                "includes statutory directors and secretaries."
+            )
+        else:
+            terminology_note = (
+                "Statutory company officers in the UK comprise directors "
+                "and secretaries."
+            )
+
+        total_results = data.get("total_results", len(officers))
+        active_count = data.get("active_count", len(officers) if active_only else 0)
+
         result = {
             "company_number": company_number,
             "company_name": company_name,
-            "total_results": data.get("total_results", len(officers)),
-            "active_count": data.get("active_count", 0),
+            "total_results": total_results,
+            "active_count": active_count,
             "officers": officers,
-            "terminology_note": (
-                "UK companies use directors, not CEOs; this list "
-                "includes statutory directors and secretaries."
-            ),
+            "terminology_note": terminology_note,
         }
+
+        # Return partial status if more officers exist on file than returned in the preview
+        is_partial = (active_only and active_count > len(officers)) or (
+            not active_only and total_results > len(officers)
+        )
+
+        if is_partial:
+            agent_hint = (
+                f"Showing {len(officers)} active officers out of {active_count} active "
+                f"({total_results} total on file). Specify 'limit' or 'active_only=False' for more."
+            )
+            return self._partial_response(
+                result,
+                next_actions=["get_pscs", "get_filing_history"],
+                agent_hint=agent_hint,
+                source="companies_house_api",
+            )
 
         return self._ready_response(
             result,
@@ -426,20 +517,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _get_filing_history(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """List filing history for a company."""
         company_number = params["company_number"].strip()
+        limit = params.get("limit", 10)
 
-        request_params = {}
+        request_params: Dict[str, Any] = {"items_per_page": limit}
         category = params.get("category")
         if category:
             request_params["category"] = category
 
-        limit = params.get("limit")
-        if limit:
-            request_params["items_per_page"] = limit
-
         data = self._request(
             "GET",
             f"/company/{company_number}/filing-history",
-            params=request_params if request_params else None,
+            params=request_params,
         )
 
         filings = []
@@ -461,12 +549,25 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
             filings.append(filing)
 
+        total_results = data.get("total_count", len(filings))
         result = {
             "company_number": company_number,
-            "total_results": data.get("total_count", len(filings)),
+            "total_results": total_results,
             "filing_history_status": data.get("filing_history_status", ""),
             "filings": filings,
         }
+
+        # Return partial status if more filings exist on record
+        if total_results > len(filings):
+            agent_hint = (
+                f"Showing {len(filings)} filings out of {total_results}. "
+                "Specify 'limit' or 'category' to inspect more."
+            )
+            return self._partial_response(
+                result,
+                agent_hint=agent_hint,
+                source="companies_house_api",
+            )
 
         return self._ready_response(
             result,
@@ -480,7 +581,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             keywords = keywords_raw
         else:
             keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
-        entities = params.get("entities", {})
+        entities = params.get("entities") or {}
 
         if not keywords and not entities:
             return self._error_response(
@@ -490,52 +591,75 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         role_map = self.terminology_map.get("role_mappings", {})
         intent_map = self.terminology_map.get("intent_to_action", {})
+        document_types = self.terminology_map.get("document_types", {})
+        entity_types = self.terminology_map.get("entity_types", {})
+        status_mappings = self.terminology_map.get("status_mappings", {})
 
-        # Build terminology translations
-        terminology_translations = {}
+        terminology_translations: Dict[str, str] = {}
+        filing_categories: List[str] = []
         for kw in keywords:
-            normalized = kw.lower().strip().replace(" ", "_")
-            if normalized in role_map:
-                terminology_translations[kw] = role_map[normalized]
+            normalized = self._normalize_keyword(kw)
+            role = self._lookup_terminology(normalized, role_map)
+            if role:
+                terminology_translations[kw] = role
+            doc_type = self._lookup_terminology(normalized, document_types)
+            if doc_type:
+                terminology_translations[kw] = doc_type
+                if doc_type not in filing_categories:
+                    filing_categories.append(doc_type)
+            entity = self._lookup_terminology(normalized, entity_types)
+            if entity:
+                terminology_translations[kw] = entity
+            status = self._lookup_terminology(normalized, status_mappings)
+            if status:
+                terminology_translations[kw] = status
 
-        # Determine suggested actions from keywords
-        suggested_actions = []
-        seen_actions = set()
+        suggested_actions: List[str] = []
+        seen_actions: set = set()
         for kw in keywords:
-            normalized = kw.lower().strip().replace(" ", "_")
-            action = intent_map.get(normalized)
+            normalized = self._normalize_keyword(kw)
+            action = self._lookup_terminology(normalized, intent_map)
             if action and action not in seen_actions:
                 suggested_actions.append(action)
                 seen_actions.add(action)
 
-        # Build a suggested pipeline
-        pipeline = []
-        company_query = entities.get("company_query", "")
+        company_query = str(entities.get("company_query") or "").strip()
 
-        # Check if any suggested action requires a company number
         needs_resolve = any(
             action in _ACTIONS_REQUIRING_COMPANY_NUMBER for action in suggested_actions
         )
 
-        # If we have a company query, or if any action needs a resolve, always start with resolve
+        if needs_resolve and not company_query:
+            return self._needs_input_response(
+                "missing_company_query",
+                [],
+                agent_hint=(
+                    "Ask the user which UK company they mean, then call "
+                    "map_intent again with entities.company_query or call "
+                    "resolve_company / a composite action with a clean query."
+                ),
+                next_actions=["resolve_company"],
+            )
+
+        pipeline: List[Dict[str, Any]] = []
         if company_query or needs_resolve:
             pipeline.append(
                 {
                     "action": "resolve_company",
-                    "params": {"query": company_query or "<insert_company_name_here>"},
+                    "params": {"query": company_query},
                 }
             )
 
-        # Add the unique suggested actions
         for action in suggested_actions:
             if action == "resolve_company":
-                continue  # Already added above (or handled)
-            step = {"action": action, "params": {}}
+                continue
+            step: Dict[str, Any] = {"action": action, "params": {}}
             if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
                 step["params"]["company_number"] = "<from_resolve>"
+            if action == "get_filing_history" and filing_categories:
+                step["params"]["category"] = filing_categories[0]
             pipeline.append(step)
 
-        # If no pipeline could be built, suggest a generic search
         if not pipeline and company_query:
             pipeline.append(
                 {
@@ -544,7 +668,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 }
             )
 
-        # Build relevant endpoints list
         endpoint_index = self.api_index.get("endpoints", {})
         relevant_endpoints = []
         for action in suggested_actions:
@@ -558,6 +681,255 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "terminology_map": terminology_translations,
                 "relevant_endpoints": relevant_endpoints,
             },
+        )
+
+    def _run_pipeline(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute ordered steps; stop on needs_input / error; merge context and results."""
+        steps = params.get("steps")
+        context = dict(params.get("context") or {})
+        stop_on = params.get("stop_on", ["needs_input", "error"])
+
+        # Fallback to next_actions if steps was omitted by caller
+        if not steps:
+            next_acts = params.get("next_actions") or context.get("next_actions")
+            if next_acts and isinstance(next_acts, list):
+                steps = [{"action": act, "params": {}} for act in next_acts]
+
+        if not steps or not isinstance(steps, list):
+            return self._error_response(
+                "missing_steps",
+                "Action 'run_pipeline' requires a non-empty list of 'steps'.",
+                context=context,
+            )
+
+        # Merge top-level company_number if provided
+        top_company_number = params.get("company_number")
+        if top_company_number and not str(top_company_number).strip().startswith("<"):
+            context["company_number"] = str(top_company_number).strip()
+
+        # Track pipeline progress across multi-turn continuations
+        incoming_pipeline = params.get("pipeline") or context.get("pipeline") or {}
+        prior_completed = int(incoming_pipeline.get("completed_steps") or 0)
+        prior_total = int(incoming_pipeline.get("total_steps") or 0)
+
+        # If caller passed full pipeline on resumption, skip already-completed steps
+        if prior_completed > 0 and len(steps) == prior_total:
+            steps_to_run = steps[prior_completed:]
+        else:
+            steps_to_run = steps
+
+        total_steps = (
+            prior_total
+            if prior_total >= (prior_completed + len(steps_to_run))
+            else (prior_completed + len(steps_to_run))
+        )
+
+        combined_result: Dict[str, Any] = {
+            "status": "ready",
+            "source": "companies_house_api",
+            "fetched_at": self._fetched_at(),
+        }
+        terminology_notes: List[str] = []
+        has_partial = False
+
+        for idx, step in enumerate(steps_to_run):
+            if not isinstance(step, dict) or not step.get("action"):
+                return self._error_response(
+                    "invalid_step",
+                    f"Step {prior_completed + idx + 1} must be an object with a valid 'action'.",
+                    context=context,
+                    pipeline={
+                        "completed_steps": prior_completed + idx,
+                        "total_steps": total_steps,
+                    },
+                )
+
+            step_action = step["action"]
+            step_params = dict(step.get("params") or {})
+
+            # Auto-substitute company_number placeholder if resolved in context
+            step_co_num = step_params.get("company_number")
+            if (
+                not step_co_num or str(step_co_num).strip().startswith("<")
+            ) and context.get("company_number"):
+                step_params["company_number"] = context["company_number"]
+
+            # Pass role_hint from context if not already in step_params
+            if "role_hint" not in step_params and context.get("role_hint"):
+                step_params["role_hint"] = context["role_hint"]
+
+            # Set action and pass current accumulated context
+            step_params["action"] = step_action
+            step_params["context"] = dict(context)
+
+            # Execute step
+            step_result = self.execute(step_params)
+
+            # Merge step result context into accumulated context
+            if "context" in step_result and isinstance(step_result["context"], dict):
+                for k, v in step_result["context"].items():
+                    if v is not None:
+                        context[k] = v
+
+            status = step_result.get("status")
+
+            # Stop early if status matches stop_on and there are remaining steps
+            if status in stop_on and idx < len(steps_to_run) - 1:
+                step_result["pipeline"] = {
+                    "completed_steps": prior_completed + idx + 1,
+                    "total_steps": total_steps,
+                }
+                remaining_actions = [
+                    s.get("action")
+                    for s in steps_to_run[idx + 1 :]
+                    if isinstance(s, dict) and s.get("action")
+                ]
+                if remaining_actions:
+                    step_result["next_actions"] = remaining_actions
+                step_result["context"] = context
+                return step_result
+
+            if status == "partial":
+                has_partial = True
+
+            # Collect terminology notes
+            note = step_result.get("terminology_note")
+            if note and note not in terminology_notes:
+                terminology_notes.append(note)
+
+            # Merge step data into combined_result
+            for k, v in step_result.items():
+                if k not in (
+                    "status",
+                    "source",
+                    "fetched_at",
+                    "pipeline",
+                    "next_actions",
+                    "terminology_note",
+                ):
+                    combined_result[k] = v
+
+            if status not in ("ready", "partial"):
+                combined_result["status"] = status
+
+        if terminology_notes:
+            combined_result["terminology_note"] = " ".join(terminology_notes)
+
+        if combined_result.get("status") == "ready" and has_partial:
+            combined_result["status"] = "partial"
+
+        # Final step reached
+        combined_result["pipeline"] = {
+            "completed_steps": prior_completed + len(steps_to_run),
+            "total_steps": total_steps,
+        }
+        combined_result["context"] = context
+        return combined_result
+
+    def _resolve_and_get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolve company and fetch officers in an orchestrated pipeline."""
+        context = dict(params.get("context") or {})
+        company_number = params.get("company_number") or context.get("company_number")
+        officer_params: Dict[str, Any] = {}
+        if "active_only" in params:
+            officer_params["active_only"] = params["active_only"]
+        if "limit" in params:
+            officer_params["limit"] = params["limit"]
+        if "officer_filter" in params:
+            officer_params["officer_filter"] = params["officer_filter"]
+        if "role_hint" in params:
+            officer_params["role_hint"] = params["role_hint"]
+            context["role_hint"] = params["role_hint"]
+        elif context.get("role_hint"):
+            officer_params["role_hint"] = context["role_hint"]
+
+        if company_number:
+            officer_params["action"] = "get_officers"
+            officer_params["company_number"] = company_number
+            officer_params["context"] = context
+            return self.execute(officer_params)
+
+        query = (
+            params.get("query") or params.get("company_query") or context.get("query")
+        )
+        if not query or not str(query).strip():
+            return self._error_response(
+                "missing_query",
+                "Action 'resolve_and_get_officers' requires "
+                "'query' or 'company_number'.",
+                context=context,
+            )
+
+        query_str = self._normalize_company_query(str(query))
+        if not query_str:
+            return self._error_response(
+                "missing_query",
+                "Action 'resolve_and_get_officers' requires "
+                "'query' or 'company_number'.",
+                context=context,
+            )
+
+        resolve_params: Dict[str, Any] = {"query": query_str}
+        if "limit" in params:
+            resolve_params["limit"] = params["limit"]
+
+        steps = [
+            {"action": "resolve_company", "params": resolve_params},
+            {"action": "get_officers", "params": officer_params},
+        ]
+
+        return self._run_pipeline(
+            {
+                "steps": steps,
+                "context": context,
+                "stop_on": ["needs_input", "error"],
+            }
+        )
+
+    def _resolve_and_get_filings(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolve company and fetch filing history in an orchestrated pipeline."""
+        context = dict(params.get("context") or {})
+        company_number = params.get("company_number") or context.get("company_number")
+        filing_params: Dict[str, Any] = {}
+        if "category" in params:
+            filing_params["category"] = params["category"]
+        if "limit" in params:
+            filing_params["limit"] = params["limit"]
+
+        if company_number:
+            filing_params["action"] = "get_filing_history"
+            filing_params["company_number"] = company_number
+            filing_params["context"] = context
+            return self.execute(filing_params)
+
+        query = (
+            params.get("query") or params.get("company_query") or context.get("query")
+        )
+        if not query or not str(query).strip():
+            return self._error_response(
+                "missing_query",
+                "Action 'resolve_and_get_filings' requires "
+                "'query' or 'company_number'.",
+                context=context,
+            )
+
+        resolve_params: Dict[str, Any] = {
+            "query": self._normalize_company_query(str(query))
+        }
+        if "limit" in params:
+            resolve_params["limit"] = params["limit"]
+
+        steps = [
+            {"action": "resolve_company", "params": resolve_params},
+            {"action": "get_filing_history", "params": filing_params},
+        ]
+
+        return self._run_pipeline(
+            {
+                "steps": steps,
+                "context": context,
+                "stop_on": ["needs_input", "error"],
+            }
         )
 
     # --- HTTP Layer ---
@@ -600,8 +972,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         source: str = "companies_house_api",
         context: Optional[Dict[str, Any]] = None,
         pipeline: Optional[Dict[str, int]] = None,
+        agent_hint: str = "",
     ) -> Dict[str, Any]:
-        """Build a successful response envelope."""
+        """Build a ready status response envelope."""
         response = {
             "status": "ready",
             "source": source,
@@ -611,6 +984,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             response["context"] = context
         if pipeline is not None:
             response["pipeline"] = pipeline
+        if agent_hint:
+            response["agent_hint"] = agent_hint
         response.update(data)
         if next_actions:
             response["next_actions"] = next_actions
@@ -623,6 +998,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         source: str = "companies_house_api",
         context: Optional[Dict[str, Any]] = None,
         pipeline: Optional[Dict[str, int]] = None,
+        agent_hint: str = "",
     ) -> Dict[str, Any]:
         """Build a partial status response envelope."""
         response = {
@@ -634,6 +1010,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             response["context"] = context
         if pipeline is not None:
             response["pipeline"] = pipeline
+        if agent_hint:
+            response["agent_hint"] = agent_hint
         response.update(data)
         if next_actions:
             response["next_actions"] = next_actions
@@ -692,6 +1070,29 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return response
 
     # --- Data Loaders ---
+
+    @staticmethod
+    def _normalize_company_query(query: str) -> str:
+        """Strip whitespace and trailing punctuation from a company search query."""
+        normalized = str(query).strip()
+        while normalized and normalized[-1] in "?.,!;:":
+            normalized = normalized[:-1].strip()
+        return normalized
+
+    @staticmethod
+    def _normalize_keyword(keyword: str) -> str:
+        """Normalize intent/terminology keywords for YAML map lookup."""
+        return keyword.lower().strip().replace(" ", "_").replace("-", "_")
+
+    @staticmethod
+    def _lookup_terminology(normalized: str, mapping: Dict[str, str]) -> str:
+        """Look up a normalized keyword in a terminology map with alias tolerance."""
+        if normalized in mapping:
+            return mapping[normalized]
+        compact = normalized.replace("_", "")
+        if compact in mapping:
+            return mapping[compact]
+        return ""
 
     @staticmethod
     def _load_json(path: str) -> Dict[str, Any]:

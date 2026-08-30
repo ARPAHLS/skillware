@@ -1,11 +1,14 @@
 """
-Interactive Gemini agent loop for finance/uk_companies_house_handler.
+Interactive Gemini agent loop for finance/uk_companies_house_handler (v2b).
 
-Demonstrates an interactive flow to query UK companies:
-  1. map_intent -- translate intent keywords to an action pipeline
-  2. resolve_company -- search by name, receive ranked candidates
-  3. Agent disambiguates (asks user to pick if needed)
-  4. get_officers -- list directors for the resolved company number
+Demonstrates an interactive flow with pipeline orchestration and composites:
+  - map_intent / run_pipeline for multi-intent queries
+  - resolve_and_get_officers / resolve_and_get_filings for single-intent shortcuts
+  - needs_input disambiguation resume via context
+  - partial previews (10-item limits) with full record rendering
+
+The agent must pass clean query strings and optional role_hint — the skill does
+not parse conversational prefixes.
 
 Environment (live mode):
   GOOGLE_API_KEY
@@ -49,8 +52,8 @@ def main() -> None:
     print("=" * 60)
     print("This agent can look up UK companies, officers, PSCs, and filings.")
     print("Try asking:")
-    print("  - 'Who is the CEO of BP?'")
-    print("  - 'Show me the filing history for Tesco'")
+    print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
+    print("  - 'Show me officers and filings for Tesco' (map_intent + run_pipeline)")
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)

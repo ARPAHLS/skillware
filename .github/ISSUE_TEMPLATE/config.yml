@@ -3,6 +3,9 @@ contact_links:
   - name: Contributing Guide
     url: https://github.com/ARPAHLS/skillware/blob/main/CONTRIBUTING.md
     about: Read before opening a pull request
+  - name: API keys & skill credentials
+    url: https://github.com/ARPAHLS/skillware/blob/main/docs/usage/api_keys.md
+    about: Env vars and setup for credential-heavy skills
   - name: Good First Issues
     url: https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22
     about: Low-risk entry points for new contributors

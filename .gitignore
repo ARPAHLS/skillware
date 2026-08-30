@@ -44,3 +44,6 @@ desktop.ini
 
 # Local wheels / smoke artifacts
 *.whl
+
+# Maintainer issue drafts (not for commit)
+issue_drafts/

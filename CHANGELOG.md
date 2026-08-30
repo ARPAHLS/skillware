@@ -11,6 +11,44 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
+- **Tests (`tests/test_examples_smoke.py`):** Added automated CI smoke test suite for local-execute offline demo scripts under `examples/`, catching import regressions and SkillLoader dispatch errors without requiring live API keys (#237).
+- **Docs (`docs/TESTING.md`):** Documented the example smoke testing layer and skip policy for live model provider loops in CI (#237).
+
+### Changed
+
+- **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
+
+## [0.5.2] - 2026-08-27
+
+### Added
+
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Deterministic deceptive UI surface scanner for web HTML — dual DOM vs visible extraction, structural/lexical heuristics, corroboration gates, trust score, and agent guidance for pre-click and pre-context guardrails (#78).
+
+- **Documentation:** Skill catalog pages include a **Version** header and **Skill history** table (commit links, dates, versions, and linked GitHub contributor handles); [docs/skills/README.md](docs/skills/README.md) adds a **Version** column to category tables.
+- **Tests:** `test_catalog_pages_have_version_and_history_blocks()` and `test_skill_library_index_has_version_column()` in `tests/test_registry_docs.py` guard catalog version/history coverage.
+
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Phase v2b upgrade — `run_pipeline` for sequential multi-step execution with automatic halting on `needs_input` (disambiguation) or `error`, step-slicing resumption (`steps[prior_completed:]`), placeholder auto-substitution (`<from_resolve>`), and cumulative data payload merging (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Composite actions `resolve_and_get_officers` and `resolve_and_get_filings` to resolve companies and fetch target records in single-turn operations (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Default limit 10 previews with `partial` response status and `agent_hint` metadata for officers and filing history (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Session context carry-forward across sequential turns (`company_number`, `company_name`, `role_hint`, `officer_filter`, `next_actions`) (#220).
+- **Documentation:** [`docs/skills/uk_companies_house_handler.md`](docs/skills/uk_companies_house_handler.md) — updated architecture reference for 9 action handlers, partial response previews, and pipeline orchestration (#220).
+- **Tests:** Expanded unit test suite in `skills/finance/uk_companies_house_handler/test_skill.py` covering pipeline resumption, composite actions, partial previews, map_intent guards, and punctuation-safe queries (#220).
+
+### Changed
+
+- **Skill (`security/deceptive_ui_guard` v0.1.0):** Production deception lexicon with taxonomy metadata and eight categories; standalone agent instructions; demo fixtures recreating documented dark patterns; `install_extras` security category row (#78).
+- **Docs:** Updated contributor instructions guidance in `CONTRIBUTING.md`, `ai_native_workflow.md`, and `templates/python_skill/` to emphasize concise, append-only skill context over persona starters (#258, #284).
+- **Docs:** Aligned `ai_native_workflow.md` and `templates/python_skill/README.md` checklists with catalog **Version** and **Skill history** requirements.
+- **Meta:** GitHub issue templates refreshed for v0.5.1 CLI (`doctor`, `config show`, paths/mail submenus) and `office/gmail_handler` filing paths; label taxonomy adds all registry `cat: <category>` labels (shared pastel color) so category filters never collide with repo-wide labels such as `security` (#294).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** `get_officers` default `active_only` is now **true** (v1.x default was false) — resigned officers are excluded unless `active_only: false` (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** Removed conversational prefix stripping from composite actions; agents must pass clean `query` / `company_query` plus optional `role_hint`. `map_intent` returns `needs_input` when a company name is required but missing (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.2.0):** `map_intent` wires `document_types`, `entity_types`, and `status_mappings` from `terminology_map.yaml` into `terminology_map` output; richer `agent_hint` on rate-limit, timeout, and connection errors (#220).
+- **Documentation:** [`skills/finance/uk_companies_house_handler/instructions.md`](skills/finance/uk_companies_house_handler/instructions.md) — skill-context instructions, disambiguation playbook, and parameter-hygiene guidance aligned with #258/#284 (#220).
+- **Examples:** [`examples/uk_companies_house_handler_demo.py`](examples/uk_companies_house_handler_demo.py) and shared helpers updated for v2b composites, pipelines, partial previews, and disambiguation resume (#220).
+
+### Fixed
+
+- **Meta:** Shorten `cat: security` label description to fit GitHub's 100-character limit; enforce max length in label sync and tests.
 
 ## [0.5.1] - 2026-08-19
 
