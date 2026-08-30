@@ -348,6 +348,35 @@ def test_builtin_theme_smoke_render(theme_name, isolated_theme_environment):
     assert "Topics" in buf.getvalue()
 
 
+@pytest.mark.parametrize("theme_name", ["pastel", "ocean", "mono"])
+def test_mail_submenu_uses_active_theme(theme_name, isolated_theme_environment):
+    import io
+
+    from rich.console import Console
+
+    import skillware.cli_mail as cli_mail
+    from skillware.cli_theme import THEMES
+    from skillware.core.config import save_global_presentation_theme
+
+    save_global_presentation_theme(theme_name)
+    buf = io.StringIO()
+
+    assert (
+        cli_mail.cmd_mail_submenu(
+            console=Console(file=buf, force_terminal=False),
+            input_fn=lambda _prompt: "b",
+        )
+        is None
+    )
+
+    palette = THEMES[theme_name]
+    assert cli_mail.TABLE_STYLE == palette.heading_style
+    assert cli_mail.ID_STYLE == palette.id_style
+    assert cli_mail.MENU_STYLE == palette.menu_style
+    assert cli_mail.ERROR_STYLE == f"bold {palette.error_color}"
+    assert "Mail settings" in buf.getvalue()
+
+
 def test_theme_picker_persists_and_preserves_global_config(
     isolated_theme_environment,
 ):

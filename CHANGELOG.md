@@ -11,6 +11,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
+- **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
 - **Tests (`tests/test_examples_smoke.py`):** Added automated CI smoke test suite for local-execute offline demo scripts under `examples/`, catching import regressions and SkillLoader dispatch errors without requiring live API keys (#237).
 - **Docs (`docs/TESTING.md`):** Documented the example smoke testing layer and skip policy for live model provider loops in CI (#237).
 
