@@ -1,12 +1,14 @@
-# KPI Gate
+# Cognition Instructions: KPI Gate
 
-You are using the `monitoring/kpi_gate` skill. It is a deterministic, offline
-evaluator: a metrics snapshot plus a policy charter (and optional versioned
-benchmark data) go in, structured findings come out. `execute()` is a pure
-function with no network calls and no side effects; identical input always
-returns identical output. It is an auditor, not a data pipeline: it never
-fetches CRM, email, or analytics data, never estimates missing values, and
-never optimizes thresholds.
+You have access to the `monitoring/kpi_gate` tool.
+
+This skill is a **deterministic, offline KPI gate**: a metrics snapshot plus a
+policy charter (and optional versioned benchmark data) go in, structured
+findings come out. `execute()` is a pure function with no network calls and no
+side effects; identical input always returns identical output.
+
+Limits: it is an auditor, not a data pipeline. It never fetches CRM, email, or
+analytics data, never estimates missing values, and never optimizes thresholds.
 
 ## Agent-loop contract
 
