@@ -20,7 +20,9 @@ class TestVersionAndManifest(unittest.TestCase):
         self.assertIn("Upgrade to >=", msg)
 
     def test_validate_frontmatter_dict(self):
-        valid, err = validate_frontmatter_dict({"name": "test-skill", "description": "A test skill"})
+        valid, err = validate_frontmatter_dict(
+            {"name": "test-skill", "description": "A test skill"}
+        )
         self.assertTrue(valid)
         self.assertEqual(err, "")
 
@@ -29,5 +31,6 @@ class TestVersionAndManifest(unittest.TestCase):
         self.assertIn("name", err)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
+
