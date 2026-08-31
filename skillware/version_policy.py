@@ -45,6 +45,19 @@ def format_unsupported_message(installed: Version) -> str:
     )
 
 
+def validate_frontmatter_dict(data: dict) -> tuple[bool, str]:
+    """Validate skill instructions frontmatter dictionary."""
+    if not isinstance(data, dict):
+        return False, "Frontmatter must be a key-value mapping"
+    name = data.get("name")
+    if not name or not isinstance(name, str) or not name.strip():
+        return False, "Missing or empty 'name' field"
+    desc = data.get("description")
+    if not desc or not isinstance(desc, str) or not desc.strip():
+        return False, "Missing or empty 'description' field"
+    return True, ""
+
+
 def emit_upgrade_advisory() -> None:
     """Print one dim stderr advisory for unsupported CLI installs; otherwise silent."""
     if is_version_check_disabled():
