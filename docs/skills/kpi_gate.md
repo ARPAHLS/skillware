@@ -125,6 +125,10 @@ USER_MESSAGE = (
 )
 ```
 
+### Runnable examples
+
+- Local execute: [`examples/kpi_gate_demo.py`](../../examples/kpi_gate_demo.py) — runs the in-bundle fixtures fully offline: the end-to-end findings scenario (error, warning, and `insufficient_data` in one run) plus two fail-closed contract errors (empty metrics map, malformed charter)
+
 ### Gemini
 
 ```python

@@ -52,7 +52,7 @@ def _print_result(result: dict) -> None:
 def run_demo() -> None:
     print("Loading monitoring/kpi_gate...")
     bundle = SkillLoader.load_skill("monitoring/kpi_gate")
-    skill = bundle["module"].KpiGateSkill()
+    skill = bundle["class"]()
     fixtures = _bundle_dir(bundle["module"]) / "fixtures"
     kb = _bundle_dir(bundle["module"]) / "kb"
 

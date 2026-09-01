@@ -74,7 +74,7 @@ Union of non-core `requirements` from every skill in the category.
 | `defi` | `defi/evm_tx_handler` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
-| `monitoring` | `monitoring/token_limiter` | *(none today)* |
+| `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
 | `office` | `office/pdf_form_filler` | `anthropic`, `pymupdf` |
 | `optimization` | `optimization/prompt_rewriter` | *(none today)* |
 | `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
@@ -103,6 +103,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `finance_uk_companies_house_handler` | `finance/uk_companies_house_handler` | *(none today)* | Use this extra in docs and installs |
 | `finance_wallet_screening` | `finance/wallet_screening` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
+| `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
