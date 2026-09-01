@@ -33,6 +33,26 @@ Where [`monitoring/token_limiter`](token_limiter.md) covers resource-side monito
 3. Honesty floors → `insufficient_data` iff the declared floor is unmet, with the rule's declared reason code — checked against the declared metric only, never inferred
 4. Rule evaluation in declared order
 
+## Bundle layout
+
+The skill lives in `skills/monitoring/kpi_gate/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Assurance** — `test_skill.py` in the bundle.
+
+### Effect (`skill.py`)
+
+Pure Python evaluation: four-stage validation, closed error registry, and rule evaluation in charter order. No network calls; identical input returns identical output.
+
+### Directive (`instructions.md`)
+
+Registry ID, agent-loop contract (errors block, warnings surface, `insufficient_data` never backfilled), when to invoke, and how to read findings vs contract errors.
+
+### Reference (`schemas/`)
+
+JSON Schemas for metrics, policy, and benchmarks inputs (documentation; runtime uses explicit stdlib checks).
+
+### Corpus (`kb/`)
+
+Versioned benchmark demo data (`benchmarks_demo.json`) for rules that reference `benchmark_ref`.
+
 ## Manifest Details
 
 **Parameters Schema:**
