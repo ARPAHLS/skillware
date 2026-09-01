@@ -379,7 +379,7 @@ Commits that touched this skill bundle or its catalog page ([`dev_tools/issue_re
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`f158fd8`](https://github.com/ARPAHLS/skillware/commit/f158fd844ca2a586ae87d286ffa12d619a999ebf) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`e90ba2f`](https://github.com/ARPAHLS/skillware/commit/e90ba2f) | chore(release): 0.4.8 — skills, profiles, version policy | 3 Aug 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`1e039a2`](https://github.com/ARPAHLS/skillware/commit/1e039a2) | feat: add repository profiles to issue resolver (#271) | 3 Aug 2026 | `0.3.0` | [@TheDarkniteFalls](https://github.com/TheDarkniteFalls) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |

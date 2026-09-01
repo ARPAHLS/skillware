@@ -214,7 +214,7 @@ Commits that touched this skill bundle or its catalog page ([`compliance/mica_mo
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`f158fd8`](https://github.com/ARPAHLS/skillware/commit/f158fd844ca2a586ae87d286ffa12d619a999ebf) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`812ec7e`](https://github.com/ARPAHLS/skillware/commit/812ec7e) | Add card ui_schema validation guard and fix drift (#199) (#260) | 20 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

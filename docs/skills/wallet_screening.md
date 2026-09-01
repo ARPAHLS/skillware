@@ -257,7 +257,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`f158fd8`](https://github.com/ARPAHLS/skillware/commit/f158fd844ca2a586ae87d286ffa12d619a999ebf) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`0b308d3`](https://github.com/ARPAHLS/skillware/commit/0b308d3) | feat(wallet_screening): paginate Etherscan txlist and surface warnings (#214) (#215) | 23 Jul 2026 | `1.0.1` | [@Hendobox](https://github.com/Hendobox) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`f301088`](https://github.com/ARPAHLS/skillware/commit/f301088) | Implement manifest param validation and standardize outputs key. (#253) | 12 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
