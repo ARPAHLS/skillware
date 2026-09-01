@@ -304,7 +304,7 @@ Commits that touched this skill bundle or its catalog page ([`monitoring/kpi_gat
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(pending merge)* | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface | 29 Aug 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+| [`0d01991`](https://github.com/ARPAHLS/skillware/commit/0d019913ad7b87ad5447b564133bb03b270237d9) | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface (#318) | 1 Sep 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer

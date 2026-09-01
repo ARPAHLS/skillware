@@ -119,6 +119,6 @@ Skillware is community-built. We welcome human contributors and **supervised age
 
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** — fork, branch, skill standard, pull request process.
 - **[Agent Contribution Workflow](contributing/ai_native_workflow.md)** — how operators and agents ship reviewable work.
-- **[Introduction](introduction.md)** — Skill anatomy (Contract, Effect, Directive, Interface) in depth.
+- **[Introduction](introduction.md)** — Skill anatomy (Contract, Effect, Directive, Assurance, Interface) in depth.
 
 Help us make agent capabilities portable, safe, and reusable.
