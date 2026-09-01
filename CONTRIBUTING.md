@@ -219,7 +219,24 @@ Skills you submit are reviewed for origin and quality, not sandboxed at runtime 
 
 Every registry skill lives in `skills/<category>/<skill_name>/` and **must** include the files below. This is the detailed standard for the **skill** contribution type.
 
-### 1. `manifest.yaml` (metadata and governance)
+### Skill anatomy (vocabulary)
+
+Checklists below use **file names**; each file implements a **role**. The [README Mission](README.md#mission) summarizes the core roles; full reference: [docs/introduction.md — Skill anatomy](docs/introduction.md#skill-anatomy).
+
+| Role | v0 file(s) | Required |
+| :--- | :--- | :---: |
+| **Contract** | `manifest.yaml` | Yes |
+| **Effect** | `skill.py` (+ effect modules in the same folder) | Yes |
+| **Directive** | `instructions.md` | Yes |
+| **Assurance** | `test_skill.py` | Yes (registry) |
+| **Presentation** | `card.json` | Optional |
+| **Corpus** | `kb/`, `data/`, bundled knowledge files | Optional |
+| **Reference** | `schemas/`, maps, in-bundle spec fixtures | Optional |
+| **Interface** | `skillware/core/loader.py` adapters | Framework (not in bundle) |
+
+**Effect modules** (for example `workflow.py`, `budget.py`) are imported by `skill.py`—implementation detail, not a separate required file. **Corpus tooling** (for example `maintenance/`) refreshes Corpus offline and is not loaded by `execute()`.
+
+### 1. `manifest.yaml` (Contract)
 
 Defines the tool interface, safety constitution, dependencies, and issuer attribution.
 
@@ -263,7 +280,7 @@ requirements:
   - requests
 ```
 
-### 2. `skill.py` (logic)
+### 2. `skill.py` (Effect)
 
 - Define **exactly one** concrete subclass of `BaseSkill` per skill file. `SkillLoader.load_skill()` discovers it automatically as `bundle["class"]` (see `SkillLoader.get_skill_class()`).
 - Implement deterministic Python logic; inherit from `BaseSkill`.
@@ -273,7 +290,7 @@ requirements:
 - Do **not** embed open-ended LLM code generation as the skill implementation.
 - When you change the JSON shape returned by `execute()`, update `card.json` output fields (if present) and the matching fixture under `tests/fixtures/card_ui_schema/` in the same PR.
 
-### 3. `instructions.md` (cognition)
+### 3. `instructions.md` (Directive)
 
 The primary guide for the host LLM. Skill instructions should be a concise, append-only block focusing on this skill's context rather than assigning an overarching persona (host agents and LLMs already have their own system prompts).
 
@@ -283,7 +300,7 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 - **Avoid persona starters**: Avoid opening with "You are an agent equipped with...", "You are an expert...", or narrative personality instructions that can conflict when multiple skills are appended to context.
 - Keep prompts and persona here, not in `skill.py`.
 
-### 4. `card.json` (presentation)
+### 4. `card.json` (Presentation)
 
 - Optional but recommended for user-facing agents and catalog UIs.
 - Describes UI presentation (`name`, `description`, `icon`, `ui_schema`, and similar).
@@ -291,7 +308,7 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 - For output cards (`ui_schema.type` = `card`), each `ui_schema.fields[].key` must be a dot path into the JSON returned by `execute()` (for example `metadata.wallet_address`, `preview.you_pay`). Update `card.json` in the same PR when you change the output shape.
 - Add or refresh a representative output fixture at `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (one object or a `{"samples": [...]}` list when multiple execute paths surface different fields). CI validates keys via `tests/test_card_ui_schema.py` (#199).
 
-### 5. `test_skill.py` (bundle test)
+### 5. `test_skill.py` (Assurance)
 
 - **Required** for every new registry skill (template: `templates/python_skill/test_skill.py`; enforced by `tests/test_skill_issuer.py`).
 - Unit tests for schema compliance and deterministic execution paths (offline; mock externals).
@@ -299,6 +316,15 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 - Run: `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - Optional extra depth for maintainers: `tests/skills/<category>/test_<skill_name>.py` — see [TESTING.md](docs/TESTING.md).
 - Mock network calls and first-run model downloads in bundle tests.
+
+### Optional bundle assets
+
+Not required for every skill. When present, document them on the catalog page under **Bundle layout** (see [skill usage template](docs/usage/skill_usage_template.md)).
+
+- **Corpus** — `kb/`, `data/`, or other versioned knowledge files the Effect reads at runtime.
+- **Reference** — `schemas/`, terminology maps, or in-bundle fixtures that define the public contract or demos.
+- **Effect modules** — additional `.py` files imported only by `skill.py` (not separate registry roles).
+- **Corpus tooling** — offline maintenance scripts (not loaded by `execute()`); keep out of the Effect import path unless intentional.
 
 ### Packaging (PyPI and `pip install`)
 
@@ -417,7 +443,7 @@ When a new top-level category lands under `skills/`, update this table and the c
 | [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md) | Workflow written for contributing agents; operators supervise |
 | [TESTING.md](docs/TESTING.md) | Black, Flake8, Pytest, local CI parity |
 | [Agent Code of Conduct](CODE_OF_CONDUCT.md) | Behavioral expectations for humans and agents |
-| [docs/introduction.md](docs/introduction.md) | Architecture: Mind, Body, Conscience |
+| [docs/introduction.md](docs/introduction.md) | Skill anatomy: Contract / Effect / Directive (+ Assurance, Corpus, Interface) |
 | [docs/vision.md](docs/vision.md) | Project story, roadmap, and agent discoverability |
 | [docs/skills/README.md](docs/skills/README.md) | Published skill catalog |
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |

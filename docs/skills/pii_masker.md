@@ -18,6 +18,10 @@ High-precision, local PII (Personally Identifiable Information) detection and re
 > Reaching production-grade 95%+ enterprise accuracy requires architectural optimizations, hard-negative mining, and dataset-specific fine-tuning. Full implementation of the `micro-f1-mask` privacy middleware should only happen after you rigorously fine-tune and test it exclusively with your own proprietary data structures.
 > Visit the core project repository for training orchestration and full middleware execution: [github.com/arpahls/micro-f1-mask](https://github.com/arpahls/micro-f1-mask)
 
+## Bundle layout
+
+The skill lives in `skills/compliance/pii_masker/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## How It Works
 
 Agentic workflows inherently risk leaking sensitive user data (names, physical addresses, emails, crypto wallets, etc.) to external LLM providers. This skill solves this by utilizing a local [Ollama](https://ollama.com/) instance hosting the `arpacorp/micro-f1-mask` edge model. 
@@ -210,6 +214,7 @@ Commits that touched this skill bundle or its catalog page ([`compliance/pii_mas
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`812ec7e`](https://github.com/ARPAHLS/skillware/commit/812ec7e) | Add card ui_schema validation guard and fix drift (#199) (#260) | 20 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

@@ -18,18 +18,18 @@ A productivity skill that fills AcroForm-based PDFs by mapping natural language 
 *   **Context Awareness**: Extracts nearby text labels to ensure accurate mapping, even if field names are obscure (e.g., `field_123` vs label "First Name").
 *   **Type Safety**: Automatically converts values to the correct format (booleans for checkboxes, specific options for dropdowns).
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/office/pdf_form_filler/`.
+The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 The system prompt teaches the internal mapping engine to:
 *   Analyze the provided "User Instructions".
 *   Review the list of "Detected Fields" (ID, Type, Context, Options).
 *   Output a strict JSON mapping of `Field ID -> Value`.
 *   Handle ambiguities by preferring precision over guessing.
 
-### 2. The Body (`skill.py` & `utils.py`)
+### Effect (`skill.py` & `utils.py`)
 *   **PDF Processing**: Uses `PyMuPDF` (fitz) for high-fidelity rendering and widget manipulation.
 *   **LLM Integration**: Wraps the Anthropic SDK to perform the semantic reasoning step.
 *   **Validation**: Ensures values match the field type (e.g., selecting a valid option from a dropdown).
@@ -205,6 +205,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `0.1.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

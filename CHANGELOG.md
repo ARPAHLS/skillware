@@ -16,6 +16,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Adopt **Skill anatomy** (Contract, Effect, Directive, Assurance, Corpus, Reference, Presentation, Interface) across introduction, README Mission, CONTRIBUTING, provider guides, catalog pages, and contributor templates (#319).
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
 
 ### Fixed

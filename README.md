@@ -41,10 +41,13 @@ The AI ecosystem is fragmented. Developers often re-invent tool definitions, sys
 
 A **Skill** in this framework provides everything an Agent needs to master a domain:
 
-1. **Logic**: Executable Python so agents run real work, not guess it.
-2. **Cognition**: System instructions and cognitive maps so any logical system uses the capability as intended.
-3. **Governance**: Constitution, safety boundaries, and hard limits baked into the bundle.
-4. **Interface**: Standardized tool schemas for any LLM or agent runtime.
+1. **Contract**: Constitution, safety boundaries, and typed I/O baked into the bundle.
+2. **Effect**: Executable Python so agents run real work, not guess it.
+3. **Directive**: System instructions and cognitive maps so any host uses the capability as intended.
+4. **Assurance**: Offline tests that Effect honors Contract before a skill joins the registry.
+5. **Interface**: Standardized tool schemas for any LLM or agent runtime.
+
+Optional **Corpus**, **Reference**, and **Presentation** assets extend bundles when needed. Full reference: [Introduction — Skill anatomy](docs/introduction.md#skill-anatomy).
 
 ### Skill library
 
@@ -55,12 +58,10 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md) or
 ```mermaid
 flowchart LR
     Registry[Registry] -->|Load| Loader[Loader]
-    Loader -->|Adapt| Host[Host]
-    Host -->|Prompt + Tools| LogicalSystems([Logical Systems])
-    LogicalSystems -->|Tool Call| Host
+    Loader -->|Adapt| Host[Any Host]
 ```
 
-Install the registry once. Skillware loads a bundle and adapts it to your model's tool format — you run the loop. For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).
+Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).
 
 ## Architecture
 
@@ -75,11 +76,11 @@ Skillware/
 ├── skills/                     # Skill Registry
 │   └── category/               # Domain boundaries (e.g., finance)
 │       └── skill_name/         # The Skill bundle
-│           ├── manifest.yaml   # Definition, schema, and constitution
-│           ├── skill.py        # Executable Python logic
-│           ├── instructions.md # Cognitive map for the LLM
-│           ├── card.json       # Optional UI presentation metadata
-│           └── test_skill.py   # Bundle test (required for new skills; see docs/TESTING.md)
+│           ├── manifest.yaml   # Contract: schema, constitution, issuer
+│           ├── skill.py        # Effect: deterministic execution
+│           ├── instructions.md # Directive: host guidance
+│           ├── card.json       # Presentation (optional)
+│           └── test_skill.py   # Assurance (required for registry skills)
 ├── skillware/                  # Core Framework Package
 │   ├── cli.py                  # Command-line interface
 │   └── core/
@@ -186,7 +187,7 @@ skill = skill_bundle["class"](
 # 2. Client & Tool Setup
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(skill_bundle)       # The "Adapter"
-system_instruction = skill_bundle['instructions']     # The "Mind"
+system_instruction = skill_bundle['instructions']     # Directive
 
 # 3. Agent Loop
 response = client.models.generate_content(

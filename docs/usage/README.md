@@ -36,7 +36,7 @@ To list locally available skills, inspect path resolution, show config, check lo
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
 
 Shared patterns (load bundle, run `execute`, return tool results):
-[agent_loops.md](agent_loops.md). After `load_skill`, prefer `bundle["class"]()` to instantiate the skill; explicit `bundle["module"].ClassName()` also works. Runnable script inventory:
+[agent_loops.md](agent_loops.md). [Skill anatomy](../introduction.md#skill-anatomy) (Contract, Effect, Directive, Assurance, Interface). After `load_skill`, prefer `bundle["class"]()` to instantiate the skill; explicit `bundle["module"].ClassName()` also works. Runnable script inventory:
 [examples/README.md](../../examples/README.md).
 
 Contributors adding **Usage Examples** to skill catalog pages: [skill_usage_template.md](skill_usage_template.md).

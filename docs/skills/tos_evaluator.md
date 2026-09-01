@@ -19,6 +19,10 @@ A local-first compliance guardrail that checks whether an intended automated act
 3. Clauses related to scraping, crawling, indexing, monitoring, downloading, and API-only access.
 4. Optional LLM-backed clause review when local heuristics cannot confidently classify the policy language.
 
+## Bundle layout
+
+The skill lives in `skills/compliance/tos_evaluator/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## Manifest Details
 
 **Parameters Schema:**
@@ -222,6 +226,7 @@ Commits that touched this skill bundle or its catalog page ([`compliance/tos_eva
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`14807be`](https://github.com/ARPAHLS/skillware/commit/14807be) | style: format codebase with Black (#153) | 3 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

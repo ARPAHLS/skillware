@@ -33,6 +33,26 @@ Where [`monitoring/token_limiter`](token_limiter.md) covers resource-side monito
 3. Honesty floors → `insufficient_data` iff the declared floor is unmet, with the rule's declared reason code — checked against the declared metric only, never inferred
 4. Rule evaluation in declared order
 
+## Bundle layout
+
+The skill lives in `skills/monitoring/kpi_gate/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Assurance** — `test_skill.py` in the bundle.
+
+### Effect (`skill.py`)
+
+Pure Python evaluation: four-stage validation, closed error registry, and rule evaluation in charter order. No network calls; identical input returns identical output.
+
+### Directive (`instructions.md`)
+
+Registry ID, agent-loop contract (errors block, warnings surface, `insufficient_data` never backfilled), when to invoke, and how to read findings vs contract errors.
+
+### Reference (`schemas/`)
+
+JSON Schemas for metrics, policy, and benchmarks inputs (documentation; runtime uses explicit stdlib checks).
+
+### Corpus (`kb/`)
+
+Versioned benchmark demo data (`benchmarks_demo.json`) for rules that reference `benchmark_ref`.
+
 ## Manifest Details
 
 **Parameters Schema:**
@@ -284,7 +304,8 @@ Commits that touched this skill bundle or its catalog page ([`monitoring/kpi_gat
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(pending merge)* | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface | 29 Aug 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0d01991`](https://github.com/ARPAHLS/skillware/commit/0d019913ad7b87ad5447b564133bb03b270237d9) | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface (#318) | 1 Sep 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
