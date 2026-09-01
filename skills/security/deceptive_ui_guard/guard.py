@@ -61,12 +61,11 @@ MODAL_SELECTORS = re.compile(
 )
 
 CMP_SELECTORS = re.compile(
-    r"(?i)\b(onetrust|cookiebot|cookieyes|usercentrics|klaro|cookie-banner|cookie-notice|consent-banner|cookie-consent)\b"
+    r"(?i)\b(onetrust|cookiebot|cookieyes|usercentrics|klaro|cookie-banner|"
+    r"cookie-notice|consent-banner|cookie-consent)\b"
 )
 
-NAV_SELECTORS = re.compile(
-    r"(?i)\b(nav|footer|header|menu|site-footer|breadcrumbs)\b"
-)
+NAV_SELECTORS = re.compile(r"(?i)\b(nav|footer|header|menu|site-footer|breadcrumbs)\b")
 
 IMPERATIVE_LEXICON = re.compile(
     r"(?i)\b(ignore\s+(all\s+)?(previous|prior)\s+instructions|"
@@ -202,11 +201,19 @@ def _classify_zone(element: Tag) -> str:
         p_class = " ".join(parent.get("class") or [])
         p_str = f"{parent.name} {p_id} {p_class}"
 
-        if parent.name in {"dialog"} or parent.get("role") in {"dialog", "alertdialog"} or MODAL_SELECTORS.search(p_str):
+        if (
+            parent.name in {"dialog"}
+            or parent.get("role") in {"dialog", "alertdialog"}
+            or MODAL_SELECTORS.search(p_str)
+        ):
             return "modal"
         if CMP_SELECTORS.search(p_str):
             return "cmp"
-        if CHECKOUT_SELECTORS.search(p_str) or CHECKOUT_CONTEXT.search(p_id) or CHECKOUT_CONTEXT.search(p_class):
+        if (
+            CHECKOUT_SELECTORS.search(p_str)
+            or CHECKOUT_CONTEXT.search(p_id)
+            or CHECKOUT_CONTEXT.search(p_class)
+        ):
             return "checkout"
         if parent.name in {"nav", "footer", "header"} or NAV_SELECTORS.search(p_str):
             return "navigation"
@@ -314,7 +321,9 @@ def fetch_url_html(url: str) -> Tuple[str, str]:
 
 def _contrast_signal(element: Tag, zone: str) -> Optional[RawSignal]:
     style = str(element.get("style", ""))
-    if WHITE_COLOR.search(style) and (WHITE_BG.search(style) or "background" not in style.lower()):
+    if WHITE_COLOR.search(style) and (
+        WHITE_BG.search(style) or "background" not in style.lower()
+    ):
         text = _direct_text(element)
         if len(text) < 4:
             return None
@@ -351,7 +360,10 @@ def _mislabeled_cta_signal(element: Tag, zone: str) -> Optional[RawSignal]:
         return None
 
     severity: RiskLevel = "medium"
-    if zone == "checkout" or ("continue" in label_text.lower() and any(k in alt_label.lower() for k in ["buy", "charge", "pay", "order"])):
+    if zone == "checkout" or (
+        "continue" in label_text.lower()
+        and any(k in alt_label.lower() for k in ["buy", "charge", "pay", "order"])
+    ):
         severity = "high"
 
     return RawSignal(
@@ -370,18 +382,27 @@ def _prechecked_opt_in_signal(element: Tag, zone: str) -> Optional[RawSignal]:
     if element.name != "input" or str(element.get("type", "")).lower() != "checkbox":
         return None
 
-    is_checked = element.has_attr("checked") or str(element.get("checked", "")).lower() in {"true", "checked"}
+    is_checked = element.has_attr("checked") or str(
+        element.get("checked", "")
+    ).lower() in {"true", "checked"}
     if not is_checked:
         return None
 
-    parent_text = _normalize_space(element.parent.get_text(" ", strip=True) if element.parent else "")
+    parent_text = _normalize_space(
+        element.parent.get_text(" ", strip=True) if element.parent else ""
+    )
     input_id = str(element.get("id", ""))
     input_name = str(element.get("name", "")).lower()
 
     opt_in_terms = re.compile(
-        r"(?i)\b(subscribe|newsletter|marketing|updates|recurring|insurance|protection\s+plan|monthly|donation|membership|auto-renew|trial)\b"
+        r"(?i)\b(subscribe|newsletter|marketing|updates|recurring|insurance|"
+        r"protection\s+plan|monthly|donation|membership|auto-renew|trial)\b"
     )
-    if opt_in_terms.search(parent_text) or opt_in_terms.search(input_name) or opt_in_terms.search(input_id):
+    if (
+        opt_in_terms.search(parent_text)
+        or opt_in_terms.search(input_name)
+        or opt_in_terms.search(input_id)
+    ):
         severity: RiskLevel = "high" if zone == "checkout" else "medium"
         return RawSignal(
             signal_type="prechecked_opt_in",
@@ -401,7 +422,8 @@ def _drip_pricing_signal(element: Tag, zone: str) -> Optional[RawSignal]:
         return None
     text = _normalize_space(element.get_text(" ", strip=True))
     drip_patterns = re.compile(
-        r"(?i)\b(mandatory\s+service\s+fee|processing\s+fee\s+added|administrative\s+fee|drip\s+pricing|undisclosed\s+charge|due\s+at\s+checkout)\b"
+        r"(?i)\b(mandatory\s+service\s+fee|processing\s+fee\s+added|administrative\s+fee|"
+        r"drip\s+pricing|undisclosed\s+charge|due\s+at\s+checkout)\b"
     )
     if drip_patterns.search(text) and len(text) < 140:
         return RawSignal(
@@ -441,7 +463,8 @@ def _fake_urgency_timer_signal(element: Tag, zone: str) -> Optional[RawSignal]:
 def _nag_loop_signal(element: Tag, zone: str) -> Optional[RawSignal]:
     text = _normalize_space(element.get_text(" ", strip=True)).lower()
     nag_patterns = re.compile(
-        r"(?i)\b(no\s+thanks,\s+i\s+prefer\s+paying\s+full|no\s+thanks,\s+i\s+hate\s+saving|i\s+don't\s+want\s+to\s+save|remind\s+me\s+later|wait!\s+don't\s+go)\b"
+        r"(?i)\b(no\s+thanks,\s+i\s+prefer\s+paying\s+full|no\s+thanks,\s+i\s+hate\s+saving|"
+        r"i\s+don't\s+want\s+to\s+save|remind\s+me\s+later|wait!\s+don't\s+go)\b"
     )
     if nag_patterns.search(text) and len(text) < 120:
         return RawSignal(
@@ -515,12 +538,18 @@ def _channel_mismatch_signal(
         selector=_element_selector(element),
         snippet=hidden_text[:SNIPPET_MAX],
         channels=["dom_text", "hidden_surface"],
-        evidence={"lexicon_hits": lex_hits, "imperative": imperative, "allowlisted": allowlisted},
+        evidence={
+            "lexicon_hits": lex_hits,
+            "imperative": imperative,
+            "allowlisted": allowlisted,
+        },
         zone=zone,
     )
 
 
-def _lexical_signal(element: Tag, lexicon: Dict[str, List[str]], zone: str) -> List[RawSignal]:
+def _lexical_signal(
+    element: Tag, lexicon: Dict[str, List[str]], zone: str
+) -> List[RawSignal]:
     text = _normalize_space(element.get_text(" ", strip=True))
     if len(text) < 6:
         return []
@@ -546,11 +575,16 @@ def _lexical_signal(element: Tag, lexicon: Dict[str, List[str]], zone: str) -> L
     ]
 
 
-def _mobile_profile_signal(element: Tag, profile: SurfaceProfile, zone: str) -> Optional[RawSignal]:
+def _mobile_profile_signal(
+    element: Tag, profile: SurfaceProfile, zone: str
+) -> Optional[RawSignal]:
     if profile != "mobile":
         return None
     style = str(element.get("style", "")).lower()
-    if "-webkit-tap-highlight-color: transparent" in style or "-webkit-tap-highlight-color: rgba(0,0,0,0)" in style:
+    if (
+        "-webkit-tap-highlight-color: transparent" in style
+        or "-webkit-tap-highlight-color: rgba(0,0,0,0)" in style
+    ):
         if "position: absolute" in style or "position: fixed" in style:
             return RawSignal(
                 signal_type="mobile_overlay_trap",
@@ -577,7 +611,8 @@ def _render_dom_diff_lane(
     if not playwright_available:
         if render_mode == "force":
             raise ImportError(
-                "render_mode='force' requires Playwright. Install the extra with: pip install 'skillware[security_deceptive_ui_guard_render]'"
+                "render_mode='force' requires Playwright. Install the extra with: "
+                "pip install 'skillware[security_deceptive_ui_guard_render]'"
             )
         return []
 
@@ -597,7 +632,9 @@ def _render_dom_diff_lane(
                     const style = window.getComputedStyle(el);
                     const rect = el.getBoundingClientRect();
                     const isZeroSize = rect.width === 0 || rect.height === 0;
-                    const isTransparent = style.opacity === '0' || style.visibility === 'hidden' || style.display === 'none' || style.color === 'rgba(0, 0, 0, 0)' || style.color === 'transparent';
+                    const isTransparent = style.opacity === '0' || style.visibility === 'hidden' ||
+                        style.display === 'none' || style.color === 'rgba(0, 0, 0, 0)' ||
+                        style.color === 'transparent';
                     const text = el.innerText || '';
                     if (text.length > 5 && (isZeroSize || isTransparent)) {
                         results.push({
@@ -618,7 +655,15 @@ def _render_dom_diff_lane(
             browser.close()
 
             for item in elements_data:
-                tag_sel = f"{item['tagName']}#{item['id']}" if item['id'] else f"{item['tagName']}.{item['className']}" if item['className'] else item['tagName']
+                tag_sel = (
+                    f"{item['tagName']}#{item['id']}"
+                    if item["id"]
+                    else (
+                        f"{item['tagName']}.{item['className']}"
+                        if item["className"]
+                        else item["tagName"]
+                    )
+                )
                 signals.append(
                     RawSignal(
                         signal_type="render_dom_divergence",
@@ -633,7 +678,12 @@ def _render_dom_diff_lane(
                             "display": item.get("display"),
                             "zero_size": item.get("isZeroSize"),
                         },
-                        zone="checkout" if "fee" in item["text"].lower() or "price" in item["text"].lower() else "general",
+                        zone=(
+                            "checkout"
+                            if "fee" in item["text"].lower()
+                            or "price" in item["text"].lower()
+                            else "general"
+                        ),
                     )
                 )
     except Exception as exc:
@@ -649,7 +699,9 @@ def _corroborate(
 ) -> List[Dict[str, Any]]:
     findings: List[Dict[str, Any]] = []
     action_lower = (intended_action or "").lower()
-    is_checkout_action = any(k in action_lower for k in ["checkout", "pay", "buy", "order", "subscribe"])
+    is_checkout_action = any(
+        k in action_lower for k in ["checkout", "pay", "buy", "order", "subscribe"]
+    )
 
     for signal in signals:
         corroborated_by: List[str] = []
@@ -667,7 +719,9 @@ def _corroborate(
                 corroborated_by = ["channel_mismatch", "textual"]
             elif sensitivity == "lenient":
                 continue
-            elif sensitivity == "balanced" and (signal.zone in {"checkout", "modal"} or zone_weight >= 1.25):
+            elif sensitivity == "balanced" and (
+                signal.zone in {"checkout", "modal"} or zone_weight >= 1.25
+            ):
                 publish = True
                 confidence = 0.72
                 corroborated_by = ["channel_mismatch", f"{signal.zone}_zone"]
@@ -718,10 +772,12 @@ def _corroborate(
                 publish = True
                 confidence = 0.82
                 corroborated_by = ["textual", signal.zone]
-            elif (
-                signal.subtype in {"hidden_fee", "forced_continuity", "drip_pricing", "preselected_opt_in"}
-                and signal.zone in {"checkout", "modal"}
-            ):
+            elif signal.subtype in {
+                "hidden_fee",
+                "forced_continuity",
+                "drip_pricing",
+                "preselected_opt_in",
+            } and signal.zone in {"checkout", "modal"}:
                 publish = True
                 confidence = 0.78
                 corroborated_by = ["textual", f"{signal.zone}_zone"]
@@ -731,7 +787,10 @@ def _corroborate(
                 corroborated_by = ["textual"]
 
         elif signal.signal_type == "low_contrast":
-            if sensitivity in {"strict", "balanced"} and signal.zone in {"checkout", "modal"}:
+            if sensitivity in {"strict", "balanced"} and signal.zone in {
+                "checkout",
+                "modal",
+            }:
                 publish = True
                 confidence = 0.65
                 corroborated_by = ["visual_style", f"{signal.zone}_zone"]
@@ -772,7 +831,9 @@ def _visible_excerpt(soup: BeautifulSoup) -> str:
     return excerpt[:4000]
 
 
-def _build_zone_summary(soup: BeautifulSoup, findings: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _build_zone_summary(
+    soup: BeautifulSoup, findings: List[Dict[str, Any]]
+) -> Dict[str, Any]:
     summary: Dict[str, Dict[str, Any]] = {
         zone: {"element_count": 0, "findings_count": 0, "weight": weight}
         for zone, weight in ZONE_WEIGHTS.items()
@@ -796,10 +857,21 @@ def _build_session_recommendation(
 ) -> str:
     if not session_fingerprint:
         return ""
-    has_nag = any(f.get("type") in {"nag_loop", "fake_urgency_timer"} or f.get("subtype") in {"confirm_shaming"} for f in findings)
+    has_nag = any(
+        f.get("type") in {"nag_loop", "fake_urgency_timer"}
+        or f.get("subtype") in {"confirm_shaming"}
+        for f in findings
+    )
     if has_nag:
-        return f"Recurring nag or urgency pattern detected for session fingerprint '{session_fingerprint[:16]}...'. Recommend bypassing modal prompts and enforcing strict payment review."
-    return f"Session fingerprint '{session_fingerprint[:16]}...' verified clean of recurring nag loops."
+        return (
+            f"Recurring nag or urgency pattern detected for session fingerprint "
+            f"'{session_fingerprint[:16]}...'. Recommend bypassing modal prompts "
+            f"and enforcing strict payment review."
+        )
+    return (
+        f"Session fingerprint '{session_fingerprint[:16]}...' "
+        f"verified clean of recurring nag loops."
+    )
 
 
 def _aggregate_risk(
@@ -861,13 +933,19 @@ def _build_guidance(
             "Interactive controls expose mismatched visible and accessible labels."
         )
     if any(f.get("type") == "prechecked_opt_in" for f in findings):
-        summary_parts.append("Pre-checked subscription or recurring opt-in box detected.")
+        summary_parts.append(
+            "Pre-checked subscription or recurring opt-in box detected."
+        )
     if any(f.get("subtype") in {"hidden_fee", "drip_pricing"} for f in findings):
-        summary_parts.append("Copy suggests hidden or drip fees may appear late in checkout.")
+        summary_parts.append(
+            "Copy suggests hidden or drip fees may appear late in checkout."
+        )
     if any(f.get("subtype") == "forced_continuity" for f in findings):
         summary_parts.append("Copy suggests automatic renewal or post-trial billing.")
     if any(f.get("type") == "render_dom_divergence" for f in findings):
-        summary_parts.append("Computed style rendering reveals text or interactive elements hidden by external stylesheets.")
+        summary_parts.append(
+            "Computed style rendering reveals text or interactive elements hidden by external stylesheets."
+        )
 
     action_lower = (intended_action or "").lower()
     if any(k in action_lower for k in ["pay", "checkout", "subscribe", "buy", "order"]):
@@ -987,7 +1065,9 @@ def scan_surface(
         if mobile_sig:
             signals.append(mobile_sig)
 
-        mismatch = _channel_mismatch_signal(element, visible_aggregate, lexicon, allowlists, zone)
+        mismatch = _channel_mismatch_signal(
+            element, visible_aggregate, lexicon, allowlists, zone
+        )
         if mismatch:
             signals.append(mismatch)
 

@@ -286,10 +286,12 @@ def test_session_fingerprint_nag_recommendation(skill):
       </div>
     </body></html>
     """
-    result = skill.execute({
-        "html_content": html,
-        "session_fingerprint": "abc123_session_hash",
-    })
+    result = skill.execute(
+        {
+            "html_content": html,
+            "session_fingerprint": "abc123_session_hash",
+        }
+    )
     assert "abc123_session" in result["session_recommendation"]
 
 
@@ -314,4 +316,3 @@ def test_bundle_has_no_llm_auditor_surface():
         text = open(os.path.join(root, name), encoding="utf-8").read().lower()
         for token in banned:
             assert token not in text
-

@@ -58,18 +58,24 @@ def test_deceptive_ui_golden_corpus(fixture_file: Path):
     html_content = fixture_file.read_text(encoding="utf-8")
     category = fixture_file.parent.name
 
-    result = skill.execute({
-        "html_content": html_content,
-        "sensitivity": "balanced",
-        "intended_action": "complete checkout" if "checkout" in category else "",
-    })
+    result = skill.execute(
+        {
+            "html_content": html_content,
+            "sensitivity": "balanced",
+            "intended_action": "complete checkout" if "checkout" in category else "",
+        }
+    )
 
     if category in {"clean", "cmp_ok", "sr_only_ok"}:
-        assert result["is_safe"] is True, f"Clean fixture {fixture_file.name} must be safe, got: {result['findings']}"
+        assert (
+            result["is_safe"] is True
+        ), f"Clean fixture {fixture_file.name} must be safe, got: {result['findings']}"
         assert result["status"] == "ok"
         assert len(result["findings"]) == 0
     elif category == "checkout_trap":
-        assert len(result["findings"]) > 0, f"Trap fixture {fixture_file.name} must produce findings"
+        assert (
+            len(result["findings"]) > 0
+        ), f"Trap fixture {fixture_file.name} must produce findings"
         assert result["agent_guidance"]["verify_before_payment"] is True
     elif category == "anti_agent":
         assert result["status"] in {"blocked", "warning"}
@@ -79,4 +85,3 @@ def test_deceptive_ui_golden_corpus(fixture_file: Path):
         assert len(result["findings"]) > 0
     elif category == "fake_urgency":
         assert any(f["type"] == "fake_urgency_timer" for f in result["findings"])
-

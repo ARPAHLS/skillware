@@ -30,7 +30,9 @@ class DeceptiveUiGuardSkill(BaseSkill):
         sensitivity = self._normalize_sensitivity(params.get("sensitivity", "balanced"))
         intended_action = str(params.get("intended_action") or "")
         render_mode = self._normalize_render_mode(params.get("render_mode", "off"))
-        surface_profile = self._normalize_surface_profile(params.get("surface_profile", "desktop"))
+        surface_profile = self._normalize_surface_profile(
+            params.get("surface_profile", "desktop")
+        )
         session_fingerprint = str(params.get("session_fingerprint") or "")
 
         result = scan_surface(
@@ -77,4 +79,3 @@ class DeceptiveUiGuardSkill(BaseSkill):
         if normalized in {"desktop", "mobile", "auto"}:
             return normalized  # type: ignore[return-value]
         return "desktop"
-
