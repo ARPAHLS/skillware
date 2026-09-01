@@ -158,6 +158,8 @@ pytest tests/test_registry_docs.py
 
 These checks are part of `pytest tests/` and will run in CI regardless, but an early local run saves a round-trip.
 
+Framework tests are isolated from your operator global `config.yaml` automatically (`tests/conftest.py`, #302). A local full suite should pass even after `skillware mail signature init`; CI remains authoritative.
+
 Before Stage 5, scan your diff for:
 
 - Unrelated files

@@ -17,6 +17,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
 
+### Fixed
+
+- **Tests:** Isolate `pytest tests/` from the operator's global `config.yaml` via autouse `SKILLWARE_CONFIG_DIR` in `tests/conftest.py`; add configured-mode discovery and loader coverage alongside legacy-order tests (#302).
+
 ## [0.5.2] - 2026-08-27
 
 ### Added

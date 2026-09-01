@@ -32,7 +32,8 @@ def _write_registry_skill(root: Path, category: str, name: str) -> None:
     )
 
 
-def test_get_skill_roots_order_env_project_bundled(tmp_path, monkeypatch):
+def test_get_skill_roots_order_env_project_bundled_legacy(tmp_path, monkeypatch):
+    """Legacy mode (no YAML config): external → project → bundled."""
     env_root = tmp_path / "external"
     env_root.mkdir()
     project_root = tmp_path / "project" / "skills"
@@ -45,6 +46,35 @@ def test_get_skill_roots_order_env_project_bundled(tmp_path, monkeypatch):
 
     assert tiers[0] == SkillRootTier.EXTERNAL
     assert tiers[1] == SkillRootTier.PROJECT
+    assert tiers[-1] == SkillRootTier.BUNDLED
+    assert roots[-1].path == bundled_skills_root()
+
+
+def test_get_skill_roots_order_project_external_bundled_configured(
+    tmp_path, monkeypatch
+):
+    """Configured mode (#246 default order): project → external → bundled."""
+    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+
+    env_root = tmp_path / "external"
+    env_root.mkdir()
+    project_dir = tmp_path / "project"
+    project_skills = project_dir / "skills"
+    project_skills.mkdir(parents=True)
+    (project_dir / PROJECT_CONFIG_FILENAME).write_text(
+        "paths:\n  project: auto\n"
+        "resolution:\n  order:\n    - project\n    - external\n    - bundled\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(project_dir)
+    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    clear_config_cache()
+
+    roots = get_skill_roots()
+    tiers = [root.tier for root in roots]
+
+    assert tiers[0] == SkillRootTier.PROJECT
+    assert tiers[1] == SkillRootTier.EXTERNAL
     assert tiers[-1] == SkillRootTier.BUNDLED
     assert roots[-1].path == bundled_skills_root()
 

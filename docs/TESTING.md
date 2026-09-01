@@ -22,6 +22,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Optional extras sync (`scripts/sync_extras.py`, `tests/test_extras_sync.py`) | Done |
 | Card UI schema vs execute output (`tests/test_card_ui_schema.py`) | Done |
 | Local-execute example smoke tests in CI (`tests/test_examples_smoke.py`) | Done |
+| Framework tests isolated from operator global config (`tests/conftest.py`, #302) | Done |
 
 Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
 
@@ -69,6 +70,7 @@ pip install -r requirements.txt
 - `tests/test_registry_docs.py` enforces doc-drift parity: skill catalog index matches manifests, examples README matches scripts on disk, and agent-loops.md references every registered skill.
 - `tests/test_registry_identity.py` enforces manifest identity parity: every registry-layout skill's `manifest.name` matches its path-derived registry ID, and all manifest names are globally unique (#280).
 - `tests/test_examples_smoke.py` provides an automated regression net for local-execute demo scripts under `examples/` without making network requests or requiring API keys (#237).
+- `tests/conftest.py` isolates every test from the operator's real global `config.yaml` via `SKILLWARE_CONFIG_DIR` so local `pytest tests/` matches CI even after CLI mail/config init (#302). Legacy vs configured discovery order is covered in `tests/test_discovery.py` and `tests/test_loader.py`.
 - Lives at the **root of `tests/`** only (`tests/test_loader.py`, `tests/test_cli.py`, …).
 - Clone-repo only; runs in CI via `pytest tests/` together with maintainer tests below.
 
@@ -216,6 +218,14 @@ python -m pytest tests/skills/<category>/test_<skill_name>.py
 ```
 
 Pytest is configured to collect from `tests/` and `skills/` only (`examples/` is ignored). See `[tool.pytest.ini_options]` in `pyproject.toml`.
+
+### Operator global config and pytest (#302)
+
+After normal CLI setup (for example `skillware mail signature init`), a user-level `config.yaml` may exist under your Skillware config directory. That switches skill discovery to **configured** mode (`project → external → bundled`) instead of **legacy** mode (`SKILLWARE_SKILL_PATH → cwd ./skills/ → bundled`).
+
+Framework tests must not depend on your machine's operator config. An autouse fixture in `tests/conftest.py` points `SKILLWARE_CONFIG_DIR` at an empty temporary directory for every test run, so `pytest tests/` matches CI on a clean home directory.
+
+If you add tests that exercise merged YAML behavior, write explicit project or global config files under `tmp_path` and call `clear_config_cache()` after changes — the autouse fixture already isolates the global layer.
 
 ### Writing tests
 
