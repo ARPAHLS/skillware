@@ -1,0 +1,8 @@
+schema_version: 2
+policy_id: unknown_rule_metric_demo
+metrics: [bookings]
+rules:
+  - id: NO_SIGNED_CONTRACT
+    metric: signed_contracts
+    check: {op: gte, threshold: 1}
+    severity: error

@@ -1,0 +1,10 @@
+schema_version: 2
+policy_id: floor_boundary_demo
+metrics: [replies, reply_to_booking_rate_pct]
+rules:
+  - id: BOOKING_CONVERSION_TRACKED
+    metric: reply_to_booking_rate_pct
+    check: {op: gte, threshold: 10}
+    severity: warning
+    requires: {denominator_metric: replies, min_denominator: 25,
+               granularity: weekly, reason_code: cohort_attribution_unavailable}

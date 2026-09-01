@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/kpi_gate:benchmarks:1",
+  "type": "object",
+  "required": ["schema_version", "benchmark_version", "as_of", "sources", "values"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "benchmark_version": {"type": "string"},
+    "as_of": {"type": "string", "format": "date"},
+    "sources": {"type": "array", "minItems": 1, "items": {"type": "string", "format": "uri"}},
+    "values": {
+      "type": "object", "minProperties": 1,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "type": "object", "required": ["value"], "additionalProperties": false,
+          "properties": {"value": {"type": "number"},
+                         "unit": {"type": "string"},
+                         "denominator_scope": {"type": "string"}}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

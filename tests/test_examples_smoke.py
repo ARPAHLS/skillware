@@ -43,6 +43,16 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "kpi_gate_demo.py",
+        [
+            "monitoring/kpi_gate",
+            "NO_BOOKING",
+            "insufficient_data:",
+            "fail-closed",
+            "Demo complete.",
+        ],
+    ),
+    (
         "token_limiter_loop.py",
         [
             "Simulating a runaway scrape task",

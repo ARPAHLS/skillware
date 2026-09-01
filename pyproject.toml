@@ -140,6 +140,8 @@ finance_uk_companies_house_handler = []
 
 finance_wallet_screening = []
 
+monitoring_kpi_gate = []
+
 monitoring_token_limiter = []
 
 office_gmail_handler = []

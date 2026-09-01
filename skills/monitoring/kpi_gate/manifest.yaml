@@ -1,0 +1,67 @@
+name: monitoring/kpi_gate
+version: 0.1.0
+description: >
+  Deterministic business-KPI gate. Evaluates a metrics snapshot against an
+  operator-maintained policy charter and optional versioned benchmark data,
+  returning structured findings with two severities (error, warning) and one
+  honest third state (insufficient_data with reason codes). Strict schemas on
+  all three inputs, a closed rule set, and fail-closed contract errors from a
+  closed registry. Pure evaluation only: no network calls, no data fetching,
+  no side effects; identical input always returns identical output.
+short_description: "Deterministic KPI gate: metrics snapshot vs policy charter, fail-closed findings."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+category: monitoring
+parameters:
+  type: object
+  properties:
+    metrics:
+      type: object
+      description: >
+        Metrics snapshot object (metrics schema v1): schema_version, period
+        (start, end, granularity), and a metrics map of lower_snake_case keys
+        to non-negative numbers. Assembled upstream; this skill never fetches data.
+    policy:
+      type: object
+      description: >
+        Policy charter object (policy schema v2): schema_version, policy_id, the
+        closed declaration of metric keys, and the ordered rule list. Typically
+        maintained as versioned YAML and parsed by the host before the call.
+    benchmarks:
+      type: object
+      description: >
+        Optional benchmark data object (benchmarks schema v1) with
+        benchmark_version, as_of date, sources, and named values. Required only
+        when the policy references benchmark_ref checks.
+  required:
+    - metrics
+    - policy
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for an evaluation run; error for a contract violation.
+  policy_id:
+    type: string
+    description: The policy_id of the evaluated charter.
+  benchmark_version:
+    type: string
+    description: benchmark_version of the supplied benchmark data, or null when none was supplied.
+  findings:
+    type: array
+    description: >
+      Ordered findings. Rule findings carry finding, severity, detail, and
+      action; refusals carry state insufficient_data, detail, and reason.
+requirements: []
+constitution: |
+  1. Evaluate only - no data fetching, no side effects, no automated remediation.
+  2. Deterministic, offline core - no network in execute(); identical input returns identical output.
+  3. Refuse rather than guess - what cannot be computed honestly returns insufficient_data with a reason code; no default substitution.
+  4. Every finding explained - code, metric, threshold, and observed value always attached.
+  5. Honest limits documented - what this skill does not do (data acquisition, causal inference, threshold optimization) is stated explicitly.
+presentation:
+  icon: gauge
+  color: "#0f766e"

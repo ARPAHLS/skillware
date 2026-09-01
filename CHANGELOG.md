@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`monitoring/kpi_gate` v0.1.0):** Deterministic business-KPI gate evaluating a metrics snapshot against an operator-maintained policy charter and optional versioned benchmark data — error/warning findings plus honest `insufficient_data` refusals with reason codes, fail-closed contract errors from a closed registry, stdlib-only validation, and the catalog/docs surface (#317).
 - **Tests (`tests/test_examples_smoke.py`):** Added automated CI smoke test suite for local-execute offline demo scripts under `examples/`, catching import regressions and SkillLoader dispatch errors without requiring live API keys (#237).
 - **Docs (`docs/TESTING.md`):** Documented the example smoke testing layer and skip policy for live model provider loops in CI (#237).
 
