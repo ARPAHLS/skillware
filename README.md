@@ -58,7 +58,7 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md) or
 ```mermaid
 flowchart LR
     Registry[Registry] -->|Load| Loader[Loader]
-    Loader -->|Adapt| Host["Any Host"]
+    Loader -->|Adapt| AnyHost([Any Host])
 ```
 
 Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).
