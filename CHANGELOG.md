@@ -21,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Fixed
 
+- **Docs (`README.md`):** Quote the Mermaid **Any Host** node label so the How it works diagram renders on GitHub.
 - **Tests:** Isolate `pytest tests/` from the operator's global `config.yaml` via autouse `SKILLWARE_CONFIG_DIR` in `tests/conftest.py`; add configured-mode discovery and loader coverage alongside legacy-order tests (#302).
 
 ## [0.5.2] - 2026-08-27
