@@ -360,7 +360,8 @@ def test_resolve_skill_from_env_path(tmp_path, monkeypatch):
     assert bundle["registry_id"] is None
 
 
-def test_resolve_skill_prefers_env_over_cwd(tmp_path, monkeypatch):
+def test_resolve_skill_prefers_env_over_cwd_legacy(tmp_path, monkeypatch):
+    """Legacy mode (no YAML config): SKILLWARE_SKILL_PATH wins over cwd ./skills/."""
     env_root = tmp_path / "env_root"
     env_skill = env_root / "shared_id"
     env_skill.mkdir(parents=True)
@@ -396,6 +397,53 @@ def test_resolve_skill_prefers_env_over_cwd(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     bundle = SkillLoader.load_skill("shared_id")
     assert bundle["manifest"]["name"] == "from_env"
+
+
+def test_resolve_skill_prefers_cwd_over_env_in_configured_mode(tmp_path, monkeypatch):
+    """Configured mode (#246 default order): project ./skills/ wins over env path."""
+    from skillware.core.config import PROJECT_CONFIG_FILENAME, clear_config_cache
+
+    env_root = tmp_path / "env_root"
+    env_skill = env_root / "shared_id"
+    env_skill.mkdir(parents=True)
+    (env_skill / "manifest.yaml").write_text(
+        "name: from_env\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (env_skill / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class EnvSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {'source': 'env'}\n",
+        encoding="utf-8",
+    )
+
+    project_dir = tmp_path / "repo"
+    cwd_skill = project_dir / "skills" / "shared_id"
+    cwd_skill.mkdir(parents=True)
+    (cwd_skill / "manifest.yaml").write_text(
+        "name: from_cwd\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (cwd_skill / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class CwdSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {'source': 'cwd'}\n",
+        encoding="utf-8",
+    )
+    (project_dir / PROJECT_CONFIG_FILENAME).write_text(
+        "paths:\n  project: auto\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv(SKILLWARE_SKILL_PATH_ENV, str(env_root))
+    monkeypatch.chdir(project_dir)
+    clear_config_cache()
+    bundle = SkillLoader.load_skill("shared_id")
+    assert bundle["manifest"]["name"] == "from_cwd"
 
 
 def test_wheel_includes_skill_manifest(tmp_path):
