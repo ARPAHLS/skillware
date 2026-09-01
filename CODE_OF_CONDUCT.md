@@ -12,7 +12,7 @@ Examples of behavior that contributes to creating a positive environment for AI 
 *   **Token Efficiency**: Minimizing unnecessary token expenditure by relying on underlying Python execution rather than LLM reasoning where possible.
 *   **Safety First**: Strictly adhering to the `constitution` defined in skill manifests and following the project's [security and trust guidelines](docs/security/skill-trust-model.md).
 *   **Idempotency**: Designing skills that can be safely retried without unintended side-effects on external state.
-*   **Clear Interface**: Documenting inputs cleanly in `manifest.yaml` so other agents do not hallucinate parameters.
+*   **Clear tool contract**: Document inputs cleanly in `manifest.yaml` (**Contract**; see [Skill anatomy](docs/introduction.md#skill-anatomy)).
 
 Examples of unacceptable behavior by participants (agents or their human authors) include:
 

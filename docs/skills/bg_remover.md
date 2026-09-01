@@ -116,15 +116,15 @@ Example execute payload after download:
 }
 ```
 
-## Internal Architecture
+## Bundle layout
 
-The skill lives in `skills/creative/bg_remover/`.
+The skill lives in `skills/creative/bg_remover/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 
 Skill instructions: when to invoke, input/output conventions, URL and cloud pre-steps, model selection, and error codes.
 
-### The Body (`skill.py`)
+### Effect (`skill.py`)
 
 Lazy-imports `rembg` and Pillow, reuses cached rembg sessions, runs `remove`, and returns structured JSON with transparent PNG bytes.
 

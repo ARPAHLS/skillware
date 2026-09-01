@@ -18,6 +18,10 @@ High-precision, local PII (Personally Identifiable Information) detection and re
 > Reaching production-grade 95%+ enterprise accuracy requires architectural optimizations, hard-negative mining, and dataset-specific fine-tuning. Full implementation of the `micro-f1-mask` privacy middleware should only happen after you rigorously fine-tune and test it exclusively with your own proprietary data structures.
 > Visit the core project repository for training orchestration and full middleware execution: [github.com/arpahls/micro-f1-mask](https://github.com/arpahls/micro-f1-mask)
 
+## Bundle layout
+
+The skill lives in `skills/compliance/pii_masker/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## How It Works
 
 Agentic workflows inherently risk leaking sensitive user data (names, physical addresses, emails, crypto wallets, etc.) to external LLM providers. This skill solves this by utilizing a local [Ollama](https://ollama.com/) instance hosting the `arpacorp/micro-f1-mask` edge model. 

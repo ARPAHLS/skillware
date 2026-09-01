@@ -18,14 +18,14 @@ A specialized data engineering capability that combats "model collapse" by gener
 *   **Combinatorial Entropy Injection**: Designed to explicitly seek out edge-case personas via the `diversity_prompt`, significantly raising the variance of training data.
 *   **Zero-Dependency Evaluation Heuristic**: Employs built-in `zlib` string compression ratios to calculate a dynamic entropy score, allowing the coordinating agent to reject low-entropy boilerplate data instantly.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is located in `skills/data_engineering/synthetic_generator/`.
+The skill is located in `skills/data_engineering/synthetic_generator/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 The system instructions emphasize boundary-pushing data generation. It prohibits standard AI tropes and enforces schema obedience.
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
 *   **Data Generation**: The skill handles invoking the LLM behind the scenes, using the configured provider and isolating the `temperature` specifically for the data generation task so the primary coordinating agent doesn't need to run at high temperature.
 *   **Validation**: Attempts to automatically parse out code blocks to extract standard JSON object arrays.
 *   **Entropy Scoring**: Converts text sequences into `zlib` compressed bytes. A poor compression ratio implies high lexical variance (less repetitive syntax).

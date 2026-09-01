@@ -19,19 +19,24 @@ A highly specialized, localized RAG (Retrieval-Augmented Generation) and policy 
 *   **Optional Model Swappable Evaluator**: Includes a built-in evaluation loop to review the context and score potential responses for regulatory holes. This node operates entirely independently and the model can be dynamically swapped based on user preference.
 *   **Policy Firewall**: Evaluates intent against the regulation before the parent agent generates an external answer, labeling requests as `APPROVED`, `CAUTION`, or `HIGH_RISK_DETECTED`.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/compliance/mica_module/`.
+The skill is self-contained in `skills/compliance/mica_module/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 The system prompt teaches the main Agent to:
 *   Use a **Pure Cognitive Workflow**: The agent recognizes the MiCA skill via its manifest and determines when statutory context is needed.
 *   Formatting: Invokes the skill via a JSON block in the dialogue stream.
 *   **Traceability**: Explicitly cites the Article numbers (e.g., Article 59) found in the RAG context.
 
-### 2. The Body (`skill.py` & `mica_corpus.json`)
+### Effect (`skill.py`)
+
 *   **In-Memory Caching**: The 1MB corpus is cached on the first run, delivering subsequent RAG lookups in **~1.7ms**.
 *   **Weighted Surgical Router**: Instead of a "shotgun" match, the router uses a weighted scoring system (Mentions > Keywords > collisions) and throttles retrieval to the **Top 10** most relevant Articles to prevent context window asphyxiation.
+
+### Corpus (`mica_corpus.json`)
+
+Bundled MiCA corpus loaded by Effect at runtime.
 
 ## Environment
 

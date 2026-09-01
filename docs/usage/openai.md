@@ -70,7 +70,7 @@ OpenAI function names must match `[a-zA-Z0-9_-]` and are limited to 64 character
 
 In your tool loop, compare `tool_call.function.name` to `tool["function"]["name"]` from `to_openai_tool()`, not necessarily the raw manifest string.
 
-### 3. System message (the Mind)
+### 3. System message (Directive)
 
 Pass `bundle["instructions"]` as the `system` role content (or equivalent in your orchestration layer). That teaches the model when and how to invoke the skill, not only what parameters exist.
 

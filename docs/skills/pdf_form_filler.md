@@ -18,18 +18,18 @@ A productivity skill that fills AcroForm-based PDFs by mapping natural language 
 *   **Context Awareness**: Extracts nearby text labels to ensure accurate mapping, even if field names are obscure (e.g., `field_123` vs label "First Name").
 *   **Type Safety**: Automatically converts values to the correct format (booleans for checkboxes, specific options for dropdowns).
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/office/pdf_form_filler/`.
+The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 The system prompt teaches the internal mapping engine to:
 *   Analyze the provided "User Instructions".
 *   Review the list of "Detected Fields" (ID, Type, Context, Options).
 *   Output a strict JSON mapping of `Field ID -> Value`.
 *   Handle ambiguities by preferring precision over guessing.
 
-### 2. The Body (`skill.py` & `utils.py`)
+### Effect (`skill.py` & `utils.py`)
 *   **PDF Processing**: Uses `PyMuPDF` (fitz) for high-fidelity rendering and widget manipulation.
 *   **LLM Integration**: Wraps the Anthropic SDK to perform the semantic reasoning step.
 *   **Validation**: Ensures values match the field type (e.g., selecting a valid option from a dropdown).

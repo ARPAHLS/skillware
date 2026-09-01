@@ -23,18 +23,18 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 - **Intent Mapping**: Translate common user intent keywords (CEO, owner, shareholder) to the correct UK Companies House actions and build suggested action pipelines.
 - **State Tracking (Context)**: Automatically carries forward session state (like `company_number`, `company_name`, and active filters) between sequential tool calls to seamlessly link multi-step operations.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/finance/uk_companies_house_handler/`.
+The skill is self-contained in `skills/finance/uk_companies_house_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 Skill-context instructions (registry ID opener, not a persona). The host agent:
 - Passes **clean** `query` / `company_number` parameters and optional `role_hint` — the skill does not strip conversational prefixes.
 - Handles disambiguation when search returns `needs_input`, then resumes with `context` / `run_pipeline`.
 - Uses `terminology_map.yaml` as a reference lexicon; maps US/informal terms via reasoning plus `map_intent` hints.
 - Renders full `officers[]` / `filings[]` lists, including `partial` previews (default limit 10).
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
 A single `execute()` entry point dispatches to nine action handlers:
 - **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`.
 - **Pipeline orchestration & composites**: `run_pipeline`, `map_intent`, `resolve_and_get_officers`, `resolve_and_get_filings`.

@@ -51,8 +51,9 @@ pip install -r requirements.txt
 | **Maintainer skill test** | `tests/skills/<category>/test_<name>.py` | No (clone only) | Yes when present |
 | **Usage example** | `examples/*.py` | No | Smoke only for local scripts; no for live loops |
 
-### Skill bundle test
+### Skill bundle test (Assurance role)
 
+- Implements the bundle **Assurance** role (`test_skill.py`); see [Skill anatomy](../introduction.md#skill-anatomy).
 - Lives **inside the skill bundle**; ships with `pip install skillware`.
 - **Required** for every new registry skill (see `templates/python_skill/test_skill.py`).
 - Offline and mockable: manifest consistency, validation, deterministic `execute()` paths — no live network.
@@ -91,7 +92,7 @@ pip install -r requirements.txt
 
 | You are testing… | Put it here | Example in this repo |
 | :--- | :--- | :--- |
-| Manifest + execute contract for one skill | Bundle test | `skills/compliance/tos_evaluator/test_skill.py` |
+| Manifest + execute contract for one skill | Bundle test (Assurance) | `skills/compliance/tos_evaluator/test_skill.py` |
 | Loader path + mocked externals (optional depth) | Maintainer test | `tests/skills/compliance/test_tos_evaluator.py` |
 | Loader, CLI, registry issuer rules, param validation, manifest requirement pins, config and path discovery | Framework test | `tests/test_loader.py`, `tests/test_cli.py`, `tests/test_config.py`, `tests/test_discovery.py`, `tests/test_requirements_check.py`, `tests/test_skill_issuer.py`, `tests/test_validate_params.py`, `tests/test_registry_docs.py`, `tests/test_card_ui_schema.py`, `tests/test_registry_identity.py` |
 | End-to-end provider demo script | Usage example | `examples/gemini_tos_evaluator.py` |

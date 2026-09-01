@@ -13,6 +13,10 @@
 
 Deterministic wellness coaching guardrail for host agents. Runs crisis triage before retrieval, blocks clinical overreach, retrieves grounded KB chunks with citations, and optionally runs a Gemini scope evaluator.
 
+## Bundle layout
+
+The skill lives in `skills/wellness/mental_coach/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py` and gate modules. **Corpus** — `kb/` (crisis resources, coaching corpus, constraints). **Assurance** — `test_skill.py`.
+
 > **Health disclaimer:** This skill provides general wellness support and information only. It is not medical, psychological, or clinical advice and is not a substitute for care from a licensed professional. Use at your own discretion. Active safety guardrails (deterministic crisis gate and hard constraints) reduce risk but do not replace professional judgment; double-check results and treat output as everyday coping guidance, not medical advice. In a crisis or emergency, contact local emergency services or the crisis resources returned by the skill.
 
 ## What It Does

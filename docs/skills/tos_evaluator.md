@@ -19,6 +19,10 @@ A local-first compliance guardrail that checks whether an intended automated act
 3. Clauses related to scraping, crawling, indexing, monitoring, downloading, and API-only access.
 4. Optional LLM-backed clause review when local heuristics cannot confidently classify the policy language.
 
+## Bundle layout
+
+The skill lives in `skills/compliance/tos_evaluator/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## Manifest Details
 
 **Parameters Schema:**

@@ -24,11 +24,11 @@ This skill does **not** kill processes, cancel provider sessions, or call billin
 - **Idempotent retries**: Optional `turn_id` caches the decision for the same turn metrics.
 - **ROI scaffold (v2)**: Accepts `roi_value_usd`, `expected_outcome`, and `outcome_delivered` for future outcome-aware gates. **Not enforced in v1.**
 
-## Internal Architecture
+## Bundle layout
 
-The skill lives in `skills/monitoring/token_limiter/`.
+The skill lives in `skills/monitoring/token_limiter/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### The Body (`skill.py` + `budget.py`)
+### Effect (`skill.py` + `budget.py`)
 
 Pure Python evaluation. Loads pricing data at init, tracks an in-memory turn cache for idempotent retries, and returns JSON-serializable payloads. No network calls.
 
@@ -37,7 +37,7 @@ Pure Python evaluation. Loads pricing data at init, tracks an in-memory turn cac
 | `check` (default) | Evaluate cumulative token usage against limits |
 | `reset` | Clear cached turn results for a `task_id` |
 
-### The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 
 Tells the host agent when to call the tool, that cumulative counts are required, and that `FORCE_TERMINATE` means stop the loop immediately.
 

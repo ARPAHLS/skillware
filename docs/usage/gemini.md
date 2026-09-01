@@ -72,9 +72,9 @@ Gemini requires Protobuf types (uppercase `STRING`, `OBJECT`).
 `SkillLoader.to_gemini_tool()` handles this conversion automatically. It recursively walks your parameter schema, sanitizes the tool name, and returns a ready-to-use `types.Tool` object compatible with Gemini's backend.
 
 ### 2. Context Injection
-Gemini 1.5+ supports `system_instruction`. Skillware leverages this to inject the "Mind" of the skill (`instructions.md`).
+Gemini 1.5+ supports `system_instruction`. Pass `instructions.md` (**Directive**) there so the model knows when and how to use the tool.
 
-This is crucial. Without `system_instruction`, the model knows it *has* a tool, but it doesn't know the nuanced strategy of *when* to use it. By injecting the instructions, you effectively fine-tune the model's behavior for that specific capability during the session.
+Without `system_instruction`, the model knows it *has* a tool but lacks the skill's invocation guidance. Injecting `instructions.md` supplies that **Directive** layer for the session.
 
 ### 3. Function Calling Loop
 The `google-genai` SDK returns model parts that can include `function_call` requests.
@@ -101,7 +101,7 @@ for part in response.candidates[0].content.parts:
     if fn := part.function_call:
         print(f"Model wants to call {fn.name} with {fn.args}")
 
-        # 1. Execute Logic
+        # 1. Run Effect
         result = skill_instance.execute(dict(fn.args))
 
         # 2. Send Result

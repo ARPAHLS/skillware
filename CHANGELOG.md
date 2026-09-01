@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **Docs:** Adopt **Skill anatomy** (Contract, Effect, Directive, Assurance, Corpus, Reference, Presentation, Interface) across introduction, README Mission, CONTRIBUTING, provider guides, catalog pages, and contributor templates (#319).
+
 ### Added
 
 - **Skill (`monitoring/kpi_gate` v0.1.0):** Deterministic business-KPI gate evaluating a metrics snapshot against an operator-maintained policy charter and optional versioned benchmark data — error/warning findings plus honest `insufficient_data` refusals with reason codes, fail-closed contract errors from a closed registry, stdlib-only validation, and the catalog/docs surface (#317).

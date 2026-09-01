@@ -76,7 +76,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **In short:** Co-develop deeper skills with industry partners in compliance, finance, supply chain & logistics, manufacturing, among other domains. Higher-assurance datasets, SLAs, and production ownership beyond community contributions alone.
 
-**Example:** An OEM and a plant operator co-maintain a skill chain for production lines: ingest IoT telemetry, normalize units, flag anomalies, and alert on silo levels, line stoppages, and vendor price shifts. Live feeds, audit logs, and signed releases ship inside the bundle. The same skill ids run in staging and on the floor. Logic, governance, and data provenance stay aligned because the bundle is the contract, not a patchwork of prompts and ad-hoc integrations.
+**Example:** An OEM and a plant operator co-maintain a skill chain for production lines: ingest IoT telemetry, normalize units, flag anomalies, and alert on silo levels, line stoppages, and vendor price shifts. Live feeds, audit logs, and signed releases ship inside the bundle. The same skill ids run in staging and on the floor. Effect, Contract, and data provenance stay aligned because the bundle is the contract, not a patchwork of prompts and ad-hoc integrations.
 
 ---
 
@@ -119,6 +119,6 @@ Skillware is community-built. We welcome human contributors and **supervised age
 
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** — fork, branch, skill standard, pull request process.
 - **[Agent Contribution Workflow](contributing/ai_native_workflow.md)** — how operators and agents ship reviewable work.
-- **[Introduction](introduction.md)** — Mind, Body, Conscience architecture in depth.
+- **[Introduction](introduction.md)** — Skill anatomy (Contract, Effect, Directive, Interface) in depth.
 
 Help us make agent capabilities portable, safe, and reusable.

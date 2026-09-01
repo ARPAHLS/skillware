@@ -21,30 +21,32 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
     *   Identifies top counterparties and "most interacted" wallets.
 *   **Risk Scoring**: Flags high-risk patterns based on transaction flow analysis.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/finance/wallet_screening/`.
+The skill is self-contained in `skills/finance/wallet_screening/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
-The system prompt teaches the AI specifically to:
+### Directive (`instructions.md`)
+
+The skill context teaches the host model to:
 *   ACT as a Senior Compliance Officer.
 *   Analyze the JSON report for boolean flags (`sanctioned`, `malicious_interactions`).
 *   Provide a verdict: "Low Risk", "Medium Risk", or "High Risk".
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
+
 The Python implementation has been engineered for speed and depth:
 *   **Dynamic Loading**: It scans the `data/` directory for *any* `.json` file, automatically indexing it as a sanctions source.
 *   **API Integration**: Uses Etherscan for live transaction history and CoinGecko for real-time pricing.
 *   **Forensic Engine**: Replays the wallet's entire history to build a counterparty graph.
 
-### 3. The Knowledge (`data/`)
+### Corpus (`data/`)
 Contains localized JSON snapshots of global sanctions lists.
 *   `entities.ftm.json`: Core sanctions list.
 *   `malicious_scs_2025.json`: Known malicious smart contracts.
 *   `data/*.json`: Hundreds of normalized lists (UniSwap TRM, FBI Lazarus, etc.).
 
-### 4. Maintenance Subsystem (`maintenance/`)
-Tools to keep the knowledge fresh.
+### Corpus tooling (`maintenance/`)
+Offline tools to refresh Corpus (not loaded by `execute()`).
 *   `normalization_tool.py`: Ingests raw CSVs from authorities (FBI, Israel NBCTF) and converts them to the Skillware JSON schema.
 *   `normalize_uniswap_trm.py`: Converts Uniswap's blocked address list into our risk format.
 

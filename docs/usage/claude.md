@@ -17,8 +17,8 @@ claude_tool = SkillLoader.to_claude_tool(skill)
 message = client.messages.create(
     model="claude-3-opus-20240229",
     max_tokens=1024,
-    system=skill['instructions'],  # Inject the "Mind"
-    tools=[claude_tool],           # Bind the "Body"
+    system=skill['instructions'],  # Directive
+    tools=[claude_tool],           # Interface
     messages=[
         {"role": "user", "content": "Check wallet 0x123..."}
     ]
@@ -41,9 +41,7 @@ Skillware's `manifest.yaml` uses standard JSON Schema for `parameters`.
 `SkillLoader.to_claude_tool()` maps `manifest['parameters']` directly to `input_schema`, wrapping it in the correct dictionary structure that the Anthropic API expects.
 
 ### 2. System Prompt Engineering
-Claude excels at following complex instructions. Skillware's `instructions.md` (The Mind) is designed to be passed directly to the `system` parameter of `messages.create()`.
-
-This ensures Claude adopts the persona (e.g., "Senior Compliance Officer") defined by the skill author.
+Claude excels at following complex instructions. Pass `instructions.md` (**Directive**) directly to the `system` parameter of `messages.create()` so the model knows when and how to invoke the skill—not to replace the host agent's persona.
 
 ## 🛠️ Handling Tool Use
 

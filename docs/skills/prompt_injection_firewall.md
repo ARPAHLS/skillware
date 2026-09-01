@@ -23,6 +23,10 @@ An offline, deterministic pre-flight scanner for hostile instructions in untrust
 5. Instruction-override lexicon families (negation, role reset, exfiltration, hijack, authority, boundary spoof)
 6. Corroboration and mention-vs-use downgrades controlled by `sensitivity`
 
+## Bundle layout
+
+The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## Manifest Details
 
 **Parameters Schema:**

@@ -28,15 +28,15 @@ and multi-turn corpus processing.
 - **Pluggable chunking**: Supports `paragraph` (default) and `sentence`
   strategies, with an extensible design for future strategies.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is located in `skills/data_engineering/novelty_extractor/`.
+The skill is located in `skills/data_engineering/novelty_extractor/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 Explains when to invoke the skill, how to interpret outputs, and how to handle
 multi-turn filtering by passing `distilled_content` as `baseline_chunks`.
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
 - **Chunking**: Splits input text using the configured strategy before embedding.
 - **Embedding**: Embeds all chunks in a single batch call using `fastembed`
   (`BAAI/bge-small-en-v1.5`, ~50 MB, downloaded on first use).
