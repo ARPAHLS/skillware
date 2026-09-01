@@ -304,6 +304,7 @@ Commits that touched this skill bundle or its catalog page ([`monitoring/kpi_gat
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`f158fd8`](https://github.com/ARPAHLS/skillware/commit/f158fd844ca2a586ae87d286ffa12d619a999ebf) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d01991`](https://github.com/ARPAHLS/skillware/commit/0d019913ad7b87ad5447b564133bb03b270237d9) | Add monitoring/kpi_gate v0.1.0 implementing the issue #317 interface (#318) | 1 Sep 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |
 <!-- skill-history:end -->
 

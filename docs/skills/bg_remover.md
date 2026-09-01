@@ -333,6 +333,8 @@ Commits that touched this skill bundle or its catalog page ([`creative/bg_remove
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`f158fd8`](https://github.com/ARPAHLS/skillware/commit/f158fd844ca2a586ae87d286ffa12d619a999ebf) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`d32260e`](https://github.com/ARPAHLS/skillware/commit/d32260e) | feat(bg_remover): harden skill to v0.2.0 (#268) | 2 Aug 2026 | `0.2.0` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818), [@rosspeili](https://github.com/rosspeili) |
 | [`c6d4c53`](https://github.com/ARPAHLS/skillware/commit/c6d4c53) | feat(creative): add offline background removal skill (#244) | 16 Jul 2026 | `0.1.0` | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818), [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
