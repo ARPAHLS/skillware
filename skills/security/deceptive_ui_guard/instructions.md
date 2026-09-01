@@ -1,14 +1,15 @@
 # Deceptive UI Guard
 
-You are using the `security/deceptive_ui_guard` skill.
+You are using the `security/deceptive_ui_guard` skill (v0.2.0).
 
 Run this skill on **web HTML surfaces** before an autonomous agent clicks checkout controls, accepts subscriptions, or passes scraped page text into model context. The skill is a deterministic, offline surface-integrity layer — not a guarantee against every semantic manipulation.
 
 ## Trust model
 
 - **HTML-first, offline by default.** Prefer `html_content` from the host browser. Optional public `url` fetch uses SSRF guards; analysis stays deterministic with no LLM detection path.
-- **Dual-surface extraction.** Compares extractable DOM text against the visible surface to catch hidden copy, mislabeled controls, and checkout-zone deception signals.
-- **Corroboration gates.** Not every low signal publishes; findings include selector, snippet, channels, zone, and evidence.
+- **Dual-surface & optional render lane.** Compares extractable DOM text against the visible surface and supports headless Chromium computed-style diffing (`render_mode='auto'|'force'`) to catch external-CSS hidden fees and zero-size overlay traps.
+- **Allowlist-guarded channel matching.** Standard accessibility screen-reader text (`sr-only`, `visually-hidden`), CMP cookie banners (OneTrust, Cookiebot), and SEO tags are allowlisted to prevent false positives unless containing imperative overrides.
+- **Corroboration gates & zone weighting.** Subtrees are classified into `checkout`, `modal`, `cmp`, `navigation`, and `general` zones with severity weighting.
 - **Warn only.** Never click, submit forms, or complete checkout. Escalate high/critical checkout findings to a human.
 
 ## When to invoke
@@ -28,9 +29,11 @@ Run this skill on **web HTML surfaces** before an autonomous agent clicks checko
 | `surface_integrity` | `ok`, `degraded`, or `compromised` |
 | `risk_level` | Aggregated severity (`none` when clean) |
 | `detected_threat` | Primary human-readable reason when unsafe |
-| `findings` | Published signals only (`type`, `subtype`, `severity`, `selector`, `snippet`, `zone`, `evidence`) |
+| `findings` | Published signals (`type`, `subtype`, `severity`, `selector`, `snippet`, `zone`, `evidence`) |
 | `agent_guidance` | `do_not_click` selectors, `verify_before_payment`, summary |
 | `sanitized_excerpt` | Visible-surface text safe for downstream context |
+| `zone_summary` | Breakdown of DOM zones identified and their risk weights |
+| `session_recommendation` | Guidance based on session nag loop detection |
 | `fetch_status` | `skipped`, `ok`, or error detail when `url` was used |
 | `offline` | `true` when only local HTML was analyzed |
 | `sensitivity` | Sensitivity level used for the scan |
@@ -42,14 +45,16 @@ If `is_safe` is `false`, honor `agent_guidance.do_not_click` and prefer `sanitiz
 - `html_content` (preferred): Sanitized HTML or DOM snapshot from the host browser
 - `url` (optional): Public http(s) URL when HTML is unavailable (network + SSRF guards)
 - `sensitivity`: `strict`, `balanced` (default), or `lenient`
-- `intended_action` (optional): Task hint (e.g. complete checkout) to tune guidance
+- `intended_action` (optional): Task hint (e.g. complete checkout) to tune zone weighting and guidance
+- `render_mode` (optional): `off` (default), `auto`, or `force` for optional Playwright computed-style diffing
+- `surface_profile` (optional): `desktop` (default), `mobile`, or `auto` (inferred from viewport meta)
+- `session_fingerprint` (optional): Stable session hash to detect recurring nag loops across pages
 
-### Sensitivity posture
+## Allowlist maintenance
 
-- **balanced (default):** Publishes channel mismatches with imperative/deception lexicon hits; checkout-zone fee/renewal copy; mislabeled CTAs. Lone hidden non-visible text needs checkout zone or strict mode.
-- **strict:** Also publishes low-contrast checkout styling and more lone-signal lexical hits. Use for autonomous commerce agents.
-- **lenient:** Suppresses low-confidence channel mismatches; still publishes imperative hidden text and checkout fee/renewal signals.
+Allowlists live under `skills/security/deceptive_ui_guard/kb/`:
+- `allowlist_sr_only.json`: Add new legitimate accessibility/screen-reader classes or patterns.
+- `allowlist_cmp.json`: Add new Consent Management Platform vendor selectors and benign copy.
+- `allowlist_seo.json`: Add valid metadata tags and structured data script types.
+- `deception_lexicon.json`: Curated dark pattern phrases and categories.
 
-## Limitations
-
-Heuristic surface analysis can miss semantic dark patterns without structural or lexical signals. External-stylesheet hiding may be missed until render diff (v2). Aggressive but legitimate marketing copy can false-positive at `strict`. Use human review for payment flows when `verify_before_payment` is set.

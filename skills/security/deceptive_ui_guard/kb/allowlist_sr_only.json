@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "file": "allowlist_sr_only.json",
+    "skill": "security/deceptive_ui_guard",
+    "purpose": "Allowlist for standard accessibility and screen-reader-only patterns to suppress false-positive channel_mismatch findings.",
+    "version": "0.2.0"
+  },
+  "classes": [
+    "sr-only",
+    "sr-only-focusable",
+    "visually-hidden",
+    "visuallyhidden",
+    "visually_hidden",
+    "screen-reader-text",
+    "screen-reader-only",
+    "reader-text",
+    "hidden-accessible",
+    "clip-hidden",
+    "skip-link",
+    "skip-to-content",
+    "skip-main",
+    "a11y-sr-only",
+    "cdk-visually-hidden"
+  ],
+  "attributes": [
+    "aria-live",
+    "aria-atomic",
+    "aria-relevant"
+  ],
+  "patterns": [
+    "skip to main content",
+    "skip to content",
+    "screen reader only",
+    "opens in new window",
+    "opens in a new tab",
+    "expanded",
+    "collapsed",
+    "required field",
+    "close dialog",
+    "close menu"
+  ]
+}

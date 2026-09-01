@@ -94,6 +94,12 @@ Three common setups and what to watch for in each.
 
 **External path.** You point SKILLWARE_SKILL_PATH at a third-party skills directory (External). This is the highest-risk case: unreviewed code runs in your process with access to your entire os.environ. Because a skill can read environment variables and make network calls, a malicious or careless external skill could read your API keys or secrets and send them elsewhere — nothing in the loader prevents this. Only load external skills you have read.
 
+### Browse and checkout defense chain
+
+When autonomous browser agents navigate e-commerce, banking, or SaaS portals, host agents should establish a dual-defense chain:
+1. **Pre-click & Pre-context**: Run `security/deceptive_ui_guard` across sanitized page HTML to detect channel mismatches, hidden checkout fees, drip pricing, and mislabeled CTAs before interacting with buttons or entering payment information.
+2. **Text-channel firewalling**: Pass the resulting `sanitized_excerpt` through `security/prompt_injection_firewall` before feeding untrusted text into the agent's LLM context window to prevent prompt injection and instruction overrides.
+
 ## 6. Operator checklist
 
 Because there is no default isolation, these precautions are on you, the operator — the loader does not do them for you:

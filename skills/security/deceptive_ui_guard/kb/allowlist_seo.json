@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "file": "allowlist_seo.json",
+    "skill": "security/deceptive_ui_guard",
+    "purpose": "Allowlist for legitimate metadata, structured data (JSON-LD), and SEO tags not intended for visual display.",
+    "version": "0.2.0"
+  },
+  "tags": [
+    "meta",
+    "link",
+    "noscript"
+  ],
+  "script_types": [
+    "application/ld+json",
+    "application/json",
+    "text/template",
+    "text/html"
+  ],
+  "attributes": [
+    "itemprop",
+    "itemscope",
+    "itemtype"
+  ]
+}

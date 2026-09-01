@@ -1,6 +1,6 @@
 {
     "name": "Deceptive UI Guard",
-    "description": "Deterministic deceptive UI surface scan with trust score and agent guidance.",
+    "description": "Deterministic deceptive UI surface scan with render diff, DOM zone weighting, allowlists, and trust score.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",
@@ -35,6 +35,14 @@
             {
                 "key": "detected_threat",
                 "label": "Primary Threat"
+            },
+            {
+                "key": "zone_summary",
+                "label": "Zone Breakdown"
+            },
+            {
+                "key": "session_recommendation",
+                "label": "Session Guidance"
             },
             {
                 "key": "sanitized_excerpt",

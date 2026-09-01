@@ -1,0 +1,48 @@
+{
+  "_meta": {
+    "file": "allowlist_cmp.json",
+    "skill": "security/deceptive_ui_guard",
+    "purpose": "Allowlist for known Consent Management Platform (CMP) containers, selectors, and benign cookie banner copy.",
+    "version": "0.2.0"
+  },
+  "selectors": [
+    "#onetrust-consent-sdk",
+    "#onetrust-banner-sdk",
+    "#onetrust-pc-sdk",
+    "#cookiebot",
+    "#CybotCookiebotDialog",
+    "#CybotCookiebotDialogBody",
+    ".cookiebot",
+    ".cookieyes",
+    "#cky-consent-container",
+    ".usercentrics-cmp",
+    "#usercentrics-root",
+    ".klaro",
+    ".trustarc",
+    "#truste-consent-track",
+    ".cookie-banner",
+    ".cookie-notice",
+    ".consent-banner",
+    ".cookie-consent",
+    "#cookie-consent",
+    "[data-nosnippet*=\"cookie\"]",
+    "[id*=\"cookie-banner\"]",
+    "[class*=\"cookie-consent\"]"
+  ],
+  "benign_phrases": [
+    "we use cookies",
+    "we use cookies to improve your experience",
+    "this site uses cookies",
+    "by continuing to browse",
+    "accept cookies",
+    "accept all cookies",
+    "manage cookie preferences",
+    "cookie settings",
+    "reject non-essential cookies",
+    "privacy and cookie policy",
+    "strictly necessary cookies",
+    "functional cookies",
+    "performance cookies",
+    "targeting cookies"
+  ]
+}
