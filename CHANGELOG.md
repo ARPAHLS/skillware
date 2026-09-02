@@ -19,6 +19,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Changed
 
 - **Docs (`README.md`, `docs/introduction.md`):** Refresh opening narrative, tighten Quick Start, shorten Gemini hero example (`monitoring/token_limiter`), rectangular How it works Mermaid, simplify introduction diagrams, remove legacy Body/Mind/Conscience aliases, and align Presentation (`card.json`) with registry bundle standard (#326).
+- **Security:** Bump support windows — `>= 0.5.3` patched, `0.4.6–0.5.2` silent (no security fixes), `< 0.4.6` unsupported with CLI advisory (`SECURITY.md`, `version_policy.py`).
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
 
 ### Fixed
