@@ -18,12 +18,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
-- **Docs:** Adopt **Skill anatomy** (Contract, Effect, Directive, Assurance, Corpus, Reference, Presentation, Interface) across introduction, README Mission, CONTRIBUTING, provider guides, catalog pages, and contributor templates (#319).
+- **Docs (`README.md`, `docs/introduction.md`):** Refresh opening narrative, tighten Quick Start, shorten Gemini hero example (`monitoring/token_limiter`), rectangular How it works Mermaid, simplify introduction diagrams, remove legacy Body/Mind/Conscience aliases, and align Presentation (`card.json`) with registry bundle standard (#326).
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
 
 ### Fixed
 
-- **Docs (`README.md`):** Fix How it works Mermaid — use stadium node `([Any Host])` for the third block (rectangle `[Any Host]` breaks rendering; same pattern as pre-#319 `([Logical Systems])`).
+- **Docs (`README.md`, `docs/introduction.md`):** How it works Mermaid — rectangular `AnyHost["Any Host"]` node aligned with Registry and Loader blocks (#326).
 - **Tests:** Isolate `pytest tests/` from the operator's global `config.yaml` via autouse `SKILLWARE_CONFIG_DIR` in `tests/conftest.py`; add configured-mode discovery and loader coverage alongside legacy-order tests (#302).
 
 ## [0.5.2] - 2026-08-27
