@@ -82,6 +82,8 @@ The same distinction applies to other manifest fields. Declaring env_vars docume
 
 Some skill content is instructions rather than code — markdown packs and similar material that an agent reads. Loading it does not execute Python in your process, but that does not make it safe: instructions can still steer what the agent does (including how it uses other tools and skills). The risk moves from process access to agent behavior. Treat instruction-only content from outside your project with the same provenance judgment as executable skills: read it before you let an agent follow it.
 
+**Assurance (`test_skill.py`)** — Registry bundles ship pytest coverage for deterministic Effect behavior. Passing Assurance is the contributor contract for regressions; it does not sandbox execution or prove a skill is safe to run.
+
 ## 5. Concrete flows
 
 Three common setups and what to watch for in each.

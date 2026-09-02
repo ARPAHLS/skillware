@@ -13,6 +13,10 @@
 
 Deterministic wellness coaching guardrail for host agents. Runs crisis triage before retrieval, blocks clinical overreach, retrieves grounded KB chunks with citations, and optionally runs a Gemini scope evaluator.
 
+## Bundle layout
+
+The skill lives in `skills/wellness/mental_coach/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py` and gate modules. **Corpus** — `kb/` (crisis resources, coaching corpus, constraints). **Assurance** — `test_skill.py`.
+
 > **Health disclaimer:** This skill provides general wellness support and information only. It is not medical, psychological, or clinical advice and is not a substitute for care from a licensed professional. Use at your own discretion. Active safety guardrails (deterministic crisis gate and hard constraints) reduce risk but do not replace professional judgment; double-check results and treat output as everyday coping guidance, not medical advice. In a crisis or emergency, contact local emergency services or the crisis resources returned by the skill.
 
 ## What It Does
@@ -180,6 +184,8 @@ Commits that touched this skill bundle or its catalog page ([`wellness/mental_co
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`6cbe140`](https://github.com/ARPAHLS/skillware/commit/6cbe140) | Add wellness/mental_coach skill resolving #148 (#174) | 22 Jun 2026 | `0.1.0` | [@mrmasa88](https://github.com/mrmasa88) |

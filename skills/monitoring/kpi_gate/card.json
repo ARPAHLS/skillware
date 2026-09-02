@@ -1,0 +1,33 @@
+{
+    "name": "KPI Gate",
+    "description": "Deterministic business-KPI gate: metrics snapshot vs policy charter with fail-closed findings.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "gauge",
+    "color": "#0f766e",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "policy_id",
+                "label": "Policy"
+            },
+            {
+                "key": "benchmark_version",
+                "label": "Benchmark Version"
+            },
+            {
+                "key": "findings",
+                "label": "Findings"
+            }
+        ]
+    }
+}

@@ -10,9 +10,9 @@ from typing import Optional
 from packaging.version import Version
 
 PACKAGE_NAME = "skillware"
-MIN_SECURITY_SUPPORTED = Version("0.4.7")
-MIN_UNSUPPORTED = Version("0.3.5")
-UPGRADE_TARGET = "0.4.7"
+MIN_SECURITY_SUPPORTED = Version("0.5.3")
+MIN_UNSUPPORTED = Version("0.4.6")
+UPGRADE_TARGET = "0.5.3"
 
 
 def is_version_check_disabled() -> bool:
@@ -34,7 +34,7 @@ def get_installed_version() -> Optional[Version]:
 
 
 def should_emit_unsupported_advisory(installed: Version) -> bool:
-    """True only for installs below MIN_UNSUPPORTED (e.g. 0.3.4 and earlier)."""
+    """True only for installs below MIN_UNSUPPORTED (e.g. 0.4.5 and earlier)."""
     return installed < MIN_UNSUPPORTED
 
 

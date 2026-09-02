@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skillware"
-version = "0.5.2"
+version = "0.5.3"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
@@ -139,6 +139,8 @@ dev_tools_issue_resolver = []
 finance_uk_companies_house_handler = []
 
 finance_wallet_screening = []
+
+monitoring_kpi_gate = []
 
 monitoring_token_limiter = []
 

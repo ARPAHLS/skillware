@@ -24,6 +24,10 @@ Structured EVM operations for a **dedicated agent wallet**: resolve trade intent
 | `wallet_info` | Address, supported chains, preferences (no secrets) |
 | `update_preferences` | Persist allowed keys to `config.yaml` |
 
+## Bundle layout
+
+The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Reference** — `data/` (chains, tokens, address book YAML). **Assurance** — `test_skill.py`.
+
 ## Environment
 
 | Variable | Required | Purpose |
@@ -192,6 +196,7 @@ Commits that touched this skill bundle or its catalog page ([`defi/evm_tx_handle
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4814478`](https://github.com/ARPAHLS/skillware/commit/4814478) | Fix: to_gemini_tool to return types.Tool object. Fixes #223 (#229) | 10 Jul 2026 | `0.2.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |

@@ -95,7 +95,7 @@ You must:
 | CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
 | Examples | `examples/*.py`, `examples/README.md`, `docs/usage/agent_loops.md`; run `pytest tests/test_registry_docs.py` when the index or matrix changes |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `tests/test_config.py`, `docs/usage/` |
-| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. Run `pytest tests/test_registry_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
+| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. For skill anatomy vocabulary, keep [introduction.md](../introduction.md#skill-anatomy), CONTRIBUTING, and README Mission aligned. Run `pytest tests/test_registry_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
@@ -157,6 +157,8 @@ pytest tests/test_registry_docs.py
 ```
 
 These checks are part of `pytest tests/` and will run in CI regardless, but an early local run saves a round-trip.
+
+Framework tests are isolated from your operator global `config.yaml` automatically (`tests/conftest.py`, #302). A local full suite should pass even after `skillware mail signature init`; CI remains authoritative.
 
 Before Stage 5, scan your diff for:
 
@@ -234,7 +236,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 
 ### Skills (under `skills/`)
 
-- Bundle: `manifest.yaml`, `skill.py`, `instructions.md`, `card.json`, `test_skill.py`, plus catalog docs
+- Bundle: `manifest.yaml` (Contract), `skill.py` (Effect), `instructions.md` (Directive), `card.json` (Presentation), `test_skill.py` (Assurance), plus catalog docs
 - `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
 - `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
@@ -245,7 +247,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
 - Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `monitoring`, `office`, `optimization`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
-- Logic in `skill.py`; prompts and persona in `instructions.md`
+- **Effect** in `skill.py`; **Directive** (skill context, not host persona) in `instructions.md`; **Contract** in `manifest.yaml`
 - Never commit secrets; document `env_vars` in the manifest
 
 ### Core framework (`skillware/core/`)
@@ -274,12 +276,12 @@ Complete the checklist that matches your issue during Stage 5.
 ### New or updated skill
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
-- [ ] `manifest.yaml`: `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
+- [ ] `manifest.yaml` (Contract): `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
-- [ ] `skill.py`: exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
-- [ ] `instructions.md`: when to use, how to interpret output, limitations
-- [ ] `card.json`: `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)
-- [ ] `test_skill.py` (bundle test) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
+- [ ] `skill.py` (Effect): exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
+- [ ] `instructions.md` (Directive): when to use, how to interpret output, limitations
+- [ ] `card.json` (Presentation): `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)
+- [ ] `test_skill.py` (Assurance) passes — `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
 - [ ] Bundle tests mock all network calls and model downloads; CI does not download models.
 - [ ] `docs/skills/<skill_name>.md` and catalog row in `docs/skills/README.md` (**Version** from manifest, **Skill history** with linked GitHub usernames, **Recommended install:** `pip install "skillware[<category>_<skill>]"` per [install_extras.md](../usage/install_extras.md))
 - [ ] After changing `manifest.yaml` `requirements`, run `python scripts/sync_extras.py` and confirm `python scripts/sync_extras.py --check` passes

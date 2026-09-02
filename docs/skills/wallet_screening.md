@@ -21,30 +21,32 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
     *   Identifies top counterparties and "most interacted" wallets.
 *   **Risk Scoring**: Flags high-risk patterns based on transaction flow analysis.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is self-contained in `skills/finance/wallet_screening/`.
+The skill is self-contained in `skills/finance/wallet_screening/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
-The system prompt teaches the AI specifically to:
+### Directive (`instructions.md`)
+
+The skill context teaches the host model to:
 *   ACT as a Senior Compliance Officer.
 *   Analyze the JSON report for boolean flags (`sanctioned`, `malicious_interactions`).
 *   Provide a verdict: "Low Risk", "Medium Risk", or "High Risk".
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
+
 The Python implementation has been engineered for speed and depth:
 *   **Dynamic Loading**: It scans the `data/` directory for *any* `.json` file, automatically indexing it as a sanctions source.
 *   **API Integration**: Uses Etherscan for live transaction history and CoinGecko for real-time pricing.
 *   **Forensic Engine**: Replays the wallet's entire history to build a counterparty graph.
 
-### 3. The Knowledge (`data/`)
+### Corpus (`data/`)
 Contains localized JSON snapshots of global sanctions lists.
 *   `entities.ftm.json`: Core sanctions list.
 *   `malicious_scs_2025.json`: Known malicious smart contracts.
 *   `data/*.json`: Hundreds of normalized lists (UniSwap TRM, FBI Lazarus, etc.).
 
-### 4. Maintenance Subsystem (`maintenance/`)
-Tools to keep the knowledge fresh.
+### Corpus tooling (`maintenance/`)
+Offline tools to refresh Corpus (not loaded by `execute()`).
 *   `normalization_tool.py`: Ingests raw CSVs from authorities (FBI, Israel NBCTF) and converts them to the Skillware JSON schema.
 *   `normalize_uniswap_trm.py`: Converts Uniswap's blocked address list into our risk format.
 
@@ -255,6 +257,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`0b308d3`](https://github.com/ARPAHLS/skillware/commit/0b308d3) | feat(wallet_screening): paginate Etherscan txlist and surface warnings (#214) (#215) | 23 Jul 2026 | `1.0.1` | [@Hendobox](https://github.com/Hendobox) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`f301088`](https://github.com/ARPAHLS/skillware/commit/f301088) | Implement manifest param validation and standardize outputs key. (#253) | 12 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |

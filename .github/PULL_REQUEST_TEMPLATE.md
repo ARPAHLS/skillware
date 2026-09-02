@@ -37,12 +37,12 @@ Skip unless this PR adds or changes files under `skills/`.
 - [ ] `manifest.yaml`: `name` (full ID), `version`, `description`, `parameters`, `constitution`, real `issuer`
 - [ ] Optional: `short_description`, `issuer.github`, `issuer.org`, `requirements`, `env_vars`
 
-### Logic, cognition, tests
+### Effect, Directive, Assurance
 
-- [ ] Deterministic `skill.py` (no ad-hoc LLM-generated execution paths)
-- [ ] `instructions.md` explains when and how to use the skill
-- [ ] `card.json` issuer matches manifest when present
-- [ ] `test_skill.py` covers execution and schema expectations
+- [ ] Deterministic `skill.py` (Effect; no ad-hoc LLM-generated execution paths)
+- [ ] `instructions.md` (Directive) explains when and how to use the skill
+- [ ] `card.json` (Presentation) issuer matches manifest when present
+- [ ] `test_skill.py` (Assurance) covers execution and schema expectations
 - [ ] `SkillLoader.load_skill("<category>/<skill_name>")` succeeds (or deps documented)
 
 ### Documentation and catalog

@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "period": {"start": "2026-08-17", "end": "2026-08-23", "granularity": "weekly"},
+  "metrics": {"replies": 24, "reply_to_booking_rate_pct": 4.0}
+}

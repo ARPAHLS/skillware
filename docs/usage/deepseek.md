@@ -57,7 +57,7 @@ DeepSeek applies the same function-name rules as other OpenAI-compatible tool AP
 
 Match `tool_call.function.name` to `tool["function"]["name"]` from `to_deepseek_tool()`, not the raw manifest `name` string.
 
-### 3. System message (the Mind)
+### 3. System message (Directive)
 
 Pass `bundle["instructions"]` as the `system` role content so the model knows when to call the skill.
 

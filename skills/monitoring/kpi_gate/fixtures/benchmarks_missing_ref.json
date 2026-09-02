@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "benchmark_version": "demo-missing-ref",
+  "as_of": "2026-08-01",
+  "sources": [
+    "https://github.com/ARPAHLS/skillware/issues/317"
+  ],
+  "values": {
+    "some_other_benchmark_pct": {"value": 10.0, "unit": "pct"}
+  }
+}

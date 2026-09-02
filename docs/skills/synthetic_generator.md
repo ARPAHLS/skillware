@@ -18,14 +18,14 @@ A specialized data engineering capability that combats "model collapse" by gener
 *   **Combinatorial Entropy Injection**: Designed to explicitly seek out edge-case personas via the `diversity_prompt`, significantly raising the variance of training data.
 *   **Zero-Dependency Evaluation Heuristic**: Employs built-in `zlib` string compression ratios to calculate a dynamic entropy score, allowing the coordinating agent to reject low-entropy boilerplate data instantly.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is located in `skills/data_engineering/synthetic_generator/`.
+The skill is located in `skills/data_engineering/synthetic_generator/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 The system instructions emphasize boundary-pushing data generation. It prohibits standard AI tropes and enforces schema obedience.
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
 *   **Data Generation**: The skill handles invoking the LLM behind the scenes, using the configured provider and isolating the `temperature` specifically for the data generation task so the primary coordinating agent doesn't need to run at high temperature.
 *   **Validation**: Attempts to automatically parse out code blocks to extract standard JSON object arrays.
 *   **Entropy Scoring**: Converts text sequences into `zlib` compressed bytes. A poor compression ratio implies high lexical variance (less repetitive syntax).
@@ -204,6 +204,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/s
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0f81d1f`](https://github.com/ARPAHLS/skillware/commit/0f81d1f) | Backfill bundle tests for six registry skills missing test_skill.py. | 10 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

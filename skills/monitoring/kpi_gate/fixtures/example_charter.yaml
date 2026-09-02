@@ -1,0 +1,19 @@
+schema_version: 2
+policy_id: coaching_funnel_demo_v1
+metrics: [outreach_sends, replies, bookings, lp_sessions, downloads,
+          download_rate_pct, reply_to_booking_rate_pct]
+rules:
+  - id: NO_BOOKING
+    metric: bookings
+    check: {op: gte, threshold: 1}
+    severity: error
+  - id: DOWNLOAD_RATE_BELOW_DOCTRINE
+    metric: download_rate_pct
+    check: {op: gte, benchmark_ref: lead_magnet_download_rate_pct}
+    severity: warning
+  - id: BOOKING_CONVERSION_TRACKED
+    metric: reply_to_booking_rate_pct
+    check: {op: gte, threshold: 10}
+    severity: warning
+    requires: {denominator_metric: replies, min_denominator: 25,
+               granularity: weekly, reason_code: cohort_attribution_unavailable}

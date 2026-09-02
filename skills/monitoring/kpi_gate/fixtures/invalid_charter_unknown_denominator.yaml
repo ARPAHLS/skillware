@@ -1,0 +1,9 @@
+schema_version: 2
+policy_id: unknown_denominator_demo
+metrics: [reply_to_booking_rate_pct]
+rules:
+  - id: BOOKING_CONVERSION_TRACKED
+    metric: reply_to_booking_rate_pct
+    check: {op: gte, threshold: 10}
+    severity: warning
+    requires: {denominator_metric: replies, min_denominator: 25}

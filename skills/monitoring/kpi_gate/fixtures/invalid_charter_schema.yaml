@@ -1,0 +1,8 @@
+schema_version: 2
+policy_id: invalid_rule_shape_demo
+metrics: [bookings]
+rules:
+  - id: lower_case_bad_id
+    metric: bookings
+    check: {op: between, threshold: 1}
+    severity: error

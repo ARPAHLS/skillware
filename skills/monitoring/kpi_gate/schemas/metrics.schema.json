@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/kpi_gate:metrics:1",
+  "type": "object",
+  "required": ["schema_version", "period", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "period": {
+      "type": "object",
+      "required": ["start", "end", "granularity"],
+      "additionalProperties": false,
+      "properties": {
+        "start": {"type": "string", "format": "date"},
+        "end": {"type": "string", "format": "date"},
+        "granularity": {"enum": ["daily", "weekly", "monthly"]}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {"^[a-z][a-z0-9_]*$": {"type": "number", "minimum": 0}},
+      "additionalProperties": false
+    }
+  }
+}

@@ -8,4 +8,28 @@ For Gemini sections, ensure the dispatch matches the sanitized tool name (e.g. `
 
 Link to [agent_loops.md](agent_loops.md), [install_extras.md](install_extras.md), and [README.md](README.md). List skill-specific env vars in an **Environment** table; link to [api_keys.md](api_keys.md) for setup.
 
-Do not duplicate the full API keys guide on skill pages. For authoring `instructions.md` within the skill bundle itself, see [CONTRIBUTING.md (§3 instructions.md)](../../CONTRIBUTING.md#3-instructionsmd-cognition) for append-only skill context guidelines.
+Do not duplicate the full API keys guide on skill pages. For authoring `instructions.md` within the skill bundle itself, see [CONTRIBUTING.md (§3 instructions.md)](../../CONTRIBUTING.md#3-instructionsmd-directive) for append-only skill context guidelines.
+
+## Bundle layout (catalog section)
+
+Optional but recommended on catalog pages. Link [Introduction — Skill anatomy](../introduction.md#skill-anatomy).
+
+```markdown
+## Bundle layout
+
+The skill lives in `skills/<category>/<skill_name>/`. Roles: [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+
+### Effect (`skill.py`)
+…
+
+### Directive (`instructions.md`)
+…
+
+### Corpus (optional)
+… `kb/`, `data/`, …
+
+### Reference (optional)
+… `schemas/`, …
+```
+
+Use **Effect modules** for co-located helpers (`workflow.py`, …). Use **Corpus tooling** for offline maintenance scripts, not loaded by `execute()`. **Interface** (model adapters) is framework code—do not list it as a bundle file.

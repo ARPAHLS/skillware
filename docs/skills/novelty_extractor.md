@@ -28,15 +28,15 @@ and multi-turn corpus processing.
 - **Pluggable chunking**: Supports `paragraph` (default) and `sentence`
   strategies, with an extensible design for future strategies.
 
-## Internal Architecture
+## Bundle layout
 
-The skill is located in `skills/data_engineering/novelty_extractor/`.
+The skill is located in `skills/data_engineering/novelty_extractor/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### 1. The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 Explains when to invoke the skill, how to interpret outputs, and how to handle
 multi-turn filtering by passing `distilled_content` as `baseline_chunks`.
 
-### 2. The Body (`skill.py`)
+### Effect (`skill.py`)
 - **Chunking**: Splits input text using the configured strategy before embedding.
 - **Embedding**: Embeds all chunks in a single batch call using `fastembed`
   (`BAAI/bge-small-en-v1.5`, ~50 MB, downloaded on first use).
@@ -230,6 +230,8 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/n
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0d550d0`](https://github.com/ARPAHLS/skillware/commit/0d550d0) | docs: sweep vision, bundle class usage, and README Mermaid | 8 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`b994606`](https://github.com/ARPAHLS/skillware/commit/b994606) | fix(novelty_extractor): mock embeddings in bundle tests for offline CI | 13 Jun 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

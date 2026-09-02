@@ -12,12 +12,25 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
 - **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
+
+## [0.5.3] - 2026-09-01
+
+### Added
+
+- **Skill (`monitoring/kpi_gate` v0.1.0):** Deterministic business-KPI gate evaluating a metrics snapshot against an operator-maintained policy charter and optional versioned benchmark data — error/warning findings plus honest `insufficient_data` refusals with reason codes, fail-closed contract errors from a closed registry, stdlib-only validation, and the catalog/docs surface (#317).
 - **Tests (`tests/test_examples_smoke.py`):** Added automated CI smoke test suite for local-execute offline demo scripts under `examples/`, catching import regressions and SkillLoader dispatch errors without requiring live API keys (#237).
 - **Docs (`docs/TESTING.md`):** Documented the example smoke testing layer and skip policy for live model provider loops in CI (#237).
 
 ### Changed
 
+- **Docs (`README.md`, `docs/introduction.md`):** Refresh opening narrative, tighten Quick Start, shorten Gemini hero example (`monitoring/token_limiter`), rectangular How it works Mermaid, simplify introduction diagrams, remove legacy Body/Mind/Conscience aliases, and align Presentation (`card.json`) with registry bundle standard (#326).
+- **Security:** Bump support windows — `>= 0.5.3` patched, `0.4.6–0.5.2` silent (no security fixes), `< 0.4.6` unsupported with CLI advisory (`SECURITY.md`, `version_policy.py`).
 - **Docs:** Document `issuer.org` design-ownership policy; align ARPA-driven registry skills (`prompt_injection_firewall`, `bg_remover`, `novelty_extractor`) and catalog Issuer lines (#295).
+
+### Fixed
+
+- **Docs (`README.md`, `docs/introduction.md`):** How it works Mermaid — rectangular `AnyHost["Any Host"]` node aligned with Registry and Loader blocks (#326).
+- **Tests:** Isolate `pytest tests/` from the operator's global `config.yaml` via autouse `SKILLWARE_CONFIG_DIR` in `tests/conftest.py`; add configured-mode discovery and loader coverage alongside legacy-order tests (#302).
 
 ## [0.5.2] - 2026-08-27
 

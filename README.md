@@ -31,20 +31,23 @@
 
 ---
 
-**Skillware** is an open-source framework and registry for modular, actionable Agent capabilities. It treats **Skills** as installable content, decoupling capability from intelligence. Just as `apt-get` installs software and `pip` installs libraries, `skillware` installs *know-how* for AI agents.
+**Skillware** is an open-source framework and registry for modular, actionable Agent capabilities. It installs know-how for AI agents — modular **Skills** (code, contract, and host guidance) that decouple capability from the model. Don't prompt your agents — equip them.
 
 > "I know Kung Fu." - Neo
 
 ## Mission
 
-The AI ecosystem is fragmented. Developers often re-invent tool definitions, system prompts, and safety rules for every project. **Skillware** supplies a standard to package capabilities into self-contained, installable units that work across **Gemini**, **Claude**, **Ollama**, **GPT**, and **Llama**. For the full story and roadmap, see our **[Vision](docs/vision.md)**.
+Every new agent stack tends to reinvent tool schemas, system prompts, and safety rules. **Skillware** packages each capability as a self-contained bundle and adapts it to **Gemini**, **Claude**, **OpenAI**, **Ollama**, and other OpenAI-compatible hosts. For the full story and roadmap, see **[Vision](docs/vision.md)**.
 
 A **Skill** in this framework provides everything an Agent needs to master a domain:
 
-1. **Logic**: Executable Python so agents run real work, not guess it.
-2. **Cognition**: System instructions and cognitive maps so any logical system uses the capability as intended.
-3. **Governance**: Constitution, safety boundaries, and hard limits baked into the bundle.
-4. **Interface**: Standardized tool schemas for any LLM or agent runtime.
+1. **Contract**: Constitution, safety boundaries, and typed I/O baked into the bundle.
+2. **Effect**: Executable Python so agents run real work, not guess it.
+3. **Directive**: System instructions and cognitive maps so any host uses the capability as intended.
+4. **Assurance**: Offline tests that Effect honors Contract before a skill joins the registry.
+5. **Interface**: Standardized tool schemas for any LLM or agent runtime.
+
+Optional **Corpus** and **Reference** assets extend bundles when needed. Every bundled registry skill also ships **Presentation** (`card.json`) for catalog and UI metadata. Full reference: [Introduction — Skill anatomy](docs/introduction.md#skill-anatomy).
 
 ### Skill library
 
@@ -55,12 +58,10 @@ Browse capabilities by category in the [Skill library](docs/skills/README.md) or
 ```mermaid
 flowchart LR
     Registry[Registry] -->|Load| Loader[Loader]
-    Loader -->|Adapt| Host[Host]
-    Host -->|Prompt + Tools| LogicalSystems([Logical Systems])
-    LogicalSystems -->|Tool Call| Host
+    Loader -->|Adapt| AnyHost["Any Host"]
 ```
 
-Install the registry once. Skillware loads a bundle and adapts it to your model's tool format — you run the loop. For details on how the loader turns the manifest into a tool, see the [Introduction](docs/introduction.md).
+Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). See the [Introduction](docs/introduction.md) for loader details and [Agent loops](docs/usage/agent_loops.md) for the execution pattern.
 
 ## Architecture
 
@@ -75,11 +76,11 @@ Skillware/
 ├── skills/                     # Skill Registry
 │   └── category/               # Domain boundaries (e.g., finance)
 │       └── skill_name/         # The Skill bundle
-│           ├── manifest.yaml   # Definition, schema, and constitution
-│           ├── skill.py        # Executable Python logic
-│           ├── instructions.md # Cognitive map for the LLM
-│           ├── card.json       # Optional UI presentation metadata
-│           └── test_skill.py   # Bundle test (required for new skills; see docs/TESTING.md)
+│           ├── manifest.yaml   # Contract: schema, constitution, issuer
+│           ├── skill.py        # Effect: deterministic execution
+│           ├── instructions.md # Directive: host guidance
+│           ├── card.json       # Presentation: catalog / UI metadata
+│           └── test_skill.py   # Assurance (required for registry skills)
 ├── skillware/                  # Core Framework Package
 │   ├── cli.py                  # Command-line interface
 │   └── core/
@@ -124,20 +125,9 @@ skillware list
 skillware paths
 ```
 
-This prints a table of all locally available skills and confirms the install
-and path resolution are working. `skillware paths` shows the **live** root order
-the loader uses (legacy without config: external → project → bundled; with
-`.skillware.yaml` or global config: project → external → bundled by default),
-tier labels, and shadowing. **Bundled registry skills from `pip install skillware`
-are always available** — an empty or missing local `skills/` folder does not
-disable them. Running `skillware` with no arguments opens the interactive menu.
-As optional checks you can also run `skillware test` to execute bundle tests,
-and `skillware examples` to browse the runnable example index (fetched from
-GitHub when no local `examples/README.md` is present).
+You should see a table of bundled registry skills and a paths summary confirming install and discovery. **Bundled skills from `pip install skillware` are always available** — an empty local `skills/` folder does not disable them.
 
-If `skillware` is not recognized, Python's `Scripts` directory may not be on
-your PATH — use `python -m skillware list` as a fallback. See
-[CLI Reference](docs/usage/cli.md#running-the-cli) for details.
+For path tiers, shadowing, config files, and the interactive menu, see [CLI — paths & tiers](docs/usage/cli.md#skillware-paths), [CLI — config](docs/usage/cli.md#skillware-config), and [Finding skills on disk](docs/usage/README.md#finding-skills-on-disk). If `skillware` is not on your PATH, use `python -m skillware list` ([CLI Reference](docs/usage/cli.md#running-the-cli)).
 
 ### 3. Configuration
 
@@ -163,66 +153,38 @@ Edit `.env` with agent keys (for example Gemini) and any keys your skills need. 
 
 ### 4. Usage Example (Gemini)
 
-This example requires the Google SDK optional extra: `pip install "skillware[gemini]"` (local dev: `pip install -e ".[gemini]"`). See the [Gemini usage guide](docs/usage/gemini.md) for setup details.
+Requires `pip install "skillware[gemini]"` (dev: `pip install -e ".[gemini]"`) and `GOOGLE_API_KEY`. The skill itself is offline — no skill API keys. For setup details see [Gemini usage guide](docs/usage/gemini.md). Multi-turn loops: [Agent loops](docs/usage/agent_loops.md).
 
 ```python
-import os
 import google.genai as genai
 from google.genai import types
 from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
 
-# Load Environment
-load_env_file()
+bundle = SkillLoader.load_skill("monitoring/token_limiter")
+skill = bundle["class"]()
+tool = SkillLoader.to_gemini_tool(bundle)
 
-# 1. Load the Skill from the Registry
-# The loader reads the code, manifest, and instructions automatically
-skill_bundle = SkillLoader.load_skill("finance/wallet_screening")
-skill = skill_bundle["class"](
-    config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
-)
-# Or: skill = skill_bundle["module"].WalletScreeningSkill(config={...})
-
-# 2. Client & Tool Setup
 client = genai.Client()
-tool = SkillLoader.to_gemini_tool(skill_bundle)       # The "Adapter"
-system_instruction = skill_bundle['instructions']     # The "Mind"
-
-# 3. Agent Loop
 response = client.models.generate_content(
     model="gemini-2.5-flash",
-    contents="Screen wallet 0xd8dA... for risks.",
+    contents=(
+        "Check token budget for task_id demo_run: "
+        "current_token_count 95000, max_allowed_tokens 100000."
+    ),
     config=types.GenerateContentConfig(
         tools=[tool],
-        system_instruction=system_instruction,
+        system_instruction=bundle["instructions"],
     ),
 )
 
 for part in response.candidates[0].content.parts:
     if part.function_call:
-        result = skill.execute(dict(part.function_call.args))
-        follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[
-                "Use this tool result to answer the original request.",
-                {
-                    "function_response": {
-                        "name": part.function_call.name,
-                        "response": {"result": result},
-                    }
-                },
-            ],
-            config=types.GenerateContentConfig(
-                tools=[tool],
-                system_instruction=system_instruction,
-            ),
-        )
-        print(follow_up.text)
+        print(skill.execute(dict(part.function_call.args)))
     else:
         print(part.text)
 ```
 
-For other providers and shared integration patterns, see the [usage guides index](docs/usage/README.md), [agent loops](docs/usage/agent_loops.md), [Gemini](docs/usage/gemini.md), [Claude](docs/usage/claude.md), [OpenAI](docs/usage/openai.md), [OpenAI-compatible hosts](docs/usage/openai_compatible.md), [DeepSeek](docs/usage/deepseek.md), [Ollama](docs/usage/ollama.md), [API keys for skills](docs/usage/api_keys.md), and the [skill usage template](docs/usage/skill_usage_template.md) for contributors.
+For other providers and integration patterns, see the [usage guides](docs/usage/README.md).
 
 ## Documentation
 
@@ -235,11 +197,7 @@ For other providers and shared integration patterns, see the [usage guides index
 
 ## Contributing
 
-We are building the "App Store" for Agents. Skills are the main contribution, but documentation, tests, and framework fixes are welcome too. Human operators and supervised agents follow the same standards: scoped PRs, deterministic behavior, and verified tests.
-
-Start with [Contributing](CONTRIBUTING.md) (types, skill standard, PR process), [Agent Native Workflow](docs/contributing/ai_native_workflow.md) (for autonomous and semi-autonomous agents), [Testing](docs/TESTING.md) (Black, Flake8, framework and skill pytest, pre-PR checklist), and [Changelog](CHANGELOG.md) (user-facing entries under `[Unreleased]`).
-
-Also read the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) and complete only the sections that apply.
+Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](CONTRIBUTING.md), [Agent Native Workflow](docs/contributing/ai_native_workflow.md), and [Testing](docs/TESTING.md). See the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 
 ## Comparison
 
@@ -257,13 +215,13 @@ Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL
 <a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-ffdac1?style=flat-square" alt="PyPI Stats dashboard"></a>
 <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93%20total&color=bbf7d0" alt="Total downloads (PePy)"></a>
 
-PyPI download counts show how often `skillware` is installed from the package index. Numbers come from public third-party aggregators, and they include CI and mirror traffic, so they measure **install activity**, not unique users. Totals may differ slightly between services because each source uses its own window and methodology. Use the stats dashboards in the above badges for charts, version breakdowns, and longer history.
+PyPI download counts measure **install activity** from public aggregators (including CI and mirrors), not unique users. Use the badge links above for charts and version breakdowns.
 
 ## Citing
 
 <a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-c7d2fe?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
 
-If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.2`).
+If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.3`).
 
 ## Contact
 

@@ -31,11 +31,11 @@ The skill itself does **not** call GitHub, run git, or write code. It validates 
 - **Caller-injectable context**: The `extra_instructions` field lets any caller inject project-specific style rules, scope constraints, or workflow requirements without modifying the skill.
 - **Graceful authentication**: Operates without a token against public repositories (subject to GitHub's 60 req/hr unauthenticated limit) and upgrades to 5000 req/hr when `GITHUB_TOKEN` is provided.
 
-## Internal Architecture
+## Bundle layout
 
-The skill lives in `skills/dev_tools/issue_resolver/`.
+The skill lives in `skills/dev_tools/issue_resolver/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
-### The Body (`skill.py` + `workflow.py`)
+### Effect (`skill.py` + `workflow.py`)
 
 A thin, deterministic action router. It validates the issue URL against the GitHub URL pattern, normalises the token source (runtime parameter takes precedence over environment variable), pre-computes all GitHub API and raw content URLs the agent will need, parses caller-supplied Markdown, and returns stage checklists and commit gates on demand. It makes no network calls and has no runtime dependencies beyond the Python standard library and `PyYAML`.
 
@@ -47,7 +47,7 @@ A thin, deterministic action router. It validates the issue URL against the GitH
 | `stage_checklist` | Steps and conditionals for one stage |
 | `validate_commit_message` | Pre-commit message gate |
 
-### The Mind (`instructions.md`)
+### Directive (`instructions.md`)
 
 Agent-facing rules: when to use the skill, how to call each action, mandatory stage order, profile trust boundaries, gate rules, and the structured **plan** output contract. Detailed steps and conditionals for each stage are returned at runtime by `stage_checklist` (defined in `workflow.py`).
 
@@ -379,6 +379,7 @@ Commits that touched this skill bundle or its catalog page ([`dev_tools/issue_re
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`e90ba2f`](https://github.com/ARPAHLS/skillware/commit/e90ba2f) | chore(release): 0.4.8 — skills, profiles, version policy | 3 Aug 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`1e039a2`](https://github.com/ARPAHLS/skillware/commit/1e039a2) | feat: add repository profiles to issue resolver (#271) | 3 Aug 2026 | `0.3.0` | [@TheDarkniteFalls](https://github.com/TheDarkniteFalls) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |

@@ -55,6 +55,10 @@ Deterministic scanner for **deceptive web UI surfaces** and **anti-agent tricks*
 
 No required environment variables. Optional `url` fetch uses network; supply `html_content` for fully offline scans.
 
+## Bundle layout
+
+The skill lives in `skills/security/deceptive_ui_guard/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+
 ## Example Usage (Direct)
 
 ```python
@@ -142,6 +146,7 @@ Commits that touched this skill bundle or its catalog page ([`security/deceptive
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`68da6ed`](https://github.com/ARPAHLS/skillware/commit/68da6ed) | feat(security): add deceptive_ui_guard v1 for issue #78 (#313) | 27 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 

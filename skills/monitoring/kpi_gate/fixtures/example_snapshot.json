@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "period": {"start": "2026-08-17", "end": "2026-08-23", "granularity": "weekly"},
+  "metrics": {
+    "outreach_sends": 40,
+    "replies": 6,
+    "bookings": 0,
+    "lp_sessions": 180,
+    "downloads": 22,
+    "download_rate_pct": 12.2,
+    "reply_to_booking_rate_pct": 0
+  }
+}

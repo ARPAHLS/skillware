@@ -1,85 +1,86 @@
 # Deep Dive: The Skillware Philosophy
 
-**Skillware** is an Operating System for Agentic Capabilities. It was born from the realization that current agent frameworks (LangChain, AutoGPT) couple *intelligence* (the model) too tightly with *capability* (the tool).
+**Skillware** is an Operating System for Agentic Capabilities. It decouples *intelligence* (the model) from *capability* (the tool): you **install** know-how instead of redefining it for every host.
 
-If you want your agent to "know" how to analyze a balance sheet, you shouldn't have to prompt-engineer a specific model or write a custom tool definition for that specific model's API. You should be able to **install** that capability.
+## Skill anatomy
 
-## The Triad: Mind, Body, Language
+Every registry skill is a folder of **roles** implemented by fixed filenames. The [README Mission](../README.md#mission) summarizes the core roles; the full reference is below. Filenames stay unchanged.
 
-In integration, a "Skill" is not just a function. It is a living unit of capability composed of three parts:
+### Grouping
 
-### 1. The Body (Logic)
-*   **What it is**: The standardized Python code (inheriting from `BaseSkill`).
-*   **Role**: Executes the actual work—fetching data, calculating numbers, hitting APIs.
-*   **File**: `skill.py`
-*   **Design**: Hardened, error-proof, and deterministic. It does not hallucinate.
+```text
+CAPABILITY (what the host unlocks)
+├── Contract      manifest.yaml
+├── Effect        skill.py (+ effect modules in the same folder)
+└── Directive     instructions.md
 
-### 2. The Mind (Cognition)
-*   **What it is**: The System Instructions and "Cognitive Map".
-*   **Role**: Teaches the LLM *how* to use the Body. It explains the nuances, edge cases, and reasoning steps required to use the tool effectively.
-*   **File**: `instructions.md`
-*   **Design**: Written in natural language optimized for LLM comprehension. It travels with the skill. When you load the skill, you load its mind into the agent.
+REGISTRY (required to merge)
+├── Assurance     test_skill.py
+└── Presentation  card.json
 
-### 3. The Conscience (Governance)
-*   **What it is**: The Constitution and Manifest.
-*   **Role**: Defines the boundaries. "Do not output PII", "Do not give financial advice". Records **issuer attribution** (who created or maintains the skill).
-*   **File**: `manifest.yaml`
-*   **Design**: Enforced at the prompt level. Issuer metadata (`name`, `email`, and optionally `github` / `org`) is for humans and catalog UIs—it is not passed to LLM tool schemas.
+OPTIONAL ASSETS
+├── Corpus        kb/, data/, bundled knowledge files
+└── Reference     schemas/, maps, in-bundle spec fixtures
+
+FRAMEWORK (outside the bundle folder)
+└── Interface     SkillLoader model adapters (to_gemini_tool, …)
+```
+
+### Role reference
+
+| Role | v0 file(s) | What it answers |
+| :--- | :--- | :--- |
+| **Contract** | `manifest.yaml` | What is this skill? Typed I/O, `constitution`, issuer, `requirements` |
+| **Effect** | `skill.py` | What runs deterministically when invoked? (`BaseSkill.execute()`) |
+| **Directive** | `instructions.md` | How should the host use this capability? When, how to read outputs, limits |
+| **Assurance** | `test_skill.py` | Does Effect honor Contract? (offline bundle tests; CI / `skillware test`) |
+| **Presentation** | `card.json` | Catalog and UI card metadata; issuer must match Contract when present |
+| **Corpus** | `kb/`, `data/`, … | Static knowledge Effect reads (not fetched at runtime) |
+| **Reference** | `schemas/`, maps | Machine-readable adjuncts to Contract (validators, terminology) |
+| **Interface** | `skillware/core/loader.py` | Adapters that expose Contract to a host API |
+
+**Effect modules** — co-located Python imported by `skill.py` (for example `workflow.py`, `budget.py`). Part of Effect implementation, not separate bundle roles.
+
+**Corpus tooling** — offline scripts under the bundle (for example `maintenance/`) that refresh Corpus data. Not loaded by `execute()`.
+
+**Constitution vs directive** — hard limits and registry identity live in **Contract** (`manifest.yaml`). Operational playbook for the host lives in **Directive** (`instructions.md`). Both constrain behavior; different consumers.
+
+**Presentation** — `card.json` is part of the standard registry bundle (every skill under `skills/` ships one). CI validates issuer parity and UI schema keys when a card is present; see [CONTRIBUTING](../CONTRIBUTING.md#4-cardjson-presentation).
 
 ---
 
 ## The Architecture: How It Works
 
-Skillware relies on a strict, modular layout. Instead of hardcoding tools into your primary application, you maintain a structured registry of capabilities grouped by domain folders under `skills/` (see [Skill categories](../CONTRIBUTING.md#skill-categories) when contributing):
+Skillware relies on a strict, modular layout. Capabilities live under `skills/` grouped by domain (see [Skill categories](../CONTRIBUTING.md#skill-categories)):
 
 ```text
 Skillware/
 ├── skills/
 │   └── category/                   # Domain boundary (e.g., 'finance')
 │       └── skill_name/             # A self-contained capability bundle
-│           ├── manifest.yaml       # Inputs, outputs, constitution, and issuer attribution
-│           ├── skill.py            # The deterministic Python execution logic
-│           ├── instructions.md     # Natural language guidance for the LLM
-│           ├── card.json           # Optional UI card (may mirror manifest issuer)
-│           └── test_skill.py       # Unit tests for the skill bundle
+│           ├── manifest.yaml       # Contract
+│           ├── skill.py            # Effect (entry)
+│           ├── instructions.md     # Directive
+│           ├── card.json           # Presentation
+│           ├── test_skill.py       # Assurance
+│           ├── kb/ or data/        # Corpus (optional)
+│           └── schemas/            # Reference (optional)
 └── skillware/
     └── core/
-        ├── base_skill.py           # The interface every skill must implement
+        ├── base_skill.py           # Effect interface (`BaseSkill`)
         ├── env.py                  # API key and secret loading
-        └── loader.py               # The engine that bridges the skill to the LLM
+        └── loader.py               # Interface: loader and model adapters
 ```
 
 ```mermaid
-flowchart TD
-    subgraph Bundle["Skill Bundle Folder"]
-        Manifest[manifest.yaml]
-        Instructions[instructions.md]
-        SkillPy[skill.py]
-    end
-
-    Loader[SkillLoader] -->|Loads| Bundle
-    Loader --> Adapters
-
-    subgraph Adapters["Model adapters"]
-        direction LR
-        API[API models]
-        Local[Local models]
-    end
-
-    Host[Host App] -.->|Directly calls execute| SkillPy
-
-    style Host stroke-width:2px,stroke-dasharray: 5 5
+flowchart LR
+    Registry[Registry] -->|Load| Loader[SkillLoader]
+    Loader -->|Adapt| Host["Any Host"]
 ```
 
-A skill is a folder on disk. The loader turns the manifest into whatever tool schema your runtime expects. For the high-level picture, see [How it works](../README.md#how-it-works); for the code loop that hooks these adapters up, see [Agent Loops](usage/agent_loops.md).
+A skill is a folder on disk. The loader reads Contract and Directive, exposes **Interface** adapters, and your host runs the loop. See [How it works](../README.md#how-it-works) and [Agent Loops](usage/agent_loops.md).
 
-When you run `SkillLoader.load_skill("category/skill_name")`, a complex orchestration happens behind the scenes:
-
-### Step 1: Discovery & Loading
-The loader resolves `category/skill_name` to a skill directory by checking, in order: an existing path on disk, then configured skill roots (legacy without YAML: `SKILLWARE_SKILL_PATH` → cwd `skills/` walk → bundled; with `.skillware.yaml` or global config: `resolution.order`, default project → external → bundled, bundled always on). Missing local `skills/` directories are skipped — bundled registry skills remain available after `pip install skillware`. Run `skillware paths` and `skillware config show` for a live view. Each bundle is a directory containing `manifest.yaml` and `skill.py`.
-*   It dynamically imports the `skill.py` module and auto-discovers the single `BaseSkill` subclass as `bundle["class"]` (no hardcoded class names required).
-*   It parses the `manifest.yaml` (including `issuer` for attribution, separate from tool-calling fields). Registry skills set `name` to the full ID (`category/skill_name`), which Claude uses as the tool name; Gemini, OpenAI, and DeepSeek receive a sanitized variant (slashes → underscores). For registry-layout paths (`<skill_root>/<category>/<skill_name>/`), the loader warns when `name` does not match the folder path; flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Loaded bundles expose `registry_id` when validation applies.
-*   It reads `instructions.md` and, when present, optional `card.json`.
+When you run `SkillLoader.load_skill("category/skill_name")`:
 
 ```mermaid
 flowchart LR
@@ -88,38 +89,40 @@ flowchart LR
     PACK --> ADAPT[adapt]
 ```
 
-For how skills are resolved on disk, the provenance tiers, and what to check before loading skills you did not write, see [Skill trust model & operator security](security/skill-trust-model.md).
+### Step 1: Discovery & Loading
 
-### Step 2: Adaptation (The "Babel Fish")
-This is Skillware's superpower. Every model (Gemini, Claude, GPT) speaks a different "Tool Language".
-*   **Gemini** wants `FunctionDeclaration` with Protobuf types (UPPERCASE).
-*   **Claude** wants `tool` definitions with JSON Schema input (lowercase).
-*   **OpenAI** wants a `tools` list.
+The loader resolves `category/skill_name` against configured skill roots (run `skillware paths` and `skillware config show` for the live order). Bundled registry skills remain available after `pip install skillware` even without a local `skills/` tree.
 
-The `SkillLoader` acts as an adapter.
-*   `SkillLoader.to_gemini_tool(skill)` -> Transmutes the manifest into Gemini's format.
-*   `SkillLoader.to_claude_tool(skill)` -> Transmutes the manifest into Claude's format.
-*   `SkillLoader.to_openai_tool(skill)` -> Transmutes the manifest into OpenAI's tool format.
-*   `SkillLoader.to_deepseek_tool(skill)` -> Transmutes the manifest into DeepSeek's tool format.
-*   `SkillLoader.to_ollama_prompt(skill)` -> Textual tool description for Ollama prompt-based loops.
+- Dynamically imports `skill.py` and discovers the single `BaseSkill` subclass as `bundle["class"]`.
+- Parses `manifest.yaml` (including `issuer` for attribution).
+- Reads `instructions.md` and `card.json`.
 
-### Step 3: Injection
-When you initialize your agent, you pass the skill's **Instructions** into the System Prompt.
-*> "You are an agent equipped with the Wallet Screening capability. Here is how you use it: [Content of instructions.md]..."*
+For provenance tiers and operator security, see [Skill trust model](security/skill-trust-model.md).
 
-This "Context Injection" ensures the model isn't just *able* to call the tool, but is *intelligent* about it.
+### Step 2: Adaptation (Interface)
+
+Every model expects a different tool-schema shape. The **Interface** layer transmutes Contract into host formats:
+
+- `SkillLoader.to_gemini_tool(skill)` — Gemini `FunctionDeclaration`
+- `SkillLoader.to_claude_tool(skill)` — Claude tools + JSON Schema
+- `SkillLoader.to_openai_tool(skill)` — OpenAI Chat Completions tools
+- `SkillLoader.to_deepseek_tool(skill)` — DeepSeek-compatible tools
+- `SkillLoader.to_ollama_prompt(skill)` — textual tool block for Ollama loops
+
+### Step 3: Directive injection
+
+Pass **`instructions.md`** (**Directive**) into the host system prompt. The model learns when to invoke the skill, how to read outputs, and operational limits — not a replacement host persona.
 
 ---
 
 ## The Execution Loop
 
-1.  **User Query**: "Is wallet 0x123 safe?"
-2.  **Model Cognition**: The LLM reads the injected `instructions.md` and realizes it should use the `finance/wallet_screening` tool.
-3.  **Tool Call**: The LLM outputs a structured tool call (e.g., JSON or Protobuf).
-4.  **Framework Execution**: Your script may validate tool arguments with `skill.validate_params(...)` before `execute()` (optional; recommended in agent loops). Direct integrations can call `skill.execute({"address": "0x123"})` without validation, as in many examples under `examples/`.
-5.  **The Body Acts**: `skill.py` runs. It fetches Etherscan data, checks local JSON sanctions lists, mimics the logic of a complex forensic tool.
-6.  **Structured Output**: The Body returns a rich JSON object.
-7.  **Synthesis**: The LLM receives the JSON. Guided again by the `instructions.md` (which says "Summarize risk factors clearly"), it translates the data into a human-readable report.
+1.  **User Query**: "Should this agent loop stop — we're at 95k tokens?"
+2.  **Host reads Directive**: The model sees injected `instructions.md` and selects `monitoring/token_limiter`.
+3.  **Tool Call**: The model emits a structured tool call via **Interface** adapters.
+4.  **Framework Execution**: Your script may call `skill.validate_params(...)` before `execute()` (recommended in production loops).
+5.  **Effect runs**: `skill.py` evaluates the budget and returns structured JSON.
+6.  **Synthesis**: The model receives the result and explains the next step to the user.
 
 ## Model Agnosticism
 
@@ -142,4 +145,3 @@ Skillware is designed to be the "Standard Library" for all agents.
 *   View the [Changelog](../CHANGELOG.md) for release history
 *   Read [How to Contribute](../CONTRIBUTING.md) (skills, docs, framework, and bugs)
 *   If you are a contributing agent, follow the [Agent Contribution Workflow](contributing/ai_native_workflow.md)
-

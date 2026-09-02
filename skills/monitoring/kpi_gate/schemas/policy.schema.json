@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/kpi_gate:policy:2",
+  "type": "object",
+  "required": ["schema_version", "policy_id", "metrics", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 2},
+    "policy_id": {"type": "string"},
+    "metrics": {
+      "description": "Closed declaration of every metric key this policy may reference.",
+      "type": "array", "minItems": 1,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+    },
+    "rules": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "metric", "check", "severity"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "metric": {"type": "string"},
+          "check": {
+            "oneOf": [
+              {"type": "object", "required": ["op", "threshold"], "additionalProperties": false,
+               "properties": {"op": {"enum": ["gte", "lte", "gt", "lt", "eq"]},
+                              "threshold": {"type": ["number", "string"]},
+                              "applies_to": {"type": "array", "items": {"type": "string"}}}},
+              {"type": "object", "required": ["op", "benchmark_ref"], "additionalProperties": false,
+               "properties": {"op": {"enum": ["gte", "lte"]},
+                              "benchmark_ref": {"type": "string"},
+                              "tolerance_pct": {"type": "number", "minimum": 0}}}
+            ]
+          },
+          "severity": {"enum": ["error", "warning"]},
+          "requires": {
+            "description": "Honesty floor: unmet ⇒ insufficient_data, never a guess. Floors are checked against the DECLARED denominator metric only — the evaluator never infers which metric backs a rate.",
+            "type": "object", "additionalProperties": false,
+            "properties": {
+              "denominator_metric": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "min_denominator": {"type": "number", "minimum": 1},
+              "granularity": {"enum": ["daily", "weekly", "monthly"]},
+              "reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+            },
+            "dependentRequired": {"min_denominator": ["denominator_metric"]}
+          }
+        }
+      }
+    }
+  }
+}
