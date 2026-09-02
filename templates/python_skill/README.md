@@ -2,7 +2,7 @@
 
 Starter bundle under `skills/<category>/<skill_name>/`. Copy this template from `templates/python_skill/`, then replace every placeholder before opening a PR.
 
-Roles: [Skill anatomy](../../docs/introduction.md#skill-anatomy) — **Contract** (`manifest.yaml`), **Effect** (`skill.py`), **Directive** (`instructions.md`), **Assurance** (`test_skill.py`), optional **Presentation** (`card.json`).
+Roles: [Skill anatomy](../../docs/introduction.md#skill-anatomy) — **Contract** (`manifest.yaml`), **Effect** (`skill.py`), **Directive** (`instructions.md`), **Assurance** (`test_skill.py`), **Presentation** (`card.json`).
 
 ## Before you submit
 

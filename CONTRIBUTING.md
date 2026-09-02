@@ -229,7 +229,7 @@ Checklists below use **file names**; each file implements a **role**. The [READM
 | **Effect** | `skill.py` (+ effect modules in the same folder) | Yes |
 | **Directive** | `instructions.md` | Yes |
 | **Assurance** | `test_skill.py` | Yes (registry) |
-| **Presentation** | `card.json` | Optional |
+| **Presentation** | `card.json` | Recommended |
 | **Corpus** | `kb/`, `data/`, bundled knowledge files | Optional |
 | **Reference** | `schemas/`, maps, in-bundle spec fixtures | Optional |
 | **Interface** | `skillware/core/loader.py` adapters | Framework (not in bundle) |
@@ -302,7 +302,7 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 
 ### 4. `card.json` (Presentation)
 
-- Optional but recommended for user-facing agents and catalog UIs.
+- Recommended for every registry skill; all bundled skills under `skills/` ship one.
 - Describes UI presentation (`name`, `description`, `icon`, `ui_schema`, and similar).
 - When present, include an `issuer` object that matches `manifest.yaml` (`name` and `email` at minimum; copy `github` and `org` when used).
 - For output cards (`ui_schema.type` = `card`), each `ui_schema.fields[].key` must be a dot path into the JSON returned by `execute()` (for example `metadata.wallet_address`, `preview.you_pay`). Update `card.json` in the same PR when you change the output shape.
