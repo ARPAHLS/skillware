@@ -4,7 +4,7 @@
 **Skill ID:** `security/deceptive_ui_guard`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 1 Sep 2026
+**Version**: `0.2.0` — 3 Sep 2026
 <!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[security_deceptive_ui_guard]"`. See [Install extras](../usage/install_extras.md). For optional headless browser computed-style diffing: `pip install "skillware[security_deceptive_ui_guard_render]"`.
 
@@ -218,6 +218,7 @@ Commits that touched this skill bundle or its catalog page ([`security/deceptive
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`9d1152c`](https://github.com/ARPAHLS/skillware/commit/9d1152c049) | feat(security): deceptive_ui_guard v2 — render diff, zone weighting, allowlists (#314) | 3 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar), [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`68da6ed`](https://github.com/ARPAHLS/skillware/commit/68da6ed) | feat(security): add deceptive_ui_guard v1 for issue #78 (#313) | 27 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
