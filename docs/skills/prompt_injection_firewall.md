@@ -14,7 +14,7 @@ An offline, deterministic pre-flight scanner for hostile instructions in untrust
 
 > **Disclaimer:** This skill is a risk-reduction layer, not a guarantee. Heuristic detection has false positive and false negative trade-offs. Use it with constitution, tool scoping, and human review for high-risk workflows.
 
-Often composed in host chains — for example **`sanitize_input`** (scan then compress when safe). See [Skill chaining](../usage/skill_chaining.md) and [`examples/sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py).
+Often composed in host chains — for example **`sanitize_input`**. See [Skill chaining](../usage/skill_chaining.md).
 
 ## What It Checks
 

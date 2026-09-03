@@ -96,3 +96,29 @@ if tool_match:
         print("\n💬 Final Answer:")
         print(final_resp.get("message", {}).get("content", ""))
 ````
+
+## Multiple skills (SkillContext)
+
+For more than one tool, use [`SkillContext`](skill_chaining.md) instead of concatenating per-skill prompts by hand:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext(
+    skills=[
+        "finance/wallet_screening",
+        "optimization/prompt_rewriter",
+    ],
+    mode="brief",  # one-line registry summary in system; full Directive on prepare/execute
+)
+system_prompt = header + ctx.ollama_prompt  # brief block + JSON tool blocks per skill
+
+# On JSON tool match: ctx.execute(skill_id, arguments)  — see examples/ollama_skills_test.py
+```
+
+| Single skill | Multi-skill |
+| :--- | :--- |
+| `SkillLoader.load_skill(id)` + `to_ollama_prompt(bundle)` | `SkillContext(...)` + `ctx.ollama_prompt` |
+| `skill.execute(args)` | `ctx.execute(skill_id, args)` |
+
+Modes (`brief`, `tools_only`, `directives`) and chains are documented in [Skill chaining](skill_chaining.md). Runnable reference: [`examples/ollama_skills_test.py`](../../examples/ollama_skills_test.py).

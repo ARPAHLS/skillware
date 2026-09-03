@@ -109,6 +109,8 @@ Every model expects a different tool-schema shape. The **Interface** layer trans
 - `SkillLoader.to_deepseek_tool(skill)` — DeepSeek-compatible tools
 - `SkillLoader.to_ollama_prompt(skill)` — textual tool block for Ollama loops
 
+**Multiple skills:** use [`SkillContext`](usage/skill_chaining.md#skillcontext--discovery-filters) instead of loading each skill separately — `merge_system()`, `tools(provider)`, `ollama_prompt`, and `execute()` on one session. Single-skill `load_skill()` is unchanged.
+
 ### Step 3: Directive injection
 
 Pass **`instructions.md`** (**Directive**) into the host system prompt. The model learns when to invoke the skill, how to read outputs, and operational limits — not a replacement host persona.

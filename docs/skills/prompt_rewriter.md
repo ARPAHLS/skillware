@@ -14,7 +14,7 @@ A powerful middleware skill that acts as a deterministic compression logic gate 
 
 This is critical for complex agents facing strict token constraints or high LLM API costs.
 
-Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.md) in a named chain when text is safe. See [Skill chaining](../usage/skill_chaining.md) and [`examples/sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py).
+Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.md) in a chain when text is safe — see [Skill chaining](../usage/skill_chaining.md).
 
 ## Bundle layout
 

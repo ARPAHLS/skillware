@@ -405,6 +405,12 @@ Show **SkillContext** registry brief (discovered skills, compact blurbs). Does n
     skillware context show --categories security,compliance --roots bundled --mode brief
     skillware context show --export ctx.md
 
+| `--mode` | Output |
+| :--- | :--- |
+| `brief` (default) | One-line summary per discovered skill |
+| `tools_only` | Empty body (inspect skill list in header only) |
+| `directives` | Full `instructions.md` per skill — use for small fixed sets |
+
 See [Skill chaining](skill_chaining.md#skillcontext--discovery-filters).
 
 ### skillware chain

@@ -65,6 +65,8 @@ There is **no default cap** on registry size unless you pass `max_skills`.
 | `tools_only` | Nothing | Full schemas | System prompt owned elsewhere |
 | `directives` | Full `instructions.md` per skill | Full schemas | Small fixed skill sets (≤ few skills) |
 
+In **`brief`** mode, full Directives are available via `prepare(skill_id)` or on `execute()` — they are not added to `merge_system()` until you use **`directives`** or inject `prep.directive` yourself.
+
 ```python
 from skillware import SkillContext
 
@@ -82,6 +84,17 @@ skillware context show --categories security,compliance --roots project --mode b
 skillware context show --skill optimization/prompt_rewriter --mode directives
 skillware context show --export ctx.md
 ```
+
+### Edge cases
+
+| Situation | Behavior |
+| :--- | :--- |
+| Skill fails to load at init | Warning on `ctx.warnings`; skill omitted from list |
+| `prepare("bad/id")` | `FileNotFoundError` — host must catch |
+| `roots="bundled"` in dev checkout | Often empty — local skills live under `./skills/` (**project** tier) |
+| `max_skills=N` | Keeps first N IDs (sorted); warning lists omitted skills |
+| Invalid `mode` string | Falls back to `brief` |
+| `chain dry-run` + step `when:` | Evaluates against resolved params, not real skill output — use live `run_chain()` to test skips |
 
 ---
 

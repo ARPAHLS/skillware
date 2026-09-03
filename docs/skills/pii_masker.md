@@ -13,6 +13,8 @@
 
 High-precision, local PII (Personally Identifiable Information) detection and redaction using the `micro-f1-mask` model. This skill acts as a "Privacy Firewall" at the edge, scrubbing sensitive data before it reaches high-latency cloud models.
 
+> **Skill chains:** Run on untrusted text before downstream skills — see [Skill chaining](../usage/skill_chaining.md) and `examples/pii_guardrail_flow.py`.
+
 > [!WARNING]
 > **Disclaimer**: This skill and the underlying base model are provided for **demonstration and proof-of-concept purposes only**. 
 > Reaching production-grade 95%+ enterprise accuracy requires architectural optimizations, hard-negative mining, and dataset-specific fine-tuning. Full implementation of the `micro-f1-mask` privacy middleware should only happen after you rigorously fine-tune and test it exclusively with your own proprietary data structures.

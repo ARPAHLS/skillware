@@ -14,6 +14,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Core:** Named skill **chains** — `chains:` in YAML, `run_chain()`, step `when:` conditional skip, `skillware chain list|show|validate|run|dry-run`, and `skillware context show` (#330).
 - **Docs:** [Skill chaining and registry context](docs/usage/skill_chaining.md) — closes [#297](https://github.com/ARPAHLS/skillware/issues/297); implements [#330](https://github.com/ARPAHLS/skillware/issues/330).
 - **Examples:** [`skill_context_gemini_loop.py`](examples/skill_context_gemini_loop.py) (`SkillContext` + Gemini), [`sanitize_input_chain_demo.py`](examples/sanitize_input_chain_demo.py) (`run_chain` local); `ollama_skills_test.py` refactored to use `SkillContext`.
+
+### Changed
+
+- **Docs:** SkillContext modes, edge cases, and Ollama multi-skill guidance in `skill_chaining.md`, `ollama.md`, `introduction.md`, `cli.md`; one-line chain pointers on middleware skill catalog pages.
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
 - **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
 
