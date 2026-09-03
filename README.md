@@ -224,7 +224,7 @@ PyPI download counts measure **install activity** from public aggregators (inclu
 
 <a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-c7d2fe?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
 
-If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.3`).
+If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.4`).
 
 ## Contact
 

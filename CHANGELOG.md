@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-09-03
+
 ### Added
 
 - **Core:** `SkillContext` — one-line registry host context with discovery filters, progressive `prepare()` / `execute()`, and provider tool adapters (#330).
@@ -21,6 +23,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
 - **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
 - **Skill (`security/deceptive_ui_guard` v0.2.0):** Upgraded deceptive UI scanner with DOM zone classification (checkout, modal, cmp, navigation, general) and severity multipliers, KB allowlists (screen-reader accessibility, CMP consent banners, SEO metadata), expanded taxonomy (prechecked opt-ins, drip pricing, fake scarcity timers, nag loops), mobile profile heuristics, session fingerprint tracking, optional Playwright computed-style render diffing lane, and 23 golden HTML test corpus fixtures (#314, #327).
+- **Security:** Bump support windows — `>= 0.5.4` patched, `0.4.6–0.5.3` silent (no security fixes), `< 0.4.6` unsupported with CLI advisory (`SECURITY.md`, `version_policy.py`).
 
 ### Fixed
 

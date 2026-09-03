@@ -10,9 +10,9 @@ from typing import Optional
 from packaging.version import Version
 
 PACKAGE_NAME = "skillware"
-MIN_SECURITY_SUPPORTED = Version("0.5.3")
+MIN_SECURITY_SUPPORTED = Version("0.5.4")
 MIN_UNSUPPORTED = Version("0.4.6")
-UPGRADE_TARGET = "0.5.3"
+UPGRADE_TARGET = "0.5.4"
 
 
 def is_version_check_disabled() -> bool:
