@@ -31,7 +31,7 @@
 
 ---
 
-**Skillware** is an open-source framework and registry for modular, actionable Agent capabilities. It installs know-how for AI agents — modular **Skills** (code, contract, and host guidance) that decouple capability from the model. Don't prompt your agents — equip them.
+**Skillware** is an open-source framework and registry for modular, actionable Agent capabilities. It installs know-how for AI agents, or modular **Skills** (code, contract, and host guidance) decoupling capability from intelligence. In short, don't prompt your agents, equip them.
 
 > "I know Kung Fu." - Neo
 
