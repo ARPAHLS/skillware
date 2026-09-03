@@ -9,7 +9,8 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
-print(f"Loaded Skill: {bundle['manifest']['name']}")
+TOOL_NAME = bundle["manifest"]["name"]
+print(f"Loaded Skill: {TOOL_NAME}")
 
 TOSEvaluatorSkill = bundle["module"].TOSEvaluatorSkill
 tos_skill = TOSEvaluatorSkill()
@@ -39,7 +40,7 @@ if message.stop_reason == "tool_use":
     print(f"Claude requested tool: {tool_name}")
     print(f"Input: {tool_input}")
 
-    if tool_name == "compliance/tos_evaluator":
+    if tool_name == TOOL_NAME:
         result = tos_skill.execute(tool_input)
         print(json.dumps(result, indent=2))
 

@@ -7,6 +7,7 @@ from skillware.core.env import load_env_file
 load_env_file()
 
 bundle = SkillLoader.load_skill("data_engineering/novelty_extractor")
+TOOL_NAME = bundle["manifest"]["name"]
 NoveltyExtractor = bundle["module"].NoveltyExtractor
 skill = NoveltyExtractor()
 
@@ -17,7 +18,7 @@ system_prompt = f"""You are an intelligent agent equipped with a local dataset n
 To use a skill, output exactly one JSON code block:
 ```json
 {{
-  "tool": "the_tool_name",
+  "tool": "{TOOL_NAME}",
   "arguments": {{
     "param_name": "value"
   }}
@@ -54,7 +55,7 @@ if tool_match:
     fn_name = tool_call.get("tool")
     fn_args = tool_call.get("arguments", {})
 
-    if fn_name == "data_engineering/novelty_extractor":
+    if fn_name == TOOL_NAME:
         result = skill.execute(fn_args)
         print(json.dumps(result, indent=2))
         messages.append({"role": "assistant", "content": message_content})

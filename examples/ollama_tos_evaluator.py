@@ -9,6 +9,7 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+TOOL_NAME = bundle["manifest"]["name"]
 TOSEvaluatorSkill = bundle["module"].TOSEvaluatorSkill
 tos_skill = TOSEvaluatorSkill()
 
@@ -19,7 +20,7 @@ system_prompt = f"""You are an intelligent agent equipped with a local website p
 To use a skill, output exactly one JSON code block:
 ```json
 {{
-  "tool": "the_tool_name",
+  "tool": "{TOOL_NAME}",
   "arguments": {{
     "param_name": "value"
   }}
@@ -53,7 +54,7 @@ if tool_match:
     fn_name = tool_call.get("tool")
     fn_args = tool_call.get("arguments", {})
 
-    if fn_name == "compliance/tos_evaluator":
+    if fn_name == TOOL_NAME:
         result = tos_skill.execute(fn_args)
         print(json.dumps(result, indent=2))
         messages.append({"role": "assistant", "content": message_content})
