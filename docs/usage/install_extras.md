@@ -96,6 +96,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `compliance_pii_masker` | `compliance/pii_masker` | *(none today)* | Use this extra in docs and installs |
 | `compliance_tos_evaluator` | `compliance/tos_evaluator` | *(none today)* | Use this extra in docs and installs |
 | `creative_bg_remover` | `creative/bg_remover` | `rembg`, `pillow`, `onnxruntime` | |
+| `creative_deck_builder` | `creative/deck_builder` | `python-pptx>=1.0.0`, `pillow` | Editable PowerPoint presentation assembly |
 | `data_engineering_novelty_extractor` | `data_engineering/novelty_extractor` | `fastembed`, `numpy` | |
 | `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |

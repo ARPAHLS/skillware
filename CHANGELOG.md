@@ -11,6 +11,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 
 - **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups.
+- **Skill (`creative/deck_builder` v0.1.0):** Deterministic Microsoft PowerPoint (`.pptx`) presentation assembly from structured JSON deck specifications — 10 slide layout types (title, section, bullets, two-column, image, image with caption, quote, table, chart, blank), 3 bundled 16:9 widescreen master templates (pitch, corporate, minimal), theme token customization, pre-flight validation with soft-limit truncation warnings, directory traversal defenses, and inspection actions (#276).
 
 ### Changed
 

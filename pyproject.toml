@@ -81,6 +81,7 @@ compliance = [
 creative = [
     "onnxruntime",
     "pillow",
+    "python-pptx>=1.0.0",
     "rembg>=2.0.0",
 ]
 
@@ -124,6 +125,11 @@ creative_bg_remover = [
     "rembg>=2.0.0",
     "pillow",
     "onnxruntime",
+]
+
+creative_deck_builder = [
+    "python-pptx>=1.0.0",
+    "pillow",
 ]
 
 data_engineering_novelty_extractor = [
@@ -172,6 +178,7 @@ all = [
     "onnxruntime",
     "pillow",
     "pymupdf",
+    "python-pptx>=1.0.0",
     "rembg>=2.0.0",
     "web3>=6.0.0",
 ]

@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "action": "render",
+  "template_id": "pitch_v1",
+  "slide_count": 4,
+  "output_path": "/tmp/skillware_pitch.pptx"
+}
