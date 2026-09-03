@@ -2,6 +2,8 @@
 
 Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
 
+**Multiple skills:** use [`SkillContext`](skill_chaining.md#skillcontext--discovery-filters) for registry brief + tools, or [skill chaining](skill_chaining.md) for deterministic middleware chains. Single-skill loops below are unchanged.
+
 ```mermaid
 flowchart LR
     Load[load] --> Wire[wire]
@@ -45,6 +47,49 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 OpenAI-compatible hosts reuse `to_openai_tool()`; see the [host guide](openai_compatible.md) and runnable [Groq example](../../examples/openai_compatible_host.py).
 
 **Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_tos_evaluator.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
+
+---
+
+## Multi-skill sessions (SkillContext)
+
+For agents that expose **many tools** from the registry, replace steps 1–4 with `SkillContext`:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext()  # or categories=, skills=, roots= — see skill_chaining.md
+system = ctx.merge_system(host_system_prompt)
+tools = ctx.tools("gemini")  # or claude | openai | deepseek
+
+# Send system + tools + user message to the model ...
+# On tool_call:
+
+result = ctx.execute(skill_id, arguments)  # auto-prepares; validates if you call prepare() first
+# Return result JSON to the model; loop continues
+```
+
+| Single-skill loop | Multi-skill (`SkillContext`) |
+| :--- | :--- |
+| `SkillLoader.load_skill(id)` | `SkillContext(...)` discovers many IDs |
+| `to_*_tool(bundle)` once | `ctx.tools(provider)` — list of tools |
+| `bundle["instructions"]` in system | `ctx.merge_system()` — brief, directives, or empty (`tools_only`) |
+| New instance per call (typical) | Reused instances on one `ctx` |
+
+**Progressive disclosure:** call `ctx.prepare(skill_id)` when the model selects a tool if you need the full Directive in context before filling parameters. See [Skill chaining — progressive disclosure](skill_chaining.md#skillcontext--progressive-disclosure-model-picks-tools).
+
+**Ollama prompt mode:** use `ctx.ollama_prompt` instead of per-skill `to_ollama_prompt()` when wiring multiple skills ([ollama.md](ollama.md)).
+
+**Deterministic middleware** (firewall → rewriter, scan → token gate): use a [manual Python chain](skill_chaining.md#host-decides-the-chain-manual-tier-1) or a [named YAML chain](skill_chaining.md#named-chains--predefined-yaml-pipelines-tier-2) — the model does not pick step order in those tiers.
+
+**Hybrid:** run `run_chain("sanitize_input", ...)` on untrusted input, then start the agent loop with sanitized text and a filtered `SkillContext(categories=[...])`.
+
+### Framework multi-skill examples
+
+| Pattern | Script |
+| :--- | :--- |
+| `SkillContext` + optional Gemini loop | [`skill_context_gemini_loop.py`](../../examples/skill_context_gemini_loop.py) |
+| Named chain (`run_chain`, local) | [`sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py) |
+| `SkillContext` + Ollama prompt mode | [`ollama_skills_test.py`](../../examples/ollama_skills_test.py) |
 
 ---
 
@@ -98,16 +143,16 @@ skills in one harness.
 | `office/pdf_form_filler` | - | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
 | `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `security/deceptive_ui_guard` | `deceptive_ui_guard_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `optimization/prompt_rewriter` | `prompt_compression_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |
 | `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
-| `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py` | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 

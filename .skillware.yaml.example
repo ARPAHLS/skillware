@@ -52,6 +52,53 @@ legacy:
 # Precedence: env (GMAIL_*) > project YAML > global YAML > skill bundled defaults.
 # CLI: skillware mail addressbook init | skillware mail signature set
 
-# Reserved for future releases (ignored today; preserved by skillware config show):
+# Named skill chains (Skillware 0.6+). CLI: skillware chain list | show | validate | run
 # chains:
-#   default: []
+#   sanitize_input:
+#     description: Scan untrusted text; compress only if safe.
+#     when: Untrusted text is about to enter model context.
+#     steps:
+#       - id: scan
+#         skill: security/prompt_injection_firewall
+#         params:
+#           sensitivity: balanced
+#           input_mode: auto
+#         input_from:
+#           source_text: host.source_text
+#         map_out:
+#           sanitized_text: next.raw_text
+#       - skill: optimization/prompt_rewriter
+#         when:
+#           prior_step: scan
+#           field: is_safe
+#           equals: true
+#         params:
+#           compression_aggression: medium
+#   preflight_untrusted_html:
+#     description: HTML-mode injection scan before parsing or summarization.
+#     when: Raw HTML or rich markup from the web enters the agent.
+#     steps:
+#       - skill: security/prompt_injection_firewall
+#         params:
+#           input_mode: html
+#           sensitivity: balanced
+#         input_from:
+#           source_text: host.source_text
+#   scan_then_gate:
+#     description: Sanitize untrusted text, then evaluate token budget gate.
+#     when: Autonomous loop with untrusted ingest and a token ceiling.
+#     steps:
+#       - id: scan
+#         skill: security/prompt_injection_firewall
+#         params:
+#           sensitivity: balanced
+#           input_mode: auto
+#         input_from:
+#           source_text: host.source_text
+#       - skill: monitoring/token_limiter
+#         params:
+#           action: check
+#         input_from:
+#           task_id: host.task_id
+#           current_token_count: host.current_token_count
+#           max_allowed_tokens: host.max_allowed_tokens

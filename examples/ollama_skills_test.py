@@ -1,56 +1,30 @@
 import json
 import re
-import ollama
-from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
-from skillware.core.base_skill import BaseSkill
 
-# Load Env for API Keys if any needed by skills
+import ollama
+from skillware import SkillContext
+from skillware.core.env import load_env_file
+
 load_env_file()
 
-
-def load_and_initialize_skill(path):
-    bundle = SkillLoader.load_skill(path)
-    skill_class = None
-    for attr_name in dir(bundle["module"]):
-        attr = getattr(bundle["module"], attr_name)
-        if (
-            isinstance(attr, type)
-            and issubclass(attr, BaseSkill)
-            and attr is not BaseSkill
-        ):
-            skill_class = attr
-            break
-    if not skill_class:
-        raise ValueError(f"Could not find a valid Skill class in {path}")
-    return bundle, skill_class()
-
-
-# 1. Load the 3 Skills dynamically
-SKILL_PATHS = [
+SKILL_IDS = [
     "finance/wallet_screening",
     "office/pdf_form_filler",
     "optimization/prompt_rewriter",
 ]
 
-skills_registry = {}
-tool_descriptions = []
+ctx = SkillContext(skills=SKILL_IDS, mode="brief")
 
-print("Loading skills...")
-for path in SKILL_PATHS:
-    bundle, skill_instance = load_and_initialize_skill(path)
-    name = bundle["manifest"]["name"]
-    skills_registry[name] = skill_instance
+# Manifest name -> registry id for ctx.execute()
+tool_name_to_skill_id = {}
+for skill_id in ctx.skill_ids:
+    prep = ctx.prepare(skill_id)
+    manifest_name = prep.manifest.get("name", skill_id)
+    tool_name_to_skill_id[manifest_name] = skill_id
+    print(f"Loaded Skill: {manifest_name}")
 
-    # Use the prompt adapter for Ollama
-    tool_text = SkillLoader.to_ollama_prompt(bundle)
-    tool_text += f"\n**Cognitive Instructions:**\n{bundle.get('instructions', '')}\n"
-    tool_descriptions.append(tool_text)
-
-    print(f"Loaded Skill: {name}")
-
-# 2. Build the System Prompt tailored for text-based tool calling
-combined_system_prompt = """You are an intelligent agent equipped with specialized capabilities (skills).
+combined_system_prompt = (
+    """You are an intelligent agent equipped with specialized capabilities (skills).
 To use a skill, you MUST output a JSON code block in the EXACT following format and then STOP GENERATING.
 Do not add conversational text after the JSON block.
 
@@ -67,11 +41,9 @@ Wait until you receive the SYSTEM RESPONSE containing the tool execution results
 Once you have the results, provide your final answer to the user.
 
 Here are the available skills and their instructions:
-""" + "\n---\n".join(
-    tool_descriptions
+""" + ctx.ollama_prompt
 )
 
-# 3. Setup Ollama Chat
 model_name = "llama3"
 user_query = (
     "Please screen this ethereum wallet: 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045. "
@@ -85,17 +57,15 @@ messages = [
     {"role": "user", "content": user_query},
 ]
 
-print(f"\n🤖 Calling Ollama model: {model_name}...")
+print(f"\nCalling Ollama model: {model_name}...")
 
-# 4. Handle Conversation & Tool Parsing Loop
-for _ in range(5):  # Max steps to prevent infinite loops
+for _ in range(5):
     response = ollama.chat(model=model_name, messages=messages)
 
     message_content = response.get("message", {}).get("content", "")
     print(f"\n[Model Output]:\n{message_content}")
     messages.append({"role": "assistant", "content": message_content})
 
-    # Try to parse a tool call inside ```json ... ```
     tool_match = re.search(r"```json\s*({.*?})\s*```", message_content, re.DOTALL)
 
     if tool_match:
@@ -104,20 +74,20 @@ for _ in range(5):  # Max steps to prevent infinite loops
             fn_name = tool_call.get("tool")
             fn_args = tool_call.get("arguments", {})
 
-            print(f"\n🤖 Agent invoked tool: {fn_name}")
+            print(f"\nAgent invoked tool: {fn_name}")
             print(f"   Arguments: {fn_args}")
 
-            if fn_name in skills_registry:
-                print(f"⚙️  Executing skill '{fn_name}' locally...")
+            skill_id = tool_name_to_skill_id.get(fn_name)
+            if skill_id:
+                print(f"Executing skill '{fn_name}' via SkillContext...")
                 try:
-                    api_result = skills_registry[fn_name].execute(fn_args)
+                    api_result = ctx.execute(skill_id, fn_args)
                     result_str = json.dumps(api_result)
-                except Exception as e:
-                    result_str = f"Error executing tool: {e}"
+                except Exception as exc:
+                    result_str = f"Error executing tool: {exc}"
 
-                print(f"📤 Result generated ({len(result_str)} bytes)")
+                print(f"Result generated ({len(result_str)} bytes)")
 
-                # Send the result back to the model masquerading as a system/user update
                 messages.append(
                     {
                         "role": "user",
@@ -145,6 +115,5 @@ for _ in range(5):  # Max steps to prevent infinite loops
                 }
             )
     else:
-        # If no tool block was found, assume the agent is done and providing final answer
-        print("\n💬 Final Answer reached. End of execution.")
+        print("\nFinal Answer reached. End of execution.")
         break

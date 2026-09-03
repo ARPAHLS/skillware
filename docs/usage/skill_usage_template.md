@@ -6,7 +6,7 @@ Add **Recommended install:** `pip install "skillware[<category>_<skill>]"` near 
 
 For Gemini sections, ensure the dispatch matches the sanitized tool name (e.g. `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` or adapter-derived name) rather than the raw registry ID with slashes. Do not manually wrap the tool output in `types.Tool(function_declarations=[...])`, as `to_gemini_tool()` already returns a `types.Tool` object.
 
-Link to [agent_loops.md](agent_loops.md), [install_extras.md](install_extras.md), and [README.md](README.md). List skill-specific env vars in an **Environment** table; link to [api_keys.md](api_keys.md) for setup.
+Link to [agent_loops.md](agent_loops.md), [skill_chaining.md](skill_chaining.md) (multi-skill hosts), [install_extras.md](install_extras.md), and [README.md](README.md). List skill-specific env vars in an **Environment** table; link to [api_keys.md](api_keys.md) for setup.
 
 Do not duplicate the full API keys guide on skill pages. For authoring `instructions.md` within the skill bundle itself, see [CONTRIBUTING.md (§3 instructions.md)](../../CONTRIBUTING.md#3-instructionsmd-directive) for append-only skill context guidelines.
 

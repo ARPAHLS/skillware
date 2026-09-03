@@ -370,6 +370,7 @@ Run this internal dialogue before you hand off to your operator.
 - [TESTING.md](../TESTING.md) — Black, Flake8, Pytest
 - [Usage guides](../usage/README.md) — provider adapters (`to_gemini_tool`, `to_openai_tool`, etc.)
 - [Agent loops](../usage/agent_loops.md) — shared load / execute / tool-result pattern
+- [Skill chaining](../usage/skill_chaining.md) — `SkillContext`, named chains, CLI
 - [Skill usage example template](../usage/skill_usage_template.md) — what each skill catalog page must include
 - [API keys for skills](../usage/api_keys.md) — env setup (link from skill pages; do not duplicate)
 - [Agent Code of Conduct](../../CODE_OF_CONDUCT.md)

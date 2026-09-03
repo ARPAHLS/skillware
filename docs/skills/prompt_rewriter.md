@@ -14,6 +14,8 @@ A powerful middleware skill that acts as a deterministic compression logic gate 
 
 This is critical for complex agents facing strict token constraints or high LLM API costs.
 
+Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.md) in a chain when text is safe — see [Skill chaining](../usage/skill_chaining.md).
+
 ## Bundle layout
 
 The skill lives in `skills/optimization/prompt_rewriter/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.

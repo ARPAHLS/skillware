@@ -14,6 +14,8 @@ A deterministic **token budget gate** for autonomous agent loops. After each mod
 
 This skill does **not** kill processes, cancel provider sessions, or call billing APIs. It returns a structured decision the orchestrator acts on.
 
+> **Skill chains:** Often a second step after `security/prompt_injection_firewall` (see **`scan_then_gate`** in [Skill chaining](../usage/skill_chaining.md)).
+
 > **Budget disclaimer:** This skill provides an operational budget signal only. It is not billing authority, financial advice, or a guarantee that spend is within budget. A `CONTINUE` result does not approve further spend; the host loop must track token usage from your provider or tokenizer and act on `FORCE_TERMINATE`. Cost estimates use bundled list prices and may differ from invoices.
 
 ## Capabilities

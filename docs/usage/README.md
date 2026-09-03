@@ -30,13 +30,13 @@ To list locally available skills, inspect path resolution, show config, check lo
 | OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
-| CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
+| CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples`, `skillware context`, `skillware chain` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
 
 Shared patterns (load bundle, run `execute`, return tool results):
-[agent_loops.md](agent_loops.md). [Skill anatomy](../introduction.md#skill-anatomy) (Contract, Effect, Directive, Assurance, Interface). After `load_skill`, prefer `bundle["class"]()` to instantiate the skill; explicit `bundle["module"].ClassName()` also works. Runnable script inventory:
+[agent_loops.md](agent_loops.md). **Multiple skills:** [skill_chaining.md](skill_chaining.md) (`SkillContext`, named `chains:`). [Skill anatomy](../introduction.md#skill-anatomy) (Contract, Effect, Directive, Assurance, Interface). After `load_skill`, prefer `bundle["class"]()` to instantiate the skill; explicit `bundle["module"].ClassName()` also works. Runnable script inventory:
 [examples/README.md](../../examples/README.md).
 
 Contributors adding **Usage Examples** to skill catalog pages: [skill_usage_template.md](skill_usage_template.md).

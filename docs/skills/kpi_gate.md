@@ -14,6 +14,8 @@ Deterministic **business-KPI gate**: `{metrics, policy, benchmarks?}` → `findi
 
 Where [`monitoring/token_limiter`](token_limiter.md) covers resource-side monitoring, this skill adds business-metric monitoring to the category. It is an **auditor, not a data pipeline**: the snapshot is assembled upstream (exports, scripts, dashboards, or an agent that already gathered counts); the skill never fetches CRM, email, or analytics data.
 
+> **Skill chains:** Run after ingest or middleware steps in host-defined order — see [Skill chaining](../usage/skill_chaining.md).
+
 ## Design split
 
 - **The skill's closed error registry covers contract violations only.** These codes are the skill's identity and never change per operator.
