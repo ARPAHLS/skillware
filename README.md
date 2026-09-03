@@ -61,7 +61,7 @@ flowchart LR
     Loader -->|Adapt| AnyHost["Any Host"]
 ```
 
-Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). See the [Introduction](docs/introduction.md) for loader details and [Agent loops](docs/usage/agent_loops.md) for the execution pattern.
+Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). See the [Introduction](docs/introduction.md) for loader details, [Agent loops](docs/usage/agent_loops.md) for the execution pattern, and [Skill chaining](docs/usage/skill_chaining.md) for multi-skill sessions (`SkillContext`, named `chains:`).
 
 ## Architecture
 
@@ -83,8 +83,11 @@ Skillware/
 │           └── test_skill.py   # Assurance (required for registry skills)
 ├── skillware/                  # Core Framework Package
 │   ├── cli.py                  # Command-line interface
+│   ├── context.py              # SkillContext — multi-skill registry host context
+│   ├── chains.py               # Named skill chain runner (run_chain, validate_chain)
 │   └── core/
 │       ├── base_skill.py       # Abstract Base Class for skills
+│       ├── chains_config.py    # chains: YAML parsing
 │       ├── env.py              # Environment Management
 │       └── loader.py           # Universal Skill Loader and Model Adapter
 ├── templates/                  # Boilerplate templates for new skills
@@ -191,7 +194,7 @@ For other providers and integration patterns, see the [usage guides](docs/usage/
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 

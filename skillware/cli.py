@@ -19,6 +19,15 @@ from rich import box
 import importlib.metadata
 
 from skillware.core.loader import SkillLoader
+from skillware.context import SkillContext
+from skillware.chains import (
+    ChainValidationError,
+    list_chains,
+    load_chain,
+    required_host_input_keys,
+    run_chain,
+    validate_chain,
+)
 from skillware.core.config import (
     GLOBAL_CONFIG_FILENAME,
     PROJECT_CONFIG_FILENAME,
@@ -1168,6 +1177,17 @@ def cmd_config_show(console=None) -> int:
         console.print(line, style=MENU_STYLE)
     console.print()
 
+    if config.chains:
+        console.print(Text("chains (active)", style=TABLE_STYLE))
+        for name in sorted(config.chains):
+            definition = config.chains[name]
+            console.print(
+                f"  {name}: {len(definition.steps)} step(s)"
+                + (f" — {definition.description}" if definition.description else ""),
+                style=MENU_STYLE,
+            )
+        console.print()
+
     if config.extra:
         console.print(Text("Other sections (reserved)", style=TABLE_STYLE))
         for key in sorted(config.extra):
@@ -1183,6 +1203,197 @@ def cmd_config_show(console=None) -> int:
         style="dim",
     )
     return 0
+
+
+def _parse_host_vars(pairs: Optional[List[str]]) -> Dict[str, Any]:
+    host: Dict[str, Any] = {}
+    if not pairs:
+        return host
+    for item in pairs:
+        if "=" not in item:
+            raise ValueError(f"Invalid --var {item!r}; use key=value or key=@file")
+        key, raw = item.split("=", 1)
+        key = key.strip()
+        if not key:
+            raise ValueError(f"Invalid --var {item!r}; empty key")
+        if raw.startswith("@"):
+            path = Path(raw[1:]).expanduser()
+            host[key] = path.read_text(encoding="utf-8")
+        else:
+            host[key] = raw
+    return host
+
+
+def cmd_context_show(
+    *,
+    skill: Optional[str] = None,
+    categories: Optional[str] = None,
+    roots: Optional[str] = None,
+    mode: str = "brief",
+    export_path: Optional[Path] = None,
+    console=None,
+) -> int:
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+
+    cat_list = None
+    if categories:
+        cat_list = [part.strip() for part in categories.split(",") if part.strip()]
+
+    ctx = SkillContext(
+        skill=skill,
+        categories=cat_list,
+        roots=roots,
+        mode=mode,
+    )
+
+    body = ctx.merge_system("")
+    if export_path is not None:
+        export_path.write_text(body, encoding="utf-8")
+        console.print(f"Wrote context to {export_path}", style=MENU_STYLE)
+        return 0
+
+    console.print(Text("SkillContext", style=TABLE_STYLE))
+    console.print(f"  mode: {mode}", style=MENU_STYLE)
+    console.print(f"  skills: {len(ctx.skill_ids)}", style=MENU_STYLE)
+    for sid in ctx.skill_ids:
+        console.print(f"    - {sid}", style="dim")
+    for warning in ctx.warnings:
+        console.print(f"  warning: {warning}", style=ERROR_STYLE)
+    console.print()
+    if body.strip():
+        console.print(body)
+    return 0
+
+
+def cmd_chain_list(console=None) -> int:
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+    chains = list_chains(refresh=True)
+    if not chains:
+        console.print("No chains defined in config.", style="dim")
+        return 0
+    table = Table(
+        box=box.SIMPLE_HEAVY, border_style=BORDER_STYLE, header_style=TABLE_STYLE
+    )
+    table.add_column("NAME", style=ID_STYLE)
+    table.add_column("STEPS", style="dim")
+    table.add_column("DESCRIPTION", ratio=2)
+    table.add_column("WHEN", ratio=2, style="dim")
+    for name in sorted(chains):
+        definition = chains[name]
+        table.add_row(
+            name,
+            str(len(definition.steps)),
+            definition.description or "-",
+            definition.when or "-",
+        )
+    console.print(table)
+    return 0
+
+
+def cmd_chain_show(name: str, console=None) -> int:
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+    try:
+        definition = load_chain(name, refresh=True)
+    except ChainValidationError as exc:
+        console.print(str(exc), style=ERROR_STYLE)
+        return 1
+    console.print(Text(f"Chain: {name}", style=TABLE_STYLE))
+    if definition.description:
+        console.print(f"  {definition.description}", style=MENU_STYLE)
+    if definition.when:
+        console.print(f"  when: {definition.when}", style="dim")
+    host_keys = required_host_input_keys(definition)
+    if host_keys:
+        console.print("  required host_input:", style=MENU_STYLE)
+        for key in host_keys:
+            console.print(f"    - {key}", style="dim")
+    for idx, step in enumerate(definition.steps):
+        label = step.step_id or step.skill
+        console.print(f"  [{idx}] {label} -> {step.skill}", style=MENU_STYLE)
+        if step.when is not None:
+            console.print(
+                f"      when: {step.when.prior_step}.{step.when.field} "
+                f"== {step.when.equals!r}",
+                style="dim",
+            )
+    return 0
+
+
+def cmd_chain_validate(name: Optional[str] = None, *, strict: bool = True) -> int:
+    chains = list_chains(refresh=True)
+    names = [name] if name else sorted(chains.keys())
+    if not names:
+        return 0
+    had_error = False
+    for chain_name in names:
+        try:
+            warnings_list = validate_chain(chain_name, strict=strict, refresh=True)
+        except ChainValidationError as exc:
+            print(f"error [{chain_name}]: {exc}", file=sys.stderr)
+            had_error = True
+            continue
+        for msg in warnings_list:
+            print(f"warning [{chain_name}]: {msg}", file=sys.stderr)
+    return 1 if had_error else 0
+
+
+def cmd_chain_run(
+    name: str,
+    *,
+    host_vars: Optional[List[str]] = None,
+    as_json: bool = False,
+    dry_run: bool = False,
+    console=None,
+) -> int:
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+    try:
+        host_input = _parse_host_vars(host_vars)
+    except ValueError as exc:
+        console.print(str(exc), style=ERROR_STYLE)
+        return 2
+    try:
+        result = run_chain(name, host_input=host_input, dry_run=dry_run)
+    except ChainValidationError as exc:
+        console.print(str(exc), style=ERROR_STYLE)
+        return 1
+    if as_json:
+        import json
+
+        payload = {
+            "chain_name": result.chain_name,
+            "status": result.status,
+            "final": result.final,
+            "errors": list(result.errors),
+            "steps": [
+                {
+                    "index": step.index,
+                    "skill_id": step.skill_id,
+                    "status": step.status,
+                    "output": step.output,
+                    "skip_reason": step.skip_reason,
+                }
+                for step in result.steps
+            ],
+        }
+        console.print(json.dumps(payload, indent=2))
+        return 0 if result.status != "failed" else 1
+    console.print(f"Chain {result.chain_name}: {result.status}", style=MENU_STYLE)
+    for step in result.steps:
+        console.print(
+            f"  [{step.index}] {step.skill_id}: {step.status}",
+            style=MENU_STYLE if step.status == "ok" else "dim",
+        )
+    for err in result.errors:
+        console.print(f"  error: {err}", style=ERROR_STYLE)
+    return 0 if result.status != "failed" else 1
 
 
 def cmd_theme_picker(console=None, input_fn=None) -> Optional[str]:
@@ -1868,6 +2079,87 @@ def main() -> None:
         help="Signature plain text (use --file for multi-line).",
     )
 
+    context_parser = subparsers.add_parser(
+        "context",
+        help="Show registry host context (SkillContext).",
+    )
+    context_sub = context_parser.add_subparsers(dest="context_command")
+    context_show = context_sub.add_parser("show", help="Print brief registry context.")
+    context_show.add_argument("--skill", default=None, help="Single skill ID.")
+    context_show.add_argument(
+        "--categories",
+        default=None,
+        help="Comma-separated categories filter.",
+    )
+    context_show.add_argument(
+        "--roots",
+        default=None,
+        help="Root tier filter: bundled, project, or external.",
+    )
+    context_show.add_argument(
+        "--mode",
+        default="brief",
+        choices=["brief", "tools_only", "directives"],
+        help="Context mode.",
+    )
+    context_show.add_argument(
+        "--export",
+        type=Path,
+        dest="export_path",
+        default=None,
+        help="Write context markdown to file.",
+    )
+
+    chain_parser = subparsers.add_parser(
+        "chain",
+        help="List, validate, and run named skill chains.",
+    )
+    chain_sub = chain_parser.add_subparsers(dest="chain_command")
+    chain_sub.add_parser("list", help="List configured chains.")
+    chain_show = chain_sub.add_parser("show", help="Show chain definition.")
+    chain_show.add_argument("name", help="Chain name.")
+    chain_validate = chain_sub.add_parser(
+        "validate",
+        help="Validate chain definitions (exit 1 on error).",
+    )
+    chain_validate.add_argument(
+        "name",
+        nargs="?",
+        default=None,
+        help="Optional chain name (default: all).",
+    )
+    chain_run = chain_sub.add_parser("run", help="Run a named chain.")
+    chain_run.add_argument("name", help="Chain name.")
+    chain_run.add_argument(
+        "--var",
+        action="append",
+        dest="host_vars",
+        default=None,
+        help="Host input key=value or key=@file (repeatable).",
+    )
+    chain_run.add_argument(
+        "--json",
+        action="store_true",
+        help="Print ChainResult as JSON.",
+    )
+    chain_dry = chain_sub.add_parser(
+        "dry-run",
+        help="Resolve chain params without executing skills.",
+    )
+    chain_dry.add_argument("name", help="Chain name.")
+    chain_dry.add_argument(
+        "--var",
+        action="append",
+        dest="host_vars",
+        default=None,
+        help="Host input key=value or key=@file (repeatable).",
+    )
+    chain_dry.add_argument(
+        "--json",
+        action="store_true",
+        help="Print resolved steps as JSON.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -1940,6 +2232,45 @@ def main() -> None:
                 kwargs["html_path"] = getattr(args, "html_path", None)
                 kwargs["plain_path"] = getattr(args, "plain_path", None)
         raise SystemExit(cmd_mail(args.mail_area, action, **kwargs))
+    elif args.command == "context":
+        if args.context_command == "show":
+            raise SystemExit(
+                cmd_context_show(
+                    skill=getattr(args, "skill", None),
+                    categories=getattr(args, "categories", None),
+                    roots=getattr(args, "roots", None),
+                    mode=getattr(args, "mode", "brief"),
+                    export_path=getattr(args, "export_path", None),
+                )
+            )
+        context_parser.print_help()
+        raise SystemExit(2)
+    elif args.command == "chain":
+        if args.chain_command == "list":
+            raise SystemExit(cmd_chain_list())
+        if args.chain_command == "show":
+            raise SystemExit(cmd_chain_show(args.name))
+        if args.chain_command == "validate":
+            raise SystemExit(cmd_chain_validate(getattr(args, "name", None)))
+        if args.chain_command == "run":
+            raise SystemExit(
+                cmd_chain_run(
+                    args.name,
+                    host_vars=getattr(args, "host_vars", None),
+                    as_json=getattr(args, "json", False),
+                )
+            )
+        if args.chain_command == "dry-run":
+            raise SystemExit(
+                cmd_chain_run(
+                    args.name,
+                    host_vars=getattr(args, "host_vars", None),
+                    as_json=getattr(args, "json", False),
+                    dry_run=True,
+                )
+            )
+        chain_parser.print_help()
+        raise SystemExit(2)
     else:
         cmd_interactive(parser=parser)
 

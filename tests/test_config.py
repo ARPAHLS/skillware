@@ -245,7 +245,8 @@ def test_extra_config_sections_preserved(tmp_path, monkeypatch):
 
     config = load_merged_config(refresh=True)
     assert "theme" in config.extra
-    assert "chains" in config.extra
+    assert config.extra.get("chains") == {"default": []}
+    assert config.chains == {}
     assert "mail" not in config.extra
 
 

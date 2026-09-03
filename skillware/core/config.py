@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import yaml
 
+from skillware.core.chains_config import ChainDefinition, merge_chain_layers
 from skillware.core.mail_config import (
     MailSettings,
     merge_mail_settings,
@@ -25,7 +26,7 @@ _MAX_PARENT_WALK = 6
 _DEFAULT_RESOLUTION_ORDER: Tuple[str, ...] = ("project", "external", "bundled")
 _VALID_ORDER_TIERS = frozenset({"project", "external", "bundled"})
 _PATH_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy"})
-_KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {"mail", "presentation"}
+_KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {"mail", "presentation", "chains"}
 
 
 @dataclass(frozen=True)
@@ -61,14 +62,15 @@ class SkillwareConfig:
     """
     Merged Skillware configuration.
 
-    ``paths``, ``mail``, and ``presentation`` are active settings. Additional top-level
-    YAML sections (for example ``chains`` and skill presets) are preserved in
-    ``extra`` for forward compatibility and shown by ``skillware config show``.
+    ``paths``, ``mail``, ``presentation``, and ``chains`` are active settings.
+    Additional top-level YAML sections are preserved in ``extra`` for forward
+    compatibility and shown by ``skillware config show``.
     """
 
     paths: PathsSettings = field(default_factory=PathsSettings)
     mail: MailSettings = field(default_factory=MailSettings)
     presentation: PresentationSettings = field(default_factory=PresentationSettings)
+    chains: Dict[str, ChainDefinition] = field(default_factory=dict)
     extra: Dict[str, Any] = field(default_factory=dict)
     layers: Tuple[ConfigLayer, ...] = ()
 
@@ -226,10 +228,15 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
                 presentation.theme = DEFAULT_PRESENTATION_THEME
 
     mail = merge_mail_settings(mail_layers)
+    chains, chains_legacy = merge_chain_layers(layer.data for layer in layers)
+    if chains_legacy:
+        extra = {**extra, "chains": chains_legacy}
+
     return SkillwareConfig(
         paths=paths,
         mail=mail,
         presentation=presentation,
+        chains=chains,
         extra=extra,
         layers=tuple(layers),
     )

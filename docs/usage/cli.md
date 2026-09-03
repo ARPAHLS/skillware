@@ -146,6 +146,8 @@ Brief `--help` groups (same topics, less detail):
 | **Examples** | `examples` |
 | **Paths** | `paths`, interactive paths submenu |
 | **Config** | `config show`, interactive theme picker |
+| **Context** | `context show` — registry brief (SkillContext) |
+| **Chains** | `chain list`, `chain show`, `chain validate`, `chain run`, `chain dry-run` |
 | **Mail** | `mail`, interactive mail submenu |
 | **General** | interactive menu, `--help`, `--version` |
 
@@ -393,6 +395,40 @@ Test signature in your inbox (requires `.env` credentials):
     python examples/gmail_signature_test_send.py --to you@example.com
 
 Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
+
+### skillware context
+
+Show **SkillContext** registry brief (discovered skills, compact blurbs). Does not execute skills.
+
+    skillware context show
+    skillware context show --skill optimization/prompt_rewriter
+    skillware context show --categories security,compliance --roots bundled --mode brief
+    skillware context show --export ctx.md
+
+See [Skill chaining](skill_chaining.md#skillcontext--discovery-filters).
+
+### skillware chain
+
+List, inspect, validate, and run **named chains** from merged config (`chains:` in `.skillware.yaml` / global `config.yaml`).
+
+    skillware chain list
+    skillware chain show sanitize_input
+    skillware chain validate
+    skillware chain validate sanitize_input
+    skillware chain run sanitize_input --var source_text="hello"
+    skillware chain run sanitize_input --var source_text=@./page.html --json
+    skillware chain dry-run scan_then_gate --var source_text=hi --var task_id=t1 \
+      --var current_token_count=1000 --var max_allowed_tokens=32000
+
+| Subcommand | Description |
+| :--- | :--- |
+| `list` | Chain names, step counts, description, when |
+| `show <name>` | Steps, bindings, required `host_input` keys |
+| `validate [name]` | Structural + skill resolution; exit **1** on error (CI) |
+| `run <name>` | Execute via `run_chain()`; `--var key=value` or `key=@file` |
+| `dry-run <name>` | Resolve params and `when` without `execute()` |
+
+See [Skill chaining](skill_chaining.md#named-chains-yaml--api).
 
 ## Path resolution
 

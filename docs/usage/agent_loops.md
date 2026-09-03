@@ -2,6 +2,8 @@
 
 Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
 
+**Multiple skills:** use [`SkillContext`](skill_chaining.md#skillcontext--discovery-filters) for registry brief + tools, or [skill chaining](skill_chaining.md) for deterministic middleware chains. Single-skill loops below are unchanged.
+
 ```mermaid
 flowchart LR
     Load[load] --> Wire[wire]
@@ -45,6 +47,41 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 OpenAI-compatible hosts reuse `to_openai_tool()`; see the [host guide](openai_compatible.md) and runnable [Groq example](../../examples/openai_compatible_host.py).
 
 **Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_tos_evaluator.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
+
+---
+
+## Multi-skill sessions (SkillContext)
+
+For agents that expose **many tools** from the registry, replace steps 1–4 with `SkillContext`:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext()  # or categories=, skills=, roots= — see skill_chaining.md
+system = ctx.merge_system(host_system_prompt)
+tools = ctx.tools("gemini")  # or claude | openai | deepseek
+
+# Send system + tools + user message to the model ...
+# On tool_call:
+
+result = ctx.execute(skill_id, arguments)  # auto-prepares; validates if you call prepare() first
+# Return result JSON to the model; loop continues
+```
+
+| Single-skill loop | Multi-skill (`SkillContext`) |
+| :--- | :--- |
+| `SkillLoader.load_skill(id)` | `SkillContext(...)` discovers many IDs |
+| `to_*_tool(bundle)` once | `ctx.tools(provider)` — list of tools |
+| `bundle["instructions"]` in system | `ctx.merge_system()` — brief, directives, or empty (`tools_only`) |
+| New instance per call (typical) | Reused instances on one `ctx` |
+
+**Progressive disclosure:** call `ctx.prepare(skill_id)` when the model selects a tool if you need the full Directive in context before filling parameters. See [Skill chaining — progressive disclosure](skill_chaining.md#skillcontext--progressive-disclosure-model-picks-tools).
+
+**Ollama prompt mode:** use `ctx.ollama_prompt` instead of per-skill `to_ollama_prompt()` when wiring multiple skills ([ollama.md](ollama.md)).
+
+**Deterministic middleware** (firewall → rewriter, scan → token gate): use a [manual Python chain](skill_chaining.md#host-decides-the-chain-manual-tier-1) or a [named YAML chain](skill_chaining.md#named-chains--predefined-yaml-pipelines-tier-2) — the model does not pick step order in those tiers.
+
+**Hybrid:** run `run_chain("sanitize_input", ...)` on untrusted input, then start the agent loop with sanitized text and a filtered `SkillContext(categories=[...])`.
 
 ---
 
