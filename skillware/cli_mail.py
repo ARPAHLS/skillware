@@ -9,6 +9,7 @@ from typing import Callable, List, Optional, Tuple
 from rich.console import Console
 from rich.text import Text
 
+from skillware.cli_theme import THEMES, active_theme
 from skillware.core.mail_config import (
     DEFAULT_SIGNATURE_PLAIN,
     ENV_ADDRESSBOOK_PATH,
@@ -43,9 +44,25 @@ from skillware.core.mail_config import (
 )
 from skillware.core.config import global_config_dir
 
-TABLE_STYLE = "bold #C7CEEA"
-ID_STYLE = "#B5EAD7"
-MENU_STYLE = "#FFDAC1"
+_DEFAULT_PALETTE = THEMES["pastel"]
+TABLE_STYLE = _DEFAULT_PALETTE.heading_style
+ID_STYLE = _DEFAULT_PALETTE.id_style
+MENU_STYLE = _DEFAULT_PALETTE.menu_style
+ERROR_STYLE = f"bold {_DEFAULT_PALETTE.error_color}"
+ERROR_DIM_STYLE = f"dim {_DEFAULT_PALETTE.error_color}"
+
+
+def _apply_active_theme() -> None:
+    """Refresh mail styles from the shared active CLI palette."""
+    palette = active_theme()
+    global TABLE_STYLE, ID_STYLE, MENU_STYLE, ERROR_STYLE, ERROR_DIM_STYLE
+
+    TABLE_STYLE = palette.heading_style
+    ID_STYLE = palette.id_style
+    MENU_STYLE = palette.menu_style
+    ERROR_STYLE = f"bold {palette.error_color}"
+    ERROR_DIM_STYLE = f"dim {palette.error_color}"
+
 
 _NAV_EXIT = "exit"
 _NAV_BACK = "back"
@@ -93,9 +110,8 @@ def _parse_nav(raw: Optional[str]) -> Tuple[str, Optional[str]]:
 
 
 def _print_mail_submenu(console: Console) -> None:
-    console.print(
-        Text("Mail settings (office/gmail_handler)", style=f"bold {TABLE_STYLE}")
-    )
+    _apply_active_theme()
+    console.print(Text("Mail settings (office/gmail_handler)", style=TABLE_STYLE))
     console.print(
         "  Precedence: env > project YAML > global YAML > skill defaults",
         style="dim",
@@ -111,13 +127,14 @@ def _print_mail_submenu(console: Console) -> None:
 
 
 def cmd_mail_addressbook_show(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
     path = resolve_addressbook_path(mail=mail)
     data = load_addressbook_yaml(path)
     count = count_addressbook_contacts(data)
-    console.print(Text("Address book", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Address book", style=TABLE_STYLE))
     console.print(f"  path: {path}", style=ID_STYLE)
     console.print(f"  contacts: {count}", style=MENU_STYLE)
     if path.is_file():
@@ -130,7 +147,7 @@ def cmd_mail_addressbook_show(console: Optional[Console] = None) -> int:
         elif "site-packages" in str(path):
             console.print(
                 "  storage: bundled wheel path — run addressbook init for a writable copy",
-                style="bold #FF9AA2",
+                style=ERROR_STYLE,
             )
     else:
         console.print(
@@ -146,6 +163,7 @@ def cmd_mail_addressbook_init(
     path: Optional[Path] = None,
     force: bool = False,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     target = path or default_global_addressbook_path()
@@ -154,7 +172,7 @@ def cmd_mail_addressbook_init(
     except FileExistsError:
         console.print(
             f"  Already exists: {target} (use --force to overwrite)",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
         return 1
     saved = persist_global_mail_paths(addressbook_path=str(target))
@@ -193,6 +211,7 @@ def cmd_mail_addressbook_add(
     org: Optional[str] = None,
     contact_id: Optional[str] = None,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -250,7 +269,7 @@ def cmd_mail_addressbook_add(
             contact_id=cid,
         )
     except ValueError as exc:
-        console.print(f"  {exc}", style="bold #FF9AA2")
+        console.print(f"  {exc}", style=ERROR_STYLE)
         return 1
 
     console.print(f"  Added contact {saved_id!r} → {path}", style=ID_STYLE)
@@ -258,17 +277,18 @@ def cmd_mail_addressbook_add(
 
 
 def cmd_mail_addressbook_validate(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
     path = resolve_addressbook_path(mail=mail)
     if not path.is_file():
-        console.print(f"  Missing address book: {path}", style="bold #FF9AA2")
+        console.print(f"  Missing address book: {path}", style=ERROR_STYLE)
         return 1
     data = load_addressbook_yaml(path)
     errors = validate_addressbook_data(data)
     if errors:
-        console.print(Text("Address book validation failed", style="bold #FF9AA2"))
+        console.print(Text("Address book validation failed", style=ERROR_STYLE))
         for error in errors:
             console.print(f"  • {error}")
         return 1
@@ -282,6 +302,7 @@ def cmd_mail_addressbook_set_path(
     path: Optional[str] = None,
     input_fn: ReadLineFn = None,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     raw = path
@@ -294,7 +315,7 @@ def cmd_mail_addressbook_set_path(
             return 1
     raw = raw.strip()
     if not raw:
-        console.print("  Path required.", style="bold #FF9AA2")
+        console.print("  Path required.", style=ERROR_STYLE)
         return 1
 
     project_mail = load_project_mail_settings()
@@ -305,12 +326,13 @@ def cmd_mail_addressbook_set_path(
 
 
 def cmd_mail_signature_show(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
     text, source = resolve_signature_plain(mail=mail)
     html, html_source = resolve_signature_html(mail=mail)
-    console.print(Text("Mail signature", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Mail signature", style=TABLE_STYLE))
     console.print(f"  plain source: {source}", style=MENU_STYLE)
     console.print(f"  html source: {html_source}", style=MENU_STYLE)
     if not text and not html:
@@ -337,6 +359,7 @@ def cmd_mail_signature_init(
     inline: bool = False,
     force: bool = False,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     config_dir = global_config_dir()
@@ -361,7 +384,7 @@ def cmd_mail_signature_init(
     except FileExistsError as exc:
         console.print(
             f"  Already exists: {exc} (use --force to overwrite)",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
         return 1
 
@@ -388,12 +411,13 @@ def cmd_mail_signature_set(
     text: Optional[str] = None,
     input_fn: ReadLineFn = None,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
 
     if file_path is not None:
         if not file_path.is_file():
-            console.print(f"  File not found: {file_path}", style="bold #FF9AA2")
+            console.print(f"  File not found: {file_path}", style=ERROR_STYLE)
             return 1
         body = file_path.read_text(encoding="utf-8").strip()
         project_mail = load_project_mail_settings()
@@ -402,7 +426,7 @@ def cmd_mail_signature_set(
         save_project_mail_settings(project_mail)
         errors = validate_signature_text(body)
         if errors:
-            console.print("  Warning:", style="bold #FF9AA2")
+            console.print("  Warning:", style=ERROR_STYLE)
             for error in errors:
                 console.print(f"    • {error}")
         console.print(
@@ -425,7 +449,7 @@ def cmd_mail_signature_set(
 
     errors = validate_signature_text(text or "")
     if errors:
-        console.print("  Invalid signature:", style="bold #FF9AA2")
+        console.print("  Invalid signature:", style=ERROR_STYLE)
         for error in errors:
             console.print(f"    • {error}")
         return 1
@@ -439,13 +463,14 @@ def cmd_mail_signature_set(
 
 
 def cmd_mail_signature_validate(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
     text, source = resolve_signature_plain(mail=mail)
     errors = validate_signature_text(text)
     if errors:
-        console.print(Text("Signature validation failed", style="bold #FF9AA2"))
+        console.print(Text("Signature validation failed", style=ERROR_STYLE))
         console.print(f"  source: {source}", style="dim")
         for error in errors:
             console.print(f"  • {error}")
@@ -455,6 +480,7 @@ def cmd_mail_signature_validate(console: Optional[Console] = None) -> int:
 
 
 def cmd_mail_signature_clear(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     updated = clear_mail_signature_settings()
@@ -471,12 +497,13 @@ def cmd_mail_signature_clear(console: Optional[Console] = None) -> int:
 
 
 def cmd_mail_signature_profiles(console: Optional[Console] = None) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
     active = resolve_signature_profile(mail=mail)
     profiles = list_signature_profiles(mail=mail)
-    console.print(Text("Signature profiles", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Signature profiles", style=TABLE_STYLE))
     console.print(f"  active: {active}", style=ID_STYLE)
     if not profiles:
         console.print("  (none — use signature init or add-profile)", style="dim")
@@ -501,13 +528,14 @@ def cmd_mail_signature_set_profile(
     profile_id: Optional[str] = None,
     input_fn: ReadLineFn = None,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     pid = (profile_id or "").strip()
     if not pid:
         pid = (_read_line("  Profile id: ", input_fn) or "").strip()
     if not pid:
-        console.print("  profile id is required.", style="bold #FF9AA2")
+        console.print("  profile id is required.", style=ERROR_STYLE)
         return 1
     target = set_active_signature_profile(pid)
     console.print(f"  Active signature profile: {pid}", style=ID_STYLE)
@@ -523,25 +551,26 @@ def cmd_mail_signature_add_profile(
     plain_path: Optional[Path] = None,
     input_fn: ReadLineFn = None,
 ) -> int:
+    _apply_active_theme()
     if console is None:
         console = Console()
     pid = (profile_id or "").strip()
     if not pid:
         pid = (_read_line("  Profile id: ", input_fn) or "").strip()
     if not pid:
-        console.print("  profile id is required.", style="bold #FF9AA2")
+        console.print("  profile id is required.", style=ERROR_STYLE)
         return 1
     if html_path is None and plain_path is None:
         console.print(
             "  Provide --html and/or --plain path to signature files.",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
         return 1
     if plain_path is not None and not plain_path.is_file():
-        console.print(f"  Plain file not found: {plain_path}", style="bold #FF9AA2")
+        console.print(f"  Plain file not found: {plain_path}", style=ERROR_STYLE)
         return 1
     if html_path is not None and not html_path.is_file():
-        console.print(f"  HTML file not found: {html_path}", style="bold #FF9AA2")
+        console.print(f"  HTML file not found: {html_path}", style=ERROR_STYLE)
         return 1
 
     target = upsert_signature_profile(
@@ -558,10 +587,11 @@ def cmd_mail_signature_add_profile(
 
 def cmd_mail_show(console: Optional[Console] = None) -> int:
     """Summary of resolved mail settings (read-only)."""
+    _apply_active_theme()
     if console is None:
         console = Console()
     mail = load_merged_mail_settings(refresh=True)
-    console.print(Text("Mail settings (resolved)", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Mail settings (resolved)", style=TABLE_STYLE))
     for line in format_mail_config_lines(mail):
         console.print(line, style=MENU_STYLE)
     console.print()
@@ -582,6 +612,7 @@ def cmd_mail_submenu(
     console: Optional[Console] = None, input_fn: ReadLineFn = None
 ) -> Optional[str]:
     """Interactive mail submenu. Returns _NAV_EXIT to quit Skillware."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -653,9 +684,9 @@ def cmd_mail_submenu(
         elif command == "signature add-profile":
             cmd_mail_signature_add_profile(console, input_fn=input_fn)
         elif command is None:
-            console.print(f"  Unknown choice: {choice!r}", style="dim #FF9AA2")
+            console.print(f"  Unknown choice: {choice!r}", style=ERROR_DIM_STYLE)
         else:
-            console.print(f"  Unknown choice: {choice!r}", style="dim #FF9AA2")
+            console.print(f"  Unknown choice: {choice!r}", style=ERROR_DIM_STYLE)
         console.print()
 
 
@@ -666,6 +697,7 @@ def cmd_mail(
     **kwargs,
 ) -> int:
     """Dispatch skillware mail [area] [action]."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -698,7 +730,7 @@ def cmd_mail(
             )
         if action == "set-path":
             return cmd_mail_addressbook_set_path(console, path=kwargs.get("path"))
-        console.print(f"  Unknown addressbook action: {action}", style="bold #FF9AA2")
+        console.print(f"  Unknown addressbook action: {action}", style=ERROR_STYLE)
         return 1
 
     if area == "signature":
@@ -735,9 +767,9 @@ def cmd_mail(
                 html_path=kwargs.get("html_path"),
                 plain_path=kwargs.get("plain_path"),
             )
-        console.print(f"  Unknown signature action: {action}", style="bold #FF9AA2")
+        console.print(f"  Unknown signature action: {action}", style=ERROR_STYLE)
         return 1
 
-    console.print(f"  Unknown mail area: {area}", style="bold #FF9AA2")
+    console.print(f"  Unknown mail area: {area}", style=ERROR_STYLE)
     console.print("  Use: addressbook | signature", style="dim")
     return 1

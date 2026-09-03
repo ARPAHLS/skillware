@@ -8,6 +8,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
+- **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
+
 ## [0.5.3] - 2026-09-01
 
 ### Added

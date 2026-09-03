@@ -3,8 +3,10 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from skillware.core.config import (
+    DEFAULT_PRESENTATION_THEME,
     GLOBAL_CONFIG_DIR_ENV,
     PROJECT_CONFIG_FILENAME,
     PathsSettings,
@@ -12,6 +14,7 @@ from skillware.core.config import (
     find_project_config_file,
     load_merged_config,
     load_project_paths_settings,
+    save_global_presentation_theme,
     save_project_config,
 )
 from skillware.core.discovery import (
@@ -167,6 +170,57 @@ def test_global_and_project_config_merge(tmp_path, monkeypatch):
     assert Path(config.paths.external[1]) == project_external.resolve()
 
 
+def test_presentation_theme_defaults_to_pastel(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
+
+    config = load_merged_config(refresh=True)
+
+    assert config.presentation.theme == DEFAULT_PRESENTATION_THEME
+
+
+def test_project_presentation_theme_overrides_global(tmp_path, monkeypatch):
+    global_dir = tmp_path / "global-config"
+    _write_config(
+        global_dir / "config.yaml",
+        "presentation:\n  theme: ocean\n",
+    )
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _write_config(
+        repo / PROJECT_CONFIG_FILENAME,
+        "presentation:\n  theme: mono\n",
+    )
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(global_dir))
+
+    config = load_merged_config(refresh=True)
+
+    assert config.presentation.theme == "mono"
+
+
+@pytest.mark.parametrize("configured", ["unknown", "", None, ["pastel"]])
+def test_unknown_or_malformed_presentation_theme_falls_back(
+    tmp_path, monkeypatch, configured
+):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    config_path = repo / PROJECT_CONFIG_FILENAME
+    config_path.write_text(
+        yaml.safe_dump(
+            {"presentation": {"theme": configured}},
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(tmp_path / "no-global"))
+
+    config = load_merged_config(refresh=True)
+
+    assert config.presentation.theme == DEFAULT_PRESENTATION_THEME
+
+
 def test_find_project_config_walks_up(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     nested = repo / "a" / "b"
@@ -274,3 +328,52 @@ def test_save_project_config_persists_paths(tmp_path, monkeypatch):
     merged = load_merged_config(refresh=True)
     assert merged.has_config_files
     assert any(root.path == external.resolve() for root in get_skill_roots())
+
+
+def test_save_project_config_preserves_presentation(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _write_config(
+        repo / PROJECT_CONFIG_FILENAME,
+        "presentation:\n  theme: ocean\n",
+    )
+    monkeypatch.chdir(repo)
+
+    save_project_config(PathsSettings(project="auto"))
+
+    saved = yaml.safe_load((repo / PROJECT_CONFIG_FILENAME).read_text(encoding="utf-8"))
+    assert saved["presentation"]["theme"] == "ocean"
+
+
+def test_save_global_presentation_theme_preserves_unrelated_settings(
+    tmp_path, monkeypatch
+):
+    global_dir = tmp_path / "global-config"
+    global_path = global_dir / "config.yaml"
+    _write_config(
+        global_path,
+        "paths:\n  project: auto\n"
+        "presentation:\n  theme: pastel\n  contrast: high\n"
+        "chains:\n  default: []\n",
+    )
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(global_dir))
+    load_merged_config(refresh=True)
+
+    written = save_global_presentation_theme(" OCEAN ")
+
+    assert written == global_path.resolve()
+    saved = yaml.safe_load(global_path.read_text(encoding="utf-8"))
+    assert saved["presentation"] == {"theme": "ocean", "contrast": "high"}
+    assert saved["paths"] == {"project": "auto"}
+    assert saved["chains"] == {"default": []}
+    assert load_merged_config().presentation.theme == "ocean"
+
+
+def test_save_global_presentation_theme_rejects_unknown(tmp_path, monkeypatch):
+    global_dir = tmp_path / "global-config"
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(global_dir))
+
+    with pytest.raises(ValueError, match="Unknown presentation theme"):
+        save_global_presentation_theme("neon")
+
+    assert not (global_dir / "config.yaml").exists()

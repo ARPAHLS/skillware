@@ -27,10 +27,12 @@ from skillware.core.config import (
     load_merged_config,
     load_project_paths_settings,
     project_config_write_path,
+    save_global_presentation_theme,
     save_project_config,
 )
 from skillware.core.mail_config import format_mail_config_lines
 from skillware.cli_mail import cmd_mail, cmd_mail_submenu
+from skillware.cli_theme import THEMES, ThemePalette, active_theme
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
     bundled_skill_root,
@@ -42,13 +44,45 @@ from skillware.core.discovery import (
 )
 from skillware.version_policy import emit_upgrade_advisory, get_installed_version
 
-TABLE_STYLE = "bold #C7CEEA"  # lavender  - headers
-CATEGORY_STYLE = "bold #FFDAC1"  # peach     - category column
-ID_STYLE = "#B5EAD7"  # mint      - skill ID column
-BORDER_STYLE = "#C7CEEA"  # lavender  - table border
 
-SPLASH_STYLE = "#C7CEEA"  # lavender  - skillware splash color
-MENU_STYLE = "#FFDAC1"  # peach     - menu category
+def _active_theme() -> ThemePalette:
+    """Return the configured palette; config normalization guarantees fallback."""
+    return active_theme()
+
+
+_DEFAULT_PALETTE = THEMES["pastel"]
+TABLE_STYLE = _DEFAULT_PALETTE.heading_style
+CATEGORY_STYLE = _DEFAULT_PALETTE.category_style
+ID_STYLE = _DEFAULT_PALETTE.id_style
+BORDER_STYLE = _DEFAULT_PALETTE.border_style
+SPLASH_STYLE = _DEFAULT_PALETTE.splash_style
+MENU_STYLE = _DEFAULT_PALETTE.menu_style
+ERROR_STYLE = f"bold {_DEFAULT_PALETTE.error_color}"
+ERROR_DIM_STYLE = f"dim {_DEFAULT_PALETTE.error_color}"
+SPLASH_GRADIENT_START = _DEFAULT_PALETTE.gradient_start
+SPLASH_GRADIENT_MID = _DEFAULT_PALETTE.gradient_mid
+SPLASH_GRADIENT_END = _DEFAULT_PALETTE.gradient_end
+
+
+def _apply_active_theme() -> None:
+    """Refresh module styles from the currently merged configuration."""
+    palette = _active_theme()
+    global TABLE_STYLE, CATEGORY_STYLE, ID_STYLE, BORDER_STYLE
+    global SPLASH_STYLE, MENU_STYLE, ERROR_STYLE, ERROR_DIM_STYLE
+    global SPLASH_GRADIENT_START, SPLASH_GRADIENT_MID, SPLASH_GRADIENT_END
+
+    TABLE_STYLE = palette.heading_style
+    CATEGORY_STYLE = palette.category_style
+    ID_STYLE = palette.id_style
+    BORDER_STYLE = palette.border_style
+    SPLASH_STYLE = palette.splash_style
+    MENU_STYLE = palette.menu_style
+    ERROR_STYLE = f"bold {palette.error_color}"
+    ERROR_DIM_STYLE = f"dim {palette.error_color}"
+    SPLASH_GRADIENT_START = palette.gradient_start
+    SPLASH_GRADIENT_MID = palette.gradient_mid
+    SPLASH_GRADIENT_END = palette.gradient_end
+
 
 _DOCS_CLI = "docs/usage/cli.md"
 _DOCS_CLI_LIST = f"{_DOCS_CLI}#skillware-list"
@@ -97,6 +131,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         "Config",
         [
             ("skillware config show", "merged global + project YAML (read-only)"),
+            ("skillware (menu 8 / theme)", "choose and save the global CLI theme"),
         ],
         _DOCS_CLI_CONFIG,
     ),
@@ -137,6 +172,12 @@ _PATHS_SUBMENU = [
     ("6", "flat", "diagnose flat-layout skills not shown in list"),
 ]
 
+_THEME_CHOICES = [
+    ("1", "pastel", "original Skillware palette"),
+    ("2", "ocean", "deep blue, sky, and cyan"),
+    ("3", "mono", "grayscale"),
+]
+
 _NAV_EXIT = "exit"
 _NAV_BACK = "back"
 
@@ -163,10 +204,6 @@ _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware mail addressbook show",
     "skillware doctor --category compliance",
 )
-SPLASH_GRADIENT_START = (0xD4, 0xE4, 0xF1)
-SPLASH_GRADIENT_MID = (0x79, 0xB6, 0xD8)
-SPLASH_GRADIENT_END = (0xEB, 0xD8, 0xDC)
-
 _SPLASH_LOGO_LINES = (
     "  ███████╗██╗  ██╗██╗██╗     ██╗     ██╗    ██╗ █████╗ ██████╗ ███████╗",
     "  ██╔════╝██║ ██╔╝██║██║     ██║     ██║    ██║██╔══██╗██╔══██╗██╔════╝",
@@ -215,7 +252,7 @@ def _example_github_url(script: str) -> str:
 def _example_github_cell(script: str) -> Text:
     """Compact clickable label for the examples table (full URL is the link target)."""
     url = _example_github_url(script)
-    return Text.from_markup(f'[link="{url}" dim #C7CEEA]{script}[/link]')
+    return Text.from_markup(f'[link="{url}" dim {SPLASH_STYLE}]{script}[/link]')
 
 
 def _examples_readme_path() -> Optional[Path]:
@@ -447,6 +484,7 @@ def cmd_test(
     console=None,
 ) -> int:
     """Run bundle tests via pytest. Returns pytest's exit code."""
+    _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
 
@@ -456,7 +494,7 @@ def cmd_test(
         category=category,
     )
     if error:
-        console.print(error, style="bold #FF9AA2")
+        console.print(error, style=ERROR_STYLE)
         return 2 if skill_id and category else 1
 
     pytest_args = [sys.executable, "-m", "pytest"]
@@ -478,6 +516,7 @@ def cmd_list(
     console=None,
 ) -> None:
     """Print a formatted table of all available skills."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -500,7 +539,7 @@ def cmd_list(
             console.print(
                 "examples/README.md not found locally or on GitHub; "
                 "cannot show example counts.",
-                style="bold #FF9AA2",
+                style=ERROR_STYLE,
             )
         else:
             example_counts = _example_counts_by_skill(rows)
@@ -547,6 +586,7 @@ def cmd_examples(
     console=None,
 ) -> int:
     """Print runnable example scripts from examples/README.md."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -554,7 +594,7 @@ def cmd_examples(
     if readme_source is None:
         console.print(
             "Could not load examples/README.md from the repo or GitHub.",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
         return 1
 
@@ -563,7 +603,7 @@ def cmd_examples(
         if len(parts) != 2 or not all(parts):
             console.print(
                 f"Invalid skill ID '{skill_id}'. Expected category/skill_name.",
-                style="bold #FF9AA2",
+                style=ERROR_STYLE,
             )
             return 2
 
@@ -572,7 +612,7 @@ def cmd_examples(
             console.print(
                 f"No indexed examples for '{skill_id}'. "
                 f"See {_examples_readme_display_path(readme_source)} for the full inventory.",
-                style="bold #FF9AA2",
+                style=ERROR_STYLE,
             )
             return 1
 
@@ -649,7 +689,7 @@ def _print_help_command_group(
     console, group: Tuple[str, List[Tuple[str, str]], str]
 ) -> None:
     group_name, commands, doc_link = group
-    console.print(Text(group_name, style=f"bold {TABLE_STYLE}"))
+    console.print(Text(group_name, style=TABLE_STYLE))
     for command, description in commands:
         console.print(f"  {command} — {description}", style=MENU_STYLE)
     console.print(f"  Read more: {doc_link}", style=f"dim {SPLASH_STYLE}")
@@ -657,20 +697,20 @@ def _print_help_command_group(
 
 
 def _print_help_index(console) -> None:
-    console.print(Text("Usage", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Usage", style=TABLE_STYLE))
     console.print(
         "  Run skillware and choose help (6) for full topic details.",
         style="dim",
     )
     console.print()
-    console.print(Text("Topics", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Topics", style=TABLE_STYLE))
     for key, slug, summary, _target in _HELP_MENU:
         console.print(f"  {key} {slug:<12}— {summary}", style=MENU_STYLE)
     console.print()
 
 
 def _print_cli_usage_examples(console) -> None:
-    console.print(Text("CLI usage examples", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("CLI usage examples", style=TABLE_STYLE))
     for line in _CLI_USAGE_EXAMPLES:
         console.print(f"  {line}", style=MENU_STYLE)
     console.print()
@@ -678,32 +718,33 @@ def _print_cli_usage_examples(console) -> None:
 
 def _print_help_static_topic(console, topic: str) -> None:
     if topic == "install":
-        console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Install", style=TABLE_STYLE))
         console.print("  pip install skillware", style=MENU_STYLE)
         console.print('  pip install -e ".[dev,all]"  # local development', style="dim")
     elif topic == "docs":
-        console.print(Text("Docs", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Docs", style=TABLE_STYLE))
         console.print(
             "  https://github.com/arpahls/skillware/blob/main/docs/usage/cli.md",
             style=f"dim {SPLASH_STYLE}",
         )
     elif topic == "interactive":
-        console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Interactive mode", style=TABLE_STYLE))
         console.print("  skillware — open splash menu", style=MENU_STYLE)
-        console.print("  1-6 or command name — run a command", style="dim")
+        console.print("  1-8 or command name — run a command", style="dim")
         console.print("  0 — exit from any menu level", style="dim")
     console.print()
 
 
 def _print_help_groups(console, *, compact: bool = False) -> None:
     """Print all help groups (legacy flat dump). Prefer cmd_help(brief=True)."""
-    console.print(Text("Usage", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Usage", style=TABLE_STYLE))
     for group in HELP_GROUPS:
         _print_help_command_group(console, group)
 
 
 def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
     """Interactive help topics. Returns _NAV_EXIT to quit Skillware."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -711,7 +752,7 @@ def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
     topic_map.update({slug: target for key, slug, _summary, target in _HELP_MENU})
 
     while True:
-        console.print(Text("Help", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Help", style=TABLE_STYLE))
         for key, slug, summary, _target in _HELP_MENU:
             console.print(f"    [{key}] {slug:<12}— {summary}", style=MENU_STYLE)
         _print_nav_footer(console, show_back=True)
@@ -727,7 +768,7 @@ def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
 
         target = topic_map.get(choice.lower())
         if target is None:
-            console.print(f"  Unknown topic: '{choice}'", style="dim #FF9AA2")
+            console.print(f"  Unknown topic: '{choice}'", style=ERROR_DIM_STYLE)
             console.print()
             continue
 
@@ -746,7 +787,7 @@ def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
 
 
 def _print_paths_submenu(console) -> None:
-    console.print(Text("Paths", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Paths", style=TABLE_STYLE))
     console.print(
         f"  Project config: {project_config_write_path()}",
         style="dim",
@@ -763,7 +804,7 @@ def _print_paths_submenu(console) -> None:
 
 def _cmd_paths_show_bundled(console) -> None:
     root = bundled_skill_root(include_missing=True)
-    console.print(Text("Bundled registry (read-only)", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Bundled registry (read-only)", style=TABLE_STYLE))
     console.print(f"  path: {root.path}", style=MENU_STYLE)
     console.print(f"  status: {'ok' if root.exists else 'missing'}", style="dim")
     if root.exists:
@@ -788,13 +829,13 @@ def _cmd_paths_shadows_only(
         console.print("No shadowing detected across active roots.", style=MENU_STYLE)
         return
 
-    console.print(Text("Shadowing (first root wins)", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Shadowing (first root wins)", style=TABLE_STYLE))
     for conflict in conflicts[:30]:
         console.print(
             f"  {conflict.skill_id}: "
             f"{conflict.winner.tier.value} at {conflict.winner.path} "
             f"shadows {conflict.shadowed.tier.value} at {conflict.shadowed.path}",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
     if len(conflicts) > 30:
         console.print(f"  … and {len(conflicts) - 30} more", style="dim")
@@ -804,9 +845,7 @@ def _cmd_paths_flat_diagnose(
     console, skills_root_override: Optional[Path] = None
 ) -> None:
     roots = get_skill_roots(skills_root_override, for_display=True)
-    console.print(
-        Text("Flat-layout skills (loadable, not in list)", style=f"bold {TABLE_STYLE}")
-    )
+    console.print(Text("Flat-layout skills (loadable, not in list)", style=TABLE_STYLE))
     found_any = False
     for root in roots:
         if not root.exists:
@@ -851,7 +890,7 @@ def _cmd_paths_edit_project(console, input_fn=None) -> None:
     else:
         candidate = Path(raw).expanduser()
         if not candidate.is_dir():
-            console.print(f"  Not a directory: {candidate}", style="bold #FF9AA2")
+            console.print(f"  Not a directory: {candidate}", style=ERROR_STYLE)
             return
         paths.project = str(candidate.resolve())
 
@@ -862,9 +901,7 @@ def _cmd_paths_edit_project(console, input_fn=None) -> None:
 def _cmd_paths_edit_external(console, input_fn=None) -> None:
     paths = load_project_paths_settings()
     while True:
-        console.print(
-            Text("External paths (project config)", style=f"bold {TABLE_STYLE}")
-        )
+        console.print(Text("External paths (project config)", style=TABLE_STYLE))
         if paths.external:
             for index, entry in enumerate(paths.external, start=1):
                 console.print(f"    [{index}] {entry}", style=MENU_STYLE)
@@ -888,7 +925,7 @@ def _cmd_paths_edit_external(console, input_fn=None) -> None:
                 continue
             candidate = Path(path_raw).expanduser()
             if not candidate.is_dir():
-                console.print(f"  Not a directory: {candidate}", style="bold #FF9AA2")
+                console.print(f"  Not a directory: {candidate}", style=ERROR_STYLE)
                 continue
             resolved = str(candidate.resolve())
             if resolved not in paths.external:
@@ -908,16 +945,16 @@ def _cmd_paths_edit_external(console, input_fn=None) -> None:
             try:
                 index = int(index_raw)
             except ValueError:
-                console.print("  Enter a list number.", style="bold #FF9AA2")
+                console.print("  Enter a list number.", style=ERROR_STYLE)
                 continue
             if index < 1 or index > len(paths.external):
-                console.print("  Invalid number.", style="bold #FF9AA2")
+                console.print("  Invalid number.", style=ERROR_STYLE)
                 continue
             removed = paths.external.pop(index - 1)
             target = save_project_config(paths)
             console.print(f"  Removed {removed}; saved to {target}", style=ID_STYLE)
         else:
-            console.print("  Unknown choice.", style="dim #FF9AA2")
+            console.print("  Unknown choice.", style=ERROR_DIM_STYLE)
 
 
 def cmd_paths_submenu(
@@ -926,6 +963,7 @@ def cmd_paths_submenu(
     input_fn=None,
 ) -> Optional[str]:
     """Interactive paths submenu (menu option 4). Returns _NAV_EXIT to quit Skillware."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -969,7 +1007,7 @@ def cmd_paths_submenu(
         elif command == "flat":
             _cmd_paths_flat_diagnose(console, skills_root_override=skills_root_override)
         elif command is None:
-            console.print(f"  Unknown choice: '{choice}'", style="dim #FF9AA2")
+            console.print(f"  Unknown choice: '{choice}'", style=ERROR_DIM_STYLE)
         console.print()
 
 
@@ -978,11 +1016,12 @@ def cmd_paths(
     console=None,
 ) -> int:
     """Show skill root resolution order, tiers, and shadowing (read-only config via skillware config show)."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
     cwd = Path.cwd().resolve()
-    console.print(Text("Skill path resolution", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Skill path resolution", style=TABLE_STYLE))
     console.print(f"  cwd: {cwd}", style="dim")
     console.print()
 
@@ -991,7 +1030,7 @@ def cmd_paths(
         console.print(
             "No skill roots configured. Set "
             f"{SKILLWARE_SKILL_PATH_ENV} or use --skills-root.",
-            style="bold #FF9AA2",
+            style=ERROR_STYLE,
         )
         return 1
 
@@ -1010,7 +1049,7 @@ def cmd_paths(
     for index, root in enumerate(roots, start=1):
         skill_count = len(list_registry_skill_ids(root.path)) if root.exists else 0
         status = "ok" if root.exists else "missing"
-        status_style = ID_STYLE if root.exists else "bold #FF9AA2"
+        status_style = ID_STYLE if root.exists else ERROR_STYLE
         table.add_row(
             str(index),
             root.tier.value,
@@ -1024,26 +1063,24 @@ def cmd_paths(
 
     conflicts = find_shadow_conflicts(roots)
     if conflicts:
-        console.print(
-            Text("Shadowing (first root wins on load)", style=f"bold {TABLE_STYLE}")
-        )
+        console.print(Text("Shadowing (first root wins on load)", style=TABLE_STYLE))
         for conflict in conflicts[:20]:
             console.print(
                 f"  {conflict.skill_id}: "
                 f"{conflict.winner.tier.value} at {conflict.winner.path} "
                 f"shadows {conflict.shadowed.tier.value} at {conflict.shadowed.path}",
-                style="bold #FF9AA2",
+                style=ERROR_STYLE,
             )
         if len(conflicts) > 20:
             console.print(f"  … and {len(conflicts) - 20} more", style="dim")
         console.print()
 
-    console.print(Text("Resolution order", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Resolution order", style=TABLE_STYLE))
     for label, detail in resolution_order_summary():
         console.print(f"  {label}: {detail}", style="dim")
     console.print()
 
-    console.print(Text("Tips", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Tips", style=TABLE_STYLE))
     console.print(
         "  • One-shot override: skillware list --skills-root /path/to/skills",
         style=MENU_STYLE,
@@ -1070,18 +1107,23 @@ def cmd_paths(
 
 def cmd_config_show(console=None) -> int:
     """Print merged global + project configuration (read-only)."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
     config = load_merged_config(refresh=True)
     paths = config.paths
-    console.print(Text("Skillware config", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Skillware config", style=TABLE_STYLE))
     console.print()
 
-    console.print(Text("Config files", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("Config files", style=TABLE_STYLE))
     console.print(f"  Global (default): {global_config_path()}", style="dim")
     for line in format_config_sources(config):
         console.print(f"  Loaded: {line}", style=MENU_STYLE if config.layers else "dim")
+    console.print()
+
+    console.print(Text("presentation (active)", style=TABLE_STYLE))
+    console.print(f"  theme: {config.presentation.theme}", style=MENU_STYLE)
     console.print()
 
     if not config.has_config_files:
@@ -1103,7 +1145,7 @@ def cmd_config_show(console=None) -> int:
             console.print(line, style=MENU_STYLE)
         return 0
 
-    console.print(Text("paths (active)", style=f"bold {TABLE_STYLE}"))
+    console.print(Text("paths (active)", style=TABLE_STYLE))
     project_label = paths.project if paths.project is not None else "auto"
     console.print(f"  project: {project_label}", style=MENU_STYLE)
     if paths.external:
@@ -1127,7 +1169,7 @@ def cmd_config_show(console=None) -> int:
     console.print()
 
     if config.extra:
-        console.print(Text("Other sections (reserved)", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Other sections (reserved)", style=TABLE_STYLE))
         for key in sorted(config.extra):
             console.print(f"  {key}: (present, not applied yet)", style="dim")
         console.print()
@@ -1137,10 +1179,58 @@ def cmd_config_show(console=None) -> int:
         style="dim",
     )
     console.print(
-        "Edit via interactive menu (paths, mail) or YAML manually.",
+        "Edit via interactive menu (paths, mail, themes) or YAML manually.",
         style="dim",
     )
     return 0
+
+
+def cmd_theme_picker(console=None, input_fn=None) -> Optional[str]:
+    """Select and persist a global CLI theme. Returns _NAV_EXIT when requested."""
+    if console is None:
+        console = Console()
+
+    choices = {key: name for key, name, _description in _THEME_CHOICES}
+    choices.update({name: name for _key, name, _description in _THEME_CHOICES})
+
+    while True:
+        _apply_active_theme()
+        current = load_merged_config().presentation.theme
+        console.print(Text("Theme", style=TABLE_STYLE))
+        console.print(f"  Current: {current}", style=ID_STYLE)
+        console.print()
+        for key, name, description in _THEME_CHOICES:
+            console.print(
+                f"    [{key}] {name:<8}— {description}",
+                style=MENU_STYLE,
+            )
+        _print_nav_footer(console, show_back=True)
+
+        raw = _read_line("  theme> ", input_fn)
+        choice, nav = _parse_nav(raw)
+        if nav == _NAV_EXIT:
+            return _NAV_EXIT
+        if nav == _NAV_BACK:
+            return None
+        if not choice:
+            continue
+
+        selected = choices.get(choice.lower())
+        if selected is None:
+            console.print(f"  Unknown theme: '{choice}'", style=ERROR_DIM_STYLE)
+            console.print()
+            continue
+
+        target = save_global_presentation_theme(selected)
+        _apply_active_theme()
+        effective = load_merged_config().presentation.theme
+        console.print(f"  Saved global theme '{selected}' to {target}", style=ID_STYLE)
+        if effective != selected:
+            console.print(
+                f"  Project config keeps '{effective}' active in this directory.",
+                style="dim",
+            )
+        return None
 
 
 def _doctor_load_target(
@@ -1214,6 +1304,7 @@ def cmd_doctor(
     console=None,
 ) -> int:
     """Check manifest deps and skill.py import without running execute()."""
+    _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
 
@@ -1223,7 +1314,7 @@ def cmd_doctor(
         category=category,
     )
     if error:
-        console.print(error, style="bold #FF9AA2")
+        console.print(error, style=ERROR_STYLE)
         return 2 if skill_id and category else 1
 
     table = Table(
@@ -1251,7 +1342,7 @@ def cmd_doctor(
                     sid, skills_root_override=skills_root_override
                 )
             except FileNotFoundError as exc:
-                console.print(str(exc), style="bold #FF9AA2")
+                console.print(str(exc), style=ERROR_STYLE)
                 return 1
 
             if deps_status != "ok" or load_status == "fail":
@@ -1259,14 +1350,14 @@ def cmd_doctor(
 
             deps_cell = Text(
                 deps_status,
-                style=ID_STYLE if deps_status == "ok" else "bold #FF9AA2",
+                style=ID_STYLE if deps_status == "ok" else ERROR_STYLE,
             )
             if load_status == "skip":
                 load_cell = Text("—", style="dim")
             elif load_status == "ok":
                 load_cell = Text(load_status, style=ID_STYLE)
             else:
-                load_cell = Text(load_status, style="bold #FF9AA2")
+                load_cell = Text(load_status, style=ERROR_STYLE)
 
             rows.append((sid, deps_cell, load_cell, detail or "—"))
 
@@ -1304,7 +1395,7 @@ def _prompt_examples_skill_id(
     if len(parts) != 2 or not all(parts):
         console.print(
             f"  Invalid skill ID '{choice}'. Expected category/skill_name.",
-            style="dim #FF9AA2",
+            style=ERROR_DIM_STYLE,
         )
         return None, _NAV_BACK
     return choice, None
@@ -1318,24 +1409,25 @@ def _print_menu(console, menu) -> None:
 
 def cmd_help(console=None, *, brief: bool = True) -> None:
     """Print CLI help. Brief mode (default) shows topics + examples only."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
     if brief:
         _print_help_index(console)
         _print_cli_usage_examples(console)
-        console.print(Text("Install", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Install", style=TABLE_STYLE))
         console.print("  pip install skillware", style="dim")
         console.print()
-        console.print(Text("Docs", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Docs", style=TABLE_STYLE))
         console.print(
             "  https://github.com/arpahls/skillware/blob/main/docs/usage/cli.md",
             style=f"dim {SPLASH_STYLE}",
         )
         console.print()
-        console.print(Text("Interactive mode", style=f"bold {TABLE_STYLE}"))
+        console.print(Text("Interactive mode", style=TABLE_STYLE))
         console.print(
-            "  skillware — menu 1-6; help topic drill-down via 6", style="dim"
+            "  skillware — menu 1-8; help topic drill-down via 6", style="dim"
         )
         console.print("  0 — exit from any menu level", style="dim")
         console.print()
@@ -1396,6 +1488,7 @@ def _package_version_str() -> str:
 
 def cmd_interactive(console=None, parser=None) -> None:
     """Launch ASCII splash screen and interactive menu."""
+    _apply_active_theme()
     if console is None:
         console = Console()
 
@@ -1425,6 +1518,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("5", "doctor", "check manifest deps and skill.py import readiness"),
         ("6", "help", "grouped help topics and doc links"),
         ("7", "mail", "address book and signature for office/gmail_handler"),
+        ("8", "theme", "choose and save the CLI color theme"),
     ]
 
     commands = {
@@ -1442,6 +1536,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         "help": "help",
         "7": "mail",
         "mail": "mail",
+        "8": "theme",
+        "theme": "theme",
     }
 
     _print_menu(console, menu)
@@ -1482,7 +1578,9 @@ def cmd_interactive(console=None, parser=None) -> None:
         elif command == "doctor":
             rc = cmd_doctor(console=console)
             if rc:
-                console.print(f"  doctor exited with status {rc}", style="dim #FF9AA2")
+                console.print(
+                    f"  doctor exited with status {rc}", style=ERROR_DIM_STYLE
+                )
         elif command == "mail":
             mail_nav = cmd_mail_submenu(console=console)
             if mail_nav == _NAV_EXIT:
@@ -1493,8 +1591,13 @@ def cmd_interactive(console=None, parser=None) -> None:
             if help_nav == _NAV_EXIT:
                 console.print("  Bye.", style="dim")
                 return
+        elif command == "theme":
+            theme_nav = cmd_theme_picker(console=console)
+            if theme_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         else:
-            console.print(f"  Unknown command: '{choice}'", style="dim #FF9AA2")
+            console.print(f"  Unknown command: '{choice}'", style=ERROR_DIM_STYLE)
 
         console.print()
         _print_menu(console, menu)
