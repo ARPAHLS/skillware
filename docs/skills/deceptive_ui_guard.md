@@ -110,13 +110,16 @@ print(result["trust_score"], result["findings"])
 ### Claude (Anthropic Tool Use)
 
 ```python
+import os
 import anthropic
+from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
+load_env_file()
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = bundle["to_anthropic_tool"]()
 skill = bundle["class"]()
-client = anthropic.Anthropic()
+tool = SkillLoader.to_claude_tool(bundle)
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
 html = "<html><body><form id='checkout'><input type='submit' value='Next' aria-label='Charge $99.00'/></form></body></html>"
 response = client.messages.create(
@@ -130,17 +133,20 @@ response = client.messages.create(
 ### OpenAI (Function Calling)
 
 ```python
+import os
 from openai import OpenAI
+from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
+load_env_file()
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = bundle["to_openai_tool"]()
 skill = bundle["class"]()
-client = OpenAI()
+openai_tool = SkillLoader.to_openai_tool(bundle)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 response = client.chat.completions.create(
     model="gpt-4o",
-    tools=[tool],
+    tools=[openai_tool],
     messages=[{"role": "user", "content": "Scan page HTML for deceptive patterns before clicking."}],
 )
 ```
@@ -148,34 +154,37 @@ response = client.chat.completions.create(
 ### DeepSeek
 
 ```python
+import os
 from openai import OpenAI
+from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
+load_env_file()
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = bundle["to_openai_tool"]()
-client = OpenAI(base_url="https://api.deepseek.com/v1", api_key="YOUR_DEEPSEEK_API_KEY")
+skill = bundle["class"]()
+deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
+client = OpenAI(
+    api_key=os.environ.get("DEEPSEEK_API_KEY"),
+    base_url="https://api.deepseek.com",
+)
 
 response = client.chat.completions.create(
     model="deepseek-chat",
-    tools=[tool],
+    tools=[deepseek_tool],
     messages=[{"role": "user", "content": "Analyze web surface before executing checkout action."}],
 )
 ```
 
 ### Ollama (Local LLMs)
 
+Prompt-based tool calling or system prompt injection. Pull a model such as `gemma3` or `qwen3.5`, then follow [Ollama usage](../usage/ollama.md):
+
 ```python
-from ollama import chat
 from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = bundle["to_ollama_tool"]()
-
-response = chat(
-    model="llama3.3",
-    messages=[{"role": "user", "content": "Scan this web surface for deceptive UI traps."}],
-    tools=[tool],
-)
+system_tool_prompt = SkillLoader.to_ollama_prompt(bundle)
+# Append system_tool_prompt to system instructions for text-based tool generation
 ```
 
 ### Gemini
@@ -188,7 +197,7 @@ from skillware.core.env import load_env_file
 
 load_env_file()
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = bundle["to_gemini_tool"]()
+tool = SkillLoader.to_gemini_tool(bundle)
 skill = bundle["class"]()
 client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
 
@@ -209,7 +218,6 @@ Commits that touched this skill bundle or its catalog page ([`security/deceptive
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`3319352`](https://github.com/ARPAHLS/skillware/commit/3319352) | feat(security): deceptive_ui_guard v2 — render diff, zone weighting, allowlists (#314) | 1 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar), [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`68da6ed`](https://github.com/ARPAHLS/skillware/commit/68da6ed) | feat(security): add deceptive_ui_guard v1 for issue #78 (#313) | 27 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->

@@ -108,6 +108,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
 | `security_deceptive_ui_guard` | `security/deceptive_ui_guard` | *(none today)* | Offline HTML analysis; optional url fetch uses `requests` (core) |
+| `security_deceptive_ui_guard_render` | `security/deceptive_ui_guard` | `playwright` | Optional headless Playwright computed-style diffing (v0.2.0) |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` | |
 
 ```bash

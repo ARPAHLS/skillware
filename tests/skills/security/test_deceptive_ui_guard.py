@@ -85,3 +85,47 @@ def test_deceptive_ui_golden_corpus(fixture_file: Path):
         assert len(result["findings"]) > 0
     elif category == "fake_urgency":
         assert any(f["type"] == "fake_urgency_timer" for f in result["findings"])
+    elif category == "render_css_hidden":
+        if "white_on_white" in fixture_file.name:
+            assert any(f["type"] == "low_contrast" for f in result["findings"])
+        else:
+            import importlib.util
+
+            if importlib.util.find_spec("playwright") is not None:
+                rendered = skill.execute(
+                    {
+                        "html_content": html_content,
+                        "sensitivity": "balanced",
+                        "render_mode": "auto",
+                        "intended_action": "complete checkout",
+                    }
+                )
+                assert any(
+                    f["type"] == "render_dom_divergence" for f in rendered["findings"]
+                )
+
+
+@pytest.mark.parametrize(
+    "fixture_file",
+    sorted((FIXTURES_DIR / "render_css_hidden").glob("*.html")),
+    ids=lambda p: p.name,
+)
+def test_render_css_hidden_with_playwright(fixture_file: Path):
+    pytest.importorskip("playwright")
+    bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
+    skill = bundle["module"].DeceptiveUiGuardSkill()
+    html_content = fixture_file.read_text(encoding="utf-8")
+
+    result = skill.execute(
+        {
+            "html_content": html_content,
+            "sensitivity": "balanced",
+            "render_mode": "force",
+            "intended_action": "complete checkout",
+        }
+    )
+    assert len(result["findings"]) > 0
+    assert any(
+        f["type"] in {"render_dom_divergence", "low_contrast"}
+        for f in result["findings"]
+    )

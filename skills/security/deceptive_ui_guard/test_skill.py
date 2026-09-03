@@ -316,3 +316,28 @@ def test_bundle_has_no_llm_auditor_surface():
         text = open(os.path.join(root, name), encoding="utf-8").read().lower()
         for token in banned:
             assert token not in text
+
+
+def test_render_mode_force_error_when_playwright_missing(monkeypatch):
+    import importlib.util
+
+    orig_find_spec = importlib.util.find_spec
+
+    def mock_find_spec(name, *args, **kwargs):
+        if name == "playwright":
+            return None
+        return orig_find_spec(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib.util, "find_spec", mock_find_spec)
+    with pytest.raises(ImportError, match="render_mode='force' requires Playwright"):
+        scan_surface(html_content="<p>test</p>", render_mode="force")
+
+
+def test_render_dom_divergence_with_playwright():
+    pytest.importorskip("playwright")
+    html = """
+    <html><head><style>.hidden { opacity: 0; }</style></head>
+    <body><div class="hidden">Hidden fee of $25 applied</div></body></html>
+    """
+    result = scan_surface(html_content=html, render_mode="force")
+    assert any(f.get("type") == "render_dom_divergence" for f in result.findings)
