@@ -27,6 +27,19 @@
         "summary": "Hidden text is present that does not appear in the visible surface."
       },
       "sanitized_excerpt": "Welcome to the demo checkout page.",
+      "zone_summary": {
+        "checkout": {
+          "element_count": 0,
+          "findings_count": 0,
+          "weight": 1.5
+        },
+        "general": {
+          "element_count": 5,
+          "findings_count": 1,
+          "weight": 1.0
+        }
+      },
+      "session_recommendation": "Session verified clean of recurring nag loops.",
       "fetch_status": "skipped",
       "offline": true,
       "sensitivity": "balanced"

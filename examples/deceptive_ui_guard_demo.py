@@ -1,10 +1,13 @@
-"""
-Local execute demo for security/deceptive_ui_guard.
+"""Local execute demo for security/deceptive_ui_guard (v0.2.0).
 
 Loads sanitized HTML recreations of documented dark patterns (confirm shaming,
 drip pricing, forced continuity, mislabeled CTAs, anti-agent hidden text).
-Fixtures live under examples/fixtures/deceptive_ui/ — pattern sources are public
-deceptive-design taxonomies and regulator case descriptions, not live scrapes.
+Demonstrates v2 capabilities: DOM zone weighting, session nag tracking,
+mobile profile heuristics, and zone summary breakdowns.
+
+Demo fixtures live under examples/fixtures/deceptive_ui/. For the expanded
+23-fixture golden test corpus categorized across 8 sub-domains, see
+tests/fixtures/deceptive_ui/.
 """
 
 from pathlib import Path
@@ -19,21 +22,22 @@ def _load_fixture(name: str) -> str:
 
 
 def run_demo():
-    print("Loading security/deceptive_ui_guard...")
+    print("Loading security/deceptive_ui_guard (v0.2.0)...")
     bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
     skill = bundle["module"].DeceptiveUiGuardSkill()
 
     scenarios = [
         (
-            "Confirm shaming (newsletter modal — deceptive.design pattern)",
+            "Confirm shaming with session nag tracking (newsletter modal)",
             {
                 "html_content": _load_fixture("confirm_shaming_newsletter.html"),
                 "sensitivity": "balanced",
                 "intended_action": "browse storefront",
+                "session_fingerprint": "session_usr_98231_checkout",
             },
         ),
         (
-            "Drip pricing (late fee disclosure — FTC-style checkout copy)",
+            "Drip pricing & zone weighting (late fee disclosure in checkout zone)",
             {
                 "html_content": _load_fixture("drip_pricing_checkout.html"),
                 "sensitivity": "balanced",
@@ -61,13 +65,15 @@ def run_demo():
                 "html_content": _load_fixture("hidden_imperative_anti_agent.html"),
                 "sensitivity": "balanced",
                 "intended_action": "complete checkout",
+                "render_mode": "off",
             },
         ),
         (
-            "Clean control (neutral product documentation)",
+            "Clean control (neutral product documentation with zone summary)",
             {
                 "html_content": _load_fixture("clean_product_docs.html"),
                 "sensitivity": "balanced",
+                "surface_profile": "desktop",
             },
         ),
     ]
@@ -84,8 +90,18 @@ def run_demo():
             for finding in result["findings"][:3]:
                 print(
                     f"  - {finding.get('type')}/{finding.get('subtype')} "
-                    f"({finding.get('severity')})"
+                    f"({finding.get('severity')}) [zone={finding.get('zone')}]"
                 )
+        if result.get("zone_summary"):
+            active_zones = {
+                z: data["findings_count"]
+                for z, data in result["zone_summary"].items()
+                if data["findings_count"] > 0
+            }
+            if active_zones:
+                print(f"zone_findings: {active_zones}")
+        if result.get("session_recommendation"):
+            print(f"session_recommendation: {result.get('session_recommendation')}")
         print(f"sanitized_excerpt: {result.get('sanitized_excerpt')!r}")
         guidance = result.get("agent_guidance") or {}
         print(f"verify_before_payment: {guidance.get('verify_before_payment')}")

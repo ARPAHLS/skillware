@@ -3,8 +3,8 @@
     "file": "deception_lexicon.json",
     "skill": "security/deceptive_ui_guard",
     "purpose": "Deterministic deceptive-design phrase lexicon for offline HTML surface scanning.",
-    "version": "0.1.0",
-    "taxonomy": "Categories align with public deceptive-design pattern families (confirm shaming, urgency/scarcity, hidden costs, forced continuity, roach motel, preselection, trick questions, disguised ads).",
+    "version": "0.2.0",
+    "taxonomy": "Categories align with public deceptive-design pattern families (confirm shaming, urgency/scarcity, hidden costs, forced continuity, roach motel, preselection, trick questions, disguised ads, drip pricing, fake scarcity timers, nag loops).",
     "license_note": "Phrases are skillware-curated from published dark-pattern taxonomies and FTC/regulator case descriptions. No verbatim import of live third-party site HTML.",
     "maintenance": "Add phrases via PR with category, example context, and a regression fixture when behavior should publish."
   },
@@ -80,6 +80,16 @@
       "held for you",
       "someone else is viewing"
     ],
+    "fake_urgency_timer": [
+      "deal expires in",
+      "reservation held for",
+      "cart expires in",
+      "price locked for",
+      "time remaining to complete order",
+      "offer expiring in",
+      "your session will expire in",
+      "timer will reset"
+    ],
     "hidden_fee": [
       "fee applied at confirmation",
       "service fee applied",
@@ -117,6 +127,14 @@
       "drip pricing",
       "surprise fee",
       "mandatory fee"
+    ],
+    "drip_pricing": [
+      "mandatory service fee",
+      "undisclosed fee",
+      "drip pricing fee",
+      "unavoidable fee",
+      "administrative surcharge added",
+      "checkout handling fee"
     ],
     "forced_continuity": [
       "automatically renew",
@@ -156,7 +174,21 @@
       "enabled by default",
       "included by default",
       "added to your order by default",
-      "selected for you"
+      "selected for you",
+      "add protection plan",
+      "enroll in monthly coverage",
+      "subscribe to marketing updates"
+    ],
+    "nag_loop": [
+      "remind me later",
+      "maybe later",
+      "ask me again",
+      "keep showing this offer",
+      "continue without saving",
+      "are you sure you want to leave",
+      "wait! don't go",
+      "before you leave",
+      "special one-time offer"
     ],
     "roach_motel": [
       "easy to subscribe, hard to cancel",

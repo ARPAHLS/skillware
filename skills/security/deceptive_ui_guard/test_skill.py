@@ -170,6 +170,145 @@ def test_scan_surface_strict_white_on_white_checkout():
     assert any(f["type"] == "low_contrast" for f in result.findings)
 
 
+def test_allowlist_sr_only_suppresses_false_positive(skill):
+    html = """
+    <html><body>
+      <main>
+        <h1>Welcome</h1>
+        <a href="#main-content" class="sr-only">Skip to main content</a>
+        <p>Regular page text.</p>
+        <span class="visually-hidden">Opens in new window</span>
+      </main>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "sensitivity": "balanced"})
+    assert result["is_safe"] is True
+    assert result["status"] == "ok"
+    assert len(result["findings"]) == 0
+
+
+def test_allowlist_cmp_banner_suppresses_false_positive(skill):
+    html = """
+    <html><body>
+      <div id="onetrust-consent-sdk" class="cookie-banner" style="display:none;">
+        <p>This site uses cookies to improve your experience. Accept all cookies.</p>
+        <button id="accept-cookies">Accept Cookies</button>
+      </div>
+      <div><h1>Main Content</h1><p>Legitimate article copy.</p></div>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "sensitivity": "balanced"})
+    assert result["is_safe"] is True
+    assert result["status"] == "ok"
+    assert len(result["findings"]) == 0
+
+
+def test_prechecked_opt_in_detected(skill):
+    html = """
+    <html><body>
+      <form id="checkout">
+        <h2>Payment</h2>
+        <label>
+          <input type="checkbox" name="recurring_subscription" checked="checked" />
+          Enroll in monthly recurring protection plan ($9.99/mo)
+        </label>
+      </form>
+    </body></html>
+    """
+    result = skill.execute(
+        {
+            "html_content": html,
+            "sensitivity": "balanced",
+            "intended_action": "complete checkout",
+        }
+    )
+    assert any(f["type"] == "prechecked_opt_in" for f in result["findings"])
+    assert result["agent_guidance"]["verify_before_payment"] is True
+
+
+def test_drip_pricing_in_checkout_detected(skill):
+    html = """
+    <html><body>
+      <section id="checkout">
+        <div class="cart-total">Subtotal: $50.00</div>
+        <div class="fee-notice">Mandatory service fee added due at checkout</div>
+      </section>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "sensitivity": "balanced"})
+    assert any(f["type"] == "drip_pricing" for f in result["findings"])
+
+
+def test_fake_urgency_timer_detected(skill):
+    html = """
+    <html><body>
+      <div class="banner">
+        <span>Cart reserved for 04:59</span>
+      </div>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "sensitivity": "balanced"})
+    assert any(f["type"] == "fake_urgency_timer" for f in result["findings"])
+
+
+def test_nag_loop_confirm_shaming_detected(skill):
+    html = """
+    <html><body>
+      <div class="modal">
+        <h2>Special Discount</h2>
+        <button>Get 20% Off</button>
+        <a href="#">No thanks, I prefer paying full price</a>
+      </div>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "sensitivity": "balanced"})
+    assert any(f["type"] == "nag_loop" for f in result["findings"])
+
+
+def test_mobile_surface_profile_heuristics(skill):
+    html = """
+    <html><body>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <div style="position: absolute; -webkit-tap-highlight-color: transparent;">
+        <a href="/subscribe">Click here</a>
+      </div>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html, "surface_profile": "mobile"})
+    assert any(f["type"] == "mobile_overlay_trap" for f in result["findings"])
+
+
+def test_session_fingerprint_nag_recommendation(skill):
+    html = """
+    <html><body>
+      <div class="modal">
+        <p>No thanks, I hate saving money</p>
+      </div>
+    </body></html>
+    """
+    result = skill.execute(
+        {
+            "html_content": html,
+            "session_fingerprint": "abc123_session_hash",
+        }
+    )
+    assert "abc123_session" in result["session_recommendation"]
+
+
+def test_zone_summary_structure(skill):
+    html = """
+    <html><body>
+      <nav><a href="/">Home</a></nav>
+      <section id="checkout"><p>Order summary</p></section>
+    </body></html>
+    """
+    result = skill.execute({"html_content": html})
+    assert "zone_summary" in result
+    assert "checkout" in result["zone_summary"]
+    assert "navigation" in result["zone_summary"]
+    assert result["zone_summary"]["checkout"]["weight"] == 1.5
+
+
 def test_bundle_has_no_llm_auditor_surface():
     root = os.path.dirname(__file__)
     banned = ("openai", "anthropic", "gemini", "chat.completions", "genai.models")
@@ -177,3 +316,28 @@ def test_bundle_has_no_llm_auditor_surface():
         text = open(os.path.join(root, name), encoding="utf-8").read().lower()
         for token in banned:
             assert token not in text
+
+
+def test_render_mode_force_error_when_playwright_missing(monkeypatch):
+    import importlib.util
+
+    orig_find_spec = importlib.util.find_spec
+
+    def mock_find_spec(name, *args, **kwargs):
+        if name == "playwright":
+            return None
+        return orig_find_spec(name, *args, **kwargs)
+
+    monkeypatch.setattr(importlib.util, "find_spec", mock_find_spec)
+    with pytest.raises(ImportError, match="render_mode='force' requires Playwright"):
+        scan_surface(html_content="<p>test</p>", render_mode="force")
+
+
+def test_render_dom_divergence_with_playwright():
+    pytest.importorskip("playwright")
+    html = """
+    <html><head><style>.hidden { opacity: 0; }</style></head>
+    <body><div class="hidden">Hidden fee of $25 applied</div></body></html>
+    """
+    result = scan_surface(html_content=html, render_mode="force")
+    assert any(f.get("type") == "render_dom_divergence" for f in result.findings)

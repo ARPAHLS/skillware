@@ -1,11 +1,12 @@
 name: security/deceptive_ui_guard
-version: 0.1.0
+version: 0.2.0
 description: >
   Offline deterministic scanner for deceptive web UI surfaces and anti-agent tricks.
   Analyzes HTML (or optional public URL fetch) with dual DOM vs visible-surface extraction,
+  optional Playwright-rendered computed style diffing, DOM zone classification, allowlists,
   structural and lexical heuristics, corroboration gates, trust scoring, and agent guidance
   for pre-click and pre-context guardrails. Does not click, submit forms, or call LLMs.
-short_description: "Deceptive UI guard with dual-surface scan, trust score, and agent guidance."
+short_description: "Deceptive UI guard with render diff, DOM zone weighting, allowlists, and trust score."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
@@ -31,7 +32,26 @@ parameters:
       default: balanced
     intended_action:
       type: string
-      description: Optional natural-language task (e.g. complete checkout) to tune agent guidance.
+      description: Optional natural-language task (e.g. complete checkout) to tune agent guidance and zone weighting.
+    render_mode:
+      type: string
+      description: Render lane mode using headless browser computed style/visual extraction.
+      enum:
+        - off
+        - auto
+        - force
+      default: off
+    surface_profile:
+      type: string
+      description: Target layout profile for mobile touch target and viewport heuristics.
+      enum:
+        - desktop
+        - mobile
+        - auto
+      default: desktop
+    session_fingerprint:
+      type: string
+      description: Optional stable origin+path or browser session hash to track recurring nag or countdown loops.
   required: []
 outputs:
   status:
@@ -54,7 +74,7 @@ outputs:
     description: Primary finding summary when signals cross the publish threshold.
   findings:
     type: array
-    description: Structured findings with type, severity, selector, snippet, channels, and evidence.
+    description: Structured findings with type, severity, selector, snippet, channels, zone, and evidence.
   agent_guidance:
     type: object
     description: Pre-click and pre-context guidance including do_not_click and verify_before_payment.
@@ -70,14 +90,20 @@ outputs:
   sensitivity:
     type: string
     description: Sensitivity level used for the scan.
+  zone_summary:
+    type: object
+    description: Breakdown of DOM zones identified and their risk weights.
+  session_recommendation:
+    type: string
+    description: Guidance based on session nag loop detection.
 requirements: []
 constitution: |
   1. WARN ONLY: Never click, submit forms, accept cookies, or complete checkout flows.
   2. DETERMINISTIC CORE: Identical HTML input yields identical findings; no LLM-in-the-loop detection.
   3. HTML-FIRST: Prefer html_content from the host browser; optional public url fetch with SSRF guards.
-  4. EXPLAINABLE: Every published finding includes selector, snippet, channels, and corroboration evidence.
+  4. EXPLAINABLE: Every published finding includes selector, snippet, channels, zone, and corroboration evidence.
   5. COMPOSABLE: Does not call other skills; hosts may chain prompt_injection_firewall separately.
-  6. HONEST LIMITS: Semantic manipulation without structural or lexical signals may be missed until v2 OCR.
+  6. HONEST LIMITS: Semantic manipulation without structural, lexical, or rendered signals may require visual OCR.
 presentation:
   icon: shield
   color: "#1f2937"

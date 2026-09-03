@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`security/deceptive_ui_guard` v0.2.0):** Upgraded deceptive UI scanner with DOM zone classification (checkout, modal, cmp, navigation, general) and severity multipliers, KB allowlists (screen-reader accessibility, CMP consent banners, SEO metadata), expanded taxonomy (prechecked opt-ins, drip pricing, fake scarcity timers, nag loops), mobile profile heuristics, session fingerprint tracking, optional Playwright computed-style render diffing lane, and 23 golden HTML test corpus fixtures (#314).
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
 - **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
 
