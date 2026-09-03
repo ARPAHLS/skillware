@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -63,7 +62,9 @@ def main() -> int:
         FIREWALL,
         {"source_text": UNSAFE, "input_mode": "plain", "sensitivity": "balanced"},
     )
-    print(f"Unsafe input: is_safe={bad.get('is_safe')} findings={len(bad.get('findings', []))}")
+    print(
+        f"Unsafe input: is_safe={bad.get('is_safe')} findings={len(bad.get('findings', []))}"
+    )
 
     section("3. Manual host chain with branching")
     pipe = SkillContext(skills=[FIREWALL, REWRITER])
@@ -77,7 +78,9 @@ def main() -> int:
                 REWRITER,
                 {"raw_text": scan["sanitized_text"], "compression_aggression": "low"},
             )
-            print(f"  [{label}] firewall safe -> rewriter -> {len(out['compressed_text'])} chars")
+            print(
+                f"  [{label}] firewall safe -> rewriter -> {len(out['compressed_text'])} chars"
+            )
         else:
             print(f"  [{label}] firewall blocked -> rewriter SKIPPED (host policy)")
 
@@ -110,7 +113,9 @@ def main() -> int:
     for mode in ("brief", "tools_only", "directives"):
         c = SkillContext(skills=[FIREWALL, REWRITER], mode=mode)
         merged = c.merge_system("Host policy.")
-        print(f"  {mode}: merge_system={len(merged)} chars tools={len(c.tools('claude'))}")
+        print(
+            f"  {mode}: merge_system={len(merged)} chars tools={len(c.tools('claude'))}"
+        )
 
     section("6. Progressive disclosure")
     brief_ctx = SkillContext(mode="brief")

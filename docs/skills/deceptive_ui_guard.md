@@ -12,7 +12,7 @@
 
 Deterministic scanner for **deceptive web UI surfaces** and **anti-agent tricks** before an autonomous browser agent clicks, checks out, or feeds page text into an LLM. v2 expands analysis with DOM zone classification, severity multipliers, KB allowlists (accessibility screen-reader text, CMP banners, SEO metadata), prechecked opt-in boxes, drip pricing, fake scarcity timers, nag loops, mobile layout heuristics, and an optional Playwright-rendered computed style diff lane. It returns a trust score, structured findings, zone summary, session recommendations, and agent guidance. It does **not** click, submit forms, or call LLMs for detection.
 
-> **Disclaimer:** Heuristic surface analysis can miss semantic manipulation and may flag aggressive but legitimate marketing copy. Use with `security/prompt_injection_firewall` in skill chains for text-layer defense.
+> **Disclaimer:** Heuristic surface analysis can miss semantic manipulation and may flag aggressive but legitimate marketing copy. Use with `security/prompt_injection_firewall` in [skill chains](../usage/skill_chaining.md) for text-layer defense.
 
 ## What It Checks
 

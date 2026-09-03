@@ -13,6 +13,7 @@ Runnable examples in this directory show how to load Skillware skills, adapt the
 - [Ollama](../docs/usage/ollama.md)
 - [Install extras](../docs/usage/install_extras.md)
 - [Agent loops](../docs/usage/agent_loops.md)
+- [Skill chaining](../docs/usage/skill_chaining.md) — `SkillContext`, named `chains:`
 
 Install the **skill extra** for each script (see [Install extras](../docs/usage/install_extras.md)), plus an **SDK extra** when the provider column is not local execute:
 
@@ -50,6 +51,8 @@ pip install -e ".[dev,all,agents]"
 | `openai_compatible_host.py` | `compliance/tos_evaluator` | Groq (OpenAI-compatible) | `[compliance_tos_evaluator]`, `[openai]` | `GROQ_API_KEY`, `GROQ_MODEL` | Runs the terms-of-service evaluator through Groq's OpenAI-compatible API. |
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | `[compliance_pii_masker]` | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_injection_firewall_demo.py` | `security/prompt_injection_firewall` | Local execute | `[security_prompt_injection_firewall]` | None | Offline prompt-injection scan and sanitization with no API keys. |
+| `sanitize_input_chain_demo.py` | `security/prompt_injection_firewall`, `optimization/prompt_rewriter` | Local execute | `[security_prompt_injection_firewall]`, `[optimization_prompt_rewriter]` | None | Named chain demo: firewall then rewriter with conditional skip (`run_chain`). |
+| `skill_context_gemini_loop.py` | `security/prompt_injection_firewall`, `monitoring/token_limiter` | Gemini (Phase 2) | `[security_prompt_injection_firewall]`, `[monitoring_token_limiter]`, `[gemini]` | Optional `GOOGLE_API_KEY` and `SKILL_CONTEXT_GEMINI_LIVE=1` for Phase 2 | Phase 1 (default): offline `SkillContext` brief + tools. Phase 2: Gemini multi-tool loop via `ctx.execute()`. |
 | `deceptive_ui_guard_demo.py` | `security/deceptive_ui_guard` | Local execute | `[security_deceptive_ui_guard]` | None | Offline deceptive UI scan using fixture HTML recreations of documented dark patterns (confirm shaming, drip pricing, forced continuity, mislabeled CTAs). |
 | `prompt_compression_demo.py` | `optimization/prompt_rewriter` | Local execute | `[optimization_prompt_rewriter]` | None | Demonstrates prompt compression without a provider loop. |
 | `novelty_extractor_demo.py` | `data_engineering/novelty_extractor` | Local execute | `[data_engineering_novelty_extractor]` | None | Demonstrates multi-turn corpus distillation using local embeddings with no API key. |

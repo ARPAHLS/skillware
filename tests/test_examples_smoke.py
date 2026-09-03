@@ -22,6 +22,23 @@ EXAMPLES_DIR = REPO_ROOT / "examples"
 # Tuple format: (script_filename, [expected_output_substrings])
 LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     (
+        "sanitize_input_chain_demo.py",
+        [
+            "sanitize_input chain demo",
+            "chain status=ok",
+            "chain status=partial",
+            "prompt_injection_firewall=ok",
+        ],
+    ),
+    (
+        "skill_context_gemini_loop.py",
+        [
+            "Phase 1: SkillContext offline",
+            "security/prompt_injection_firewall",
+            "merge_system length:",
+        ],
+    ),
+    (
         "mental_coach_demo.py",
         ["wellness/mental_coach", "Coaching", "Crisis escalation", "policy_status:"],
     ),
@@ -102,6 +119,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "gemini_tos_evaluator.py": "Requires GOOGLE_API_KEY for Gemini function calling.",
     "gemini_uk_companies_house_handler.py": "Requires GOOGLE_API_KEY and live Companies House key.",
     "gemini_wallet_check.py": "Requires GOOGLE_API_KEY and ETHERSCAN_API_KEY.",
+    "skill_context_gemini_loop.py": "Phase 1 is offline; Phase 2 needs GOOGLE_API_KEY and SKILL_CONTEXT_GEMINI_LIVE=1.",
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
     "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",

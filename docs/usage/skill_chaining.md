@@ -314,12 +314,18 @@ ctx = SkillContext(categories=["compliance"])
 
 ## Provider loops and examples
 
-After wiring `SkillContext` or chains, continue with provider guides and runnable scripts:
+Runnable reference scripts:
+
+| Pattern | Example |
+| :--- | :--- |
+| `SkillContext` + Gemini | [`examples/skill_context_gemini_loop.py`](../../examples/skill_context_gemini_loop.py) |
+| Named chain (local) | [`examples/sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py) |
+| `SkillContext` + Ollama | [`examples/ollama_skills_test.py`](../../examples/ollama_skills_test.py) |
+
+Continue with provider guides and single-skill loops:
 
 - [Agent loops](agent_loops.md) — load / wire / prompt / execute / return
 - [examples/README.md](../../examples/README.md) — Gemini, Claude, Ollama, OpenAI reference loops
-
-Multi-skill Ollama harness: `examples/ollama_skills_test.py` (loads several skills; compare with `SkillContext` + `ollama_prompt`).
 
 ---
 
