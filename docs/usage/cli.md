@@ -37,6 +37,9 @@ After installation, the `skillware` command is available directly:
     skillware list
     skillware doctor
     skillware config show
+    skillware context show
+    skillware chain list
+    skillware theme ocean
     skillware mail addressbook show
     skillware test
     skillware examples
@@ -118,7 +121,7 @@ Available commands:
 | `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
 | `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
-| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, Mail, General) with doc links | Available |
+| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, Context, Chains, Theme, Mail, General) with doc links | Available |
 | `7` / `mail` | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
 | `8` / `theme` | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
 
@@ -132,22 +135,26 @@ Available commands:
 | `2` / `examples` | indexed runnable scripts |
 | `3` / `paths` | resolution and paths submenu |
 | `4` / `config` | merged YAML settings |
-| `5` / `mail` | address book and signature setup |
-| `6` / `general` | menu, `--help`, `--version` |
-| `7` / `install` | pip install skillware |
-| `8` / `docs` | link to this CLI guide |
-| `9` / `interactive` | numbered splash menu |
+| `5` / `context` | `context show` — registry brief (SkillContext) |
+| `6` / `chains` | `chain list`, `show`, `validate`, `run`, `dry-run` |
+| `7` / `theme` | `theme` — CLI color theme picker or direct set |
+| `8` / `mail` | address book and signature setup |
+| `9` / `general` | menu, `--help`, `--version` |
+| `10` / `install` | pip install skillware |
+| `11` / `docs` | link to this CLI guide |
+| `12` / `interactive` | numbered splash menu |
 
-Brief `--help` groups (same topics, less detail):
+Brief `--help` topic index matches the table above. Each topic expands to the command groups below when you choose **`6` / `help`** in the interactive menu:
 
 | Group | Topics |
 | :--- | :--- |
 | **Skills** | `list`, `test`, `doctor` |
 | **Examples** | `examples` |
 | **Paths** | `paths`, interactive paths submenu |
-| **Config** | `config show`, interactive theme picker |
+| **Config** | `config show` |
 | **Context** | `context show` — registry brief (SkillContext) |
 | **Chains** | `chain list`, `chain show`, `chain validate`, `chain run`, `chain dry-run` |
+| **Theme** | `theme`, interactive menu `8`, direct `theme <name>` |
 | **Mail** | `mail`, interactive mail submenu |
 | **General** | interactive menu, `--help`, `--version` |
 
@@ -335,9 +342,13 @@ mail:
 When no config file exists, resolution stays **legacy**: `SKILLWARE_SKILL_PATH` → `./skills/` walk → bundled. When config exists, `resolution.order` applies (default: project → external → bundled). The **bundled** registry from `pip install skillware` is always included and cannot be disabled. **Pip-only installs with no local `skills/` folder still resolve bundled registry skills** — only roots that exist on disk are searched; an empty project tier does not block bundled.
 
 `skillware config show` reports the effective `presentation.theme`. To change
-the global theme without editing YAML, run `skillware`, choose **`8` / `theme`**,
-then select a built-in theme by number or name. The picker writes only
-`presentation.theme` in the global config and preserves unrelated settings.
+the global theme without editing YAML, use any of:
+
+- `skillware theme ocean` — set directly
+- `skillware theme` — interactive picker (non-menu)
+- `skillware` → **`8` / `theme`** — same picker from the splash menu
+
+The picker writes only `presentation.theme` in the global config and preserves unrelated settings.
 
 A project `.skillware.yaml` value overrides the global selection while the CLI
 runs inside that project. The picker still saves the global preference and
@@ -480,6 +491,15 @@ the same condition `SkillLoader` requires to load a skill successfully.
 
 ## Color themes
 
+### skillware theme
+
+Choose or set the CLI presentation theme (`pastel`, `ocean`, `mono`):
+
+    skillware theme
+    skillware theme ocean
+
+Without a theme name, `skillware theme` opens the same interactive picker as splash menu **`8` / `theme`**. With a name, it saves globally immediately and prints a notice when project config overrides the effective theme in the current directory.
+
 The selected theme is applied to tables, headings, categories, skill IDs,
 menus, links, statuses, errors, and the splash gradient.
 
@@ -490,6 +510,19 @@ menus, links, statuses, errors, and the splash gradient.
 | `mono` | Grayscale presentation | `#F0F0F0` → `#A0A0A0` → `#606060` |
 
 Choose a theme interactively:
+
+```text
+skillware theme
+theme> ocean
+```
+
+Or set directly:
+
+```text
+skillware theme ocean
+```
+
+From the splash menu:
 
 ```text
 skillware

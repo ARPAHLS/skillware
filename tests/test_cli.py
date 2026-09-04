@@ -18,6 +18,7 @@ from skillware.cli import (
     cmd_paths_submenu,
     cmd_doctor,
     cmd_theme_picker,
+    cmd_theme,
 )
 
 import importlib.util
@@ -876,9 +877,14 @@ def test_cmd_help_includes_grouped_sections():
     assert "skills" in output
     assert "paths" in output
     assert "config" in output
+    assert "context" in output
+    assert "chains" in output
+    assert "theme" in output
     assert "CLI usage examples" in output
     assert "skillware config show" in output
-    assert "skillware list --category" not in output or "CLI usage examples" in output
+    assert "skillware context show" in output
+    assert "skillware chain list" in output
+    assert "skillware theme ocean" in output
 
 
 def test_cmd_help_includes_paths_command():
@@ -1163,3 +1169,66 @@ def test_interactive_mail_dispatches(monkeypatch):
 
     output = buf.getvalue()
     assert "mail>" in output.lower() or "Address book" in output
+
+
+def test_cmd_theme_sets_name_directly(isolated_theme_environment):
+    import io
+    import yaml
+    from rich.console import Console
+
+    _repo, config_dir = isolated_theme_environment
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+
+    rc = cmd_theme("ocean", console=console)
+    assert rc == 0
+
+    saved = yaml.safe_load((config_dir / "config.yaml").read_text(encoding="utf-8"))
+    assert saved["presentation"]["theme"] == "ocean"
+    assert "Saved global theme 'ocean'" in buf.getvalue()
+
+
+def test_cmd_theme_rejects_unknown_name(isolated_theme_environment):
+    import io
+    from rich.console import Console
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False)
+
+    rc = cmd_theme("unknown", console=console)
+    assert rc == 1
+    assert "Unknown theme" in buf.getvalue()
+
+
+def test_main_theme_subcommand(monkeypatch, isolated_theme_environment):
+    import sys
+    import yaml
+    from skillware.cli import main
+
+    _repo, config_dir = isolated_theme_environment
+    argv = sys.argv
+    sys.argv = ["skillware", "theme", "mono"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+    saved = yaml.safe_load((config_dir / "config.yaml").read_text(encoding="utf-8"))
+    assert saved["presentation"]["theme"] == "mono"
+
+
+def test_main_theme_interactive_subcommand(monkeypatch, isolated_theme_environment):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setattr("builtins.input", lambda _: "2")
+    argv = sys.argv
+    sys.argv = ["skillware", "theme"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv

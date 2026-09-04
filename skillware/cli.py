@@ -98,6 +98,9 @@ _DOCS_CLI_LIST = f"{_DOCS_CLI}#skillware-list"
 _DOCS_CLI_EXAMPLES = f"{_DOCS_CLI}#skillware-examples"
 _DOCS_CLI_PATHS = f"{_DOCS_CLI}#skillware-paths"
 _DOCS_CLI_CONFIG = f"{_DOCS_CLI}#skillware-config"
+_DOCS_CLI_CONTEXT = f"{_DOCS_CLI}#skillware-context"
+_DOCS_CLI_CHAIN = f"{_DOCS_CLI}#skillware-chain"
+_DOCS_CLI_THEME = f"{_DOCS_CLI}#color-themes"
 _DOCS_CLI_MAIL = f"{_DOCS_CLI}#skillware-mail"
 
 HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
@@ -140,9 +143,41 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         "Config",
         [
             ("skillware config show", "merged global + project YAML (read-only)"),
-            ("skillware (menu 8 / theme)", "choose and save the global CLI theme"),
         ],
         _DOCS_CLI_CONFIG,
+    ),
+    (
+        "Context",
+        [
+            ("skillware context show", "registry brief (SkillContext)"),
+            ("skillware context show --skill <id>", "single-skill context"),
+            ("skillware context show --mode tools_only", "tool schemas only"),
+            ("skillware context show --export <path>", "write context markdown"),
+        ],
+        _DOCS_CLI_CONTEXT,
+    ),
+    (
+        "Chains",
+        [
+            ("skillware chain list", "list configured chains"),
+            ("skillware chain show <name>", "show chain definition"),
+            ("skillware chain validate [name]", "validate chain definitions"),
+            ("skillware chain run <name> --var key=value", "execute a named chain"),
+            (
+                "skillware chain dry-run <name> --var key=value",
+                "resolve without execute",
+            ),
+        ],
+        _DOCS_CLI_CHAIN,
+    ),
+    (
+        "Theme",
+        [
+            ("skillware theme", "interactive theme picker"),
+            ("skillware theme <pastel|ocean|mono>", "set global CLI theme"),
+            ("skillware (menu 8 / theme)", "same picker from splash menu"),
+        ],
+        _DOCS_CLI_THEME,
     ),
     (
         "Mail",
@@ -196,11 +231,14 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
     ("2", "examples", "indexed runnable scripts", 1),
     ("3", "paths", "resolution and path editor", 2),
     ("4", "config", "merged YAML settings", 3),
-    ("5", "mail", "address book and signature setup", 4),
-    ("6", "general", "menu, help, version", 5),
-    ("7", "install", "pip install skillware", "install"),
-    ("8", "docs", "full CLI guide online", "docs"),
-    ("9", "interactive", "numbered splash menu", "interactive"),
+    ("5", "context", "registry brief (SkillContext)", 4),
+    ("6", "chains", "list, validate, run named chains", 5),
+    ("7", "theme", "CLI color theme picker", 6),
+    ("8", "mail", "address book and signature setup", 7),
+    ("9", "general", "menu, help, version", 8),
+    ("10", "install", "pip install skillware", "install"),
+    ("11", "docs", "full CLI guide online", "docs"),
+    ("12", "interactive", "numbered splash menu", "interactive"),
 ]
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
@@ -210,6 +248,9 @@ _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware test finance/wallet_screening",
     "skillware paths",
     "skillware config show",
+    "skillware context show",
+    "skillware chain list",
+    "skillware theme ocean",
     "skillware mail addressbook show",
     "skillware doctor --category compliance",
 )
@@ -1396,7 +1437,48 @@ def cmd_chain_run(
     return 0 if result.status != "failed" else 1
 
 
-def cmd_theme_picker(console=None, input_fn=None) -> Optional[str]:
+def _save_global_theme_selection(selected: str, console) -> None:
+    """Persist a theme name globally and print effective vs saved notices."""
+    target = save_global_presentation_theme(selected)
+    _apply_active_theme()
+    effective = load_merged_config().presentation.theme
+    console.print(f"  Saved global theme '{selected}' to {target}", style=ID_STYLE)
+    if effective != selected:
+        console.print(
+            f"  Project config keeps '{effective}' active in this directory.",
+            style="dim",
+        )
+
+
+def cmd_theme(
+    theme_name: Optional[str] = None,
+    console=None,
+    input_fn=None,
+) -> int:
+    """Set or interactively choose the global CLI presentation theme."""
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+
+    if theme_name is not None:
+        selected = theme_name.lower()
+        if selected not in THEMES:
+            console.print(f"  Unknown theme: '{theme_name}'", style=ERROR_DIM_STYLE)
+            console.print(
+                f"  Choose from: {', '.join(sorted(THEMES))}",
+                style="dim",
+            )
+            return 1
+        _save_global_theme_selection(selected, console)
+        return 0
+
+    cmd_theme_picker(console=console, input_fn=input_fn, show_back=False)
+    return 0
+
+
+def cmd_theme_picker(
+    console=None, input_fn=None, *, show_back: bool = True
+) -> Optional[str]:
     """Select and persist a global CLI theme. Returns _NAV_EXIT when requested."""
     if console is None:
         console = Console()
@@ -1415,7 +1497,7 @@ def cmd_theme_picker(console=None, input_fn=None) -> Optional[str]:
                 f"    [{key}] {name:<8}— {description}",
                 style=MENU_STYLE,
             )
-        _print_nav_footer(console, show_back=True)
+        _print_nav_footer(console, show_back=show_back)
 
         raw = _read_line("  theme> ", input_fn)
         choice, nav = _parse_nav(raw)
@@ -1432,15 +1514,7 @@ def cmd_theme_picker(console=None, input_fn=None) -> Optional[str]:
             console.print()
             continue
 
-        target = save_global_presentation_theme(selected)
-        _apply_active_theme()
-        effective = load_merged_config().presentation.theme
-        console.print(f"  Saved global theme '{selected}' to {target}", style=ID_STYLE)
-        if effective != selected:
-            console.print(
-                f"  Project config keeps '{effective}' active in this directory.",
-                style="dim",
-            )
+        _save_global_theme_selection(selected, console)
         return None
 
 
@@ -1803,7 +1877,7 @@ def cmd_interactive(console=None, parser=None) -> None:
                 console.print("  Bye.", style="dim")
                 return
         elif command == "theme":
-            theme_nav = cmd_theme_picker(console=console)
+            theme_nav = cmd_theme_picker(console=console, show_back=True)
             if theme_nav == _NAV_EXIT:
                 console.print("  Bye.", style="dim")
                 return
@@ -1945,6 +2019,18 @@ def main() -> None:
     config_subparsers.add_parser(
         "show",
         help="Print merged global and project YAML settings.",
+    )
+
+    theme_parser = subparsers.add_parser(
+        "theme",
+        help="Choose or set the CLI color theme.",
+    )
+    theme_parser.add_argument(
+        "name",
+        nargs="?",
+        default=None,
+        choices=sorted(THEMES.keys()),
+        help="Theme name (pastel, ocean, mono). Omit for interactive picker.",
     )
 
     mail_parser = subparsers.add_parser(
@@ -2200,6 +2286,8 @@ def main() -> None:
             raise SystemExit(cmd_config_show())
         config_parser.print_help()
         raise SystemExit(2)
+    elif args.command == "theme":
+        raise SystemExit(cmd_theme(theme_name=getattr(args, "name", None)))
     elif args.command == "mail":
         if args.mail_area is None:
             raise SystemExit(cmd_mail())

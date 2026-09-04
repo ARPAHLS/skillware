@@ -8,6 +8,14 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups.
+
+### Changed
+
+- **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`).
+
 ## [0.5.4] - 2026-09-03
 
 ### Added
