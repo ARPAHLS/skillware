@@ -27,6 +27,33 @@ def test_get_installed_version_dev_returns_none(monkeypatch):
     assert version_policy.get_installed_version() is None
 
 
+def test_get_installed_version_literal_none_returns_none(monkeypatch):
+    monkeypatch.setattr(
+        version_policy.metadata,
+        "version",
+        lambda _name: "None",
+    )
+    assert version_policy.get_installed_version() is None
+
+
+def test_get_installed_version_empty_returns_none(monkeypatch):
+    monkeypatch.setattr(
+        version_policy.metadata,
+        "version",
+        lambda _name: "",
+    )
+    assert version_policy.get_installed_version() is None
+
+
+def test_get_installed_version_unparseable_returns_none(monkeypatch):
+    monkeypatch.setattr(
+        version_policy.metadata,
+        "version",
+        lambda _name: "not-a-version",
+    )
+    assert version_policy.get_installed_version() is None
+
+
 def test_should_emit_only_below_min_unsupported():
     assert version_policy.should_emit_unsupported_advisory(Version("0.4.5")) is True
     assert version_policy.should_emit_unsupported_advisory(Version("0.3.4")) is True

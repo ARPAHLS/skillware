@@ -344,6 +344,26 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 - Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `agents`) stay above the generated block in `pyproject.toml`.
 - Contributors and CI install skill runtime deps with `pip install -e ".[dev,all]"`; add `[agents]` when running SDK examples locally.
 
+**Editable vs PyPI on the same Python**
+
+Keep **one install mode per interpreter**. Mixing an editable install
+(`pip install -e .` from a clone) with a PyPI wheel
+(`pip install skillware` / `pip install -U skillware`) on the same Python can
+leave orphaned or duplicate `skillware-*.dist-info` metadata. The CLI then
+fails to resolve a version and prints `vNone` / `skillware None`.
+
+- Uninstall before switching modes:
+  - Windows: `py -m pip uninstall skillware -y`
+  - Unix: `python -m pip uninstall skillware -y`
+- Prefer `py -3.13 -m pip ...` on Windows to target the right interpreter.
+- If `pip uninstall` fails with `uninstall-no-record-file`, remove the orphan
+  `skillware/` package dir and stale `skillware-*.dist-info/` dirs from
+  `site-packages` manually, then reinstall with
+  `python -m pip install --force-reinstall skillware`.
+- Diagnose the current state with `skillware doctor --install`; it reports
+  duplicate / orphan / editable-plus-wheel conflicts and prints copy-paste fix
+  commands (exit 0 = healthy, 1 = conflicts).
+
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).

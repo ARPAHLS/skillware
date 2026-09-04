@@ -12,10 +12,15 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups.
 - **Skill (`creative/deck_builder` v0.1.0):** Deterministic Microsoft PowerPoint (`.pptx`) presentation assembly from structured JSON deck specifications — 10 slide layout types (title, section, bullets, two-column, image, image with caption, quote, table, chart, blank), 3 bundled 16:9 widescreen master templates (pitch, corporate, minimal), theme token customization, pre-flight validation with soft-limit truncation warnings, directory traversal defenses, and inspection actions (#276).
+- **CLI:** `skillware doctor --install` reports duplicate, orphan, or editable-plus-wheel install conflicts with copy-paste fix commands (exit 0 = healthy, 1 = conflicts), and CLI startup prints a one-line stderr advisory when conflicts are detected (#333).
 
 ### Changed
 
 - **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`).
+
+### Fixed
+
+- **CLI:** `skillware --version` and the interactive splash no longer print `vNone` / `skillware None` when duplicate or orphan installs leave broken metadata; invalid versions now fall back to `dev` (#333).
 
 ## [0.5.4] - 2026-09-03
 
