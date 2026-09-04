@@ -1,0 +1,143 @@
+name: "creative/deck_builder"
+version: "0.1.0"
+description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
+short_description: "Assemble editable PPTX presentations from structured JSON deck specs."
+
+issuer:
+  name: "Tushar Jamunkar"
+  email: "tusharjamunkar@users.noreply.github.com"
+  github: "tusharjamunkar"
+  org: "ARPAHLS"
+
+category: "creative"
+
+requirements:
+  - "python-pptx>=1.0.0"
+  - "pillow"
+
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Operation to perform: validate_spec (default), render, inspect, list_templates."
+      enum:
+        - validate_spec
+        - render
+        - inspect
+        - list_templates
+      default: validate_spec
+
+    deck_spec:
+      type: object
+      description: "Structured deck specification containing title, template_id, theme, metadata, and slides."
+
+    output_path:
+      type: string
+      description: "Destination file path for the rendered .pptx file (required for action='render')."
+
+    input_path:
+      type: string
+      description: "Path to an existing .pptx file to inspect (required for action='inspect')."
+
+    template_id:
+      type: string
+      description: "Optional template identifier overriding deck_spec.template_id (e.g. pitch_v1, corporate_v1, minimal_v1)."
+
+    theme:
+      type: object
+      description: "Optional theme token overrides (accent_color, font_heading, font_body)."
+      properties:
+        accent_color:
+          type: string
+          description: "Hex color code for accents (e.g. '#6E57E0')."
+        font_heading:
+          type: string
+          description: "Font name for headings and titles (e.g. 'Calibri')."
+        font_body:
+          type: string
+          description: "Font name for body copy and bullets (e.g. 'Calibri')."
+
+    strict:
+      type: boolean
+      description: "When true, warnings are treated as validation errors (default: false)."
+      default: false
+  required: []
+
+outputs:
+  success:
+    type: boolean
+    description: "True when the requested action completed without errors."
+
+  action:
+    type: string
+    description: "Echo of the executed action."
+
+  valid:
+    type: boolean
+    description: "True when deck_spec passed schema and business rule validation."
+
+  template_id:
+    type: string
+    description: "Identifier of the template used or validated."
+
+  slide_count:
+    type: integer
+    description: "Total number of slides validated, rendered, or inspected."
+
+  output_path:
+    type: string
+    description: "Target path where the presentation was saved (for render action)."
+
+  file_size_bytes:
+    type: integer
+    description: "File size in bytes of the generated .pptx file."
+
+  slides:
+    type: array
+    description: "Summary list of slides processed or inspected."
+    items:
+      type: object
+
+  warnings:
+    type: array
+    description: "Non-fatal warnings (e.g. character truncation, fallback layouts)."
+    items:
+      type: object
+      properties:
+        code:
+          type: string
+        slide_index:
+          type: integer
+        message:
+          type: string
+
+  errors:
+    type: array
+    description: "Fatal validation errors preventing rendering."
+    items:
+      type: object
+      properties:
+        code:
+          type: string
+        slide_index:
+          type: integer
+        message:
+          type: string
+
+  error_code:
+    type: string
+    description: "Top-level error classification code when action fails."
+
+  templates:
+    type: array
+    description: "List of bundled templates and metadata (for list_templates action)."
+    items:
+      type: object
+
+constitution:
+  LOCAL_ASSEMBLY: "Never call network APIs or external LLMs from execute()."
+  DETERMINISTIC: "Same valid deck_spec + template produces reproducible slide structure and text content."
+  EDITABLE_OUTPUT: "Produce standard .pptx editable in PowerPoint/LibreOffice; do not rasterize whole slides."
+  FAIL_CLOSED: "Validate before render; reject unsafe paths and invalid assets."
+  PRIVACY: "Do not persist deck content beyond the caller's output_path."

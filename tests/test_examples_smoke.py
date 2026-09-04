@@ -96,6 +96,17 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Input image not found: examples/sample_input.png",
         ],
     ),
+    (
+        "deck_builder_demo.py",
+        [
+            "Loading creative/deck_builder...",
+            "=== Step 1: List Bundled Templates ===",
+            "=== Step 2: Validate Deck Specification ===",
+            "=== Step 3: Render Presentation ===",
+            "=== Step 4: Inspect Generated PPTX ===",
+            "Demo complete.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

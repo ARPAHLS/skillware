@@ -1,0 +1,40 @@
+{
+  "name": "Deck Builder",
+  "description": "Deterministic PowerPoint (.pptx) assembly from structured deck specs.",
+  "issuer": {
+    "name": "Tushar Jamunkar",
+    "email": "tusharjamunkar@users.noreply.github.com",
+    "github": "tusharjamunkar",
+    "org": "ARPAHLS"
+  },
+  "icon": "presentation",
+  "color": "indigo",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "success",
+        "label": "Status",
+        "type": "status_badge"
+      },
+      {
+        "key": "action",
+        "label": "Action"
+      },
+      {
+        "key": "template_id",
+        "label": "Template"
+      },
+      {
+        "key": "slide_count",
+        "label": "Slide Count",
+        "type": "count"
+      },
+      {
+        "key": "output_path",
+        "label": "Output",
+        "type": "file_path"
+      }
+    ]
+  }
+}

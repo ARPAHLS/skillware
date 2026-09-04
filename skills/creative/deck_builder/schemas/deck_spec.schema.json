@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DeckSpec",
+  "description": "Structured presentation specification for creative/deck_builder.",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Overall presentation title."
+    },
+    "template_id": {
+      "type": "string",
+      "description": "Master template identifier: pitch_v1, corporate_v1, or minimal_v1.",
+      "default": "pitch_v1"
+    },
+    "theme": {
+      "type": "object",
+      "description": "Theme token overrides.",
+      "properties": {
+        "accent_color": { "type": "string" },
+        "font_heading": { "type": "string" },
+        "font_body": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Document metadata."
+    },
+    "slides": {
+      "type": "array",
+      "description": "Ordered list of slides to assemble.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "title",
+              "section",
+              "bullets",
+              "two_column",
+              "image",
+              "image_caption",
+              "quote",
+              "table",
+              "chart",
+              "blank"
+            ]
+          },
+          "title": { "type": "string" },
+          "subtitle": { "type": "string" },
+          "speaker_notes": { "type": "string" },
+          "bullets": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "left": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          },
+          "right": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          },
+          "image": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "base64": { "type": "string" },
+              "mime_type": { "type": "string" }
+            }
+          },
+          "caption": { "type": "string" },
+          "body": { "type": "string" },
+          "quote": { "type": "string" },
+          "attribution": { "type": "string" },
+          "columns": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array"
+            }
+          },
+          "chart": {
+            "type": "object",
+            "required": ["kind", "categories", "series"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["bar", "line", "pie"]
+              },
+              "categories": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "series": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "values"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "values": {
+                      "type": "array",
+                      "items": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["title", "slides"]
+}
