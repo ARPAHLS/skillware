@@ -38,19 +38,22 @@ def run_demo():
 
     # Step 2: Background removal on brand mark
     print("\n=== Step 2: Background Removal on Brand Mark ===")
-    # Generate mock logo with white background
-    logo_img = Image.new("RGB", (120, 120), color=(255, 255, 255))
-    buf = io.BytesIO()
-    logo_img.save(buf, format="PNG")
-    raw_logo_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-
-    bg_res = ctx.execute(
-        "creative/bg_remover",
-        {"image": raw_logo_b64},
-    )
-    transparent_logo_b64 = bg_res.get("image_base64", raw_logo_b64)
-    print(f"  bg_remover success: {bg_res.get('success')}")
-    print(f"  transparent_logo length: {len(transparent_logo_b64)} chars")
+    sample_img_path = Path("examples/sample_input.png")
+    if sample_img_path.exists():
+        bg_res = ctx.execute(
+            "creative/bg_remover", {"input_path": str(sample_img_path)}
+        )
+        transparent_logo_b64 = bg_res.get("image_base64")
+        print(
+            f"  bg_remover processed {sample_img_path}: success={bg_res.get('success')}"
+        )
+    else:
+        print("  sample_input.png not present; using synthetic transparent brand asset")
+        logo_img = Image.new("RGBA", (120, 120), color=(110, 87, 224, 255))
+        buf = io.BytesIO()
+        logo_img.save(buf, format="PNG")
+        transparent_logo_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        print(f"  transparent_logo length: {len(transparent_logo_b64)} chars")
 
     # Embed transparent logo into cover slide
     deck_spec["slides"][0]["image"] = {
