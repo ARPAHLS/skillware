@@ -286,6 +286,11 @@ Check whether skills can load in the current environment — manifest **requirem
     skillware doctor --category compliance
     skillware doctor --skills-root /path/to/my/skills
 
+Check the **install health** of the `skillware` package itself (duplicate,
+orphan, or editable-plus-wheel conflicts) with copy-paste fix commands:
+
+    skillware doctor --install
+
 #### Arguments and flags
 
 | Input | Description |
@@ -294,6 +299,7 @@ Check whether skills can load in the current environment — manifest **requirem
 | `<category>/<skill_name>` | Diagnose one skill |
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
+| `--install` | Diagnose the local `skillware` install state and print fix commands (exit 0 = healthy, 1 = conflicts) |
 
 **DEPS** validates manifest `requirements` (same rules as `SkillLoader.load_skill()`). **LOAD** imports `skill.py` and discovers the `BaseSkill` subclass; it is skipped (shown as `—`) when **DEPS** fails. The **DETAIL** column shows the first line of any error.
 
