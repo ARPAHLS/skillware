@@ -3,7 +3,7 @@
 **ID**: `creative/deck_builder`  
 **Issuer**: [@tusharjamunkar](https://github.com/tusharjamunkar) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0`
+**Version**: `0.2.0` — 4 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[creative_deck_builder]"`. See [Install extras](../usage/install_extras.md).  
@@ -11,16 +11,18 @@
 
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-Deterministic, offline assembly of Microsoft PowerPoint (`.pptx`) presentations from structured JSON deck specifications. Supports multi-slide layouts (title, section, bullets, two-column, image, image with caption, quote, table, chart, blank), custom theme token overrides, speaker notes, and pre-flight validation.
+Deterministic, offline assembly of Microsoft PowerPoint (`.pptx`) presentations from structured JSON deck specifications. Supports 13 slide layouts (title, section, bullets, two-column, image, image with caption, quote, table, chart, timeline, metrics, comparison, blank), smart image placeholders, `fit` policies, presentation quality linting (`lint_deck`), archetype outline generation (`suggest_outline`), custom theme token overrides, speaker notes, and pre-flight validation.
 
 ## Capabilities
 
 - **Deterministic Assembly**: Generates standard editable `.pptx` documents without remote network calls or image generation APIs.
-- **10 Layout Types**: Supports cover titles, section headers, bullet lists, two-column comparisons, images, image captions, pull-quotes, tables, native OpenXML charts (bar, line, pie), and blank canvases.
+- **13 Layout Types**: Supports cover titles, section headers, bullet lists, two-column comparisons, images, image captions, pull-quotes, tables, native OpenXML charts (bar, line, pie), milestone timelines, KPI metric cards, comparative matrices, and blank canvases.
+- **Smart Image Engine & Placeholders**: Normalizes images via Pillow (EXIF orientation, CMYK to RGB) with configurable `fit` policies (`contain`, `cover`, `crop_center`, `stretch`) and neutral offline placeholders (`hero`, `logo`, `icon`, `chart_backdrop`, `headshot`).
+- **Quality Gates (`lint_deck`)**: Heuristic deck scoring (0–100) assessing bullet density, text length caps, image alt tags, orphan bullets, and visual monotony.
+- **Archetype Outlines (`suggest_outline`)**: Offline template outline generator for `investor_pitch`, `technical_brief`, `quarterly_review`, `product_launch`, and `training_workshop`.
 - **Pre-flight Validation (`validate_spec`)**: Validates JSON specifications against strict JSON Schema and flags soft-limit warnings (e.g. text truncations, missing assets) before writing to disk.
 - **Widescreen 16:9 Templates**: Bundles 3 distinct master templates (`pitch_v1`, `corporate_v1`, `minimal_v1`) with configurable font and accent color tokens.
 - **Inspection (`inspect`)**: Examines existing `.pptx` files and extracts slide counts, layout hints, titles, and speaker notes presence.
-- **Asset Normalization**: Ingests local file paths or Base64 image payloads with Pillow validation and directory traversal defenses.
 
 ## Actions
 
@@ -30,6 +32,8 @@ Deterministic, offline assembly of Microsoft PowerPoint (`.pptx`) presentations 
 | `render` | `deck_spec`, `output_path`, `template_id` *(optional)*, `theme` *(optional)*, `strict` *(optional)* | Assembles slides, applies theme tokens, inserts images/charts, writes `.pptx` to disk. |
 | `inspect` | `input_path` | Reads an existing `.pptx` presentation and returns slide counts, titles, layout names, and notes presence. |
 | `list_templates` | *(none)* | Enumerates bundled template IDs, names, descriptions, and aspect ratios. |
+| `lint_deck` | `deck_spec`, `min_score` *(optional)*, `strict_a11y` *(optional)* | Analyzes deck specification for presentation design and accessibility best practices. |
+| `suggest_outline` | `archetype`, `topic` *(optional)*, `constraints` *(optional)* | Generates a structured slide outline and skeleton `deck_spec` for an archetype. |
 
 ## Slide Layouts
 
@@ -39,11 +43,14 @@ Deterministic, offline assembly of Microsoft PowerPoint (`.pptx`) presentations 
 | `section` | Section divider | `title`, optional `subtitle`, optional `speaker_notes` |
 | `bullets` | Bulleted takeaways | `title`, `bullets` (array of strings; >120 chars emits warning), `speaker_notes` |
 | `two_column` | Comparison / two-panel layout | `title`, `left` (text/bullets), `right` (text/bullets), `speaker_notes` |
-| `image` | Visual showcase | `title`, `image` (path or base64), optional `caption`, `speaker_notes` |
+| `image` | Visual showcase | `title`, `image` (path, base64, or placeholder_id), optional `caption`, `speaker_notes` |
 | `image_caption` | Image with side text | `title`, `image`, `body` (explanatory text), `speaker_notes` |
 | `quote` | Pull quote | `quote`, `attribution`, `speaker_notes` |
 | `table` | Tabular data grid | `title`, `columns`, `rows`, `speaker_notes` |
 | `chart` | Data visualization | `title`, `chart` (`kind`: `bar`/`line`/`pie`, `categories`, `series`), `speaker_notes` |
+| `timeline` | Milestone roadmap | `title`, `items` (array of `{date, title, description, status}`), `speaker_notes` |
+| `metrics` | KPI big numbers | `title`, `metrics` (array of `{value, label, delta, trend}`), `speaker_notes` |
+| `comparison` | Comparative cards | `title`, `left`, `right` (or `columns`), `speaker_notes` |
 | `blank` | Clean canvas | optional `speaker_notes` |
 
 ## Usage Examples
