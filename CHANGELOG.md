@@ -153,6 +153,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **`dev_tools/issue_resolver`:** Profile discovery prefers `.github/ISSUE_RESOLVER.md` over a repo-root fallback; expanded Skillware dogfood profile aligned with contributor workflow and stage gates.
 - **Version policy:** Raise security support floor to `>= 0.4.7`; legacy band `0.3.5`–`0.4.6` (upgrade recommended, silent CLI); unsupported advisory for installs below `0.3.5`.
 
+### Changed
+
+- **Documentation / examples:** Renamed the shared GitHub helper from `issue_resolver_github_context.py` to `issue_resolver_common.py` and cleaned up the examples/docs parity story so the helper remains excluded from the runnable examples index while the three provider demos continue to import the shared module.
+
 ## [0.4.7] - 2026-07-25
 
 ### Added
