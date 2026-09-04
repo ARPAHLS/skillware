@@ -221,7 +221,7 @@ Commits that touched this skill bundle or its catalog page ([`creative/deck_buil
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`0db53ba`](https://github.com/ARPAHLS/skillware/commit/0db53ba) | feat(creative): add deck_builder skill for deterministic PPTX assembly (#276) | 4 Sep 2026 | 0.1.0 | [@tusharjamunkar](https://github.com/tusharjamunkar) |
+| [`a66e76e`](https://github.com/ARPAHLS/skillware/commit/a66e76e) | feat(creative): add deck_builder skill for deterministic PPTX assembly (#276) | 4 Sep 2026 | 0.1.0 | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer

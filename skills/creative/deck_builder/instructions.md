@@ -89,7 +89,7 @@ Use this tool when a user or upstream workflow requests an editable slide deck, 
 ### Agent Mapping Rationale
 - Slide 1 (`title`): Platform name, tagline, cover.
 - Slide 2 (`section`): Problem overview ("The High Cost of Database Inefficiency").
-- Slide 3 (`bullets`): Core value proposition (3 concise points, each $< 120$ chars).
+- Slide 3 (`bullets`): Core value proposition (3 concise points, each under 120 chars).
 - Slide 4 (`two_column`): Legacy manual tuning vs CortexEngine autonomous tuning.
 - Slide 5 (`table`): Benchmark comparison (Latency, Throughput, Cost Reduction across 3 engines).
 - Slide 6 (`quote`): Enterprise customer endorsement quote.
