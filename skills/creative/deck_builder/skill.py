@@ -11,9 +11,13 @@ from skillware.core.base_skill import BaseSkill
 
 try:
     from .builder import inspect_deck, list_templates, render_deck, validate_spec
+    from .lint import lint_deck
+    from .archetypes import suggest_outline
 except ImportError:
     sys.path.insert(0, os.path.dirname(__file__))
     from builder import inspect_deck, list_templates, render_deck, validate_spec
+    from lint import lint_deck
+    from archetypes import suggest_outline
 
 
 class DeckBuilderSkill(BaseSkill):
@@ -114,6 +118,30 @@ class DeckBuilderSkill(BaseSkill):
         if action == "list_templates":
             return list_templates()
 
+        if action == "lint_deck":
+            deck_spec = params.get("deck_spec")
+            if not deck_spec:
+                return {
+                    "success": False,
+                    "action": "lint_deck",
+                    "score": 0,
+                    "passed": False,
+                    "error_code": "DECK_SPEC_MISSING",
+                    "message": "deck_spec is required for lint_deck action.",
+                    "findings": [],
+                }
+            options = {
+                "min_score": params.get("min_score", 70),
+                "strict_a11y": params.get("strict_a11y", False),
+            }
+            return lint_deck(deck_spec, options)
+
+        if action == "suggest_outline":
+            archetype = params.get("archetype", "investor_pitch")
+            topic = params.get("topic", "")
+            constraints = params.get("constraints", [])
+            return suggest_outline(archetype, topic, constraints)
+
         return {
             "success": False,
             "action": str(action),
@@ -125,7 +153,7 @@ class DeckBuilderSkill(BaseSkill):
                     "slide_index": -1,
                     "message": (
                         f"Action '{action}' is not supported. "
-                        "Use validate_spec, render, inspect, or list_templates."
+                        "Use validate_spec, render, inspect, list_templates, lint_deck, or suggest_outline."
                     ),
                 }
             ],

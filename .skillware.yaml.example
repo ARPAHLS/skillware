@@ -102,3 +102,35 @@ legacy:
 #           task_id: host.task_id
 #           current_token_count: host.current_token_count
 #           max_allowed_tokens: host.max_allowed_tokens
+#   deck_build_pipeline:
+#     description: Validate, lint, and render a deck_spec from host variables.
+#     when: Automated pipeline generating and quality-checking presentations.
+#     steps:
+#       - id: validate
+#         skill: creative/deck_builder
+#         params:
+#           action: validate_spec
+#           strict: true
+#         input_from:
+#           deck_spec: host.deck_spec
+#       - id: lint
+#         skill: creative/deck_builder
+#         when:
+#           prior_step: validate
+#           field: valid
+#           equals: true
+#         params:
+#           action: lint_deck
+#           min_score: 70
+#         input_from:
+#           deck_spec: host.deck_spec
+#       - skill: creative/deck_builder
+#         when:
+#           prior_step: lint
+#           field: passed
+#           equals: true
+#         params:
+#           action: render
+#         input_from:
+#           deck_spec: host.deck_spec
+#           output_path: host.output_path

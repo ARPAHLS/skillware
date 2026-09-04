@@ -1,5 +1,5 @@
 name: "creative/deck_builder"
-version: "0.1.0"
+version: "0.2.0"
 description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
 short_description: "Assemble editable PPTX presentations from structured JSON deck specs."
 
@@ -20,12 +20,14 @@ parameters:
   properties:
     action:
       type: string
-      description: "Operation to perform: validate_spec (default), render, inspect, list_templates."
+      description: "Operation to perform: validate_spec (default), render, inspect, list_templates, lint_deck, suggest_outline."
       enum:
         - validate_spec
         - render
         - inspect
         - list_templates
+        - lint_deck
+        - suggest_outline
       default: validate_spec
 
     deck_spec:
