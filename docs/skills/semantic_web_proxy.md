@@ -314,7 +314,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/s
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`0842e81`](https://github.com/ARPAHLS/skillware/commit/0842e81) | feat(data_engineering): add semantic_web_proxy skill for token-efficient page extraction (#42) | 5 Sep 2026 | 0.1.0 | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`9346925`](https://github.com/ARPAHLS/skillware/commit/9346925) | feat(data_engineering): add semantic_web_proxy skill for token-efficient page extraction (#42) | 5 Sep 2026 | 0.1.0 | [@rizzoMartin](https://github.com/rizzoMartin) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
