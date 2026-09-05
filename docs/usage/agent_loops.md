@@ -150,6 +150,7 @@ skills in one harness.
 | `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |
+| `data_engineering/semantic_web_proxy` | `semantic_web_proxy_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
