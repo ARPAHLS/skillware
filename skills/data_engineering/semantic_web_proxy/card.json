@@ -1,0 +1,34 @@
+{
+    "name": "Semantic Web Proxy",
+    "description": "Strips a web page to token-efficient Markdown or JSON and reports the estimated token saving.",
+    "issuer": {
+        "name": "Martin Rizzo Lozano",
+        "email": "rizzolozanomartin@gmail.com",
+        "github": "rizzoMartin",
+        "org": "ARPAHLS"
+    },
+    "icon": "filter",
+    "color": "#0ea5e9",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {"key": "status", "label": "Status"},
+            {"key": "output_format", "label": "Format"},
+            {"key": "semantic_payload", "label": "Semantic Payload"},
+            {"key": "metadata.title", "label": "Title"},
+            {"key": "metadata.author", "label": "Author"},
+            {"key": "metadata.date", "label": "Published"},
+            {"key": "source.final_url", "label": "Final URL"},
+            {"key": "source.http_status", "label": "HTTP Status"},
+            {"key": "source.fetched", "label": "Fetched"},
+            {"key": "token_savings.original_tokens", "label": "Original Tokens"},
+            {"key": "token_savings.semantic_tokens", "label": "Semantic Tokens"},
+            {"key": "token_savings.tokens_saved", "label": "Tokens Saved"},
+            {"key": "token_savings.reduction_pct", "label": "Reduction %"},
+            {"key": "token_savings.context_saved_pct", "label": "Context Saved %"},
+            {"key": "token_savings.tokenizer", "label": "Tokenizer"},
+            {"key": "warnings", "label": "Warnings"},
+            {"key": "error", "label": "Error"}
+        ]
+    }
+}

@@ -12,6 +12,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups.
 - **Skill (`creative/deck_builder` v0.1.0):** Deterministic Microsoft PowerPoint (`.pptx`) presentation assembly from structured JSON deck specifications — 10 slide layout types (title, section, bullets, two-column, image, image with caption, quote, table, chart, blank), 3 bundled 16:9 widescreen master templates (pitch, corporate, minimal), theme token customization, pre-flight validation with soft-limit truncation warnings, directory traversal defenses, and inspection actions (#276).
+- **Skill (`data_engineering/semantic_web_proxy` v0.1.0):** Semantic web proxy that reduces a live page or raw HTML to token-efficient Markdown, plain text, or JSON via trafilatura — boilerplate, script, and navigation stripping, opt-in comment threads, document metadata, estimated token savings with optional context-window share, an SSRF guard that re-validates every redirect hop, and a `page_likely_requires_javascript` warning instead of a silently empty payload for client-rendered pages (#42).
+- **Examples:** [`semantic_web_proxy_demo.py`](examples/semantic_web_proxy_demo.py) — offline fixture-backed demo of boilerplate stripping, comment inclusion, the render warning, and the SSRF guard (#42).
 
 ### Changed
 

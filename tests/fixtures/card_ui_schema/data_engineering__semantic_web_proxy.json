@@ -1,0 +1,59 @@
+{
+  "samples": [
+    {
+      "status": "success",
+      "semantic_payload": "# Quarterly Results\n\nRevenue grew by eleven percent across the period, driven mainly by renewals in the enterprise segment and a modest recovery in new logo acquisition.\n\n## Outlook\n\nManagement reaffirmed guidance for the full year and pointed to margin expansion in the second half as the primary driver of operating leverage.",
+      "output_format": "markdown",
+      "source": {
+        "url": "https://example.com/q4",
+        "final_url": "https://example.com/investors/q4",
+        "http_status": 200,
+        "fetched": true
+      },
+      "metadata": {
+        "title": "Quarterly Results",
+        "author": "Jane Doe",
+        "date": "2026-01-15",
+        "sitename": "example.com",
+        "hostname": "example.com",
+        "description": null
+      },
+      "token_savings": {
+        "original_tokens": 188,
+        "semantic_tokens": 81,
+        "tokens_saved": 107,
+        "reduction_pct": 56.91,
+        "context_window": 200000,
+        "context_saved_pct": 0.05,
+        "tokenizer": "heuristic",
+        "estimate": true
+      },
+      "warnings": [],
+      "error": null
+    },
+    {
+      "status": "error",
+      "semantic_payload": "",
+      "output_format": "markdown",
+      "source": {
+        "url": "http://169.254.169.254/latest/meta-data/",
+        "final_url": "http://169.254.169.254/latest/meta-data/",
+        "http_status": null,
+        "fetched": false
+      },
+      "metadata": {},
+      "token_savings": {
+        "original_tokens": 0,
+        "semantic_tokens": 0,
+        "tokens_saved": 0,
+        "reduction_pct": 0.0,
+        "context_window": null,
+        "context_saved_pct": null,
+        "tokenizer": "heuristic",
+        "estimate": true
+      },
+      "warnings": [],
+      "error": "Private or non-public host addresses are blocked."
+    }
+  ]
+}

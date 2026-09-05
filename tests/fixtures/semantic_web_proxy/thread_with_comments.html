@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Ask: how do you keep long-lived branches sane?</title>
+<script src="/static/vendor.js"></script></head>
+<body>
+<nav><a href="/newest">new</a><a href="/front">past</a><a href="/ask">ask</a><a href="/jobs">jobs</a></nav>
+<article>
+<h1>Ask: how do you keep long-lived branches sane?</h1>
+<p>We have a release branch that lives for about six weeks at a time and merging it back is consistently the worst day of the cycle. I am curious what has actually worked for teams that ship on a similar cadence rather than continuously.</p>
+</article>
+<div id="comments" class="comment-tree">
+  <div class="comment"><p>marisol: We stopped merging back entirely and started cherry-picking forward instead. It sounds worse on paper but the conflicts are small and constant rather than enormous and quarterly.</p></div>
+  <div class="comment"><p>devon: Rebase the release branch onto main every single morning, automatically, and let it fail loudly. The pain is the signal and spreading it across thirty days makes it manageable.</p></div>
+  <div class="comment"><p>tomas: Honestly the fix was organisational rather than technical for us. We shortened the release cycle to two weeks and most of the branch divergence problems simply evaporated on their own.</p></div>
+</div>
+<footer>Guidelines. FAQ. Lists. API. Security. Legal. Apply to YC. Contact.</footer>
+</body>
+</html>
