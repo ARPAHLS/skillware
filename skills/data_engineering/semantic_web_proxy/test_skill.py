@@ -469,3 +469,34 @@ class TestEmptyJavascriptShell:
         assert result["status"] == "error"
         assert "JavaScript" in result["error"]
         assert "page_likely_requires_javascript" in result["warnings"]
+
+
+class TestMalformedClosingTags:
+    """HTML parsers ignore attributes on end tags, so </script foo> closes a script.
+
+    A regex that only accepts </script> under-measures script bulk on such pages
+    and the client-rendered shell goes unreported (CodeQL py/bad-tag-filter).
+    """
+
+    def test_script_bulk_is_measured_when_end_tag_carries_attributes(self):
+        html = (
+            '<html><head><script>var padding="%s";</script\t\n bar></head>'
+            "<body><p>hi</p></body></html>" % ("z" * 4000)
+        )
+        assert proxy_module.looks_like_js_shell(html, "hi") is True
+
+    def test_script_bulk_is_measured_when_end_tag_has_trailing_space(self):
+        html = (
+            '<html><head><script>var padding="%s";</script ></head>'
+            "<body><p>hi</p></body></html>" % ("z" * 4000)
+        )
+        assert proxy_module.looks_like_js_shell(html, "hi") is True
+
+    def test_app_root_is_detected_when_closing_tag_carries_attributes(self):
+        html = '<html><body><div id="root"></div\t\n data-x></body></html>'
+        assert proxy_module.looks_like_js_shell(html, "") is True
+
+    def test_a_word_that_merely_starts_with_script_does_not_close_it(self):
+        """</scriptfoo> is not an end tag and must not be treated as one."""
+        html = "<html><head><script>var a=1;</scriptfoo></head><body></body></html>"
+        assert proxy_module.SCRIPT_BLOCK.findall(html) == []

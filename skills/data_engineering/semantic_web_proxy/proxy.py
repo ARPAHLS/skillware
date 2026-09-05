@@ -41,10 +41,16 @@ MIN_SEMANTIC_CHARS = 200
 # which a near-empty extraction is treated as a client-rendered shell.
 SCRIPT_BULK_RATIO = 0.35
 
-SCRIPT_BLOCK = re.compile(r"<script\b[^>]*>.*?</script\s*>", re.IGNORECASE | re.DOTALL)
+# End tags may carry attributes that parsers ignore, so </script foo> really does
+# close a script. Matching only </script> under-measures script bulk and lets a
+# client-rendered shell go unreported (CodeQL py/bad-tag-filter). The \b keeps
+# </scriptfoo> from counting as a close.
+SCRIPT_BLOCK = re.compile(
+    r"<script\b[^>]*>.*?</script\b[^>]*>", re.IGNORECASE | re.DOTALL
+)
 
 EMPTY_APP_ROOT = re.compile(
-    r"""<(?:div|main)\b[^>]*\bid=["']?(?:root|app|__next|__nuxt)["']?[^>]*>\s*</(?:div|main)>""",
+    r"""<(?:div|main)\b[^>]*\bid=["']?(?:root|app|__next|__nuxt)["']?[^>]*>\s*</(?:div|main)\b[^>]*>""",
     re.IGNORECASE,
 )
 
