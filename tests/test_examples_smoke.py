@@ -47,6 +47,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ["security/prompt_injection_firewall", "Hidden HTML override", "is_safe:"],
     ),
     (
+        "semantic_web_proxy_demo.py",
+        [
+            "data_engineering/semantic_web_proxy",
+            "[Article] status: success",
+            "page_likely_requires_javascript",
+            "Demo complete.",
+        ],
+    ),
+    (
         "prompt_compression_demo.py",
         ["Prompt Token Rewriter", "[RAW TEXT]:", "[COMPRESSED TEXT]:", "[REDUCTION]:"],
     ),

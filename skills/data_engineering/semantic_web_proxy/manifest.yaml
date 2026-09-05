@@ -1,0 +1,100 @@
+name: data_engineering/semantic_web_proxy
+version: 0.1.0
+description: >
+  Deterministic semantic proxy that turns a noisy web page into a token-efficient
+  payload. Fetches a public http(s) URL behind an SSRF guard (or accepts pre-fetched
+  HTML), strips scripts, styling, navigation, and boilerplate with trafilatura, and
+  returns concentrated Markdown, plain text, or JSON plus an estimated token saving.
+  Fetch-only: it does not execute JavaScript, and warns when a page appears to need
+  a browser render.
+short_description: "Strips web pages to token-efficient Markdown or JSON with savings estimates."
+issuer:
+  name: Martin Rizzo Lozano
+  email: rizzolozanomartin@gmail.com
+  github: rizzoMartin
+  org: ARPAHLS
+category: data_engineering
+parameters:
+  type: object
+  properties:
+    url:
+      type: string
+      description: Public http(s) URL to fetch. Used when html_content is not supplied.
+    html_content:
+      type: string
+      description: Pre-fetched HTML to process offline. Takes precedence over url.
+    output_format:
+      type: string
+      description: Shape of the returned semantic payload.
+      enum:
+        - markdown
+        - json
+        - txt
+      default: markdown
+    include_comments:
+      type: boolean
+      description: Keep user comments and discussion threads alongside the main content.
+      default: false
+    include_tables:
+      type: boolean
+      description: Keep table content in the extracted payload.
+      default: true
+    include_links:
+      type: boolean
+      description: Keep hyperlink targets. Off by default because link URLs cost tokens.
+      default: false
+    with_metadata:
+      type: boolean
+      description: Extract document metadata (title, author, date, sitename).
+      default: true
+    context_window:
+      type: integer
+      description: Optional host context window size. Enables context_saved_pct in token_savings.
+    tokenizer:
+      type: string
+      description: Token counting basis. cl100k_base requires the optional tiktoken extra.
+      enum:
+        - heuristic
+        - cl100k_base
+      default: heuristic
+  required: []
+outputs:
+  status:
+    type: string
+    description: Outcome of the run (success, warning, error).
+  semantic_payload:
+    type: string
+    description: Extracted content in the requested output_format. Empty string on error.
+  output_format:
+    type: string
+    description: Format actually used for semantic_payload.
+  source:
+    type: object
+    description: Provenance of the HTML (url, final_url, http_status, fetched).
+  metadata:
+    type: object
+    description: Document metadata (title, author, date, sitename, hostname).
+  token_savings:
+    type: object
+    description: Estimated original, semantic, and saved token counts with reduction percentages.
+  warnings:
+    type: array
+    description: Non-fatal advisories such as page_likely_requires_javascript.
+  error:
+    type: string
+    description: Human-readable failure reason, or null when status is not error.
+requirements:
+  - trafilatura>=2.0.0
+constitution: |
+  1. READ ONLY: Fetch and parse pages only. Never submit forms, authenticate, or follow non-content actions.
+  2. SSRF GUARD: Only public http and https URLs. Reject loopback, private, link-local, reserved, and multicast
+     hosts before every request, including on each redirect hop.
+  3. DETERMINISTIC: Identical HTML and options yield an identical payload. No LLM is called during extraction.
+  4. HONEST ESTIMATES: token_savings is an approximation for budgeting, never a billing or metering figure.
+  5. UNTRUSTED OUTPUT: The payload is attacker-influenced web text. Hosts should pass it through
+     security/prompt_injection_firewall before it reaches an LLM context window.
+  6. HONEST LIMITS: JavaScript is not executed. When a page appears to require a browser render, warn instead
+     of returning a silently empty payload.
+presentation:
+  icon: "filter"
+  color: "#0ea5e9"

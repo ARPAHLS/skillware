@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Analytics Dashboard</title>
+<script src="/static/runtime.9f2c.js"></script>
+<script src="/static/vendor.4a81.js"></script>
+<script>
+window.__INITIAL_STATE__={"user":null,"workspace":null,"flags":{"newNav":true,"betaCharts":false}};
+(function(){function boot(){var el=document.getElementById("root");if(!el){return;}
+var app=window.App&&window.App.mount;if(typeof app==="function"){app(el,window.__INITIAL_STATE__);}}
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",boot);}else{boot();}
+var telemetry={queue:[],push:function(e){this.queue.push(e);},flush:function(){this.queue=[];}};
+window.__TELEMETRY__=telemetry;for(var i=0;i<64;i++){telemetry.push({tick:i,ts:Date.now()});}
+})();
+</script>
+</head>
+<body><div id="root"></div><noscript>This dashboard requires JavaScript to run.</noscript></body>
+</html>
