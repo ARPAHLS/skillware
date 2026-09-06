@@ -18,7 +18,7 @@ Skills for image processing, media editing, and creative utilities.
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[Background Remover](bg_remover.md)** | `creative/bg_remover` | `0.2.0` (2 Aug 2026) | [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS)) | Removes image backgrounds locally using rembg and returns transparent PNGs. |
-| **[Deck Builder](deck_builder.md)** | `creative/deck_builder` | `0.1.0` (3 Sep 2026) | [@tusharjamunkar](https://github.com/tusharjamunkar) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic PowerPoint (.pptx) presentation assembly from structured JSON deck specs. |
+| **[Deck Builder](deck_builder.md)** | `creative/deck_builder` | `0.2.0` (4 Sep 2026) | [@tusharjamunkar](https://github.com/tusharjamunkar) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic PowerPoint (.pptx) presentation assembly from structured JSON deck specs. |
 
 ## Finance
 Tools for financial analysis, blockchain interaction, and regulatory compliance.

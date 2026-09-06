@@ -560,8 +560,10 @@ def test_render_v020_new_layouts(skill, tmp_path):
     out_file = tmp_path / "v020_layouts.pptx"
     spec = {
         "title": "v0.2.0 Layout Showcase",
-        "classification": "CONFIDENTIAL",
-        "legal_footer": "Internal Confidential - Do Not Distribute",
+        "metadata": {
+            "classification": "CONFIDENTIAL",
+            "legal_footer": "Internal Confidential - Do Not Distribute",
+        },
         "slides": [
             {
                 "type": "title",
@@ -685,3 +687,71 @@ def test_render_v020_new_layouts(skill, tmp_path):
     assert inspect_res["slide_count"] == 5
     assert inspect_res["slides"][1]["layout_name"] is not None
     assert inspect_res["slides"][1]["has_notes"] is True
+
+
+def test_governance_ribbon_and_footer_rendered(skill, tmp_path):
+    import pptx
+
+    out_file = tmp_path / "gov_rendered.pptx"
+    spec = {
+        "title": "Governance Presentation",
+        "metadata": {
+            "classification": "RESTRICTED",
+            "legal_footer": "Proprietary and Confidential - Skillware",
+        },
+        "slides": [
+            {
+                "type": "title",
+                "title": "Cover Slide",
+                "subtitle": "Confidential Overview",
+            },
+            {"type": "bullets", "title": "Key Items", "bullets": ["Item A", "Item B"]},
+        ],
+    }
+
+    render = skill.execute(
+        {"action": "render", "deck_spec": spec, "output_path": str(out_file)}
+    )
+    assert render["success"] is True
+    assert out_file.is_file()
+
+    # Inspect rendered pptx shapes directly to guarantee ribbon and footer are not no-ops
+    prs = pptx.Presentation(str(out_file))
+    assert len(prs.slides) == 2
+    for s in prs.slides:
+        texts = []
+        for shape in s.shapes:
+            if shape.has_text_frame:
+                for p in shape.text_frame.paragraphs:
+                    texts.append(p.text)
+        assert any(
+            "[RESTRICTED]" in t for t in texts
+        ), f"Missing classification ribbon in {texts}"
+        assert any(
+            "Proprietary and Confidential - Skillware" in t for t in texts
+        ), f"Missing legal footer in {texts}"
+
+    # Also test backward-compatible root fallback
+    out_file_root = tmp_path / "gov_root_fallback.pptx"
+    spec_root = {
+        "title": "Root Fallback Governance",
+        "classification": "INTERNAL",
+        "legal_footer": "Internal Only",
+        "slides": [
+            {"type": "title", "title": "Root Cover"},
+        ],
+    }
+    render_root = skill.execute(
+        {"action": "render", "deck_spec": spec_root, "output_path": str(out_file_root)}
+    )
+    assert render_root["success"] is True
+    prs_root = pptx.Presentation(str(out_file_root))
+    root_texts = [
+        p.text
+        for s in prs_root.slides
+        for shape in s.shapes
+        if shape.has_text_frame
+        for p in shape.text_frame.paragraphs
+    ]
+    assert any("[INTERNAL]" in t for t in root_texts)
+    assert any("Internal Only" in t for t in root_texts)

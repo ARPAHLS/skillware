@@ -20,26 +20,11 @@
     },
     "theme": {
       "type": "object",
-      "description": "Theme tokens, vibe, and brand kit overrides.",
+      "description": "Theme tokens and typography overrides.",
       "properties": {
         "accent_color": { "type": "string" },
         "font_heading": { "type": "string" },
-        "font_body": { "type": "string" },
-        "vibe": { "type": "string" },
-        "palette": { "type": "string" },
-        "mood": { "type": "string" },
-        "density": { "type": "string", "enum": ["compact", "normal", "spacious"] },
-        "brand_kit": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "primary_color": { "type": "string" },
-            "secondary_color": { "type": "string" },
-            "font_family": { "type": "string" },
-            "logo_path": { "type": "string" },
-            "legal_footer": { "type": "string" }
-          }
-        }
+        "font_body": { "type": "string" }
       },
       "additionalProperties": true
     },
