@@ -107,6 +107,17 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Demo complete.",
         ],
     ),
+    (
+        "deck_builder_chain_demo.py",
+        [
+            "Loading SkillContext with creative/bg_remover and creative/deck_builder...",
+            "=== Step 1: Suggest Outline via Archetype ===",
+            "=== Step 2: Background Removal on Brand Mark ===",
+            "=== Step 3: Lint Deck Specification ===",
+            "=== Step 4: Render Final Presentation ===",
+            "Chain demo complete.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

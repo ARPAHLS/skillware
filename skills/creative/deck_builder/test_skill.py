@@ -25,7 +25,7 @@ def sample_base64_png():
 def test_manifest_loads_and_declares_requirements(skill):
     manifest = skill.manifest
     assert manifest["name"] == "creative/deck_builder"
-    assert manifest["version"] == "0.1.0"
+    assert manifest["version"] == "0.2.0"
     assert manifest["category"] == "creative"
     assert "python-pptx>=1.0.0" in manifest["requirements"]
     assert "pillow" in manifest["requirements"]
@@ -428,7 +428,330 @@ def test_constitution_offline_no_remote_apis():
         "requests.post",
         "urllib.request",
     )
-    for name in ("skill.py", "builder.py"):
+    for name in (
+        "skill.py",
+        "builder.py",
+        "placeholders.py",
+        "archetypes.py",
+        "lint.py",
+    ):
         text = open(os.path.join(root, name), encoding="utf-8").read().lower()
         for token in banned:
             assert token not in text, f"Found banned remote token '{token}' in {name}"
+
+
+def test_suggest_outline_all_archetypes(skill):
+    archetypes = [
+        "investor_pitch",
+        "technical_brief",
+        "quarterly_review",
+        "product_launch",
+        "training_workshop",
+    ]
+    for arch in archetypes:
+        res = skill.execute({"action": "suggest_outline", "archetype": arch})
+        assert res["success"] is True
+        assert res["archetype"] == arch
+        assert "deck_spec" in res
+        spec = res["deck_spec"]
+        assert len(spec["slides"]) >= 4
+        # Validate that generated skeleton conforms to schema
+        val = skill.execute({"action": "validate_spec", "deck_spec": spec})
+        assert val["valid"] is True
+
+
+def test_suggest_outline_negative_constraints(skill):
+    # Test filtering out pricing/financials
+    res_no_pricing = skill.execute(
+        {
+            "action": "suggest_outline",
+            "archetype": "investor_pitch",
+            "constraints": ["no pricing", "no business model"],
+        }
+    )
+    assert res_no_pricing["success"] is True
+    titles = [s.get("title", "").lower() for s in res_no_pricing["deck_spec"]["slides"]]
+    assert not any("business model" in t for t in titles)
+
+
+def test_lint_deck_perfect_score(skill):
+    clean_spec = {
+        "title": "Clean Presentation",
+        "slides": [
+            {"type": "title", "title": "Welcome", "subtitle": "Intro"},
+            {
+                "type": "bullets",
+                "title": "Overview",
+                "bullets": ["Item one", "Item two"],
+            },
+            {
+                "type": "metrics",
+                "title": "KPIs",
+                "metrics": [{"value": "99.9%", "label": "Uptime"}],
+            },
+            {
+                "type": "timeline",
+                "title": "Roadmap",
+                "items": [{"date": "Q1", "title": "Alpha", "description": "Release"}],
+            },
+        ],
+    }
+    res = skill.execute({"action": "lint_deck", "deck_spec": clean_spec})
+    assert res["success"] is True
+    assert res["score"] == 100
+    assert res["passed"] is True
+    assert len(res["errors"]) == 0
+    assert len(res["warnings"]) == 0
+
+
+def test_lint_deck_detects_violations(skill):
+    dirty_spec = {
+        "title": "Flawed Presentation",
+        "slides": [
+            {"type": "title", "title": ""},  # EMPTY_TITLE
+            {
+                "type": "bullets",
+                "title": "Text Heavy",
+                "bullets": [
+                    "A" * 220,  # WALL_OF_TEXT
+                ],  # ORPHAN_BULLET (only 1 item)
+            },
+            {
+                "type": "metrics",
+                "title": "Missing Labels",
+                "metrics": [{"value": "$10M"}],  # METRIC_WITHOUT_LABEL
+            },
+        ],
+    }
+    res = skill.execute({"action": "lint_deck", "deck_spec": dirty_spec})
+    assert res["success"] is True
+    assert res["score"] < 100
+    issue_codes = [i["code"] for i in res["issues"]]
+    assert "EMPTY_TITLE" in issue_codes
+    assert "WALL_OF_TEXT" in issue_codes
+    assert "ORPHAN_BULLET" in issue_codes
+    assert "METRIC_WITHOUT_LABEL" in issue_codes
+
+
+def test_lint_deck_min_score_and_a11y(skill):
+    spec = {
+        "title": "Short Deck",
+        "slides": [
+            {"type": "title", "title": "Deck Title"},
+            {
+                "type": "image",
+                "title": "Photo",
+                "image": {"placeholder_id": "hero"},
+            },  # MISSING_ALT in strict_a11y
+        ],  # LOW_SLIDE_COUNT (<3)
+    }
+    # strict_a11y check
+    res = skill.execute(
+        {"action": "lint_deck", "deck_spec": spec, "strict_a11y": True, "min_score": 95}
+    )
+    assert res["success"] is True
+    assert res["passed"] is False  # score should be < 95
+    issue_codes = [i["code"] for i in res["issues"]]
+    assert "LOW_SLIDE_COUNT" in issue_codes
+    assert "MISSING_ALT" in issue_codes
+
+
+def test_render_v020_new_layouts(skill, tmp_path):
+    out_file = tmp_path / "v020_layouts.pptx"
+    spec = {
+        "title": "v0.2.0 Layout Showcase",
+        "metadata": {
+            "classification": "CONFIDENTIAL",
+            "legal_footer": "Internal Confidential - Do Not Distribute",
+        },
+        "slides": [
+            {
+                "type": "title",
+                "title": "v0.2.0 Showcase",
+                "subtitle": "New Layouts and Fit Policies",
+                "image": {"placeholder_id": "logo", "fit": "contain"},
+            },
+            {
+                "type": "timeline",
+                "title": "Product Roadmap",
+                "items": [
+                    {
+                        "date": "Q1 2026",
+                        "title": "Phase 1: Alpha",
+                        "description": "Core layout architecture",
+                        "status": "completed",
+                    },
+                    {
+                        "date": "Q2 2026",
+                        "title": "Phase 2: Beta",
+                        "description": "Smart placeholders and linting",
+                        "status": "in_progress",
+                    },
+                    {
+                        "date": "Q3 2026",
+                        "title": "Phase 3: GA",
+                        "description": "Enterprise rollout",
+                        "status": "planned",
+                    },
+                ],
+                "speaker_notes": "Highlight phase 2 progress.",
+            },
+            {
+                "type": "metrics",
+                "title": "Quarterly Performance",
+                "metrics": [
+                    {
+                        "value": "99.98%",
+                        "label": "System Availability",
+                        "delta": "+0.4%",
+                        "trend": "up",
+                    },
+                    {
+                        "value": "$4.8M",
+                        "label": "Annualized Run Rate",
+                        "delta": "+28% YoY",
+                        "trend": "up",
+                    },
+                    {
+                        "value": "12 ms",
+                        "label": "p99 Execution Latency",
+                        "delta": "-5 ms",
+                        "trend": "down",
+                    },
+                    {
+                        "value": "1,420",
+                        "label": "Active Organizations",
+                        "trend": "neutral",
+                    },
+                ],
+                "speaker_notes": "Notice all key metrics beating targets.",
+            },
+            {
+                "type": "comparison",
+                "title": "Architectural Comparison",
+                "left": {
+                    "title": "Legacy Approach",
+                    "items": [
+                        "Manual slide deck authoring",
+                        "Unstructured copy-paste errors",
+                        "No quality linting",
+                    ],
+                },
+                "right": {
+                    "title": "Skillware Platform",
+                    "items": [
+                        "Deterministic code-driven generation",
+                        "Automated pre-flight schema checks",
+                        "Zero remote network calls",
+                    ],
+                },
+                "speaker_notes": "Clear differentiation on deterministic reliability.",
+            },
+            {
+                "type": "image",
+                "title": "Hero Placeholder",
+                "image": {
+                    "placeholder_id": "hero",
+                    "fit": "cover",
+                    "alt": "Hero architecture diagram",
+                },
+                "caption": "Figure: Architectural schematic",
+            },
+        ],
+    }
+
+    # Validate
+    val = skill.execute({"action": "validate_spec", "deck_spec": spec})
+    assert val["valid"] is True
+
+    # Lint
+    lint = skill.execute({"action": "lint_deck", "deck_spec": spec})
+    assert lint["passed"] is True
+    assert lint["score"] >= 95
+
+    # Render
+    render = skill.execute(
+        {"action": "render", "deck_spec": spec, "output_path": str(out_file)}
+    )
+    assert render["success"] is True
+    assert render["slide_count"] == 5
+    assert render["slides"][1]["type"] == "timeline"
+    assert render["slides"][2]["type"] == "metrics"
+    assert render["slides"][3]["type"] == "comparison"
+    assert out_file.is_file()
+    assert out_file.stat().st_size > 1000
+
+    # Inspect
+    inspect_res = skill.execute({"action": "inspect", "input_path": str(out_file)})
+    assert inspect_res["success"] is True
+    assert inspect_res["slide_count"] == 5
+    assert inspect_res["slides"][1]["layout_name"] is not None
+    assert inspect_res["slides"][1]["has_notes"] is True
+
+
+def test_governance_ribbon_and_footer_rendered(skill, tmp_path):
+    import pptx
+
+    out_file = tmp_path / "gov_rendered.pptx"
+    spec = {
+        "title": "Governance Presentation",
+        "metadata": {
+            "classification": "RESTRICTED",
+            "legal_footer": "Proprietary and Confidential - Skillware",
+        },
+        "slides": [
+            {
+                "type": "title",
+                "title": "Cover Slide",
+                "subtitle": "Confidential Overview",
+            },
+            {"type": "bullets", "title": "Key Items", "bullets": ["Item A", "Item B"]},
+        ],
+    }
+
+    render = skill.execute(
+        {"action": "render", "deck_spec": spec, "output_path": str(out_file)}
+    )
+    assert render["success"] is True
+    assert out_file.is_file()
+
+    # Inspect rendered pptx shapes directly to guarantee ribbon and footer are not no-ops
+    prs = pptx.Presentation(str(out_file))
+    assert len(prs.slides) == 2
+    for s in prs.slides:
+        texts = []
+        for shape in s.shapes:
+            if shape.has_text_frame:
+                for p in shape.text_frame.paragraphs:
+                    texts.append(p.text)
+        assert any(
+            "[RESTRICTED]" in t for t in texts
+        ), f"Missing classification ribbon in {texts}"
+        assert any(
+            "Proprietary and Confidential - Skillware" in t for t in texts
+        ), f"Missing legal footer in {texts}"
+
+    # Also test backward-compatible root fallback
+    out_file_root = tmp_path / "gov_root_fallback.pptx"
+    spec_root = {
+        "title": "Root Fallback Governance",
+        "classification": "INTERNAL",
+        "legal_footer": "Internal Only",
+        "slides": [
+            {"type": "title", "title": "Root Cover"},
+        ],
+    }
+    render_root = skill.execute(
+        {"action": "render", "deck_spec": spec_root, "output_path": str(out_file_root)}
+    )
+    assert render_root["success"] is True
+    prs_root = pptx.Presentation(str(out_file_root))
+    root_texts = [
+        p.text
+        for s in prs_root.slides
+        for shape in s.shapes
+        if shape.has_text_frame
+        for p in shape.text_frame.paragraphs
+    ]
+    assert any("[INTERNAL]" in t for t in root_texts)
+    assert any("Internal Only" in t for t in root_texts)

@@ -8,7 +8,7 @@ def test_deck_builder_manifest_and_bundle_load():
     bundle = SkillLoader.load_skill("creative/deck_builder")
     assert bundle["manifest"]["name"] == "creative/deck_builder"
     assert bundle["manifest"]["category"] == "creative"
-    assert bundle["manifest"]["version"] == "0.1.0"
+    assert bundle["manifest"]["version"] == "0.2.0"
     assert "pitch_v1" in bundle["instructions"]
     assert bundle["card"]["name"] == "Deck Builder"
 
@@ -65,3 +65,28 @@ def test_deck_builder_loader_execute_workflow(tmp_path: Path):
     tpl_res = skill.execute({"action": "list_templates"})
     assert tpl_res["success"] is True
     assert len(tpl_res["templates"]) >= 3
+
+
+def test_deck_builder_loader_suggest_outline_and_lint():
+    bundle = SkillLoader.load_skill("creative/deck_builder")
+    skill = bundle["class"]()
+
+    # 1. Suggest outline
+    outline_res = skill.execute(
+        {
+            "action": "suggest_outline",
+            "archetype": "investor_pitch",
+            "topic": "Skillware AI Engine",
+            "constraints": ["no pricing"],
+        }
+    )
+    assert outline_res["success"] is True
+    assert outline_res["archetype"] == "investor_pitch"
+    deck_spec = outline_res["deck_spec"]
+    assert len(deck_spec["slides"]) >= 5
+
+    # 2. Lint outline
+    lint_res = skill.execute({"action": "lint_deck", "deck_spec": deck_spec})
+    assert lint_res["success"] is True
+    assert lint_res["score"] >= 80
+    assert lint_res["passed"] is True
