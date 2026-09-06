@@ -122,13 +122,12 @@ Use `action="suggest_outline"` to bootstrap structured presentations:
 
 ---
 
-## Enterprise Governance & Brand Kits
+## Enterprise Governance
 
 For enterprise compliance and corporate identity:
 
-- **Document Classification**: Pass `"classification": "CONFIDENTIAL" | "INTERNAL" | "PUBLIC" | "RESTRICTED"` at the root of `deck_spec`. Renders a standardized classification banner on each slide.
-- **Legal Footer**: Pass `"legal_footer"` at the root of `deck_spec` to stamp disclaimers across all slides.
-- **Brand Kit**: Pass `"brand_kit"` specifying `company_name`, `logo_path`, `primary_color`, `secondary_color`, `accent_color`, and `font_family`.
+- **Document Classification**: Pass `"classification": "CONFIDENTIAL" | "INTERNAL" | "PUBLIC" | "RESTRICTED"` under `deck_spec.metadata` (or at root for compatibility). Renders a standardized classification ribbon header on each slide.
+- **Legal Footer**: Pass `"legal_footer"` under `deck_spec.metadata` (or at root) to stamp a legal disclaimer across the footer of all slides.
 
 ---
 

@@ -503,10 +503,10 @@ def render_deck(
     font_body = theme_spec.get("font_body") or template_info["default_body_font"]
     accent_rgb = _hex_to_rgb(accent_hex)
 
-    # Document governance metadata
+    # Document governance metadata (prefer metadata, fallback to root)
     metadata = deck_spec.get("metadata") or {}
-    classification = metadata.get("classification")
-    legal_footer = metadata.get("legal_footer")
+    classification = metadata.get("classification") or deck_spec.get("classification")
+    legal_footer = metadata.get("legal_footer") or deck_spec.get("legal_footer")
 
     slides = deck_spec.get("slides", [])
     rendered_slides_summary: List[Dict[str, Any]] = []
