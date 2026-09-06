@@ -184,39 +184,43 @@ response = client.models.generate_content(
 
 ### Skill Chaining (with `creative/bg_remover`)
 
-Compose with other skills using host orchestration or `SkillContext` (see [Skill chaining](../usage/skill_chaining.md)). For example, remove backgrounds from brand logos or product photos with [`creative/bg_remover`](bg_remover.md) before passing the transparent PNG into `creative/deck_builder`:
+Compose with other skills using host orchestration or `SkillContext` (see [Skill chaining](../usage/skill_chaining.md)). For example, bootstrap an archetype outline, remove backgrounds from brand logos with [`creative/bg_remover`](bg_remover.md), evaluate deck quality gates (`lint_deck`), and assemble the final presentation (see full runnable script in [`examples/deck_builder_chain_demo.py`](../../examples/deck_builder_chain_demo.py)):
 
 ```python
 from skillware import SkillContext
 
 ctx = SkillContext(skills=["creative/bg_remover", "creative/deck_builder"])
 
-# Step 1: Strip background from raw logo or product image
-bg_res = ctx.execute("creative/bg_remover", {"input_path": "assets/raw_logo.jpg"})
+# Step 1: Suggest outline via archetype
+outline = ctx.execute(
+    "creative/deck_builder",
+    {
+        "action": "suggest_outline",
+        "archetype": "product_launch",
+        "topic": "Skillware Autonomous Runtime",
+        "constraints": ["no pricing"],
+    },
+)
+deck_spec = outline["deck_spec_skeleton"]
 
-# Step 2: Assemble presentation using the transparent PNG
-deck_spec = {
-    "title": "Product Launch",
-    "template_id": "pitch_v1",
-    "slides": [
-        {
-            "type": "title",
-            "title": "Autonomous Infrastructure",
-            "subtitle": "Q4 Executive Review",
-            "image": {"base64": bg_res["image_base64"], "mime_type": "image/png"},
-        },
-        {
-            "type": "bullets",
-            "title": "Highlights",
-            "bullets": ["100% offline assembly", "Deterministic slide layout"],
-        },
-    ],
+# Step 2: Strip background from brand mark
+bg_res = ctx.execute("creative/bg_remover", {"input_path": "assets/raw_logo.png"})
+deck_spec["slides"][0]["image"] = {
+    "base64": bg_res["image_base64"],
+    "mime_type": "image/png",
+    "fit": "contain",
 }
+
+# Step 3: Run presentation quality linting
+lint_res = ctx.execute("creative/deck_builder", {"action": "lint_deck", "deck_spec": deck_spec, "min_score": 80})
+assert lint_res["passed"] is True, f"Quality gate failed: score={lint_res['score']}"
+
+# Step 4: Render final presentation
 render_res = ctx.execute(
     "creative/deck_builder",
     {"action": "render", "deck_spec": deck_spec, "output_path": "launch_deck.pptx"},
 )
-print("Rendered:", render_res["output_path"], "with", render_res["slide_count"], "slides")
+print("Rendered:", render_res["output_path"], "with", render_res["slide_count"], "slides (score:", lint_res["score"], ")")
 ```
 
 ---
@@ -228,6 +232,7 @@ Commits that touched this skill bundle or its catalog page ([`creative/deck_buil
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`8c0f64f`](https://github.com/ARPAHLS/skillware/commit/8c0f64f) | feat(creative): deck_builder v0.2.0 baseline — placeholders, quality linting, archetypes, and new layouts (#336) | 4 Sep 2026 | 0.2.0 | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 | [`a66e76e`](https://github.com/ARPAHLS/skillware/commit/a66e76e) | feat(creative): add deck_builder skill for deterministic PPTX assembly (#276) | 4 Sep 2026 | 0.1.0 | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 <!-- skill-history:end -->
 
