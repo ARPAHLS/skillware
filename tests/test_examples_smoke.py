@@ -133,7 +133,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "skill_context_gemini_loop.py": "Phase 1 is offline; Phase 2 needs GOOGLE_API_KEY and SKILL_CONTEXT_GEMINI_LIVE=1.",
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
-    "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",
+    "issue_resolver_common.py": "Shared helper module, not a standalone demo script.",
     "mica_claude_flow.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
     "mica_ollama_flow.py": "Requires local Ollama server and models installed.",
     "mica_rag_flow.py": "Requires GOOGLE_API_KEY for Gemini RAG.",

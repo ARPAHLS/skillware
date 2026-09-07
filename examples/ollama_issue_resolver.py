@@ -7,7 +7,7 @@ from pathlib import Path
 import ollama
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from issue_resolver_github_context import execute_skill  # noqa: E402
+from issue_resolver_common import execute_skill  # noqa: E402
 
 from skillware.core.env import load_env_file  # noqa: E402
 from skillware.core.loader import SkillLoader  # noqa: E402
