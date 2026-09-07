@@ -63,7 +63,7 @@ Check [existing issues](https://github.com/ARPAHLS/skillware/issues) before star
 
 Issue chooser links: [CONTRIBUTING](CONTRIBUTING.md), [good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22), [Skill Library](docs/skills/README.md). Labels are defined in [`.github/labels.json`](.github/labels.json) and synced automatically on merge to `main` (see [sync-labels workflow](.github/workflows/sync-labels.yml)).
 
-**Label taxonomy:** Repo-wide labels describe contribution type or area (`bug`, `cli`, `security`, …). Registry **category** labels use the `cat:` prefix (`cat: office`, `cat: security`, …) so they never collide with repo-wide names — for example `security` is for vulnerabilities and trust-model work, while `cat: security` filters issues about skills under `skills/security/`. All `cat:` labels share one pastel color (`#E6D9F5`). Maintainers may add a `cat:` label when triaging skill issues and PRs.
+**Label taxonomy:** Repo-wide labels describe contribution type or area (`bug`, `cli`, `security`, �?. Registry **category** labels use the `cat:` prefix (`cat: office`, `cat: security`, �? so they never collide with repo-wide names �?for example `security` is for vulnerabilities and trust-model work, while `cat: security` filters issues about skills under `skills/security/`. All `cat:` labels share one pastel color (`#E6D9F5`). Maintainers may add a `cat:` label when triaging skill issues and PRs.
 
 Wait for maintainer feedback on non-trivial work before investing in a large PR.
 
@@ -92,7 +92,7 @@ git checkout -b feat/issue-<number>-short-description
 pip install -e ".[dev,all]"
 ```
 
-For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI (optional `[agents]` for SDK examples — see [Install extras](docs/usage/install_extras.md)).
+For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI (optional `[agents]` for SDK examples �?see [Install extras](docs/usage/install_extras.md)).
 
 See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
@@ -120,19 +120,19 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - Change only what the issue requires. Avoid unrelated refactors or drive-by edits.
 - Do not bump the package version in `pyproject.toml` (or `CITATION.cff` `version` / `date-released`) unless the issue or a maintainer explicitly requests it (skill-only PRs typically do not version the framework). See [Maintainer: cutting a framework release](#maintainer-cutting-a-framework-release).
-- When a PR changes **user-visible behavior** (framework features, new or changed skills, breaking fixes, CLI or documentation users rely on), add entries under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) in the same PR (Keep a Changelog sections: Added / Changed / Fixed / Removed). Do not add version headers or publish releases; maintainers cut releases.
+- When a PR changes **operator-visible behavior** (framework features, new or changed skills, breaking fixes, CLI or documentation operators rely on), add entries under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) in the same PR (Keep a Changelog sections: Added / Changed / Fixed / Removed). Do not add version headers or publish releases; maintainers cut releases.
 - Skill-only PRs that will not ship in the next PyPI release may omit a CHANGELOG entry; ask on the issue or use maintainer judgment.
 
 ### Tests and CI
 
 - Add or update tests in the correct layer when behavior changes (see [TESTING.md](docs/TESTING.md)).
-- **Skill bundle test** — `skills/<category>/<name>/test_skill.py` (required for new skills; ships in the wheel; runs in CI via `pytest skills/`).
-- **Framework test** — `tests/test_*.py` at repo root (loader, CLI, issuer rules, doc-drift guards).
-- **Maintainer skill test** — optional `tests/skills/<category>/test_<name>.py` for extra loader or edge-case coverage.
-- **Usage examples** — `examples/*.py` are not tests and are not run in CI.
+- **Skill bundle test** �?`skills/<category>/<name>/test_skill.py` (required for new skills; ships in the wheel; runs in CI via `pytest skills/`).
+- **Framework test** �?`tests/test_*.py` at repo root (loader, CLI, issuer rules, doc-drift guards).
+- **Maintainer skill test** �?optional `tests/skills/<category>/test_<name>.py` for extra loader or edge-case coverage.
+- **Usage examples** �?`examples/*.py` are not tests and are not run in CI.
 - **GitHub Actions** runs two jobs on every PR (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
-  - **`build`** — editable install `pip install -e ".[dev,all]"`, then `python -m black --check .`, `flake8 .`, **`pytest skills/`** (bundle tests), **`pytest tests/`** (framework + maintainer tests).
-  - **`wheel-smoke`** — builds a wheel, installs it in a fresh venv (base deps only), runs **`scripts/wheel_smoke_test.py`** to verify every bundled registry skill ships correctly. See [Packaging smoke test](docs/TESTING.md#packaging-smoke-test).
+  - **`build`** �?editable install `pip install -e ".[dev,all]"`, then `python -m black --check .`, `flake8 .`, **`pytest skills/`** (bundle tests), **`pytest tests/`** (framework + maintainer tests).
+  - **`wheel-smoke`** �?builds a wheel, installs it in a fresh venv (base deps only), runs **`scripts/wheel_smoke_test.py`** to verify every bundled registry skill ships correctly. See [Packaging smoke test](docs/TESTING.md#packaging-smoke-test).
 - Do not add per-skill pip lines or hardcoded skill paths to `.github/workflows/ci.yml`.
 - Run locally before opening a PR:
 
@@ -164,7 +164,7 @@ Before requesting review, verify your PR template checklist:
 
 - Select the correct **change type** (skill, documentation, framework, bug fix).
 - Confirm **local `flake8`, `black` and `pytest`** pass (both `pytest skills/` and `pytest tests/`).
-- Add a **CHANGELOG** entry under `[Unreleased]` when the change is user-visible.
+- Add a **CHANGELOG** entry under `[Unreleased]` when the change is operator-visible.
 - Fill only the checkboxes that truthfully apply; do not leave unchecked defaults.
 
 ### AI agents and operators
@@ -175,9 +175,9 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
 ## Pull request process
 
-1. **Link an issue** — Reference it in the PR description (`Fixes #123` or `Refs #123`).
-2. **Fork and branch** — Work on a feature branch, not `main` of the upstream repo.
-3. **Implement** — Use the checklist for your contribution type ([Ways to contribute](#ways-to-contribute)).
+1. **Link an issue** �?Reference it in the PR description (`Fixes #123` or `Refs #123`).
+2. **Fork and branch** �?Work on a feature branch, not `main` of the upstream repo.
+3. **Implement** �?Use the checklist for your contribution type ([Ways to contribute](#ways-to-contribute)).
 4. **Verify locally**:
 
    ```bash
@@ -198,10 +198,10 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
    Or `skillware test <category>/<skill_name>` for the bundle test only.
 
-5. **Commit** — Clear imperative message, no emojis; include issue reference when appropriate. Do not add AI tools in `Co-authored-by:` trailers (see [Agent Code of Conduct](CODE_OF_CONDUCT.md#contribution-process)).
-6. **Changelog** — If the PR is user-visible, add lines under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) before opening the PR.
+5. **Commit** �?Clear imperative message, no emojis; include issue reference when appropriate. Do not add agent tools in `Co-authored-by:` trailers (see [Agent Code of Conduct](CODE_OF_CONDUCT.md#contribution-process)).
+6. **Changelog** �?If the PR is operator-visible, add lines under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) before opening the PR.
 7. **Push** to your fork and open a PR into `ARPAHLS/skillware` `main`.
-8. **CI** — Ensure checks pass; address review feedback on the same branch.
+8. **CI** �?Ensure checks pass; address review feedback on the same branch.
 
 ### Skill-specific steps (in addition to the above)
 
@@ -215,13 +215,13 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
 ## Skill Package Standard
 
-Skills you submit are reviewed for origin and quality, not sandboxed at runtime — operators run them in their own process. Understand the [skill trust model](docs/security/skill-trust-model.md) before designing a skill's behavior.
+Skills you submit are reviewed for origin and quality, not sandboxed at runtime �?operators run them in their own process. Understand the [skill trust model](docs/security/skill-trust-model.md) before designing a skill's behavior.
 
 Every registry skill lives in `skills/<category>/<skill_name>/` and **must** include the files below. This is the detailed standard for the **skill** contribution type.
 
 ### Skill anatomy (vocabulary)
 
-Checklists below use **file names**; each file implements a **role**. The [README Mission](README.md#mission) summarizes the core roles; full reference: [docs/introduction.md — Skill anatomy](docs/introduction.md#skill-anatomy).
+Checklists below use **file names**; each file implements a **role**. The [README Mission](README.md#mission) summarizes the core roles; full reference: [docs/introduction.md �?Skill anatomy](docs/introduction.md#skill-anatomy).
 
 | Role | v0 file(s) | Required |
 | :--- | :--- | :---: |
@@ -242,18 +242,18 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 
 **Required fields and sections:**
 
-- `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Enforced in CI via `tests/test_registry_identity.py` — mismatched or duplicate `manifest.name` blocks merge (#280).
+- `name` �?registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Enforced in CI via `tests/test_registry_identity.py` �?mismatched or duplicate `manifest.name` blocks merge (#280).
 - `version`, `description`
-- `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
-- `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
-- `parameters` — valid JSON Schema for LLM tool calling
-- `constitution` — safety boundaries enforced at the prompt level
-- `requirements` — when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version — `SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
+- `issuer` �?see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
+- `short_description` �?optional one-line summary (~80 chars) shown in `skillware list` when present
+- `parameters` �?valid JSON Schema for LLM tool calling
+- `constitution` �?safety boundaries enforced at the prompt level
+- `requirements` �?when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version �?`SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
 
 **Optional but common:**
 
-- `env_vars` — API keys and configuration (never hardcode secrets in `skill.py`); document the same names on the skill catalog page and link to [API keys for skills](docs/usage/api_keys.md)
-- `category`, `outputs`, `presentation` — when they clarify the skill contract. Use **`outputs:`** with named keys (never legacy singular **`output:`**).
+- `env_vars` �?API keys and configuration (never hardcode secrets in `skill.py`); document the same names on the skill catalog page and link to [API keys for skills](docs/usage/api_keys.md)
+- `category`, `outputs`, `presentation` �?when they clarify the skill contract. Use **`outputs:`** with named keys (never legacy singular **`output:`**).
 
 **Example:**
 
@@ -314,21 +314,21 @@ The primary guide for the host LLM. Skill instructions should be a concise, appe
 - Unit tests for schema compliance and deterministic execution paths (offline; mock externals).
 - Ships inside the skill bundle via `pip install skillware`.
 - Run: `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`
-- Optional extra depth for maintainers: `tests/skills/<category>/test_<skill_name>.py` — see [TESTING.md](docs/TESTING.md).
+- Optional extra depth for maintainers: `tests/skills/<category>/test_<skill_name>.py` �?see [TESTING.md](docs/TESTING.md).
 - Mock network calls and first-run model downloads in bundle tests.
 
 ### Optional bundle assets
 
 Not required for every skill. When present, document them on the catalog page under **Bundle layout** (see [skill usage template](docs/usage/skill_usage_template.md)).
 
-- **Corpus** — `kb/`, `data/`, or other versioned knowledge files the Effect reads at runtime.
-- **Reference** — `schemas/`, terminology maps, or in-bundle fixtures that define the public contract or demos.
-- **Effect modules** — additional `.py` files imported only by `skill.py` (not separate registry roles).
-- **Corpus tooling** — offline maintenance scripts (not loaded by `execute()`); keep out of the Effect import path unless intentional.
+- **Corpus** �?`kb/`, `data/`, or other versioned knowledge files the Effect reads at runtime.
+- **Reference** �?`schemas/`, terminology maps, or in-bundle fixtures that define the public contract or demos.
+- **Effect modules** �?additional `.py` files imported only by `skill.py` (not separate registry roles).
+- **Corpus tooling** �?offline maintenance scripts (not loaded by `execute()`); keep out of the Effect import path unless intentional.
 
 ### Packaging (PyPI and `pip install`)
 
-Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses `manifest.yaml` and packaging hooks below — not per-skill edits to CI.
+Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses `manifest.yaml` and packaging hooks below �?not per-skill edits to CI.
 
 - Add an empty `__init__.py` in `skills/<category>/` when you introduce a **new category**, and in `skills/<category>/<skill_name>/` for each new skill directory (enforced by `tests/test_skill_issuer.py`).
 - Non-Python files (`manifest.yaml`, `instructions.md`, `card.json`, data files) are included automatically via `MANIFEST.in` and `[tool.setuptools.package-data]` (`skills = ["**/*"]`).
@@ -337,9 +337,9 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 **Manifest `requirements` and optional extras**
 
 - List runtime packages in the skill's `manifest.yaml` `requirements` (source of truth for loaders and docs).
-- **Unpinned** entries (for example `requests`) — loader checks the importable module exists.
-- **Pinned** entries (for example `rembg>=2.0.0`) — loader also verifies the installed distribution satisfies the specifier before `skill.py` runs. Pin when API or behavior breaks across versions; unpinned is fine for stable deps.
-- Run `python scripts/sync_extras.py` after changing manifests — it regenerates category, per-skill, and `[all]` rows in `pyproject.toml` (see [Install extras](docs/usage/install_extras.md)).
+- **Unpinned** entries (for example `requests`) �?loader checks the importable module exists.
+- **Pinned** entries (for example `rembg>=2.0.0`) �?loader also verifies the installed distribution satisfies the specifier before `skill.py` runs. Pin when API or behavior breaks across versions; unpinned is fine for stable deps.
+- Run `python scripts/sync_extras.py` after changing manifests �?it regenerates category, per-skill, and `[all]` rows in `pyproject.toml` (see [Install extras](docs/usage/install_extras.md)).
 - Core already includes `requests`, `pyyaml`, and `beautifulsoup4` (manifests may say `bs4`); the sync script omits core packages from extras automatically.
 - Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `agents`) stay above the generated block in `pyproject.toml`.
 - Contributors and CI install skill runtime deps with `pip install -e ".[dev,all]"`; add `[agents]` when running SDK examples locally.
@@ -347,7 +347,7 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md).
-- Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` �?see [install_extras.md](install_extras.md)) near the top.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
@@ -372,13 +372,13 @@ Registry-wide issuer rules are enforced in `tests/test_skill_issuer.py` (skills 
 
 ### Issuer org
 
-`issuer.org` is an **optional single string** for affiliation or design ownership — not necessarily who wrote every line of code. Individual credit stays in `issuer.name`, `email`, and `github`. Omit `org` when no org applies. Use comma-separated values when multiple orgs apply (for example `ARPAHLS, AO`).
+`issuer.org` is an **optional single string** for affiliation or design ownership �?not necessarily who wrote every line of code. Individual credit stays in `issuer.name`, `email`, and `github`. Omit `org` when no org applies. Use comma-separated values when multiple orgs apply (for example `ARPAHLS, AO`).
 
 | Situation | `issuer.org` | Catalog Issuer line |
 | :--- | :--- | :--- |
-| **ARPA-maintainer / ARPA-audited skill** | `ARPAHLS` | `[@author](…) ([@ARPAHLS](…))` |
-| **Third-party–driven skill** | contributor org or omit | `[@author](…) ([AO](https://github.com/0x-AO-Protocol))` or author only |
-| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](…) ([@ARPAHLS](…), [AO](https://github.com/0x-AO-Protocol))` |
+| **ARPA-maintainer / ARPA-audited skill** | `ARPAHLS` | `[@author](�? ([@ARPAHLS](�?)` |
+| **Third-party–driven skill** | contributor org or omit | `[@author](�? ([AO](https://github.com/0x-AO-Protocol))` or author only |
+| **Co-affiliation (e.g. ARPAHLS + AO)** | `ARPAHLS, AO` | `[@author](�? ([@ARPAHLS](�?, [AO](https://github.com/0x-AO-Protocol))` |
 
 Separate multiple orgs with a comma in the single `org` string (for example `org: ARPAHLS, AO`). Match the catalog **Issuer** line to the manifest value.
 
@@ -408,7 +408,7 @@ The table above is **illustrative**, not a closed list. When contributing a new 
 
 Registry IDs are always `category/skill_name` from the folder path and must match the `name` field in `manifest.yaml` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). For the live registry, see [Skill Library](docs/skills/README.md).
 
-**New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
+**New top-level category?** Open an issue and discuss with maintainers **before** adding a folder �?do not create `skills/<new_category>/` in a pull request without that agreement.
 
 When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Labels sync via CI on merge to `main`.
 
@@ -416,12 +416,12 @@ When a new top-level category lands under `skills/`, update this table and the c
 
 ## What to avoid
 
-- **God skills** — One skill that does everything; split into focused capabilities.
-- **Hardcoded models** — Do not hide prompts in `skill.py`; use `instructions.md`.
-- **Vendor lock-in** — Prefer standard Python over framework-specific wrappers in skill logic.
-- **Environment leaks** — No API keys in source; document `env_vars` in the manifest.
-- **Placeholder issuers** — No template names or emails in committed registry skills.
-- **Unrequested version bumps** — Do not change `pyproject.toml` version in routine skill PRs.
+- **God skills** �?One skill that does everything; split into focused capabilities.
+- **Hardcoded models** �?Do not hide prompts in `skill.py`; use `instructions.md`.
+- **Vendor lock-in** �?Prefer standard Python over framework-specific wrappers in skill logic.
+- **Environment leaks** �?No API keys in source; document `env_vars` in the manifest.
+- **Placeholder issuers** �?No template names or emails in committed registry skills.
+- **Unrequested version bumps** �?Do not change `pyproject.toml` version in routine skill PRs.
 
 ---
 
@@ -460,12 +460,12 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 
 | Touch | Every framework release? | Notes |
 | :--- | :--- | :--- |
-| `pyproject.toml` → `[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
+| `pyproject.toml` �?`[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
 | `CHANGELOG.md` | **Yes** | Move `[Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`; leave a fresh empty `[Unreleased]` |
-| `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
-| GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269). Paste release notes from `CHANGELOG.md` in the GitHub Releases UI — **do not commit** maintainer draft files such as `.github/RELEASE_*.md` to the public tree. |
+| `CITATION.cff` �?`version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable �?do not swap it for a version DOI |
+| GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269). Paste release notes from `CHANGELOG.md` in the GitHub Releases UI �?**do not commit** maintainer draft files such as `.github/RELEASE_*.md` to the public tree. |
 | PyPI upload | **Yes** | After tag / CI as usual |
-| `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used” is enough |
+| `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used�?is enough |
 | `skillware/version_policy.py` + `SECURITY.md` | **Only when support windows change** | Not every release |
 | CLI / loader code | **Usually no** | Version is read from installed package metadata |
 | Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |
@@ -476,3 +476,5 @@ README Citing badge and `pyproject.toml` `[project.urls]` `DOI` already point at
 ---
 
 Thank you for helping make agent capabilities portable, safe, and reusable.
+
+
