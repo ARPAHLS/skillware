@@ -101,7 +101,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             )
 
         if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
-            company_number = params.get("company_number") or context.get("company_number")
+            company_number = params.get("company_number") or context.get(
+                "company_number"
+            )
             if not company_number or not company_number.strip():
                 return self._error_response(
                     "missing_company_number",
@@ -110,6 +112,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     "the correct company number.",
                     context=context,
                 )
+            params["company_number"] = company_number.strip()
 
         dispatch = {
             "resolve_company": self._resolve_company,
@@ -145,7 +148,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     result["company_name"] = company_name
                 except Exception:
                     pass
-                
+
             new_context = {
                 "company_number": company_number,
                 "company_name": company_name,
@@ -156,7 +159,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 ),
                 "last_action": action,
             }
-            
+
             result["context"] = new_context
             return result
 
@@ -271,7 +274,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "multiple_matches",
             candidates,
             agent_hint="Ask the user which company they mean "
-            "before calling further actions."
+            "before calling further actions.",
         )
 
     def _get_company_profile(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -313,7 +316,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         request_params: Dict[str, Any] = {
             "items_per_page": min(limit, 100),
-            "start_index": start_index
+            "start_index": start_index,
         }
 
         data = self._request(
@@ -550,7 +553,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     "Ask the user which UK company they mean, then call "
                     "map_intent again with entities.company_query or call "
                     "resolve_company / a composite action with a clean query."
-                )
+                ),
             )
 
         role_hint = action_params.get("get_officers", {}).get("role_hint")
@@ -565,7 +568,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         pipeline: List[Dict[str, Any]] = []
         if company_query or needs_resolve:
             res_params: Dict[str, Any] = {"query": company_query}
-            res_params.update({"query": company_query})
             if companies_limit is not None:
                 res_params["limit"] = companies_limit
             pipeline.append(
@@ -647,27 +649,35 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
+        for s in steps:
+            if not isinstance(s, dict) or not s.get("action"):
+                return self._error_response(
+                    "invalid_step",
+                    "Each step in 'steps' must be an object with an 'action' field.",
+                    context=context,
+                )
+
         # Clone steps list so caller's object is not mutated unexpectedly
         steps = [dict(s) for s in steps]
 
-        company_number = (
-            params.get("company_number")
-            or context.get("company_number")
-        )
+        company_number = params.get("company_number") or context.get("company_number")
 
         incoming_pipeline = dict(params.get("pipeline") or {})
         prior_completed = int(incoming_pipeline.get("completed_steps") or 0)
-        prior_total = int(incoming_pipeline.get("total_steps") or (len(steps) + prior_completed))
+        prior_total = int(
+            incoming_pipeline.get("total_steps") or (len(steps) + prior_completed)
+        )
 
         # Pop the current step from the stack
         step = steps.pop(0)
         step_action = step.get("action")
         step_params = dict(step.get("params") or {})
-        
+
         # Resolve parameters (e.g. company_number from context / previous step)
         if (
             not step_params.get("company_number")
-            or step_params.get("company_number") in ("<from_resolve>", "<from resolve>", "<from-resolve>")
+            or step_params.get("company_number")
+            in ("<from_resolve>", "<from resolve>", "<from-resolve>")
         ) and company_number:
             step_params["company_number"] = company_number
 
@@ -692,10 +702,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if resolved_number:
             for rem_step in steps:
                 rem_params = rem_step.setdefault("params", {})
-                if (
-                    not rem_params.get("company_number")
-                    or rem_params.get("company_number") in ("<from_resolve>", "<from resolve>", "<from-resolve>")
-                ):
+                if not rem_params.get("company_number") or rem_params.get(
+                    "company_number"
+                ) in ("<from_resolve>", "<from resolve>", "<from-resolve>"):
                     if rem_step.get("action") in _ACTIONS_REQUIRING_COMPANY_NUMBER:
                         rem_params["company_number"] = resolved_number
 
@@ -708,14 +717,16 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         result["pipeline"] = pipeline_info
 
-        # Stop on needs_input
-        if result.get("status") == "needs_input":
-            orig_hint = result.get("agent_hint", "")
-            result["agent_hint"] = (
-                f"{orig_hint} Once the user specifies the company, resume run_pipeline "
-                f"with the selected company_number, remaining steps, context, and pipeline."
-            ).strip()
-        
+        # Stop on stop_on statuses (needs_input, error, etc.)
+        if result.get("status") in stop_on:
+            if result.get("status") == "needs_input":
+                orig_hint = result.get("agent_hint", "")
+                result["agent_hint"] = (
+                    f"{orig_hint} Once the user specifies the company, resume run_pipeline "
+                    f"with the selected company_number, remaining steps, context, and pipeline."
+                ).strip()
+            return result
+
         if result.get("status") == "error":
             return result
 
@@ -732,14 +743,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         return result
 
-
     def _resolve_and_get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Resolve company and fetch officers in an orchestrated pipeline."""
         context = dict(params.get("context") or {})
         company_number = str(
-            params.get("company_number")
-            or context.get("company_number")
-            or ""
+            params.get("company_number") or context.get("company_number") or ""
         ).strip()
         query = (
             params.get("query")
@@ -754,19 +762,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
-        # Branch YES: User query has company number -> get_company_profile -> get_officers
+        # Branch YES: User query has company number -> get_officers directly
         if company_number:
-            profile_res = self._get_company_profile({
-                "company_number": company_number,
-                "context": context,
-            })
-            if profile_res.get("status") == "error":
-                return profile_res
-
-            company_name = profile_res.get("company_name", "")
             officer_params = dict(params)
             officer_params["company_number"] = company_number
-            officer_params["company_name"] = company_name
+            officer_params["action"] = "get_officers"
             return self._get_officers(officer_params)
 
         # Branch NO: User query does not have company number -> resolve_company
@@ -789,19 +789,21 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         resolved_number = resolve_res.get("company_number", "")
         resolved_name = resolve_res.get("company_name", "")
 
+        officer_context = dict(context)
+        if resolved_name:
+            officer_context["company_name"] = resolved_name
+
         officer_params = dict(params)
         officer_params["company_number"] = resolved_number
-        officer_params["company_name"] = resolved_name
+        officer_params["context"] = officer_context
         officer_params["action"] = "get_officers"
-        return self.execute(officer_params)
+        return self._get_officers(officer_params)
 
     def _resolve_and_get_filings(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Resolve company and fetch filing history in an orchestrated pipeline."""
         context = dict(params.get("context") or {})
         company_number = str(
-            params.get("company_number")
-            or context.get("company_number")
-            or ""
+            params.get("company_number") or context.get("company_number") or ""
         ).strip()
         query = (
             params.get("query")
@@ -816,18 +818,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 context=context,
             )
 
+        # Branch YES: User query has company number -> get_filing_history directly
         if company_number:
-            profile_res = self._get_company_profile({
-                "company_number": company_number,
-                "context": context,
-            })
-            if profile_res.get("status") == "error":
-                return profile_res
-
-            company_name = profile_res.get("company_name", "")
             filing_params = dict(params)
             filing_params["company_number"] = company_number
-            filing_params["company_name"] = company_name
+            filing_params["action"] = "get_filing_history"
             return self._get_filing_history(filing_params)
 
         resolve_limit = params.get("resolve_limit", 5)
@@ -848,12 +843,16 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         resolved_number = resolve_res.get("company_number", "")
         resolved_name = resolve_res.get("company_name", "")
 
+        filing_context = dict(context)
+        if resolved_name:
+            filing_context["company_name"] = resolved_name
+
         filing_params = dict(params)
         filing_params["company_number"] = resolved_number
-        filing_params["company_name"] = resolved_name
+        filing_params["context"] = filing_context
         filing_params["action"] = "get_filing_history"
-        return self.execute(filing_params)
-        
+        return self._get_filing_history(filing_params)
+
     # --- HTTP Layer ---
 
     def _request(
