@@ -70,7 +70,7 @@ Union of non-core `requirements` from every skill in the category.
 | :--- | :--- | :--- |
 | `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
 | `creative` | `creative/bg_remover` | `rembg`, `pillow`, `onnxruntime` |
-| `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/synthetic_generator` | `fastembed`, `numpy` |
+| `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
 | `defi` | `defi/evm_tx_handler` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
@@ -98,6 +98,8 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `creative_bg_remover` | `creative/bg_remover` | `rembg`, `pillow`, `onnxruntime` | |
 | `creative_deck_builder` | `creative/deck_builder` | `python-pptx>=1.0.0`, `pillow` | Editable PowerPoint presentation assembly |
 | `data_engineering_novelty_extractor` | `data_engineering/novelty_extractor` | `fastembed`, `numpy` | |
+| `data_engineering_semantic_web_proxy` | `data_engineering/semantic_web_proxy` | `trafilatura>=2.0.0` | |
+| `data_engineering_semantic_web_proxy_tokenizer` | `data_engineering/semantic_web_proxy` | `tiktoken` | Optional exact `cl100k_base` token counts; without it the skill falls back to its offline heuristic |
 | `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
 | `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
