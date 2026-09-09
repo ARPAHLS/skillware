@@ -1,10 +1,10 @@
 """
-Interactive Gemini agent loop for finance/uk_companies_house_handler (v2b).
+Interactive Gemini agent loop for finance/uk_companies_house_handler (v1.2.1).
 
-Demonstrates an interactive flow with pipeline orchestration and composites:
+Demonstrates an interactive flow with turn-by-turn pipeline orchestration and composites:
   - map_intent / run_pipeline for multi-intent queries
   - resolve_and_get_officers / resolve_and_get_filings for single-intent shortcuts
-  - needs_input disambiguation resume via context
+  - needs_input disambiguation resume via lean context
   - partial previews (10-item limits) with full record rendering
 
 The agent must pass clean query strings and optional role_hint — the skill does
@@ -54,6 +54,9 @@ def main() -> None:
     print("Try asking:")
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
     print("  - 'Show me officers and filings for Tesco' (map_intent + run_pipeline)")
+    print(
+        "  - 'Get me the CEO of Tesco and its 10-K' (intent translation + run_pipeline)"
+    )
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)

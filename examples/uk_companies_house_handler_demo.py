@@ -1,7 +1,7 @@
 """
-Mocked demo script for finance/uk_companies_house_handler (v2b).
+Mocked demo script for finance/uk_companies_house_handler (v1.2.1).
 
-Runs scripted v2b flows (composite actions, run_pipeline, disambiguation
+Runs scripted v1.2.1 flows (composite actions, turn-by-turn run_pipeline, disambiguation
 resume, partial previews) using mocked HTTP responses. No live API key required.
 
 Usage:

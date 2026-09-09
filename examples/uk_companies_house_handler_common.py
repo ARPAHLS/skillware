@@ -24,6 +24,7 @@ MOCK_BARCLAYS_SEARCH_RESPONSE = {
             "company_type": "plc",
             "address_snippet": "1 Churchill Place, London, E14 5HP",
             "date_of_creation": "1896-07-20",
+            "snippet": "",
         },
         {
             "company_number": "01026167",
@@ -32,6 +33,7 @@ MOCK_BARCLAYS_SEARCH_RESPONSE = {
             "company_type": "ltd",
             "address_snippet": "1 Churchill Place, London, E14 5HP",
             "date_of_creation": "1985-03-12",
+            "snippet": "",
         },
     ]
 }
@@ -45,6 +47,7 @@ MOCK_BP_SINGLE_SEARCH_RESPONSE = {
             "company_type": "plc",
             "address_snippet": "1 St James's Square, London, SW1Y 4PD",
             "date_of_creation": "1909-04-14",
+            "snippet": "ENERGY COMPANY",
         }
     ]
 }
@@ -58,6 +61,7 @@ MOCK_SEARCH_RESPONSE = {
             "company_type": "plc",
             "address_snippet": "1 St James's Square, London, SW1Y 4PD",
             "date_of_creation": "1909-04-14",
+            "snippet": "ENERGY COMPANY",
         },
         {
             "company_number": "04284740",
@@ -66,6 +70,7 @@ MOCK_SEARCH_RESPONSE = {
             "company_type": "ltd",
             "address_snippet": "Chertsey Road, Sunbury On Thames, TW16 7BP",
             "date_of_creation": "2001-10-01",
+            "snippet": "",
         },
     ]
 }
@@ -132,7 +137,6 @@ MOCK_OFFICERS_PARTIAL_RESPONSE = {
     ],
     "total_results": 15,
     "active_count": 15,
-    "company_name": "BP P.L.C.",
 }
 
 MOCK_PSC_RESPONSE = {
@@ -176,8 +180,8 @@ MOCK_FILING_RESPONSE = {
 
 
 def run_scripted_flow(skill: Any) -> None:
-    """Deterministic v2b flows: composite, pipeline, partial preview, disambiguation."""
-    print("=== uk_companies_house_handler v2b scripted flows ===\n")
+    """Deterministic v1.2.1 flows: composite, turn-by-turn pipeline, partial preview, disambiguation."""
+    print("=== uk_companies_house_handler v1.2.1 scripted flows ===\n")
 
     print(
         "--- Flow A: composite resolve_and_get_officers (clean query + role_hint) ---"
@@ -202,15 +206,23 @@ def run_scripted_flow(skill: Any) -> None:
         }
     )
     print(json.dumps(intent, indent=2))
-    pipeline = skill.execute(
-        {
-            "action": "run_pipeline",
-            "steps": intent["suggested_pipeline"],
-            "context": context,
-        }
-    )
-    print(json.dumps(pipeline, indent=2))
-    context = pipeline.get("context", context)
+    steps = list(intent.get("steps", []))
+    pipeline_state = None
+    while steps:
+        pipeline = skill.execute(
+            {
+                "action": "run_pipeline",
+                "steps": steps,
+                "context": context,
+                "pipeline": pipeline_state,
+            }
+        )
+        print(json.dumps(pipeline, indent=2))
+        context = pipeline.get("context", context)
+        pipeline_state = pipeline.get("pipeline")
+        steps = pipeline.get("steps", [])
+        if pipeline.get("status") in ("needs_input", "error"):
+            break
 
     print("\n--- Flow C: disambiguation resume (Barclays-style needs_input) ---")
     disambig = skill.execute({"action": "resolve_company", "query": "Barclays"})
@@ -235,6 +247,7 @@ def run_scripted_flow(skill: Any) -> None:
             "action": "get_officers",
             "company_number": context.get("company_number", "00102498"),
             "limit": 10,
+            "context": context,
         }
     )
     print(json.dumps(partial, indent=2))
