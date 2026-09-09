@@ -110,7 +110,7 @@ skill = bundle["class"]()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Mask PII before summarizing: Jane Doe, jane@example.com, +1-555-0100.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -121,7 +121,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

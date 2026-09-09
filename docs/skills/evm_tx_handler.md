@@ -106,7 +106,7 @@ intent = {
 }
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Resolve and quote a buy of 10 DEGEN on Base with USDC.",
     config=types.GenerateContentConfig(
         tools=[tool],

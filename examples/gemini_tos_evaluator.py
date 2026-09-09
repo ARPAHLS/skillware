@@ -27,7 +27,7 @@ user_query = (
 print(f"User: {user_query}")
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.5-flash-lite",
     contents=user_query,
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -50,7 +50,7 @@ while response.candidates and response.candidates[0].content.parts:
         result = tos_skill.execute(fn_args)
         print(json.dumps(result, indent=2))
         response = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-3.5-flash-lite",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

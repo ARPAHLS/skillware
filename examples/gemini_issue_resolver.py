@@ -30,7 +30,7 @@ gemini_tool = SkillLoader.to_gemini_tool(bundle)
 gemini_fn_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
 
 system_instruction = bundle["instructions"]
-model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
+model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
 user_query = (
     f"Analyze {ISSUE_URL} and produce a structured resolution plan. "

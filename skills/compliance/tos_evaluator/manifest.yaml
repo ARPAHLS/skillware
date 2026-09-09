@@ -1,5 +1,5 @@
 name: "compliance/tos_evaluator"
-version: "0.1.0"
+version: "0.1.1"
 description: "Evaluates whether an intended automated website action appears permissible by checking robots.txt, discovered legal pages, and optional low-cost LLM review for ambiguous policy language."
 short_description: "Evaluates whether an automated web action is permitted by site policy."
 issuer:
@@ -32,7 +32,7 @@ parameters:
       description: "Optional provider for the clause evaluator. Gemini is the documented example."
     llm_model:
       type: string
-      description: "Optional model name for the clause evaluator, such as gemini-2.5-flash-lite."
+      description: "Optional model name for the clause evaluator, such as gemini-3.5-flash-lite."
     assume_authenticated_session:
       type: boolean
       description: "Whether to evaluate the request as if the agent is acting within a logged-in or paid session."

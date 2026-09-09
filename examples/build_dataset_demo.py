@@ -32,7 +32,7 @@ def main():
             "entropy_temperature": 0.9,
             "diversity_prompt": prompt,
             "model_provider": "gemini",
-            "model_name": "gemini-2.5-flash-lite",
+            "model_name": "gemini-3.5-flash-lite",
         }
     )
 

@@ -30,7 +30,7 @@ tool = SkillLoader.to_gemini_tool(skill)
 client = genai.Client()
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Screen wallet 0xd8dA... for risks.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -41,7 +41,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill_instance.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {
@@ -72,7 +72,7 @@ Gemini requires Protobuf types (uppercase `STRING`, `OBJECT`).
 `SkillLoader.to_gemini_tool()` handles this conversion automatically. It recursively walks your parameter schema, sanitizes the tool name, and returns a ready-to-use `types.Tool` object compatible with Gemini's backend.
 
 ### 2. Context Injection
-Gemini 1.5+ supports `system_instruction`. Pass `instructions.md` (**Directive**) there so the model knows when and how to use the tool.
+Gemini 3.5+ supports `system_instruction`. Pass `instructions.md` (**Directive**) there so the model knows when and how to use the tool.
 
 Without `system_instruction`, the model knows it *has* a tool but lacks the skill's invocation guidance. Injecting `instructions.md` supplies that **Directive** layer for the session.
 
@@ -89,7 +89,7 @@ If you need granular control (e.g., to sanitize inputs or show progress bars), u
 
 ```python
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Scan wallet 0xd8dA... for risks.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -106,7 +106,7 @@ for part in response.candidates[0].content.parts:
 
         # 2. Send Result
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {"function_response": {"name": fn.name, "response": {"result": result}}},
@@ -135,7 +135,7 @@ optimized_ctx_result = rewriter["class"]().execute({
 # Or: rewriter["module"].PromptRewriter().execute({...})
 
 response = client.models.generate_content(
-    model='gemini-2.5-flash',
+    model='gemini-3.5-flash',
     contents="Summarize the optimized context.",
     config=types.GenerateContentConfig(
         system_instruction=optimized_ctx_result["compressed_text"],

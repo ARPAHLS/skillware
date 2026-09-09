@@ -203,7 +203,7 @@ client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
 
 html = "<html><body><button aria-label='Buy now'>Continue</button></body></html>"
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Scan this page HTML for deceptive UI before proceeding.",
     config=genai.types.GenerateContentConfig(tools=[tool]),
 )

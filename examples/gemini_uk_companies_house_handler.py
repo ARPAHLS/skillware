@@ -59,7 +59,7 @@ def main() -> None:
     print("=" * 60)
 
     chat = client.chats.create(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         config=types.GenerateContentConfig(
             tools=[tool],
             system_instruction=system_instruction,

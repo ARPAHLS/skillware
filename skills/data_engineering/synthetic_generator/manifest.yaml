@@ -1,5 +1,5 @@
 name: "data_engineering/synthetic_generator"
-version: "0.1.0"
+version: "0.1.1"
 description: "Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse."
 short_description: "Generates high-entropy synthetic JSONL data for model fine-tuning."
 issuer:
@@ -28,7 +28,7 @@ parameters:
       description: "Which LLM provider to use internally ('ollama', 'gemini', 'anthropic'). Default is 'ollama'."
     model_name:
       type: "string"
-      description: "Specific model name (e.g., 'llama3', 'gemini-1.5-pro', 'claude-3-haiku-20240307')."
+      description: "Specific model name (e.g., 'llama3', 'gemini-3.5-flash', 'claude-3-haiku-20240307')."
   required:
     - domain
     - num_samples

@@ -55,7 +55,7 @@ def main() -> None:
     print(f"User: {user_query}\n")
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         contents=user_query,
         config=types.GenerateContentConfig(
             tools=[tool],
@@ -80,7 +80,7 @@ def main() -> None:
         print(f"Skill result: {json.dumps(api_result, indent=2)[:2000]}...\n")
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result and continue the trade workflow.",
                 {

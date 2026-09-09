@@ -52,7 +52,7 @@ class MentalCoachSkill(BaseSkill):
             session_mode = "coaching"
 
         run_evaluator = bool(params.get("run_evaluator", False))
-        evaluator_model = params.get("evaluator_model") or "gemini-2.5-flash-lite"
+        evaluator_model = params.get("evaluator_model") or "gemini-3.5-flash-lite"
         try:
             max_chunks = int(params.get("max_chunks", 8))
         except (TypeError, ValueError):

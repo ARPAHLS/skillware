@@ -4,7 +4,7 @@
 **Skill ID:** `wellness/mental_coach`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 16 Jul 2026
+**Version**: `0.1.1` — 9 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[wellness_mental_coach]"`. See [Install extras](../usage/install_extras.md).
@@ -36,7 +36,7 @@ Supportive coaching and psychoeducation only. Not emergency services, telehealth
 | `user_jurisdiction` | No | `US`, `EU`, `UK`, `FR`, `DE`, `ES`, `IT`, `GLOBAL`, or `unknown` |
 | `session_mode` | No | `coaching`, `information`, or `crisis_check` |
 | `run_evaluator` | No | Optional LLM scope audit |
-| `evaluator_model` | No | Default `gemini-2.5-flash-lite` |
+| `evaluator_model` | No | Default `gemini-3.5-flash-lite` |
 | `max_chunks` | No | Max KB chunks (cap 15) |
 
 ## Environment
@@ -96,7 +96,7 @@ skill = bundle["class"]()
 tool = SkillLoader.to_gemini_tool(bundle)
 client = genai.Client()
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="I feel stressed at work and need coping strategies.",
     config=types.GenerateContentConfig(
         tools=[tool],

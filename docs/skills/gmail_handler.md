@@ -358,7 +358,7 @@ client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Check mailbox status and list unread messages.",
     config=types.GenerateContentConfig(
         tools=[tool],

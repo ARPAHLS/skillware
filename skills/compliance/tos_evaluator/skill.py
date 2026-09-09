@@ -181,7 +181,7 @@ class TOSEvaluatorSkill(BaseSkill):
             "fetch_mode": params.get("fetch_mode", "lightweight"),
             "use_llm_evaluator": bool(params.get("use_llm_evaluator", False)),
             "llm_provider": params.get("llm_provider", "gemini"),
-            "llm_model": params.get("llm_model", "gemini-2.5-flash-lite"),
+            "llm_model": params.get("llm_model", "gemini-3.5-flash-lite"),
             "assume_authenticated_session": bool(
                 params.get("assume_authenticated_session", False)
             ),

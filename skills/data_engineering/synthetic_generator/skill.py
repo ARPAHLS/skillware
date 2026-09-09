@@ -87,7 +87,7 @@ class SyntheticGeneratorSkill(BaseSkill):
             if provider == "ollama":
                 model_name = "llama3"
             elif provider == "gemini":
-                model_name = "gemini-1.5-flash"
+                model_name = "gemini-3.5-flash"
             elif provider == "anthropic":
                 model_name = "claude-3-haiku-20240307"
 

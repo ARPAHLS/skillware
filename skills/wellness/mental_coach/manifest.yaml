@@ -1,5 +1,5 @@
 name: wellness/mental_coach
-version: 0.1.0
+version: 0.1.1
 description: >
   Deterministic wellness coaching firewall with crisis triage, non-clinical scope
   limits, grounded KB retrieval, and optional scope evaluation for host agents.
@@ -31,7 +31,7 @@ parameters:
       description: Optional LLM scope audit (secondary call) when enabled.
     evaluator_model:
       type: string
-      description: Model for optional evaluator (default gemini-2.5-flash-lite).
+      description: Model for optional evaluator (default gemini-3.5-flash-lite).
     max_chunks:
       type: integer
       description: Maximum KB chunks to retrieve (cap 15).

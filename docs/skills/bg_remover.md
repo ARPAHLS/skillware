@@ -178,7 +178,7 @@ tool_name = SkillLoader._sanitize_gemini_tool_name(
 )
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents=(
         "Remove the background from product.png and save the result "
         "as product_no_bg.png."
@@ -194,7 +194,7 @@ for part in response.candidates[0].content.parts:
         result = skill.execute(dict(part.function_call.args))
 
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

@@ -3,7 +3,7 @@
 **ID**: `compliance/mica_module`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 20 Jul 2026
+**Version**: `0.1.1` — 9 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[compliance_mica_module]"`. See [Install extras](../usage/install_extras.md).
@@ -52,7 +52,7 @@ Configure values per [API keys for skills](../usage/api_keys.md).
 | :--- | :--- | :--- | :--- | :--- |
 | `user_prompt` | string | Yes | - | The user's query regarding crypto-assets, e-money licenses, or MiCA rules. |
 | `run_evaluator` | boolean | No | `false` | Triggers the built-in Gemini evaluator node to grade the RAG context and flag regulatory holes. Adds a secondary API call. |
-| `evaluator_model` | string | No | `gemini-2.5-flash-lite` | The Gemini model used by the evaluator node. Can be swapped for a faster or more capable model without changing any other part of the skill. |
+| `evaluator_model` | string | No | `gemini-3.5-flash-lite` | The Gemini model used by the evaluator node. Can be swapped for a faster or more capable model without changing any other part of the skill. |
 
 ## Usage Examples
 
@@ -83,7 +83,7 @@ skill = bundle["class"]()
 result = skill.execute({
     "user_prompt": "Can I issue a stablecoin backed by physical art under an e-money license?",
     "run_evaluator": True,
-    "evaluator_model": "gemini-2.5-flash",
+    "evaluator_model": "gemini-3.5-flash",
 })
 print(result["policy_status"])
 ```
@@ -103,7 +103,7 @@ skill = bundle["class"]()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Check whether this stablecoin disclosure aligns with MiCA expectations.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -114,7 +114,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

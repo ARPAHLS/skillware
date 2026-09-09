@@ -29,7 +29,7 @@ user_query = (
 print(f"User: {user_query}")
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents=user_query,
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -47,7 +47,7 @@ while response.candidates and response.candidates[0].content.parts:
         result = skill.execute(fn_args)
         print("Sending result back to Agent...")
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

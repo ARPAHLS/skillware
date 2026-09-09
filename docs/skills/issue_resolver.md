@@ -128,7 +128,7 @@ skill = bundle["class"]()
 client = genai.Client()
 gemini_tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.5-flash-lite",
     contents="Analyze https://github.com/owner/repo/issues/123 and propose a fix plan.",
     config=types.GenerateContentConfig(
         tools=[gemini_tool],
@@ -139,7 +139,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-3.5-flash-lite",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

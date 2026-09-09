@@ -13,7 +13,7 @@ def mica_skill():
 def test_mica_module_manifest(mica_skill):
     manifest = mica_skill.manifest
     assert manifest["name"] == "compliance/mica_module"
-    assert manifest["version"] == "0.1.0"
+    assert manifest["version"] == "0.1.1"
 
 
 def test_mica_module_stateless_rag_execution(mica_skill):

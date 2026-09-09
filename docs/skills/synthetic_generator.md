@@ -4,7 +4,7 @@
 **Skill ID:** `data_engineering/synthetic_generator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 16 Jul 2026
+**Version**: `0.1.1` — 9 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[data_engineering_synthetic_generator]"`. See [Install extras](../usage/install_extras.md).
@@ -87,7 +87,7 @@ skill = bundle["class"]()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Generate 25 synthetic customer support rows with no real PII.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -98,7 +98,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

@@ -61,8 +61,8 @@ Indicative USD rates live in `skills/monitoring/token_limiter/data/model_pricing
 | `gpt-4o-mini` | 0.15 | 0.60 |
 | `claude-3-5-sonnet-latest` | 3.00 | 15.00 |
 | `claude-3-5-haiku-latest` | 0.80 | 4.00 |
-| `gemini-2.5-flash` | 0.15 | 0.60 |
-| `gemini-2.5-flash-lite` | 0.075 | 0.30 |
+| `gemini-3.5-flash` | 1.50 | 9.00 |
+| `gemini-3.5-flash-lite` | 0.30 | 2.50 |
 | `deepseek-chat` | 0.27 | 1.10 |
 | Unknown models | Fallback blended 5.00 USD / 1M | |
 
@@ -119,7 +119,7 @@ skill = bundle["class"]()
 client = genai.Client()
 gemini_tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
-    model="gemini-2.5-flash-lite",
+    model="gemini-3.5-flash-lite",
     contents=(
         "Check task scrape_amazon_listings_101: 125000 tokens used, limit 100000."
     ),

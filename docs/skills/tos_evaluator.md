@@ -4,7 +4,7 @@
 **Skill ID:** `compliance/tos_evaluator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 16 Jul 2026
+**Version**: `0.1.1` — 9 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[compliance_tos_evaluator]"`. See [Install extras](../usage/install_extras.md).
@@ -32,7 +32,7 @@ The skill lives in `skills/compliance/tos_evaluator/`. [Skill anatomy](../introd
 * `fetch_mode` (string, optional): `lightweight` or `deep`.
 * `use_llm_evaluator` (boolean, optional): Enables optional clause interpretation for low-confidence cases.
 * `llm_provider` (string, optional): Provider name for the optional evaluator.
-* `llm_model` (string, optional): Model name such as `gemini-2.5-flash-lite`.
+* `llm_model` (string, optional): Model name such as `gemini-3.5-flash-lite`.
 * `assume_authenticated_session` (boolean, optional): Helps represent paid or logged-in usage contexts.
 * `max_terms_pages` (integer, optional): Caps discovery breadth.
 
@@ -76,7 +76,7 @@ result = skill.execute(
         "intended_action": "crawl tagged article pages for research indexing",
         "use_llm_evaluator": True,
         "llm_provider": "gemini",
-        "llm_model": "gemini-2.5-flash-lite",
+        "llm_model": "gemini-3.5-flash-lite",
     }
 )
 
@@ -120,7 +120,7 @@ skill = bundle["class"]()
 tool = SkillLoader.to_gemini_tool(bundle)
 client = genai.Client()
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Check whether crawling https://example.com/docs is allowed.",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -131,7 +131,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=[
                 "Use this tool result to answer the original request.",
                 {

@@ -205,10 +205,10 @@ def test_tos_evaluator_llm_fallback_is_mockable(mock_get):
                 "intended_action": "crawl documentation pages",
                 "use_llm_evaluator": True,
                 "llm_provider": "gemini",
-                "llm_model": "gemini-2.5-flash-lite",
+                "llm_model": "gemini-3.5-flash-lite",
             }
         )
 
     assert result["verdict"] == "CAUTION"
     assert result["llm_assessment"]["status"] == "used"
-    assert result["llm_assessment"]["model"] == "gemini-2.5-flash-lite"
+    assert result["llm_assessment"]["model"] == "gemini-3.5-flash-lite"

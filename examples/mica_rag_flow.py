@@ -53,7 +53,7 @@ Wait for the response before making your final compliant determination.
             full_content = ""
             print("\n[Agent]: ", end="", flush=True)
             for chunk in client.models.generate_content_stream(
-                model="gemini-2.5-flash-lite",
+                model="gemini-3.5-flash-lite",
                 contents=prompt,
             ):
                 if chunk.text:

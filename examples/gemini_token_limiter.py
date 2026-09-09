@@ -21,7 +21,7 @@ def run_local_simulation(skill) -> None:
         task_id="gemini_scrape_demo",
         max_allowed_tokens=50_000,
         turn_deltas=[15_000, 15_000, 15_000, 10_000],
-        model_id="gemini-2.5-flash",
+        model_id="gemini-3.5-flash",
     )
 
 
@@ -35,7 +35,7 @@ def run_gemini_loop(skill, bundle) -> None:
     client = genai.Client()
     gemini_tool = SkillLoader.to_gemini_tool(bundle)
     system_instruction = bundle["instructions"]
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
     user_query = (
         "You are running a bounded scrape task with task_id gemini_scrape_demo. "

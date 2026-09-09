@@ -74,7 +74,7 @@ def run_gemini_phase(ctx: SkillContext) -> None:
         "untrusted user text."
     )
     tool_index = _gemini_tool_index(ctx)
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite")
+    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
     user_query = (
         "For task_id skill_context_demo, call the token budget tool with "
         "current_token_count 95000 and max_allowed_tokens 100000, then summarize "

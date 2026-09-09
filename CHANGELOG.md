@@ -15,6 +15,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs / examples:** Default Gemini model IDs migrated from 2.5 Flash / Flash-Lite to `gemini-3.5-flash` and `gemini-3.5-flash-lite` across catalog pages, runnable examples, skill defaults, and `docs/usage/gemini.md` (#265).
+- **Skills (`compliance/tos_evaluator`, `compliance/mica_module`, `wellness/mental_coach`, `data_engineering/synthetic_generator` v0.1.1):** Default Gemini evaluator / generator model IDs updated to 3.5 Flash / Flash-Lite (#265).
+- **Skill (`monitoring/token_limiter`):** `model_pricing.json` updated with Gemini 3.5 Standard-tier list prices (Sep 2026) (#265).
 - **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`).
 
 ## [0.5.4] - 2026-09-03

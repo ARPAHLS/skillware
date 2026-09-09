@@ -35,7 +35,7 @@ parameters:
       description: "Optional turn identifier for idempotent retries. Same task_id, turn_id, and counts return the cached decision."
     model_id:
       type: string
-      description: "Optional model name for indicative USD cost estimates (for example gpt-4o, gemini-2.5-flash)."
+      description: "Optional model name for indicative USD cost estimates (for example gpt-4o, gemini-3.5-flash)."
     input_tokens:
       type: integer
       description: "Optional input tokens for this turn or cumulative split when estimating cost."

@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-05-24",
+  "last_updated": "2026-09-09",
   "currency": "USD",
-  "notes": "Indicative public list prices for cost estimates only. Not billing-grade.",
+  "notes": "Indicative public list prices for cost estimates only. Not billing-grade. Gemini 3.5 rows sourced from https://ai.google.dev/gemini-api/docs/pricing (Standard tier, Sep 2026).",
   "models": {
     "gpt-4o": {
       "input_usd_per_1m": 2.5,
@@ -20,13 +20,13 @@
       "input_usd_per_1m": 0.8,
       "output_usd_per_1m": 4.0
     },
-    "gemini-2.5-flash": {
-      "input_usd_per_1m": 0.15,
-      "output_usd_per_1m": 0.6
+    "gemini-3.5-flash": {
+      "input_usd_per_1m": 1.5,
+      "output_usd_per_1m": 9.0
     },
-    "gemini-2.5-flash-lite": {
-      "input_usd_per_1m": 0.075,
-      "output_usd_per_1m": 0.3
+    "gemini-3.5-flash-lite": {
+      "input_usd_per_1m": 0.3,
+      "output_usd_per_1m": 2.5
     },
     "deepseek-chat": {
       "input_usd_per_1m": 0.27,

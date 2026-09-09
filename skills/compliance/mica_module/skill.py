@@ -12,7 +12,7 @@ class MiCAModuleSkill(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {"name": "compliance/mica_module", "version": "0.1.0"}
+        return {"name": "compliance/mica_module", "version": "0.1.1"}
 
     _corpus_cache: List[Dict[str, Any]] = None
 
@@ -36,7 +36,7 @@ class MiCAModuleSkill(BaseSkill):
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         user_prompt = params.get("user_prompt", "")
         run_evaluator = params.get("run_evaluator", False)
-        evaluator_model = params.get("evaluator_model", "gemini-2.5-flash-lite")
+        evaluator_model = params.get("evaluator_model", "gemini-3.5-flash-lite")
 
         # Use the cached corpus
         mica_data = MiCAModuleSkill._corpus_cache

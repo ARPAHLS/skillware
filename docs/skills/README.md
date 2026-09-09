@@ -47,7 +47,7 @@ Skills tailored for generating, parsing, and orchestrating large datasets for ma
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
+| **[Synthetic Data Generator](synthetic_generator.md)** | `data_engineering/synthetic_generator` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
 | **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 
 ## Compliance
@@ -56,8 +56,8 @@ Enforces privacy, guardrails, and secure handling of sensitive data before it re
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[PII Masker](pii_masker.md)** | `compliance/pii_masker` | `0.1.0` (20 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | High-precision, local PII (Personally Identifiable Information) detection and redaction using the micro-f1-mask model. |
-| **[MiCA Module](mica_module.md)** | `compliance/mica_module` | `0.1.0` (20 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
-| **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
+| **[MiCA Module](mica_module.md)** | `compliance/mica_module` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
+| **[Terms of Service Evaluator](tos_evaluator.md)** | `compliance/tos_evaluator` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
 
 ## Security
 Offline and local-first defenses for untrusted input before it reaches model context or host agents.
@@ -87,7 +87,7 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.0` (16 Jul 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
+| **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.1` (9 Sep 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
 ---
 
