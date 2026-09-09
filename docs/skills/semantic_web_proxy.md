@@ -268,7 +268,7 @@ skill = bundle["class"]()
 client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     contents="Read https://en.wikipedia.org/wiki/Markdown and list its design goals.",
     config=genai.types.GenerateContentConfig(tools=[tool]),
 )
