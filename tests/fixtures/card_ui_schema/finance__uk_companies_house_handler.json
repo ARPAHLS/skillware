@@ -7,8 +7,7 @@
       "company_number": "01234567",
       "company_name": "Example Ltd",
       "company_status": "active",
-      "company_type": "ltd",
-      "next_actions": ["get_officers"]
+      "company_type": "ltd"
     },
     {
       "status": "partial",

@@ -3,7 +3,7 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.2.0` — 24 Aug 2026
+**Version**: `1.2.1` — 10 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../usage/install_extras.md).
@@ -21,7 +21,7 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 - **Pipeline Orchestration (`run_pipeline`)**: Execute ordered steps sequentially, halting on disambiguation (`needs_input`) or `error`, and preserving execution progress in `pipeline`.
 - **Composite Actions**: One-step resolution and extraction for common workflows (`resolve_and_get_officers`, `resolve_and_get_filings`).
 - **Intent Mapping**: Translate common user intent keywords (CEO, owner, shareholder) to the correct UK Companies House actions and build suggested action pipelines.
-- **State Tracking (Context)**: Automatically carries forward session state (like `company_number`, `company_name`, and active filters) between sequential tool calls to seamlessly link multi-step operations.
+- **State Tracking (Context)**: Automatically carries forward session state (like `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) between sequential tool calls to seamlessly link multi-step operations.
 
 ## Bundle layout
 
@@ -41,7 +41,7 @@ A single `execute()` entry point dispatches to nine action handlers:
 - **HTTP layer**: Authenticated requests using API key as HTTP Basic username.
 - **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`.
 - **Partial response previews**: Automatically previews the first 10 active officers or 10 recent filings with `partial` status and count hints when records exceed default limits.
-- **State propagation**: Extracts and updates session `context` (such as `company_number`, `company_name`, `role_hint`, and `next_actions`) in every response, automatically falling back to these values if omitted in subsequent turns.
+- **State propagation**: Extracts and updates session `context` (such as `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) in every response, automatically falling back to these values if omitted in subsequent turns.
 - **Error handling**: Catches HTTP errors (404, 429, 500), timeouts, and connection failures.
 
 ### 3. The Knowledge (`data/`)
@@ -190,7 +190,7 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "action": "resolve_company",
-  "query": "BP",
+  "query": "Tesco",
   "limit": 5
 }
 ```
@@ -203,26 +203,32 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
   "reason": "multiple_matches",
   "candidates": [
     {
-      "company_number": "00102498",
-      "title": "BP P.L.C.",
-      "company_status": "active"
+      "company_number": "00445790",
+      "title": "TESCO PLC",
+      "company_status": "active",
+      "company_type": "plc",
+      "address_snippet": "Tesco House, Shire Park, Kestrel Way, Welwyn Garden City, United Kingdom, AL7 1GA",
+      "date_of_creation": "1947-11-27",
+      "snippet": "TESCO STORES (HOLDINGS) PUBLIC LIMITED COMPANY"
     },
     {
-      "company_number": "01234567",
-      "title": "BP ALTERNATIVE EXAMPLE LTD",
-      "company_status": "dissolved"
+      "company_number": "09384423",
+      "title": "KFORD TYRES (GORNAL) LTD",
+      "company_status": "active",
+      "company_type": "ltd",
+      "address_snippet": "2 Dawley Brook Road, Kingswinford, England, DY6 7BD",
+      "date_of_creation": "2015-01-12",
+      "snippet": "TESCO TYRES LTD"
     }
   ],
   "context": {
     "company_number": null,
-    "company_name": null,
-    "last_action": "resolve_company",
-    "officer_filter": null,
-    "selected_transaction_id": null
+    "company_name": "Tesco",
+    "selected_transaction_id": null,
+    "last_action": "resolve_company"
   },
-  "agent_hint": "Ask the user which company they mean before calling get_officers.",
-  "next_actions": ["get_company_profile", "get_officers"],
-  "fetched_at": "2026-07-05T00:00:00+00:00"
+  "agent_hint": "Ask the user which company they mean before calling further actions.",
+  "fetched_at": "2026-09-10T18:33:09+00:00"
 }
 ```
 
@@ -231,14 +237,13 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "action": "get_officers",
-  "company_number": "00102498",
+  "company_number": "00445790",
   "active_only": true,
   "context": {
-    "company_number": "00102498",
-    "company_name": "BP P.L.C.",
-    "last_action": "resolve_company",
-    "officer_filter": null,
-    "selected_transaction_id": null
+    "company_number": "00445790",
+    "company_name": "TESCO PLC",
+    "selected_transaction_id": null,
+    "last_action": "resolve_company"
   }
 }
 ```
@@ -248,24 +253,30 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "status": "ready",
-  "company_number": "00102498",
+  "company_number": "00445790",
+  "company_name": "TESCO PLC",
   "context": {
-    "company_number": "00102498",
-    "company_name": "BP P.L.C.",
-    "last_action": "get_officers",
-    "officer_filter": null,
-    "selected_transaction_id": null
+    "company_number": "00445790",
+    "company_name": "TESCO PLC",
+    "selected_transaction_id": null,
+    "last_action": "get_officers"
   },
+  "total_results": 74,
+  "active_count": 11,
   "officers": [
     {
-      "name": "SMITH, John",
+      "name": "MURPHY, Ken",
       "officer_role": "director",
-      "appointed_on": "2020-03-01"
+      "appointed_on": "2020-10-01",
+      "resigned_on": null,
+      "nationality": "Irish",
+      "occupation": "",
+      "country_of_residence": "United Kingdom"
     }
   ],
   "terminology_note": "UK companies use directors, not CEOs; this list includes statutory directors and secretaries.",
   "source": "companies_house_api",
-  "fetched_at": "2026-07-05T00:00:00+00:00"
+  "fetched_at": "2026-09-10T18:33:16+00:00"
 }
 ```
 
@@ -274,26 +285,60 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "action": "map_intent",
-  "intent_keywords": "ceo, bp, director",
-  "entities": {"company_query": "BP"}
+  "intent_keywords": "ceo, 10k, officers, filings, accounts",
+  "entities": {"company_query": "Tesco"}
 }
 ```
 
-### Output — suggested pipeline
+### Output — planned steps
 
 ```json
 {
   "status": "ready",
-  "suggested_pipeline": [
-    {"action": "resolve_company", "params": {"query": "BP"}},
-    {"action": "get_officers", "params": {"company_number": "<from_resolve>"}}
+  "source": "companies_house_api",
+  "fetched_at": "2026-09-10T18:33:07+00:00",
+  "steps": [
+    {
+      "action": "resolve_company",
+      "params": {
+        "query": "Tesco"
+      }
+    },
+    {
+      "action": "get_officers",
+      "params": {
+        "company_number": "<from_resolve>"
+      }
+    },
+    {
+      "action": "get_filing_history",
+      "params": {
+        "company_number": "<from_resolve>"
+      }
+    }
   ],
-  "terminology_map": {"ceo": "director"},
-  "relevant_endpoints": ["/company/{company_number}/officers"]
+  "pipeline": {
+    "completed_steps": 0,
+    "total_steps": 3
+  },
+  "terminology_map": {
+    "ceo": "director",
+    "10k": "accounts"
+  },
+  "relevant_endpoints": [
+    "/company/{company_number}/officers",
+    "/company/{company_number}/filing-history"
+  ],
+  "context": {
+    "company_number": null,
+    "company_name": null,
+    "selected_transaction_id": null,
+    "last_action": "map_intent"
+  }
 }
 ```
 
-### Input — run pipeline (multi-step, one call)
+### Input — run pipeline (turn-by-turn orchestration)
 
 ```json
 {
@@ -301,18 +346,26 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
   "steps": [
     {
       "action": "resolve_company",
-      "params": {"query": "BP"}
+      "params": {"query": "Tesco"}
     },
     {
       "action": "get_officers",
-      "params": {"active_only": true}
+      "params": {"company_number": "<from_resolve>"}
+    },
+    {
+      "action": "get_filing_history",
+      "params": {"company_number": "<from_resolve>"}
     }
   ],
+  "pipeline": {
+    "completed_steps": 0,
+    "total_steps": 3
+  },
   "stop_on": ["needs_input", "error"]
 }
 ```
 
-### Output — pipeline stopped at disambiguation
+### Output — pipeline paused on disambiguation (Turn 1)
 
 ```json
 {
@@ -320,25 +373,50 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
   "reason": "multiple_matches",
   "candidates": [
     {
-      "company_number": "00102498",
-      "title": "BP P.L.C.",
-      "company_status": "active"
+      "company_number": "00445790",
+      "title": "TESCO PLC",
+      "company_status": "active",
+      "company_type": "plc",
+      "address_snippet": "Tesco House, Shire Park, Kestrel Way, Welwyn Garden City, United Kingdom, AL7 1GA",
+      "date_of_creation": "1947-11-27",
+      "snippet": "TESCO STORES (HOLDINGS) PUBLIC LIMITED COMPANY"
+    },
+    {
+      "company_number": "09384423",
+      "title": "KFORD TYRES (GORNAL) LTD",
+      "company_status": "active",
+      "company_type": "ltd",
+      "address_snippet": "2 Dawley Brook Road, Kingswinford, England, DY6 7BD",
+      "date_of_creation": "2015-01-12",
+      "snippet": "TESCO TYRES LTD"
     }
   ],
+  "fetched_at": "2026-09-10T18:33:09+00:00",
+  "agent_hint": "Ask the user which company they mean before calling further actions. Once the user specifies the company, resume run_pipeline with the selected company_number, remaining steps, context, and pipeline.",
   "context": {
     "company_number": null,
-    "company_name": null,
-    "last_action": "run_pipeline",
-    "officer_filter": null,
-    "selected_transaction_id": null
+    "company_name": "Tesco",
+    "selected_transaction_id": null,
+    "last_action": "run_pipeline"
   },
-  "agent_hint": "Ask the user which company they mean before calling further actions.",
-  "next_actions": ["get_officers"],
+  "steps": [
+    {
+      "action": "get_officers",
+      "params": {
+        "company_number": "<from_resolve>"
+      }
+    },
+    {
+      "action": "get_filing_history",
+      "params": {
+        "company_number": "<from_resolve>"
+      }
+    }
+  ],
   "pipeline": {
     "completed_steps": 1,
-    "total_steps": 2
-  },
-  "fetched_at": "2026-07-08T12:00:00+00:00"
+    "total_steps": 3
+  }
 }
 ```
 
@@ -347,7 +425,8 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "action": "resolve_and_get_officers",
-  "query": "BP PLC",
+  "query": "Tesco",
+  "role_hint": "ceo",
   "active_only": true
 }
 ```
@@ -357,31 +436,30 @@ Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/
 ```json
 {
   "status": "ready",
-  "company_number": "00102498",
-  "company_name": "BP P.L.C.",
-  "total_results": 1,
-  "active_count": 1,
+  "company_number": "00445790",
+  "company_name": "TESCO PLC",
+  "total_results": 74,
+  "active_count": 11,
   "officers": [
     {
-      "name": "SMITH, John",
+      "name": "MURPHY, Ken",
       "officer_role": "director",
-      "appointed_on": "2020-03-01"
+      "appointed_on": "2020-10-01",
+      "resigned_on": null,
+      "nationality": "Irish",
+      "occupation": "",
+      "country_of_residence": "United Kingdom"
     }
   ],
   "terminology_note": "UK companies use directors, not CEOs; this list includes statutory directors and secretaries.",
-  "pipeline": {
-    "completed_steps": 2,
-    "total_steps": 2
-  },
   "context": {
-    "company_number": "00102498",
-    "company_name": "BP P.L.C.",
-    "last_action": "resolve_and_get_officers",
-    "officer_filter": null,
-    "selected_transaction_id": null
+    "company_number": "00445790",
+    "company_name": "TESCO PLC",
+    "selected_transaction_id": null,
+    "last_action": "resolve_and_get_officers"
   },
   "source": "companies_house_api",
-  "fetched_at": "2026-07-08T12:00:00+00:00"
+  "fetched_at": "2026-09-10T18:33:16+00:00"
 }
 ```
 
@@ -402,6 +480,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `pending` | fix(uk_companies_house_handler): stabilize multi-turn pipelines and lean context (#341) | 10 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`01cd620`](https://github.com/ARPAHLS/skillware/commit/01cd620) | feat(uk_companies_house_handler): upgrade to v2b with pipeline orchestration and composites (#220) (#308) | 24 Aug 2026 | `1.2.0` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
 | [`84cd790`](https://github.com/ARPAHLS/skillware/commit/84cd790) | feat: complete uk companies house handler v2a (#220) (#255) | 22 Jul 2026 | `1.1.0` | [@Areen-09](https://github.com/Areen-09) |

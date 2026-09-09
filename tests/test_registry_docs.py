@@ -254,4 +254,4 @@ def test_skill_library_index_has_version_column():
     readme = (REPO_ROOT / "docs" / "skills" / "README.md").read_text(encoding="utf-8")
     assert "| Skill | ID | Version | Issuer | Description |" in readme
     assert "| :--- | :--- | :--- | :--- | :--- |" in readme
-    assert "`1.2.0` (24 Aug 2026)" in readme  # spot-check latest merged skill
+    assert "`1.2.1` (10 Sep 2026)" in readme  # spot-check latest merged skill

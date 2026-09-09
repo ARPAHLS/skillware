@@ -187,10 +187,19 @@ intent = skill.execute(
 result = skill.execute(
     {
         "action": "run_pipeline",
-        "steps": intent["suggested_pipeline"],
+        "steps": intent["steps"],
         "context": intent.get("context", {}),
     }
 )
+while result.get("status") == "partial":
+    result = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": result["steps"],
+            "pipeline": result["pipeline"],
+            "context": result["context"],
+        }
+    )
 ```
 
 **Resume after disambiguation:**
@@ -206,6 +215,6 @@ result = skill.execute(
 )
 ```
 
-See [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py) (mocked v2b flows) and [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py) (interactive loop).
+See [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py) (mocked v1.2.1 flows) and [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py) (interactive loop).
 | `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 
