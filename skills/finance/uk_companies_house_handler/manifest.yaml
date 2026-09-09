@@ -1,12 +1,12 @@
 name: finance/uk_companies_house_handler
-version: 1.2.0
+version: 1.2.1
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing, filing
   history, pipeline orchestration, and intent-to-operation mapping with UK corporate
   terminology translation. Returns status-based responses (ready, partial,
   needs_input, error) with disambiguation support. The agent owns natural-language
-  dialogue; the skill returns structured candidates and next actions.
+  dialogue; the skill returns structured candidates and records.
 short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
 issuer:
   name: Areen Agrawal
@@ -43,16 +43,16 @@ parameters:
       description: "8-character UK company number (required for profile/officers/pscs/filing)."
     active_only:
       type: boolean
-      description: "Filter to current/active records only. Default true for get_officers."
+      description: "Filter to current/active records only. Default true for get_officers and get_pscs."
     limit:
       type: integer
-      description: "Max results to return (resolve_company). Default 5."
+      description: "Max results to return. Default 5 for resolve_company, 10 for officers and filings."
     category:
       type: string
       description: "Filing category filter (get_filing_history, resolve_and_get_filings)."
-    officer_filter:
+    officer_name:
       type: string
-      description: "Name or filter term for officers."
+      description: "Officer name filter for get_officers or resolve_and_get_officers."
     role_hint:
       type: string
       description: "Requested role or title hint (e.g. 'ceo', 'cfo', 'chairman') for officers lookup and UK terminology note."
@@ -61,7 +61,10 @@ parameters:
       description: "Comma-separated keywords from user intent for map_intent action."
     entities:
       type: object
-      description: "Extracted entities for map_intent (e.g. company_query, role)."
+      description: "Extracted entities for map_intent (e.g. company_query)."
+    action_params:
+      type: object
+      description: "Optional action-specific parameter overrides for map_intent (e.g. {'get_officers': {'limit': 5, 'active_only': true}})."
     steps:
       type: array
       description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline)."
@@ -72,6 +75,7 @@ parameters:
             type: string
           params:
             type: object
+            description: "Step-specific parameters (e.g. query, company_number, role_hint, officer_name, active_only, category, limit)."
         required:
           - action
     stop_on:
@@ -84,13 +88,13 @@ parameters:
       description: "State carried over from prior skill turns (e.g. company_number, company_name)."
     pipeline:
       type: object
-      description: "State of an executing multi-step pipeline (e.g. completed_steps, total_steps) to carry forward."
+      description: "State of an executing Single-step pipeline (e.g. completed_steps, total_steps) to carry forward."
   required:
     - action
 outputs:
   status:
     type: string
-    description: "Envelope status: ready, partial, needs_input, or error."
+    description: "Envelope status: ready, partial, needs_input, or error. Status partial is reserved for in-flight run_pipeline execution."
   source:
     type: string
     description: "Data provenance (typically companies_house_api)."
@@ -99,10 +103,10 @@ outputs:
     description: "UTC ISO timestamp when the response was built."
   context:
     type: object
-    description: "Session state to pass on the next call (company_number, role_hint, next_actions, pipeline)."
+    description: "Session state to pass on the next call (company_number, company_name, last_action, selected_transaction_id)."
   pipeline:
     type: object
-    description: "Multi-step progress when using run_pipeline or composite actions."
+    description: "Single-step progress when using run_pipeline."
   agent_hint:
     type: string
     description: "Optional guidance for the host agent (disambiguation, partial previews, retries)."
@@ -114,11 +118,11 @@ outputs:
     description: "Registered company name when applicable."
   officers:
     type: array
-    description: "Officer records from get_officers or merged pipeline output."
+    description: "Officer records from get_officers or composite actions."
   filings:
     type: array
-    description: "Filing records from get_filing_history or merged pipeline output."
-  suggested_pipeline:
+    description: "Filing records from get_filing_history or composite actions."
+  steps:
     type: array
     description: "Ordered steps suggested by map_intent."
   terminology_map:
