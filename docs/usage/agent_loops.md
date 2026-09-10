@@ -98,7 +98,7 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares; validates if you cal
 | Adapter | Match tool calls using |
 | :--- | :--- |
 | Gemini | `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` (e.g. `compliance_tos_evaluator`) |
-| Claude | `manifest["name"]` (may include slashes, e.g. `compliance/tos_evaluator`) |
+| Claude | `to_claude_tool(bundle)["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
 | OpenAI | `to_openai_tool(bundle)["function"]["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
 | DeepSeek | `to_deepseek_tool(bundle)["function"]["name"]` (same sanitization rules) |
 | Ollama (prompt) | `"tool"` field in the JSON block the model emits (same as `manifest["name"]` when the manifest uses the full registry ID) |

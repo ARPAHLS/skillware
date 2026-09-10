@@ -20,6 +20,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Core:** Sanitize registry IDs in `SkillLoader.to_claude_tool()` so Claude API tool names match the `^[a-zA-Z0-9_-]{1,128}$` pattern (#104).
 - **Examples:** Claude demo scripts match `SkillLoader.to_claude_tool()` names instead of raw manifest IDs (#104).
+- **Docs:** Align Claude tool-name guidance in `agent_loops.md` and `cli.md` with sanitized adapter names (#104).
 - **CI:** Format `tests/test_extras_sync.py` with Black after the install-extras guard landed (#340 follow-up).
 
 ### Changed
