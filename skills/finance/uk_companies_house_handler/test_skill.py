@@ -706,20 +706,6 @@ def test_context_propagation(mock_request, skill):
     assert ctx["company_name"] == "TEST COMPANY LTD"
 
 
-def test_partial_response(skill):
-    """_partial_response should build the correct envelope."""
-    result = skill._partial_response(
-        data={"some_key": "some_val"},
-        context={"state": 1},
-        pipeline={"completed_steps": 1, "total_steps": 2},
-    )
-    assert result["status"] == "partial"
-    assert result["some_key"] == "some_val"
-    assert result["context"] == {"state": 1}
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert "fetched_at" in result
-
-
 # --- v2b Pipeline and Composite Actions Tests ---
 
 
@@ -1089,7 +1075,7 @@ def test_get_officers_terminology_note_contextual(mock_request, skill):
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_run_pipeline_stops_on_needs_input(mock_request, skill):
-    """run_pipeline stops on disambiguation and sets next_actions."""
+    """run_pipeline stops on disambiguation when multiple matches are found."""
     mock_search = MagicMock()
     mock_search.json.return_value = {
         "items": [

@@ -909,29 +909,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         response.update(data)
         return response
 
-    def _partial_response(
-        self,
-        data: Dict[str, Any],
-        source: str = "companies_house_api",
-        context: Optional[Dict[str, Any]] = None,
-        pipeline: Optional[Dict[str, int]] = None,
-        agent_hint: str = "",
-    ) -> Dict[str, Any]:
-        """Build a partial status response envelope."""
-        response = {
-            "status": "partial",
-            "source": source,
-            "fetched_at": self._fetched_at(),
-        }
-        if context is not None:
-            response["context"] = context
-        if pipeline is not None:
-            response["pipeline"] = pipeline
-        if agent_hint:
-            response["agent_hint"] = agent_hint
-        response.update(data)
-        return response
-
     def _needs_input_response(
         self,
         reason: str,

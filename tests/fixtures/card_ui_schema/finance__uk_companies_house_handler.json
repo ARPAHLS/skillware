@@ -12,18 +12,35 @@
     {
       "status": "partial",
       "source": "companies_house_api",
-      "fetched_at": "2026-07-19T12:00:00Z",
+      "fetched_at": "2026-09-10T12:00:00Z",
       "company_number": "00102498",
       "company_name": "BP P.L.C.",
       "company_status": "active",
-      "agent_hint": "Showing 10 active officers out of 11 active on file (74 total on record).",
-      "officers": [
+      "pipeline": {
+        "completed_steps": 1,
+        "total_steps": 3
+      },
+      "steps": [
         {
-          "name": "EXAMPLE, Director",
-          "officer_role": "director",
-          "appointed_on": "2020-01-01"
+          "action": "get_officers",
+          "params": {
+            "company_number": "00102498"
+          }
+        },
+        {
+          "action": "get_filing_history",
+          "params": {
+            "company_number": "00102498"
+          }
         }
-      ]
+      ],
+      "context": {
+        "company_number": "00102498",
+        "company_name": "BP P.L.C.",
+        "last_action": "run_pipeline",
+        "selected_transaction_id": null
+      },
+      "agent_hint": "Step 'resolve_company' completed (1/3). Call run_pipeline with remaining steps, context, and pipeline to continue."
     },
     {
       "status": "ready",

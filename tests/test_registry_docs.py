@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 
 import pytest
+import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -254,4 +255,19 @@ def test_skill_library_index_has_version_column():
     readme = (REPO_ROOT / "docs" / "skills" / "README.md").read_text(encoding="utf-8")
     assert "| Skill | ID | Version | Issuer | Description |" in readme
     assert "| :--- | :--- | :--- | :--- | :--- |" in readme
-    assert "`1.2.1` (10 Sep 2026)" in readme  # spot-check latest merged skill
+
+    missing = []
+    for manifest_path in (REPO_ROOT / "skills").rglob("manifest.yaml"):
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = yaml.safe_load(f)
+        if isinstance(manifest, dict) and "version" in manifest:
+            skill_id = manifest_path.parent.relative_to(REPO_ROOT / "skills").as_posix()
+            expected = f"`{manifest['version']}`"
+            if expected not in readme:
+                missing.append(f"{skill_id}: missing {expected}")
+
+    assert (
+        not missing
+    ), "Missing manifest versions in docs/skills/README.md:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )

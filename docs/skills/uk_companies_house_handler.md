@@ -32,15 +32,15 @@ Skill-context instructions (registry ID opener, not a persona). The host agent:
 - Passes **clean** `query` / `company_number` parameters and optional `role_hint` — the skill does not strip conversational prefixes.
 - Handles disambiguation when search returns `needs_input`, then resumes with `context` / `run_pipeline`.
 - Uses `terminology_map.yaml` as a reference lexicon; maps US/informal terms via reasoning plus `map_intent` hints.
-- Renders full `officers[]` / `filings[]` lists, including `partial` previews (default limit 10).
+- Renders full `officers[]` / `filings[]` lists, including truncated results (default limit 10) with active count hints.
 
 ### Effect (`skill.py`)
 A single `execute()` entry point dispatches to nine action handlers:
 - **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`.
 - **Pipeline orchestration & composites**: `run_pipeline`, `map_intent`, `resolve_and_get_officers`, `resolve_and_get_filings`.
 - **HTTP layer**: Authenticated requests using API key as HTTP Basic username.
-- **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`.
-- **Partial response previews**: Automatically previews the first 10 active officers or 10 recent filings with `partial` status and count hints when records exceed default limits.
+- **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`. The `partial` status is used exclusively during multi-step `run_pipeline` execution when steps remain.
+- **Record limits and truncation**: Returns up to 10 active officers or recent filings by default (configurable via `limit`), with `total_results` and `active_count` metadata indicating truncation when more records exist, while maintaining `status: "ready"`.
 - **State propagation**: Extracts and updates session `context` (such as `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) in every response, automatically falling back to these values if omitted in subsequent turns.
 - **Error handling**: Catches HTTP errors (404, 429, 500), timeouts, and connection failures.
 
@@ -480,7 +480,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `pending` | fix(uk_companies_house_handler): stabilize multi-turn pipelines and lean context (#341) | 10 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09) |
+| *(pending merge)* | fix(uk_companies_house_handler): stabilize multi-turn pipelines and lean context (#341) | 10 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`01cd620`](https://github.com/ARPAHLS/skillware/commit/01cd620) | feat(uk_companies_house_handler): upgrade to v2b with pipeline orchestration and composites (#220) (#308) | 24 Aug 2026 | `1.2.0` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
 | [`84cd790`](https://github.com/ARPAHLS/skillware/commit/84cd790) | feat: complete uk companies house handler v2a (#220) (#255) | 22 Jul 2026 | `1.1.0` | [@Areen-09](https://github.com/Areen-09) |

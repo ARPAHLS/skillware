@@ -126,7 +126,7 @@ MOCK_OFFICERS_RESPONSE = {
     "active_count": 2,
 }
 
-MOCK_OFFICERS_PARTIAL_RESPONSE = {
+MOCK_OFFICERS_TRUNCATED_RESPONSE = {
     "items": [
         {
             "name": f"DIRECTOR-{idx}, Example",
@@ -180,7 +180,7 @@ MOCK_FILING_RESPONSE = {
 
 
 def run_scripted_flow(skill: Any) -> None:
-    """Deterministic v1.2.1 flows: composite, turn-by-turn pipeline, partial preview, disambiguation."""
+    """Deterministic v1.2.1 flows: composite, turn-by-turn pipeline, disambiguation, record truncation."""
     print("=== uk_companies_house_handler v1.2.1 scripted flows ===\n")
 
     print(
@@ -241,8 +241,8 @@ def run_scripted_flow(skill: Any) -> None:
         )
         print(json.dumps(resumed, indent=2))
 
-    print("\n--- Flow D: partial officers preview (limit 10 of many) ---")
-    partial = skill.execute(
+    print("\n--- Flow D: truncated officers list (limit 10 of 15, ready status) ---")
+    truncated = skill.execute(
         {
             "action": "get_officers",
             "company_number": context.get("company_number", "00102498"),
@@ -250,7 +250,7 @@ def run_scripted_flow(skill: Any) -> None:
             "context": context,
         }
     )
-    print(json.dumps(partial, indent=2))
+    print(json.dumps(truncated, indent=2))
 
     print("\n=== flow complete ===")
 

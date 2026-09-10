@@ -2,7 +2,7 @@
 Mocked demo script for finance/uk_companies_house_handler (v1.2.1).
 
 Runs scripted v1.2.1 flows (composite actions, turn-by-turn run_pipeline, disambiguation
-resume, partial previews) using mocked HTTP responses. No live API key required.
+resume, record truncation limits) using mocked HTTP responses. No live API key required.
 
 Usage:
   python examples/uk_companies_house_handler_demo.py
@@ -20,8 +20,8 @@ from uk_companies_house_handler_common import (  # noqa: E402
     MOCK_BARCLAYS_SEARCH_RESPONSE,
     MOCK_BP_SINGLE_SEARCH_RESPONSE,
     MOCK_FILING_RESPONSE,
-    MOCK_OFFICERS_PARTIAL_RESPONSE,
     MOCK_OFFICERS_RESPONSE,
+    MOCK_OFFICERS_TRUNCATED_RESPONSE,
     SKILL_ID,
     run_scripted_flow,
 )
@@ -45,7 +45,7 @@ def demo_skill() -> Iterator[Any]:
         MOCK_FILING_RESPONSE,
         MOCK_BARCLAYS_SEARCH_RESPONSE,  # disambiguation
         MOCK_OFFICERS_RESPONSE,  # resumed get_officers
-        MOCK_OFFICERS_PARTIAL_RESPONSE,  # partial preview
+        MOCK_OFFICERS_TRUNCATED_RESPONSE,  # record truncation
     ]
 
     def mock_request(method, url, **kwargs):

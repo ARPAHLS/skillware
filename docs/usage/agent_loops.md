@@ -140,6 +140,7 @@ skills in one harness.
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
 | `finance/wallet_screening` | - | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `office/pdf_form_filler` | - | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
 | `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
@@ -158,7 +159,7 @@ skills in one harness.
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 
-### UK Companies House Handler — pipeline and composites (v2b)
+### UK Companies House Handler — pipeline and composites
 
 The skill returns status envelopes (`ready`, `partial`, `needs_input`, `error`). Pass **`bundle["instructions"]`** so the model passes **clean** `query` values (not full sentences) and optional `role_hint`. On `needs_input`, show `candidates` and resume with `company_number` / `context`.
 
@@ -216,5 +217,4 @@ result = skill.execute(
 ```
 
 See [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py) (mocked v1.2.1 flows) and [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py) (interactive loop).
-| `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 

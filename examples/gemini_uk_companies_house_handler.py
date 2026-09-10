@@ -5,7 +5,7 @@ Demonstrates an interactive flow with turn-by-turn pipeline orchestration and co
   - map_intent / run_pipeline for multi-intent queries
   - resolve_and_get_officers / resolve_and_get_filings for single-intent shortcuts
   - needs_input disambiguation resume via lean context
-  - partial previews (10-item limits) with full record rendering
+  - record truncation limits (10-item default) with full record rendering
 
 The agent must pass clean query strings and optional role_hint — the skill does
 not parse conversational prefixes.
