@@ -22,6 +22,32 @@ Use **chain / chains / chaining** for cross-skill host orchestration. Do **not**
 
 ---
 
+## Choose host context (Directive vs brief)
+
+Choose the host path based on who owns skill selection and when the model needs
+the full playbook:
+
+| Scenario | Recommended path | Why |
+| :--- | :--- | :--- |
+| One dedicated skill | `SkillLoader.load_skill()` + full `bundle["instructions"]` | The model needs the skill's gates and stage order up front |
+| Agent exposes about 10 registry tools | `SkillContext(mode="brief")` + `merge_system()` + `tools()` | Brief lines save tokens while schemas carry parameter detail |
+| Small fixed skill set (≤ 3) | `SkillContext(mode="directives")` or manual concatenation | Full playbooks fit in the system budget |
+| Untrusted text arrives before the model sees it | `run_chain(...)` or a manual chain before the agent loop | The model must not choose middleware order |
+| Deterministic middleware (firewall → rewriter) | Manual chain or named YAML chain | The host owns the order and branching |
+| Full Directive is needed only after tool selection | `prepare()` then host-inject `prep.directive` on the next turn | Progressive disclosure is host-driven |
+
+### Glossary
+
+- **Directive:** the full `instructions.md` playbook for a skill.
+- **Brief line:** the `manifest.short_description` summary that `merge_system()` adds in `brief` mode.
+- **`SkillContext`:** the host session that discovers skills, exposes provider tools, and prepares or executes selected skills.
+- **`prepare()`:** a host-side lazy load that returns `prep.directive`, `prep.manifest`, and `prep.bundle`; it does not change the model system prompt.
+- **`context` execute parameter:** session state accepted by a skill's own `execute(params)` contract; it is unrelated to the `SkillContext` host object.
+
+> **Progressive disclosure:** `prepare()` loads the Directive for the host, but it does not inject it into the model prompt. After tool selection, the host must add `prep.directive` to the next model turn, or use `mode="directives"` before the loop. `execute()` auto-prepares and validates skill parameters, but does not inject prompt text.
+
+**Non-goals:** This section does not classify skills in their manifests (see RFC 002) or change the catalog **Usage Examples** format. Catalog examples remain single-skill examples with full instructions.
+
 ## Imports
 
 | Need | Import |

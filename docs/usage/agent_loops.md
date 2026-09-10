@@ -52,6 +52,8 @@ OpenAI-compatible hosts reuse `to_openai_tool()`; see the [host guide](openai_co
 
 ## Multi-skill sessions (SkillContext)
 
+For the choice between full Directives, brief registry lines, and host-managed progressive loading, see [Choose host context (Directive vs brief)](skill_chaining.md#choose-host-context-directive-vs-brief). `SkillContext.execute()` validates skill parameters; `prepare()` returns the Directive to the host but does not inject it into the model context.
+
 For agents that expose **many tools** from the registry, replace steps 1–4 with `SkillContext`:
 
 ```python
@@ -64,7 +66,7 @@ tools = ctx.tools("gemini")  # or claude | openai | deepseek
 # Send system + tools + user message to the model ...
 # On tool_call:
 
-result = ctx.execute(skill_id, arguments)  # auto-prepares; validates if you call prepare() first
+result = ctx.execute(skill_id, arguments)  # auto-prepares and validates parameters
 # Return result JSON to the model; loop continues
 ```
 
@@ -208,4 +210,3 @@ result = skill.execute(
 
 See [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py) (mocked v2b flows) and [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py) (interactive loop).
 | `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-

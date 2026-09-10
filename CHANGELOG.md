@@ -44,6 +44,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Docs:** SkillContext modes, edge cases, and Ollama multi-skill guidance in `skill_chaining.md`, `ollama.md`, `introduction.md`, `cli.md`; one-line chain pointers on middleware skill catalog pages.
 - **CLI:** User-configurable `pastel`, `ocean`, and `mono` presentation themes; interactive menu selection persists globally, project config can override it, and unknown values fall back to `pastel` (#248).
 - **CLI:** The mail submenu and direct mail commands now follow the active presentation theme (#248).
