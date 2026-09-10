@@ -44,7 +44,7 @@ def main() -> None:
     skill = bundle["module"].EvmTxHandlerSkill()
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     tools = [SkillLoader.to_claude_tool(bundle)]
-    tool_name = bundle["manifest"]["name"]
+    tool_name = tools[0]["name"]
 
     user_query = (
         "Plan a buy of 10 DEGEN on Base with USDC: resolve, quote, preview, "

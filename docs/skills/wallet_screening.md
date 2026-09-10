@@ -145,13 +145,23 @@ skill = bundle["class"](
 )
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use, match name against bundle["manifest"]["name"] (finance/wallet_screening):
-# skill.execute(tool_use.input), return tool_result
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Screen wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 for sanctions risk."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["risk_level"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -162,14 +172,26 @@ bundle = SkillLoader.load_skill("finance/wallet_screening")
 skill = bundle["class"](
     config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
 )
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"] (finance_wallet_screening)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Screen wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 for sanctions risk."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["risk_level"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -180,19 +202,47 @@ bundle = SkillLoader.load_skill("finance/wallet_screening")
 skill = bundle["class"](
     config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
 )
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-# chat.completions.create(model="deepseek-chat", tools=[deepseek_tool], ...)
-# Match tool_call.function.name to deepseek_tool["function"]["name"] (finance_wallet_screening)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Screen wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 for sanctions risk."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["risk_level"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/wallet_screening"` in the JSON block. See [Ollama usage](../usage/ollama.md) and [agent loops](../usage/agent_loops.md).
-
+bundle = SkillLoader.load_skill("finance/wallet_screening")
+skill = bundle["class"](
+    config={"ETHERSCAN_API_KEY": os.environ.get("ETHERSCAN_API_KEY")}
+)
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Screen wallet 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 for sanctions risk."
+)
+print(prompt)
+result = skill.execute({
+    "wallet_address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+})
+print(json.dumps(result, indent=2))
+```
 ## Data Schema
 
 The skill returns a rich forensic report. Agents act on this data. `metadata.warnings` is optional — present when Etherscan history is truncated or partially unavailable (see Limitations).

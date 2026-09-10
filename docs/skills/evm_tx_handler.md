@@ -113,8 +113,10 @@ response = client.models.generate_content(
         system_instruction=bundle["instructions"],
     ),
 )
-# On function_call, match SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"]) (defi_evm_tx_handler):
-# skill.execute({"action": ..., "intent": ...})
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
+        print(result["status"])
 # After preview + user approval: skill.execute({"action": "execute", "intent": intent, "confirmed": True})
 ```
 
@@ -131,16 +133,31 @@ bundle = SkillLoader.load_skill("defi/evm_tx_handler")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-
-# On tool_use, match name against bundle["manifest"]["name"] (defi/evm_tx_handler):
-# skill.execute(tool_use.input)
-# execute example:
-# skill.execute({"action": "execute", "intent": intent, "confirmed": True})
+intent = {
+    "side": "buy",
+    "chain": "base",
+    "target_asset": "degen",
+    "spend_asset": "usdc",
+    "amount": 10,
+    "amount_kind": "target_out",
+}
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Quote a buy of 10 DEGEN on Base with USDC."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["status"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -151,12 +168,25 @@ bundle = SkillLoader.load_skill("defi/evm_tx_handler")
 skill = bundle["class"]()
 openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"] (defi_evm_tx_handler)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Quote a buy of 10 DEGEN on Base with USDC."},
+    ],
+    tools=[openai_tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
 
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -170,12 +200,47 @@ client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-# Match tool_call.function.name to deepseek_tool["function"]["name"] (defi_evm_tx_handler)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Quote a buy of 10 DEGEN on Base with USDC."},
+    ],
+    tools=[deepseek_tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
 
-### Ollama
+### Ollama (prompt mode)
 
-`SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "defi/evm_tx_handler"`. See [Ollama usage](../usage/ollama.md).
+```python
+import json
+from skillware.core.loader import SkillLoader
+
+bundle = SkillLoader.load_skill("defi/evm_tx_handler")
+skill = bundle["class"]()
+intent = {
+    "side": "buy",
+    "chain": "base",
+    "target_asset": "degen",
+    "spend_asset": "usdc",
+    "amount": 10,
+    "amount_kind": "target_out",
+}
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    "User: Quote a buy of 10 DEGEN on Base with USDC."
+)
+print(prompt)
+result = skill.execute({"action": "quote", "intent": intent})
+print(json.dumps(result, indent=2))
+```
 
 ## Limitations
 

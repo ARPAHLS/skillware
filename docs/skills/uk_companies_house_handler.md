@@ -132,14 +132,23 @@ skill = bundle["class"](
 )
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use, match name against bundle["manifest"]["name"]
-# (finance/uk_companies_house_handler):
-# skill.execute(tool_use.input), return tool_result
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Who is the CEO of BP?"}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["status"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -150,15 +159,26 @@ bundle = SkillLoader.load_skill("finance/uk_companies_house_handler")
 skill = bundle["class"](
     config={"COMPANIES_HOUSE_API_KEY": os.environ.get("COMPANIES_HOUSE_API_KEY")}
 )
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"]
-# (finance_uk_companies_house_handler)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Who is the CEO of BP?"},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -169,20 +189,48 @@ bundle = SkillLoader.load_skill("finance/uk_companies_house_handler")
 skill = bundle["class"](
     config={"COMPANIES_HOUSE_API_KEY": os.environ.get("COMPANIES_HOUSE_API_KEY")}
 )
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-# chat.completions.create(model="deepseek-chat", tools=[deepseek_tool], ...)
-# Match tool_call.function.name to deepseek_tool["function"]["name"]
-# (finance_uk_companies_house_handler)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Who is the CEO of BP?"},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-Prompt mode via `SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "finance/uk_companies_house_handler"` in the JSON block. See [Ollama usage](../usage/ollama.md) and [agent loops](../usage/agent_loops.md).
-
+bundle = SkillLoader.load_skill("finance/uk_companies_house_handler")
+skill = bundle["class"](
+    config={"COMPANIES_HOUSE_API_KEY": os.environ.get("COMPANIES_HOUSE_API_KEY")}
+)
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Who is the CEO of BP?"
+)
+print(prompt)
+result = skill.execute({
+    "action": "resolve_company",
+    "company_name": "BP",
+})
+print(json.dumps(result, indent=2))
+```
 ## Data Schema
 
 ### Input — resolve company (ambiguous name)

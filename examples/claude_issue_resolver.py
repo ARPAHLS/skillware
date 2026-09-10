@@ -61,7 +61,7 @@ while True:
         print(f"Claude requested tool: {tool_use.name}")
         print(f"Input: {tool_use.input}")
 
-        if tool_use.name != SKILL_ID:
+        if tool_use.name != SkillLoader.to_claude_tool(bundle)["name"]:
             break
 
         result = execute_skill(skill, tool_use.input, github_token)

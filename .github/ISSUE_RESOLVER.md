@@ -23,6 +23,7 @@ Apply every check that matches the change type before requesting review:
 - **Manifest / issuer / packaging:** run `pytest tests/test_skill_issuer.py -q`
 - **`execute()` output shape change:** update `card.json` and `tests/fixtures/card_ui_schema/<category>__<skill>.json` together
 - **Examples index or agent-loops matrix change:** run `pytest tests/test_registry_docs.py -q`
+- **Catalog Usage Examples / five-provider snippets:** run `pytest tests/test_skill_docs.py -q`
 - **Before handoff:** `python -m black --check .`, `flake8`, and relevant pytest subsets per [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## Conditionals

@@ -145,12 +145,23 @@ bundle = SkillLoader.load_skill("compliance/mica_module")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# See examples/mica_claude_flow.py for the full loop
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Can I issue a stablecoin backed by physical art under an e-money license?"}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["policy_status"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -159,14 +170,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("compliance/mica_module")
 skill = bundle["class"]()
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name (compliance_mica_module)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Can I issue a stablecoin backed by physical art under an e-money license?"},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["policy_status"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -175,17 +198,46 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("compliance/mica_module")
 skill = bundle["class"]()
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Can I issue a stablecoin backed by physical art under an e-money license?"},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["policy_status"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-`SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "compliance/mica_module"`. See `examples/mica_ollama_flow.py` and [Ollama usage](../usage/ollama.md).
-
+bundle = SkillLoader.load_skill("compliance/mica_module")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Can I issue a stablecoin backed by physical art under an e-money license?"
+)
+print(prompt)
+result = skill.execute({
+    "user_prompt": "Can I issue a stablecoin backed by physical art under an e-money license?",
+    "run_evaluator": False,
+})
+print(json.dumps(result, indent=2))
+```
 ## Data Schema Output
 
 The skill returns a strictly formatted JSON context block that Parent Agents incorporate sequentially into their memory.

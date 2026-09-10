@@ -271,7 +271,9 @@ class SkillLoader:
         Converts a skill manifest to an Anthropic Claude tool definition.
         """
         manifest = skill_bundle.get("manifest", {})
-        name = manifest.get("name", "unknown_tool")
+        name = SkillLoader._sanitize_claude_tool_name(
+            manifest.get("name", "unknown_tool")
+        )
         description = manifest.get("description", "")
         parameters = manifest.get("parameters", {})
 
@@ -290,6 +292,10 @@ class SkillLoader:
         if not safe:
             return "unknown_tool"
         return safe[:64]
+
+    @staticmethod
+    def _sanitize_claude_tool_name(name: str) -> str:
+        return SkillLoader._sanitize_function_tool_name(name)
 
     @staticmethod
     def _sanitize_gemini_tool_name(name: str) -> str:

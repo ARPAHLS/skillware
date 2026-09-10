@@ -107,7 +107,35 @@ result = skill.execute({"html_content": "<html><body><p>Clean docs page.</p></bo
 print(result["trust_score"], result["findings"])
 ```
 
-### Claude (Anthropic Tool Use)
+### Gemini
+
+```python
+import google.genai as genai
+from google.genai import types
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
+skill = bundle["class"]()
+tool = SkillLoader.to_gemini_tool(bundle)
+client = genai.Client()
+html = "<html><body><button aria-label='Buy now'>Continue</button></body></html>"
+response = client.models.generate_content(
+    model="gemini-3.5-flash",
+    contents=f"Scan this page HTML for deceptive UI before proceeding: {html}",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=bundle["instructions"],
+    ),
+)
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
+        print(result["trust_score"], result["findings"])
+```
+
+### Claude
 
 ```python
 import os
@@ -120,19 +148,24 @@ bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
 skill = bundle["class"]()
 tool = SkillLoader.to_claude_tool(bundle)
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-
 html = "<html><body><form id='checkout'><input type='submit' value='Next' aria-label='Charge $99.00'/></form></body></html>"
 response = client.messages.create(
-    model="claude-3-7-sonnet-20250219",
+    model="claude-3-5-haiku-latest",
     max_tokens=1024,
+    system=bundle["instructions"],
     tools=[tool],
     messages=[{"role": "user", "content": f"Scan this checkout HTML before clicking: {html}"}],
 )
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["trust_score"], result["findings"])
 ```
 
-### OpenAI (Function Calling)
+### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -143,17 +176,25 @@ bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
 skill = bundle["class"]()
 openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Scan page HTML for deceptive patterns before clicking."},
+    ],
     tools=[openai_tool],
-    messages=[{"role": "user", "content": "Scan page HTML for deceptive patterns before clicking."}],
 )
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["trust_score"], result["findings"])
 ```
 
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -167,46 +208,40 @@ client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-
 response = client.chat.completions.create(
     model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Analyze web surface before executing checkout action."},
+    ],
     tools=[deepseek_tool],
-    messages=[{"role": "user", "content": "Analyze web surface before executing checkout action."}],
 )
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["trust_score"], result["findings"])
 ```
 
-### Ollama (Local LLMs)
-
-Prompt-based tool calling or system prompt injection. Pull a model such as `gemma3` or `qwen3.5`, then follow [Ollama usage](../usage/ollama.md):
+### Ollama (prompt mode)
 
 ```python
+import json
 from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-system_tool_prompt = SkillLoader.to_ollama_prompt(bundle)
-# Append system_tool_prompt to system instructions for text-based tool generation
-```
-
-### Gemini
-
-```python
-import os
-import google.genai as genai
-from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
-
-load_env_file()
-bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
-tool = SkillLoader.to_gemini_tool(bundle)
 skill = bundle["class"]()
-client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
-
-html = "<html><body><button aria-label='Buy now'>Continue</button></body></html>"
-response = client.models.generate_content(
-    model="gemini-3.5-flash",
-    contents="Scan this page HTML for deceptive UI before proceeding.",
-    config=genai.types.GenerateContentConfig(tools=[tool]),
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    "User: Scan this HTML for deceptive UI before proceeding."
 )
+print(prompt)
+result = skill.execute({
+    "html_content": "<html><body><p>Clean docs page.</p></body></html>",
+})
+print(json.dumps(result, indent=2))
 ```
 
 ---

@@ -132,13 +132,23 @@ bundle = SkillLoader.load_skill("office/pdf_form_filler")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use, match name against bundle["manifest"]["name"] (office/pdf_form_filler):
-# skill.execute(tool_use.input), return tool_result
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Fill the W-9 PDF at forms/w9.pdf with vendor details."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["status"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -147,14 +157,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("office/pdf_form_filler")
 skill = bundle["class"]()
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"] (office_pdf_form_filler)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Fill the W-9 PDF at forms/w9.pdf with vendor details."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -163,18 +185,47 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("office/pdf_form_filler")
 skill = bundle["class"]()
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-# Match tool_call.function.name to deepseek_tool["function"]["name"] (office_pdf_form_filler)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Fill the W-9 PDF at forms/w9.pdf with vendor details."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-`SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "office/pdf_form_filler"`. See [Ollama usage](../usage/ollama.md).
-
+bundle = SkillLoader.load_skill("office/pdf_form_filler")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Fill the W-9 PDF at forms/w9.pdf with vendor details."
+)
+print(prompt)
+result = skill.execute({
+    "action": "fill",
+    "pdf_path": "forms/w9.pdf",
+    "field_values": {"name": "Acme Corp"},
+})
+print(json.dumps(result, indent=2))
+```
 ## Data Schema
 
 The skill returns a JSON object with the result of the operation.

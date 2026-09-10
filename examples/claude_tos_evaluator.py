@@ -9,14 +9,15 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
-TOOL_NAME = bundle["manifest"]["name"]
-print(f"Loaded Skill: {TOOL_NAME}")
+claude_tool = SkillLoader.to_claude_tool(bundle)
+TOOL_NAME = claude_tool["name"]
+print(f"Loaded Skill: {bundle['manifest']['name']} (Claude tool: {TOOL_NAME})")
 
 TOSEvaluatorSkill = bundle["module"].TOSEvaluatorSkill
 tos_skill = TOSEvaluatorSkill()
 
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-tools = [SkillLoader.to_claude_tool(bundle)]
+tools = [claude_tool]
 
 user_query = (
     "Can I use an automated crawler against https://hackernoon.com/tagged/devops "

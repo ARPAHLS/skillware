@@ -162,13 +162,23 @@ bundle = SkillLoader.load_skill("compliance/tos_evaluator")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# messages.create(..., system=bundle["instructions"], tools=tools)
-# On tool_use: skill.execute(tool_use.input), reply with tool_result
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Check whether crawling https://example.com/docs is allowed."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["verdict"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -177,15 +187,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
 skill = bundle["class"]()
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# chat.completions.create(model="gpt-4o", tools=[openai_tool], ...)
-# Match tool_call.function.name to openai_tool["function"]["name"] (compliance_tos_evaluator)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Check whether crawling https://example.com/docs is allowed."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["verdict"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -194,18 +215,47 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("compliance/tos_evaluator")
 skill = bundle["class"]()
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-# chat.completions.create(model="deepseek-chat", tools=[deepseek_tool], ...)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Check whether crawling https://example.com/docs is allowed."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["verdict"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-Prompt-based tool calling. Pull a model such as `gemma3` or `qwen3.5`, then see `examples/ollama_tos_evaluator.py` and [Ollama usage](../usage/ollama.md).
-
+bundle = SkillLoader.load_skill("compliance/tos_evaluator")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Check whether crawling https://example.com/docs is allowed."
+)
+print(prompt)
+result = skill.execute({
+    "target_url": "https://example.com/docs",
+    "intended_action": "crawl documentation pages for research indexing",
+    "use_llm_evaluator": False,
+})
+print(json.dumps(result, indent=2))
+```
 ## Notes
 
 This skill is a practical operational safeguard, not legal counsel. If the result is `CAUTION` or `INSUFFICIENT_EVIDENCE`, the safe default is manual review or an official API/developer integration path.
