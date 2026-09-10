@@ -116,12 +116,23 @@ bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use (name optimization/prompt_rewriter): skill.execute(tool_use.input)
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["compressed_text"])
 ```
 
 ### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -130,14 +141,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
 skill = bundle["class"]()
-openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-# Match tool_call.function.name to openai_tool["function"]["name"] (optimization_prompt_rewriter)
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["compressed_text"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -146,17 +169,46 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
 skill = bundle["class"]()
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["compressed_text"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-`SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "optimization/prompt_rewriter"`. See [Ollama usage](../usage/ollama.md).
-
+bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: Rewrite this support prompt for a concise, policy-safe assistant."
+)
+print(prompt)
+result = skill.execute({
+    "raw_text": "Hello, could you please make sure to read this documentation...",
+    "compression_aggression": "high",
+})
+print(json.dumps(result, indent=2))
+```
 ## Maintenance
 
 To run tests specifically for this skill:

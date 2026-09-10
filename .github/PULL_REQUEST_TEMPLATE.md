@@ -26,6 +26,7 @@ Agents: map each acceptance criterion to a file or test in your diff.
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` when user-visible behavior changes
 - [ ] `examples/README.md` updated if this PR adds, renames, or removes a runnable script
 - [ ] Ran `pytest tests/test_registry_docs.py` when skills, examples index, or agent-loops matrix changed
+- [ ] Ran `pytest tests/test_skill_docs.py` when catalog Usage Examples or provider snippets changed
 
 ## New or updated skill
 

@@ -215,80 +215,98 @@ for part in response.candidates[0].content.parts:
 
 ### Claude
 
-Catalog snippets only — no dedicated runnable example yet.
-
 ```python
 import os
 import anthropic
-
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-
 bundle = SkillLoader.load_skill("creative/bg_remover")
 skill = bundle["class"]()
-
-client = anthropic.Anthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
-)
-
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-
-# On tool_use:
-# result = skill.execute(tool_use.input)
-# Return the tool result to Claude.
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{
+        "role": "user",
+        "content": "Remove the background from product.png and save it as product_no_bg.png.",
+    }],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["output_path"], result["status"])
 ```
 
 ### OpenAI
 
-Catalog snippets only — no dedicated runnable example yet.
-
 ```python
+import json
 import os
 from openai import OpenAI
-
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-
 bundle = SkillLoader.load_skill("creative/bg_remover")
 skill = bundle["class"]()
-
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
 tool = SkillLoader.to_openai_tool(bundle)
-
-# Match tool_call.function.name and execute:
-# result = skill.execute(args)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {
+            "role": "user",
+            "content": "Remove the background from product.png and save it as product_no_bg.png.",
+        },
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["output_path"], result["status"])
 ```
 
 ### DeepSeek
 
-Catalog snippets only — no dedicated runnable example yet.
-
 ```python
+import json
 import os
 from openai import OpenAI
-
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-
 bundle = SkillLoader.load_skill("creative/bg_remover")
 skill = bundle["class"]()
-
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-
 tool = SkillLoader.to_deepseek_tool(bundle)
-
-# Match tool_call.function.name and execute:
-# result = skill.execute(args)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {
+            "role": "user",
+            "content": "Remove the background from product.png and save it as product_no_bg.png.",
+        },
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["output_path"], result["status"])
 ```
 
 ### Ollama (prompt mode)

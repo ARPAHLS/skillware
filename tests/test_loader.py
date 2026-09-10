@@ -548,6 +548,18 @@ def test_to_claude_tool():
     assert tool["name"] == "test_claude_skill"
     assert tool["input_schema"]["type"] == "object"
 
+    registry_bundle = {
+        "manifest": {
+            "name": "optimization/prompt_rewriter",
+            "description": "desc",
+            "parameters": {"type": "object", "properties": {}},
+        }
+    }
+    assert (
+        SkillLoader.to_claude_tool(registry_bundle)["name"]
+        == "optimization_prompt_rewriter"
+    )
+
 
 def test_sanitize_openai_tool_name():
     assert (

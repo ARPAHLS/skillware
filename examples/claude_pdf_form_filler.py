@@ -20,8 +20,9 @@ client = anthropic.Anthropic(
     api_key=os.environ.get("ANTHROPIC_API_KEY"),
 )
 
-tools = [SkillLoader.to_claude_tool(skill_bundle)]
-TOOL_NAME = skill_bundle["manifest"]["name"]
+claude_tool = SkillLoader.to_claude_tool(skill_bundle)
+tools = [claude_tool]
+TOOL_NAME = claude_tool["name"]
 
 # 4. Run Agent Loop
 pdf_path = os.path.abspath("test_form.pdf")

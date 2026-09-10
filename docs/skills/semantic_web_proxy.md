@@ -242,15 +242,26 @@ for call in response.choices[0].message.tool_calls or []:
     print(skill.execute(json.loads(call.function.arguments))["status"])
 ```
 
-### Ollama (Local LLMs)
-
-Prompt-based tool calling or system prompt injection. Pull a model such as `gemma3` or `qwen3.5`, then follow [Ollama usage](../usage/ollama.md):
+### Ollama (prompt mode)
 
 ```python
+import json
 from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("data_engineering/semantic_web_proxy")
-system_tool_prompt = SkillLoader.to_ollama_prompt(bundle)
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    "User: Extract the main content from this HTML as markdown."
+)
+print(prompt)
+result = skill.execute({
+    "html_content": "<html><body><article><h1>Title</h1><p>Body text.</p></article></body></html>",
+    "output_format": "markdown",
+})
+print(json.dumps(result, indent=2))
 ```
 
 ### Gemini

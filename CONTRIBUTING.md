@@ -33,7 +33,7 @@ Pick the path that matches your issue. Only the **skill** row requires the full 
 | **Documentation** | `docs/`, `README.md`, `CONTRIBUTING.md` | `documentation` | Documentation Fix issue | Links valid; tone consistent |
 | **Core framework** | `skillware/core/`, framework `tests/` | `core framework`, `enhancement` | Framework Feature issue | `pytest tests/`; update usage docs if API changes |
 | **CLI** | `skillware/cli.py`, `docs/usage/cli.md` | `cli` | CLI issue | `pytest tests/test_cli.py` when relevant (`list`, `doctor`, `test`, `paths`, `examples`, menu); `pytest tests/test_config.py` when config paths or `.skillware.yaml` persistence changes |
-| **Examples** | `examples/*.py`, agent loops, examples index | `examples` | Examples issue | Script runs; `pytest tests/test_registry_docs.py` when index changes |
+| **Examples** | `examples/*.py`, agent loops, examples index | `examples` | Examples issue | Script runs; `pytest tests/test_registry_docs.py` when index changes; `pytest tests/test_skill_docs.py` when catalog provider snippets change |
 | **Packaging** | `pyproject.toml`, `MANIFEST.in`, wheel | `packaging` | Packaging issue | `scripts/wheel_smoke_test.py` after wheel build (see [TESTING.md](docs/TESTING.md#packaging-smoke-test)) |
 | **Bug fix** | Paths named in issue | `bug` | Bug Report | Reproduction or failing test |
 | **Good first issue** | Usually docs, tests, or small fixes | `good first issue` | Read acceptance criteria literally | Checklist for underlying type above |

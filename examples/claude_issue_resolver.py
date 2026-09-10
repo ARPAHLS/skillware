@@ -25,6 +25,7 @@ github_token = os.environ.get("GITHUB_TOKEN") or None
 
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
+tool_name = tools[0]["name"]
 system = bundle["instructions"]
 
 user_query = (
@@ -61,7 +62,7 @@ while True:
         print(f"Claude requested tool: {tool_use.name}")
         print(f"Input: {tool_use.input}")
 
-        if tool_use.name != SKILL_ID:
+        if tool_use.name != tool_name:
             break
 
         result = execute_skill(skill, tool_use.input, github_token)

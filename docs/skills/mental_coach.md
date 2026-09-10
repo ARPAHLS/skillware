@@ -112,6 +112,7 @@ for part in response.candidates[0].content.parts:
 ### Claude
 
 ```python
+import os
 import anthropic
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
@@ -119,14 +120,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
 skill = bundle["class"]()
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
-# On tool_use (name wellness/mental_coach): skill.execute(tool_use.input)
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "I feel stressed at work and need coping strategies."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["policy_status"])
 ```
 
 ### OpenAI
 
 ```python
+import json
+import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
@@ -134,14 +147,26 @@ from skillware.core.loader import SkillLoader
 load_env_file()
 bundle = SkillLoader.load_skill("wellness/mental_coach")
 skill = bundle["class"]()
-client = OpenAI()
-openai_tool = SkillLoader.to_openai_tool(bundle)
-# Match tool_call.function.name (wellness_mental_coach)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "I feel stressed at work and need coping strategies."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["policy_status"])
 ```
-
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -154,14 +179,42 @@ client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-deepseek_tool = SkillLoader.to_deepseek_tool(bundle)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "I feel stressed at work and need coping strategies."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["policy_status"])
 ```
+### Ollama (prompt mode)
 
-### Ollama
+```python
+import json
+from skillware.core.loader import SkillLoader
 
-`SkillLoader.to_ollama_prompt(bundle)`; match `"tool": "wellness/mental_coach"`.
-See [Ollama usage](../usage/ollama.md).
-
+bundle = SkillLoader.load_skill("wellness/mental_coach")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    f"User: I feel stressed at work and need coping strategies."
+)
+print(prompt)
+result = skill.execute({
+    "user_prompt": "I feel stressed at work and need coping strategies.",
+    "session_mode": "coaching",
+})
+print(json.dumps(result, indent=2))
+```
 ## Output Semantics
 
 - `ESCALATE` — crisis signals detected; coaching suppressed; resources provided.

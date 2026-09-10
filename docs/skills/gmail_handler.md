@@ -365,10 +365,119 @@ response = client.models.generate_content(
         system_instruction=bundle["instructions"],
     ),
 )
-# On function_call, dispatch to skill.execute(...) and continue the loop.
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
+        print(result["status"])
 ```
 
-Catalog snippets only for Claude, OpenAI, DeepSeek, and Ollama — follow [skill usage template](../usage/skill_usage_template.md) with `office/gmail_handler`.
+### Claude
+
+Requires a dedicated agent `GMAIL_ADDRESS` + `GMAIL_APP_PASSWORD`. See `examples/gemini_gmail_handler.py` and demo mode `GMAIL_HANDLER_EXAMPLE_DEMO=1`.
+
+```python
+import os
+import anthropic
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+bundle = SkillLoader.load_skill("office/gmail_handler")
+skill = bundle["class"]()
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+tools = [SkillLoader.to_claude_tool(bundle)]
+response = client.messages.create(
+    model="claude-3-5-haiku-latest",
+    max_tokens=1024,
+    system=bundle["instructions"],
+    tools=tools,
+    messages=[{"role": "user", "content": "Resolve recipients named George."}],
+)
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result["status"], result.get("recipients"))
+```
+
+### OpenAI
+
+```python
+import json
+import os
+from openai import OpenAI
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+bundle = SkillLoader.load_skill("office/gmail_handler")
+skill = bundle["class"]()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+tool = SkillLoader.to_openai_tool(bundle)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Check mailbox status and list unread messages."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"])
+```
+
+### DeepSeek
+
+```python
+import json
+import os
+from openai import OpenAI
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+bundle = SkillLoader.load_skill("office/gmail_handler")
+skill = bundle["class"]()
+client = OpenAI(
+    api_key=os.environ.get("DEEPSEEK_API_KEY"),
+    base_url="https://api.deepseek.com",
+)
+tool = SkillLoader.to_deepseek_tool(bundle)
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Resolve recipients named George."},
+    ],
+    tools=[tool],
+)
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result["status"], result.get("recipients"))
+```
+
+### Ollama (prompt mode)
+
+```python
+import json
+from skillware.core.loader import SkillLoader
+
+bundle = SkillLoader.load_skill("office/gmail_handler")
+skill = bundle["class"]()
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    "User: Resolve recipients named George."
+)
+print(prompt)
+result = skill.execute({"action": "resolve_recipients", "query": ["George"]})
+print(json.dumps(result, indent=2))
+```
 
 ## Limitations (v0.2)
 

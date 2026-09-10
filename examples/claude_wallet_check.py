@@ -23,9 +23,9 @@ client = anthropic.Anthropic(
 )
 
 # Define the tool set
-tools = [SkillLoader.to_claude_tool(skill)]
-# Derive the tool name from the manifest so this stays correct if the name changes
-TOOL_NAME = skill["manifest"]["name"]
+claude_tool = SkillLoader.to_claude_tool(skill)
+tools = [claude_tool]
+TOOL_NAME = claude_tool["name"]
 
 # 4. Run the Agent Loop
 user_query = (

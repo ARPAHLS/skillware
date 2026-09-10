@@ -76,7 +76,34 @@ result = skill.execute({"action": "render", "deck_spec": spec, "output_path": "b
 print("Rendered:", result["output_path"], result["slide_count"], "slides")
 ```
 
-### Claude (Anthropic Tool Use)
+### Gemini
+
+```python
+import google.genai as genai
+from google.genai import types
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+bundle = SkillLoader.load_skill("creative/deck_builder")
+skill = bundle["class"]()
+tool = SkillLoader.to_gemini_tool(bundle)
+client = genai.Client()
+response = client.models.generate_content(
+    model="gemini-3.5-flash",
+    contents="Assemble a deck specification into a presentation.",
+    config=types.GenerateContentConfig(
+        tools=[tool],
+        system_instruction=bundle["instructions"],
+    ),
+)
+for part in response.candidates[0].content.parts:
+    if part.function_call:
+        result = skill.execute(dict(part.function_call.args))
+        print(result.get("valid"), result.get("output_path"), result.get("slide_count"))
+```
+
+### Claude
 
 ```python
 import os
@@ -89,18 +116,23 @@ bundle = SkillLoader.load_skill("creative/deck_builder")
 skill = bundle["class"]()
 tool = SkillLoader.to_claude_tool(bundle)
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-
 response = client.messages.create(
-    model="claude-3-7-sonnet-20250219",
+    model="claude-3-5-haiku-latest",
     max_tokens=1024,
+    system=bundle["instructions"],
     tools=[tool],
     messages=[{"role": "user", "content": "Assemble a 5-slide investor pitch deck for our AI platform."}],
 )
+for block in response.content:
+    if block.type == "tool_use":
+        result = skill.execute(dict(block.input))
+        print(result.get("valid"), result.get("output_path"), result.get("slide_count"))
 ```
 
-### OpenAI (Function Calling)
+### OpenAI
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -111,17 +143,25 @@ bundle = SkillLoader.load_skill("creative/deck_builder")
 skill = bundle["class"]()
 openai_tool = SkillLoader.to_openai_tool(bundle)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
 response = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Build a quarterly review presentation with a revenue chart."},
+    ],
     tools=[openai_tool],
-    messages=[{"role": "user", "content": "Build a quarterly review presentation with a revenue chart."}],
 )
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result.get("valid"), result.get("output_path"), result.get("slide_count"))
 ```
 
 ### DeepSeek
 
 ```python
+import json
 import os
 from openai import OpenAI
 from skillware.core.env import load_env_file
@@ -135,44 +175,45 @@ client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
     base_url="https://api.deepseek.com",
 )
-
 response = client.chat.completions.create(
     model="deepseek-chat",
+    messages=[
+        {"role": "system", "content": bundle["instructions"]},
+        {"role": "user", "content": "Validate and render a technical architecture deck."},
+    ],
     tools=[deepseek_tool],
-    messages=[{"role": "user", "content": "Validate and render a technical architecture deck."}],
 )
+message = response.choices[0].message
+if message.tool_calls:
+    args = json.loads(message.tool_calls[0].function.arguments)
+    result = skill.execute(args)
+    print(result.get("valid"), result.get("output_path"), result.get("slide_count"))
 ```
 
-### Ollama (Local LLMs)
-
-Prompt-based tool calling or system prompt injection. Pull a model such as `gemma3` or `qwen3.5`, then follow [Ollama usage](../usage/ollama.md):
+### Ollama (prompt mode)
 
 ```python
+import json
 from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("creative/deck_builder")
-system_tool_prompt = SkillLoader.to_ollama_prompt(bundle)
-```
-
-### Gemini
-
-```python
-import os
-import google.genai as genai
-from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
-
-load_env_file()
-bundle = SkillLoader.load_skill("creative/deck_builder")
-tool = SkillLoader.to_gemini_tool(bundle)
 skill = bundle["class"]()
-client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
-
-response = client.models.generate_content(
-    model="gemini-3.5-flash",
-    contents="Assemble a deck specification into a presentation.",
-    config=genai.types.GenerateContentConfig(tools=[tool]),
+deck_spec = {
+    "title": "Quarterly Briefing",
+    "template_id": "pitch_v1",
+    "slides": [
+        {"type": "title", "title": "Quarterly Briefing", "subtitle": "Executive Overview"},
+    ],
+}
+prompt = (
+    "You may call tools as JSON blocks.\n"
+    f"Tool: {bundle['manifest']['name']}\n"
+    f"Instructions:\n{bundle['instructions']}\n"
+    "User: Validate this deck spec before rendering."
 )
+print(prompt)
+result = skill.execute({"action": "validate_spec", "deck_spec": deck_spec})
+print(json.dumps(result, indent=2))
 ```
 
 ### Skill Chaining (with `creative/bg_remover`)
