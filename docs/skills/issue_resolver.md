@@ -80,6 +80,8 @@ Sample user message: *Analyse issue #56 in ARPAHLS/skillware and produce a resol
 
 All three scripts use [issue #123](https://github.com/ARPAHLS/skillware/issues/123) as the sample issue. After `prepare`, the example script fetches issue and README content from GitHub and returns it to the model — demonstrating that the skill returns URLs and checklists, not a finished plan.
 
+The shared GitHub-fetch helper lives in [`issue_resolver_common.py`](../../examples/issue_resolver_common.py). It is intentionally not listed in the runnable examples table because it is a support module used by the provider demos rather than a standalone example.
+
 See [examples/README.md](../../examples/README.md) and [Agent loops](../usage/agent_loops.md) for the full inventory.
 
 ### Direct execute
