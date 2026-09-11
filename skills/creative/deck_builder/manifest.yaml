@@ -1,5 +1,5 @@
 name: "creative/deck_builder"
-version: "0.1.0"
+version: "0.2.0"
 description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
 short_description: "Assemble editable PPTX presentations from structured JSON deck specs."
 
@@ -20,12 +20,14 @@ parameters:
   properties:
     action:
       type: string
-      description: "Operation to perform: validate_spec (default), render, inspect, list_templates."
+      description: "Operation to perform: validate_spec (default), render, inspect, list_templates, lint_deck, suggest_outline."
       enum:
         - validate_spec
         - render
         - inspect
         - list_templates
+        - lint_deck
+        - suggest_outline
       default: validate_spec
 
     deck_spec:
@@ -62,6 +64,36 @@ parameters:
       type: boolean
       description: "When true, warnings are treated as validation errors (default: false)."
       default: false
+
+    min_score:
+      type: integer
+      description: "Minimum quality score threshold (0-100) for action='lint_deck'."
+      default: 70
+
+    strict_a11y:
+      type: boolean
+      description: "Enforce strict accessibility rules (e.g. require image alt text) for action='lint_deck'."
+      default: false
+
+    archetype:
+      type: string
+      description: "Presentation archetype for action='suggest_outline' (investor_pitch, technical_brief, quarterly_review, product_launch, training_workshop)."
+      enum:
+        - investor_pitch
+        - technical_brief
+        - quarterly_review
+        - product_launch
+        - training_workshop
+
+    topic:
+      type: string
+      description: "Topic or subject line used to customize the suggested outline skeleton for action='suggest_outline'."
+
+    constraints:
+      type: array
+      description: "Negative constraints or topics to omit for action='suggest_outline' (e.g. ['no pricing', 'no financial'])."
+      items:
+        type: string
   required: []
 
 outputs:
@@ -134,6 +166,56 @@ outputs:
     description: "List of bundled templates and metadata (for list_templates action)."
     items:
       type: object
+
+  score:
+    type: integer
+    description: "Calculated presentation quality score (0-100) for action='lint_deck'."
+
+  passed:
+    type: boolean
+    description: "True when quality score meets or exceeds min_score for action='lint_deck'."
+
+  findings:
+    type: array
+    description: "List of heuristic rule findings and improvement suggestions for action='lint_deck'."
+    items:
+      type: object
+
+  issues:
+    type: array
+    description: "Alias for findings for action='lint_deck'."
+    items:
+      type: object
+
+  archetype:
+    type: string
+    description: "Archetype identifier used for action='suggest_outline'."
+
+  name:
+    type: string
+    description: "Display name of the suggested archetype outline."
+
+  description:
+    type: string
+    description: "Summary description of the archetype narrative structure."
+
+  recommended_slide_count:
+    type: integer
+    description: "Recommended number of slides in the suggested outline."
+
+  constraints_applied:
+    type: array
+    description: "List of negative constraints applied during outline suggestion."
+    items:
+      type: string
+
+  deck_spec:
+    type: object
+    description: "Generated skeleton deck_spec for action='suggest_outline'."
+
+  deck_spec_skeleton:
+    type: object
+    description: "Alias for deck_spec skeleton for action='suggest_outline'."
 
 constitution:
   LOCAL_ASSEMBLY: "Never call network APIs or external LLMs from execute()."
