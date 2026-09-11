@@ -35,7 +35,7 @@ def run_claude_loop(skill, bundle) -> None:
     client = anthropic.Anthropic(api_key=api_key)
     tools = [SkillLoader.to_claude_tool(bundle)]
     system = bundle["instructions"]
-    model = os.environ.get("ANTHROPIC_MODEL", "claude-3-5-haiku-latest")
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
 
     user_query = (
         "You are running a bounded scrape task with task_id claude_scrape_demo. "

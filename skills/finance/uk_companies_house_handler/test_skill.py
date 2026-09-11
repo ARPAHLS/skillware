@@ -311,6 +311,57 @@ def test_get_officers_include_resigned(mock_request, skill):
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_officers_empty_list_agent_hint(mock_request, skill):
+    """Empty officers[] on success includes agent_hint for the host."""
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        "items": [],
+        "total_results": 0,
+        "active_count": 0,
+    }
+    mock_response.raise_for_status = MagicMock()
+    mock_request.return_value = mock_response
+
+    result = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00061707",
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert result["officers"] == []
+    assert "agent_hint" in result
+    assert "empty" in result["agent_hint"].lower()
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_filing_history_empty_list_agent_hint(mock_request, skill):
+    """Empty filings[] on success includes agent_hint for the host."""
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        "items": [],
+        "total_count": 0,
+        "filing_history_status": "filing-history-available",
+    }
+    mock_response.raise_for_status = MagicMock()
+    mock_request.return_value = mock_response
+
+    result = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": "00061707",
+            "category": "accounts",
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert result["filings"] == []
+    assert "agent_hint" in result
+    assert "empty" in result["agent_hint"].lower()
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_get_officers_context_only_company_number(mock_request, skill):
     """get_officers works with company_number provided only via context."""
     mock_response = MagicMock()

@@ -20,6 +20,10 @@
       "input_usd_per_1m": 0.8,
       "output_usd_per_1m": 4.0
     },
+    "claude-haiku-4-5-20251001": {
+      "input_usd_per_1m": 0.8,
+      "output_usd_per_1m": 4.0
+    },
     "gemini-3.5-flash": {
       "input_usd_per_1m": 1.5,
       "output_usd_per_1m": 9.0

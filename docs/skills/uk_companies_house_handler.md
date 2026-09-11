@@ -3,7 +3,7 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.2.1` — 10 Sep 2026
+**Version**: `1.2.1` — 11 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../usage/install_extras.md).
@@ -33,6 +33,7 @@ Skill-context instructions (registry ID opener, not a persona). The host agent:
 - Handles disambiguation when search returns `needs_input`, then resumes with `context` / `run_pipeline`.
 - Uses `terminology_map.yaml` as a reference lexicon; maps US/informal terms via reasoning plus `map_intent` hints.
 - Renders full `officers[]` / `filings[]` lists, including truncated results (default limit 10) with active count hints.
+- **Always replies in plain language** — never ends with an empty or one-word answer; explains empty registry results and asks focused follow-ups when data is missing.
 
 ### Effect (`skill.py`)
 A single `execute()` entry point dispatches to nine action handlers:
@@ -43,6 +44,7 @@ A single `execute()` entry point dispatches to nine action handlers:
 - **Record limits and truncation**: Returns up to 10 active officers or recent filings by default (configurable via `limit`), with `total_results` and `active_count` metadata indicating truncation when more records exist, while maintaining `status: "ready"`.
 - **State propagation**: Extracts and updates session `context` (such as `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) in every response, automatically falling back to these values if omitted in subsequent turns.
 - **Error handling**: Catches HTTP errors (404, 429, 500), timeouts, and connection failures.
+- **Empty-result hints**: When `officers[]` or `filings[]` is empty on a successful call, includes an `agent_hint` so the host explains the gap and asks a focused follow-up.
 
 ### 3. The Knowledge (`data/`)
 Compact, bundled reference data (not a full OpenAPI dump):
@@ -59,7 +61,77 @@ Compact, bundled reference data (not a full OpenAPI dump):
 
 Configure values per [API keys for skills](../usage/api_keys.md). This skill reads the names declared in `skills/finance/uk_companies_house_handler/manifest.yaml`.
 
-Agent loops also need a provider API key (for example `GOOGLE_API_KEY` with Gemini); see [Gemini usage](../usage/gemini.md).
+Agent loops also need a provider API key — for example `GOOGLE_API_KEY` ([Gemini](../usage/gemini.md)) or `ANTHROPIC_API_KEY` ([Claude](../usage/claude.md)).
+
+### Rate limits and API reference
+
+Companies House enforces **600 requests per 5 minutes per API key**. See the official [rate limiting](https://developer.company-information.service.gov.uk/documentation/rate-limiting) and [Getting started](https://developer.company-information.service.gov.uk/) guides. When throttled, the skill returns `status: "error"` with `error_code: "rate_limited"`.
+
+**Host guidance (from live agent-loop testing):**
+
+- Pass **clean** `query` / `company_number` values — not full conversational sentences inside skill params.
+- Short names (`BP`, `Tesco`, `Barclays`) often return `needs_input`; resume with a `company_number` or explicit candidate choice and carry `context` forward.
+- Officer lists default to 10 active records; standalone actions return `ready` with `total_results` / `active_count` when truncated — render all returned rows. `partial` is reserved for in-flight `run_pipeline` only.
+- For stress testing NLP hosts, see `scripts/uk_companies_house_host_simulation.py` (`--provider host|gemini|claude|all`). Gemini free tier may need `--gemini-delay 15` between scenarios.
+
+## Direct execute — pipeline and composites (v2b)
+
+Use these patterns when calling `skill.execute()` directly (no LLM) or when building deterministic hosts. Mocked flows: [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py). Interactive agent loops: [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py), [`examples/claude_uk_companies_house_handler.py`](../../examples/claude_uk_companies_house_handler.py).
+
+**Composite (single intent):**
+
+```python
+result = skill.execute(
+    {
+        "action": "resolve_and_get_officers",
+        "query": "Barclays",
+        "role_hint": "ceo",
+    }
+)
+```
+
+**Multi-step pipeline:**
+
+```python
+intent = skill.execute(
+    {
+        "action": "map_intent",
+        "intent_keywords": "officers, filings",
+        "entities": {"company_query": "BP"},
+    }
+)
+result = skill.execute(
+    {
+        "action": "run_pipeline",
+        "steps": intent["steps"],
+        "context": intent.get("context", {}),
+    }
+)
+while result.get("status") == "partial":
+    result = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": result["steps"],
+            "pipeline": result["pipeline"],
+            "context": result["context"],
+        }
+    )
+```
+
+**Resume after disambiguation:**
+
+```python
+result = skill.execute(
+    {
+        "action": "get_officers",
+        "company_number": "01026167",
+        "role_hint": "ceo",
+        "context": prior_result["context"],
+    }
+)
+```
+
+Status envelopes (`ready`, `partial`, `needs_input`, `error`) and host reply expectations are defined in `instructions.md` (Directive). In agent loops, pass **`bundle["instructions"]`** as system context so the model passes clean `query` values, handles `needs_input`, and always produces a user-facing answer — including when registry rows are empty.
 
 ## Usage Examples
 
@@ -71,6 +143,8 @@ Use `bundle["class"]()` in the snippets below; explicit `bundle["module"].ClassN
 Sample user message: *Who is the CEO of BP?*
 
 ### Gemini
+
+Runnable interactive loop: [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py).
 
 ```python
 import os
@@ -87,8 +161,9 @@ skill = bundle["class"](
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
+model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 response = client.models.generate_content(
-    model="gemini-3.5-flash",
+    model=model,
     contents="Who is the CEO of BP?",
     config=types.GenerateContentConfig(
         tools=[tool],
@@ -99,7 +174,7 @@ for part in response.candidates[0].content.parts:
     if part.function_call and part.function_call.name == tool_name:
         result = skill.execute(dict(part.function_call.args))
         follow_up = client.models.generate_content(
-            model="gemini-3.5-flash",
+            model=model,
             contents=[
                 "Use this tool result to answer the original request.",
                 {
@@ -119,7 +194,10 @@ for part in response.candidates[0].content.parts:
 
 ### Claude
 
+Runnable interactive loop: [`examples/claude_uk_companies_house_handler.py`](../../examples/claude_uk_companies_house_handler.py).
+
 ```python
+import json
 import os
 import anthropic
 from skillware.core.env import load_env_file
@@ -132,17 +210,50 @@ skill = bundle["class"](
 )
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
+tool_name = tools[0]["name"]
+model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
+messages = [{"role": "user", "content": "Who is the CEO of BP?"}]
+
 response = client.messages.create(
-    model="claude-3-5-haiku-latest",
-    max_tokens=1024,
+    model=model,
+    max_tokens=2048,
     system=bundle["instructions"],
     tools=tools,
-    messages=[{"role": "user", "content": "Who is the CEO of BP?"}],
+    messages=messages,
 )
-for block in response.content:
-    if block.type == "tool_use":
-        result = skill.execute(dict(block.input))
-        print(result["status"])
+while response.stop_reason == "tool_use":
+    tool_use = next(b for b in response.content if b.type == "tool_use")
+    result = skill.execute(dict(tool_use.input)) if tool_use.name == tool_name else {"error": "unknown tool"}
+    messages.extend(
+        [
+            {"role": "assistant", "content": response.content},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_use.id,
+                        "content": json.dumps(result),
+                    }
+                ],
+            },
+        ]
+    )
+    if result.get("status") == "needs_input":
+        messages.append(
+            {
+                "role": "user",
+                "content": "Use BP P.L.C. (company number 00102498) and list current directors.",
+            }
+        )
+    response = client.messages.create(
+        model=model,
+        max_tokens=2048,
+        system=bundle["instructions"],
+        tools=tools,
+        messages=messages,
+    )
+print("".join(b.text for b in response.content if getattr(b, "text", None)))
 ```
 
 ### OpenAI
@@ -515,7 +626,7 @@ print(json.dumps(result, indent=2))
 
 - **Scope**: Search, profile, officers, PSC, filing history, multi-step pipeline orchestration, and composite resolution. Charges, insolvency registers, and document downloads are planned for later v2 phases.
 - **Read-only**: This skill cannot submit filings or modify Companies House records.
-- **Rate limits**: Companies House API allows 600 requests per 5 minutes per key. The skill returns a structured `rate_limited` error when throttled.
+- **Rate limits**: Companies House API allows [600 requests per 5 minutes per key](https://developer.company-information.service.gov.uk/documentation/rate-limiting). The skill returns a structured `rate_limited` error when throttled. Batch or pipeline hosts should backoff and retry.
 - **Public data only**: Only publicly available information is returned.
 - **Not legal advice**: Company information is provided as-is. This is not legal, accounting, or regulatory advice.
 

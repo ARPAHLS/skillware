@@ -2,7 +2,11 @@
 
 You are using the `finance/uk_companies_house_handler` skill.
 
-This skill wraps the UK Companies House REST API (`api.company-information.service.gov.uk`) with deterministic actions. It returns structured JSON envelopes (`ready`, `partial`, `needs_input`, `error`) — it does not parse conversational user text. **You** infer intent, choose actions, pass clean parameters (`query`, `company_number`, `role_hint`, `category`), handle disambiguation with the user, and render record lists in your reply.
+This skill wraps the UK Companies House REST API (`api.company-information.service.gov.uk`) with deterministic actions. It returns structured JSON envelopes (`ready`, `partial`, `needs_input`, `error`) — it does not parse conversational user text.
+
+**You are the host agent.** You infer intent, choose actions, pass clean parameters (`query`, `company_number`, `role_hint`, `category`), handle disambiguation with the user, interpret every envelope, and **always** reply in plain language. The skill never speaks to the user directly.
+
+**Never end your turn without a user-facing message.** Even when the registry returns no rows, an error, or only `needs_input`, explain what you attempted, what the JSON means, and what you need next (if anything). One-word answers (e.g. `"No."`) are not acceptable — summarize the lookup scope and result.
 
 `data/terminology_map.yaml` is a **reference lexicon** for UK/US/finance term equivalents and keyword hints; it is not a substitute for your reasoning. Prefer explicit parameters over relying on keyword routing alone.
 
@@ -76,21 +80,47 @@ For combined asks (e.g. *"get me 10 filings and ceo of BP"*):
 - Officers only: `resolve_and_get_officers` with `company_number` (if known) or clean `query` + optional `role_hint` / `officer_name`.
 - Filings only: `resolve_and_get_filings` with `company_number` (if known) or clean `query` + optional `category`.
 
+## Conversation workflow
+
+Follow this loop for every user question:
+
+1. **Understand** — What registry facts are needed (company, officers, PSCs, filings, yes/no officer check)?
+2. **Parameterize** — Do you have a `company_number` or clean `query`? If not, ask the user before calling the skill.
+3. **Call the skill** — One action at a time (or `run_pipeline` / composites when appropriate) with clean params.
+4. **Interpret the envelope** — Read `status`, record arrays, counts, `agent_hint`, and `context`.
+5. **Reply or clarify** — Present findings in simple language, or ask a focused follow-up (pick a candidate, confirm company number, refine officer name).
+
+After tool results return `ready` or `partial`, **stop calling tools** unless you still lack data to answer the question. Write the user-facing summary first.
+
 ## Understanding responses
 
-| Status | Meaning |
-| :--- | :--- |
-| `ready` | Complete result for standalone/composite actions or completed pipelines — present data clearly. |
-| `partial` | Intermediate pipeline progress (used only in `run_pipeline` when intermediate steps have executed and remaining steps are pending). |
-| `needs_input` | Ambiguous search or missing company name for pipeline — use `candidates` or `agent_hint`. |
-| `error` | Check `error_code` and `message`. Use `agent_hint` for retry guidance (`rate_limited`, `timeout`, `connection_error`). |
+| Status | Meaning | Your reply |
+| :--- | :--- | :--- |
+| `ready` | Complete result for standalone/composite actions or completed pipelines. | Present data clearly; cite `company_number` / `company_name` and `fetched_at` when useful. List all returned records and state `total_results` / `active_count` when truncated. |
+| `partial` | In-flight `run_pipeline` only — intermediate step finished, remaining steps pending. | Summarize completed step output; explain remaining pipeline work or ask for disambiguation if halted. |
+| `needs_input` | Ambiguous search or missing company name for pipeline. | Show `candidates` or paraphrase `agent_hint`; ask the user to choose or supply a company number. |
+| `error` | Request failed. | Explain `message` / `error_code`; suggest retry or different params (`rate_limited`, `timeout`, etc.). |
 
 Every response includes `fetched_at`, `source`, and usually `context`. Pipeline responses may include `pipeline: {"completed_steps": N, "total_steps": M}`.
 
 Common `error_code` values: `not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`.
 
+## Empty or missing registry data
+
+A **`ready` response with empty arrays** (`officers: []`, `filings: []`, `pscs: []`) is valid — it means the API call succeeded but nothing matched your filters or this entity has no public rows in that category. Do **not** treat it as a failure and do **not** stay silent.
+
+In your own words:
+
+- State which company (`company_number`, `company_name`) you queried and which action ran.
+- Say that Companies House returned no matching public records for that request.
+- Offer helpful next steps: confirm the exact legal entity, try a different company number, widen filters (`active_only: false`, higher `limit`), or ask what the user is trying to learn.
+
+The same applies to `error` with `no_results` / `not_found`, and to officer name checks where no match appears — explain how many officers you scanned and that the name was not found.
+
+Use `agent_hint` when present; it summarizes machine-oriented guidance — translate it for the user, do not paste it verbatim unless helpful.
+
 ## Limitations
 
 - Read-only public registry data; no document downloads or filing submission (later v2 phases).
-- Rate limit: 600 requests per 5 minutes per API key.
+- Rate limit: [600 requests per 5 minutes per API key](https://developer.company-information.service.gov.uk/documentation/rate-limiting). On `rate_limited`, tell the user to wait and retry.
 - Not legal or accounting advice — cite `company_number` and `fetched_at` when presenting data.

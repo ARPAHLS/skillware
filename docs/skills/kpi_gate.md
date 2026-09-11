@@ -193,7 +193,7 @@ skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
 response = client.messages.create(
-    model="claude-3-5-haiku-latest",
+    model="claude-haiku-4-5-20251001",
     max_tokens=1024,
     system=bundle["instructions"],
     tools=tools,

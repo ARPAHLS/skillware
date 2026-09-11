@@ -30,6 +30,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Docs (`install_extras.md`):** Backfill `deck_builder`, `gmail_handler`, and `[all]` package rows; add CI guard comparing the install guide to `pyproject.toml` optional-dependencies.
 - **Docs (skill catalog):** Skill history sweep — merge SHAs for `deck_builder` and `semantic_web_proxy`, `#345` rows for Gemini 3.5 bumps (`mica_module`, `tos_evaluator`, `mental_coach`, `synthetic_generator`, `token_limiter`).
 - **Docs / examples:** Default Gemini model IDs migrated from 2.5 Flash / Flash-Lite to `gemini-3.5-flash` and `gemini-3.5-flash-lite` across catalog pages, runnable examples, skill defaults, and `docs/usage/gemini.md` (#265).
+- **Docs / examples:** Default Claude Haiku snippets migrated to `claude-haiku-4-5-20251001` across catalog pages, `docs/usage/claude.md`, and `examples/claude_token_limiter.py`; `model_pricing.json` updated.
+- **Examples:** `claude_uk_companies_house_handler.py` — interactive UK Companies House v2b loop; Gemini/Claude examples print `needs_input` disambiguation hints.
+- **Docs (`uk_companies_house_handler`):** Rate-limit links, agent-loop host guidance, multi-turn Claude snippet; `agent_loops.md` references Claude example and stress harness.
+- **Skill (`finance/uk_companies_house_handler` v1.2.1):** Directive expanded — host must interpret envelopes, handle empty registry rows, and always produce user-facing replies; `agent_hint` on empty `officers[]` / `filings[]`.
+- **Examples:** `claude_uk_companies_house_handler.py`; Gemini/Claude UK Companies House loops use `bundle["class"]()` and disambiguation hints.
+- **Docs:** UK pipeline/composite patterns moved from generic `agent_loops.md` to [UK Companies House catalog](docs/skills/uk_companies_house_handler.md); agent loops doc adds generic multi-turn guidance only.
 - **Skills (`compliance/tos_evaluator`, `compliance/mica_module`, `wellness/mental_coach`, `data_engineering/synthetic_generator` v0.1.1):** Default Gemini evaluator / generator model IDs updated to 3.5 Flash / Flash-Lite (#265).
 - **Skill (`monitoring/token_limiter`):** `model_pricing.json` updated with Gemini 3.5 Standard-tier list prices (Sep 2026) (#265).
 - **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`).

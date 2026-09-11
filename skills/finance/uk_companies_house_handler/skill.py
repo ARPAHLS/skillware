@@ -376,8 +376,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "terminology_note": terminology_note,
         }
 
+        empty_hint = ""
+        if not officers:
+            empty_hint = (
+                "Registry call succeeded but officers[] is empty for this company_number "
+                "and filters. Tell the user what was queried and ask whether they meant "
+                "a different entity or broader officer criteria."
+            )
+
         return self._ready_response(
             result,
+            agent_hint=empty_hint,
             source="companies_house_api",
         )
 
@@ -479,8 +488,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "filings": filings,
         }
 
+        empty_hint = ""
+        if not filings:
+            empty_hint = (
+                "Registry call succeeded but filings[] is empty for this company_number "
+                "and category filter. Explain that to the user and suggest confirming "
+                "the entity or trying a different filing category."
+            )
+
         return self._ready_response(
             result,
+            agent_hint=empty_hint,
             source="companies_house_api",
         )
 

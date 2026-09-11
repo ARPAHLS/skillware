@@ -126,6 +126,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "claude_issue_resolver.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
     "claude_pdf_form_filler.py": "Requires ANTHROPIC_API_KEY for PDF field mapping.",
     "claude_token_limiter.py": "Requires ANTHROPIC_API_KEY for live Claude loop.",
+    "claude_uk_companies_house_handler.py": "Requires ANTHROPIC_API_KEY and live Companies House key.",
     "claude_tos_evaluator.py": "Requires ANTHROPIC_API_KEY for live policy review.",
     "claude_wallet_check.py": "Requires ANTHROPIC_API_KEY and ETHERSCAN_API_KEY.",
     "deepseek_tos_evaluator.py": "Requires DEEPSEEK_API_KEY for OpenAI-compatible endpoint.",
