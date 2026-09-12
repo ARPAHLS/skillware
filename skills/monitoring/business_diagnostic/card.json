@@ -1,0 +1,49 @@
+{
+    "name": "Business Diagnostic",
+    "description": "Deterministic scenario ledger and calibration: declared-weight odds next to operator marks, re-mark dates, and Brier scores.",
+    "issuer": {
+        "name": "Masa",
+        "email": "masa88keith@gmail.com",
+        "github": "mrmasa88",
+        "org": "AO"
+    },
+    "icon": "gauge",
+    "color": "#0f766e",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "framework_id",
+                "label": "Framework"
+            },
+            {
+                "key": "as_of",
+                "label": "As Of"
+            },
+            {
+                "key": "scenarios",
+                "label": "Scenarios"
+            },
+            {
+                "key": "calibration",
+                "label": "Calibration"
+            },
+            {
+                "key": "fired_any",
+                "label": "Indicators Fired"
+            },
+            {
+                "key": "marks_stale",
+                "label": "Marks Stale"
+            },
+            {
+                "key": "insufficient_data",
+                "label": "Insufficient Data"
+            }
+        ]
+    }
+}

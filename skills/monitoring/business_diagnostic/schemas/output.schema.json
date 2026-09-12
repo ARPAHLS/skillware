@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/business_diagnostic:output:1",
+  "description": "Shape returned by execute(). A completed run for adjudicate or calibrate, or an error envelope for a contract violation. Documentation only; runtime uses explicit stdlib checks.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["status", "framework_id", "as_of", "scenarios", "calibration", "fired_any", "marks_stale", "insufficient", "insufficient_data"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "completed"},
+        "framework_id": {"type": "string"},
+        "as_of": {"type": "string", "format": "date"},
+        "scenarios": {
+          "description": "One entry per declared scenario, in declaration order. adjudicate: model_implied and delta are numbers (3 decimals) or null under insufficient_data. calibrate: model_implied and delta are omitted.",
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "operator_mark", "fired"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+              "operator_mark": {"type": "number"},
+              "model_implied": {"type": ["number", "null"]},
+              "delta": {"type": ["number", "null"]},
+              "fired": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "calibration": {
+          "type": "object",
+          "required": ["next_remark_due", "days_to_adjudication", "brier"],
+          "additionalProperties": false,
+          "properties": {
+            "next_remark_due": {"type": "string", "format": "date"},
+            "days_to_adjudication": {"type": "integer"},
+            "brier": {"type": ["number", "null"]},
+            "brier_trend": {
+              "description": "calibrate only: Brier per mark set in marks_history, ascending by marked_on; null when no marks_history was supplied.",
+              "type": ["array", "null"],
+              "items": {
+                "type": "object",
+                "required": ["marked_on", "brier"],
+                "additionalProperties": false,
+                "properties": {
+                  "marked_on": {"type": "string", "format": "date"},
+                  "brier": {"type": "number"}
+                }
+              }
+            }
+          }
+        },
+        "fired_any": {"type": "boolean"},
+        "marks_stale": {"type": "boolean"},
+        "insufficient": {"type": "boolean"},
+        "insufficient_data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["reason", "detail"],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {"enum": ["adjudication_date_passed"]},
+              "detail": {"type": "object"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["status", "error"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {"const": "error"},
+        "error": {
+          "type": "object",
+          "required": ["code", "detail"],
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "enum": ["INVALID_REQUEST", "UNKNOWN_ACTION", "INVALID_AS_OF", "INVALID_FRAMEWORK_SCHEMA", "INVALID_MARKS_SCHEMA", "INVALID_OBSERVATIONS_SCHEMA", "INVALID_OUTCOME_SCHEMA", "UNKNOWN_SCENARIO_ID", "UNKNOWN_INDICATOR_ID", "DUPLICATE_OBSERVATION", "MARK_OUT_OF_RANGE", "MARKS_NOT_NORMALIZED", "OBSERVATION_PREDATES_MARKS", "OBSERVATION_AFTER_ADJUDICATION"]
+            },
+            "detail": {"type": "string"}
+          }
+        }
+      }
+    }
+  ]
+}

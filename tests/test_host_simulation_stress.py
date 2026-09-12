@@ -30,6 +30,7 @@ FIREWALL = "security/prompt_injection_firewall"
 REWRITER = "optimization/prompt_rewriter"
 TOKEN_LIMITER = "monitoring/token_limiter"
 KPI_GATE = "monitoring/kpi_gate"
+BUSINESS_DIAGNOSTIC = "monitoring/business_diagnostic"
 
 SAFE_TEXT = "Summarize the Q3 earnings call highlights for the board."
 UNSAFE_TEXT = (
@@ -262,6 +263,7 @@ def test_scenario_hybrid_chain_then_agent_context(chain_config_repo):
 
     ctx = SkillContext(categories=["monitoring"])
     assert TOKEN_LIMITER in ctx.skill_ids or KPI_GATE in ctx.skill_ids
+    assert BUSINESS_DIAGNOSTIC in ctx.skill_ids
 
     gate = ctx.execute(
         TOKEN_LIMITER,

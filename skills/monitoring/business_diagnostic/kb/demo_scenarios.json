@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-09-07",
+  "sources": [
+    "https://github.com/ARPAHLS/skillware/issues/338"
+  ],
+  "note": "Synthetic demonstration framework. Scenario labels, criteria, indicators, and weights are illustrative only.",
+  "framework": {
+    "schema_version": 1,
+    "framework_id": "demo_launch_2026",
+    "adjudication_date": "2027-12-31",
+    "exhaustive": true,
+    "scenarios": [
+      {
+        "id": "A",
+        "label": "wired launch",
+        "criterion": "Product launches through an existing partner channel before the adjudication date."
+      },
+      {
+        "id": "B",
+        "label": "branded launch",
+        "criterion": "Product launches under its own brand before the adjudication date."
+      },
+      {
+        "id": "C",
+        "label": "no launch",
+        "criterion": "No launch of any kind before the adjudication date."
+      },
+      {
+        "id": "D",
+        "label": "residual",
+        "criterion": "Any outcome not covered by A, B, or C."
+      }
+    ],
+    "indicators": [
+      {
+        "id": "I01",
+        "label": "design document published",
+        "strengthens": {
+          "A": 1.0,
+          "B": -0.5
+        }
+      },
+      {
+        "id": "I07",
+        "label": "timing synchronized with market window",
+        "strengthens": {
+          "B": 1.0,
+          "A": -0.5
+        }
+      }
+    ]
+  }
+}

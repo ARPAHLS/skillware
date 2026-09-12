@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "framework_id": "demo_launch_2026",
+  "as_of": "2026-09-02",
+  "scenarios": [
+    {
+      "id": "A",
+      "operator_mark": 0.15,
+      "model_implied": 0.307,
+      "delta": 0.157,
+      "fired": [
+        "I01"
+      ]
+    },
+    {
+      "id": "B",
+      "operator_mark": 0.45,
+      "model_implied": 0.314,
+      "delta": -0.136,
+      "fired": [
+        "I01"
+      ]
+    },
+    {
+      "id": "C",
+      "operator_mark": 0.3,
+      "model_implied": 0.284,
+      "delta": -0.016,
+      "fired": []
+    },
+    {
+      "id": "D",
+      "operator_mark": 0.1,
+      "model_implied": 0.095,
+      "delta": -0.005,
+      "fired": []
+    }
+  ],
+  "calibration": {
+    "next_remark_due": "2026-10-16",
+    "days_to_adjudication": 485,
+    "brier": null
+  },
+  "fired_any": true,
+  "marks_stale": false,
+  "insufficient": false,
+  "insufficient_data": []
+}

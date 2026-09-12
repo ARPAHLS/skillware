@@ -163,6 +163,74 @@ skills in one harness.
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `monitoring/business_diagnostic` | `business_diagnostic_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |
 | `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+
+### Business Diagnostic, adjudicate → calibrate loop
+
+`monitoring/business_diagnostic` is a stateless, offline scenario ledger with two actions. Pass **`bundle["instructions"]`** so the model presents `delta` and `fired` next to `operator_mark` (never `model_implied` alone), prompts a re-mark on `marks_stale`, and reports `insufficient_data` reasons without backfilling. The host supplies `as_of` on every call and keeps the ledger (marks, observations, marks history, outcome) in the JSON it sends; chain conditions use the top-level booleans `fired_any`, `marks_stale`, and `insufficient`.
+
+**Adjudicate (after an observation is recorded):**
+
+```python
+result = skill.execute(
+    {
+        "action": "adjudicate",
+        "as_of": "2026-09-02",
+        "framework": {
+            "schema_version": 1,
+            "framework_id": "demo_launch_2026",
+            "adjudication_date": "2027-12-31",
+            "exhaustive": True,
+            "scenarios": [
+                {"id": "A", "label": "wired launch", "criterion": "Product launches through an existing partner channel before the adjudication date."},
+                {"id": "B", "label": "branded launch", "criterion": "Product launches under its own brand before the adjudication date."},
+                {"id": "C", "label": "no launch", "criterion": "No launch of any kind before the adjudication date."},
+                {"id": "D", "label": "residual", "criterion": "Any outcome not covered by A, B, or C."},
+            ],
+            "indicators": [
+                {"id": "I01", "label": "design document published", "strengthens": {"A": 1.0, "B": -0.5}},
+                {"id": "I07", "label": "timing synchronized with market window", "strengthens": {"B": 1.0, "A": -0.5}},
+            ],
+        },
+        "marks": {
+            "marked_on": "2026-07-18",
+            "remark_every_days": 90,
+            "values": {"A": 0.15, "B": 0.45, "C": 0.30, "D": 0.10},
+        },
+        "observations": [
+            {"indicator": "I01", "observed": "yes", "on": "2026-08-20", "source": "ref-12"}
+        ],
+    }
+)
+# A 0.307 (+0.157) fired ["I01"], B 0.314 (-0.136) fired ["I01"], C 0.284, D 0.095;
+# next_remark_due 2026-10-16, days_to_adjudication 485, marks_stale False
+```
+
+**Calibrate (after the outcome resolves; `marks_history` optional):**
+
+```python
+result = skill.execute(
+    {
+        "action": "calibrate",
+        "as_of": "2026-09-02",
+        "framework": framework,  # the same framework object as above
+        "marks": {
+            "marked_on": "2026-07-18",
+            "remark_every_days": 90,
+            "values": {"A": 0.15, "B": 0.45, "C": 0.30, "D": 0.10},
+        },
+        "outcome": {"resolved_on": "2027-12-31", "scenario": "B"},
+        "marks_history": [
+            {"marked_on": "2026-04-19", "remark_every_days": 90, "values": {"A": 0.15, "B": 0.40, "C": 0.35, "D": 0.10}},
+            {"marked_on": "2026-01-19", "remark_every_days": 90, "values": {"A": 0.25, "B": 0.25, "C": 0.25, "D": 0.25}},
+        ],
+    }
+)
+# calibration["brier"] == 0.425; calibration["brier_trend"] ascending by marked_on:
+# 2026-01-19 0.75, 2026-04-19 0.515
+```
+
+See [`examples/business_diagnostic_demo.py`](../../examples/business_diagnostic_demo.py) (offline, fixtures only: adjudicate, calibrate, Brier trend, honest state, two contract errors) and the provider blocks under [Usage Examples](../skills/business_diagnostic.md#usage-examples) on the catalog page.
 

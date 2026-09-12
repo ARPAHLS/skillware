@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/business_diagnostic:outcome:1",
+  "description": "Resolved outcome. Required (object) for action calibrate; null or absent for action adjudicate. Runtime also requires scenario to be a declared id.",
+  "type": ["object", "null"],
+  "required": ["resolved_on", "scenario"],
+  "additionalProperties": false,
+  "properties": {
+    "resolved_on": {"type": "string", "format": "date"},
+    "scenario": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+  }
+}

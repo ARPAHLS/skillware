@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/business_diagnostic:framework:1",
+  "description": "Operator-owned scenario framework. Scenario and indicator ids are closed sets declared here; duplicate ids are rejected at runtime (not expressible in JSON Schema).",
+  "type": "object",
+  "required": ["schema_version", "framework_id", "adjudication_date", "exhaustive", "scenarios", "indicators"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "framework_id": {"type": "string"},
+    "adjudication_date": {"type": "string", "format": "date"},
+    "exhaustive": {
+      "description": "true: model-implied probabilities are renormalized to sum to 1; false: each scenario updates independently.",
+      "type": "boolean"
+    },
+    "scenarios": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "criterion"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "label": {"type": "string"},
+          "criterion": {"type": "string"}
+        }
+      }
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "strengthens"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "label": {"type": "string"},
+          "strengthens": {
+            "description": "Per-scenario logit weight applied when the indicator is observed (+w for yes, -w for no). Every key must be a declared scenario id; undeclared scenarios contribute 0.",
+            "type": "object",
+            "patternProperties": {"^[A-Z][A-Z0-9_]*$": {"type": "number"}},
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  }
+}

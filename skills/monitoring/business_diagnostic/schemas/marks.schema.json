@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/business_diagnostic:marks:1",
+  "description": "One set of operator probability marks. Used for the marks input and for each item of marks_history. Runtime also requires: every declared scenario has a value, and the values sum to 1 within 1e-6.",
+  "type": "object",
+  "required": ["marked_on", "remark_every_days", "values"],
+  "additionalProperties": false,
+  "properties": {
+    "marked_on": {"type": "string", "format": "date"},
+    "remark_every_days": {"type": "integer", "minimum": 1},
+    "values": {
+      "type": "object", "minProperties": 1,
+      "patternProperties": {"^[A-Z][A-Z0-9_]*$": {"type": "number", "minimum": 0.001, "maximum": 0.999}},
+      "additionalProperties": false
+    }
+  }
+}

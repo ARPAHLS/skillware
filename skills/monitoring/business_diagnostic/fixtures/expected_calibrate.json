@@ -1,0 +1,37 @@
+{
+  "status": "completed",
+  "framework_id": "demo_launch_2026",
+  "as_of": "2026-09-02",
+  "scenarios": [
+    {
+      "id": "A",
+      "operator_mark": 0.15,
+      "fired": []
+    },
+    {
+      "id": "B",
+      "operator_mark": 0.45,
+      "fired": []
+    },
+    {
+      "id": "C",
+      "operator_mark": 0.3,
+      "fired": []
+    },
+    {
+      "id": "D",
+      "operator_mark": 0.1,
+      "fired": []
+    }
+  ],
+  "calibration": {
+    "next_remark_due": "2026-10-16",
+    "days_to_adjudication": 485,
+    "brier": 0.425,
+    "brier_trend": null
+  },
+  "fired_any": false,
+  "marks_stale": false,
+  "insufficient": false,
+  "insufficient_data": []
+}

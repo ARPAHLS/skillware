@@ -1,0 +1,119 @@
+name: monitoring/business_diagnostic
+version: 0.1.0
+description: >
+  Deterministic scenario ledger and calibration, companion to
+  monitoring/kpi_gate. Evaluates an operator-maintained framework (scenarios,
+  adjudication date, weighted leading indicators) and the operator's
+  probability marks against dated indicator observations, returning the
+  model-implied probability of each scenario under the declared weights, the
+  delta from the marks, which indicators fired, the next re-mark due date and
+  days to adjudication; once an outcome is resolved, Brier scores per mark
+  date. Strict checks on every input, a closed error registry, and one honest
+  state (insufficient_data with a reason code). Pure evaluation only: no
+  network calls, no clock, no side effects; identical input always returns
+  identical output.
+short_description: "Scenario ledger for a business: declared-weight odds vs operator marks; Brier."
+issuer:
+  name: Masa
+  email: masa88keith@gmail.com
+  github: mrmasa88
+  org: AO
+category: monitoring
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum: [adjudicate, calibrate]
+      description: >
+        adjudicate computes model-implied probabilities from observations;
+        calibrate scores the marks against a resolved outcome (Brier).
+    as_of:
+      type: string
+      description: >
+        Evaluation date (YYYY-MM-DD) supplied by the host. The skill never
+        reads the clock, so staleness and days to adjudication are computed
+        from this value only.
+    framework:
+      type: object
+      description: >
+        Operator-owned framework (framework schema v1): schema_version,
+        framework_id, adjudication_date, exhaustive flag, the closed list of
+        scenarios (id, label, criterion), and indicators with per-scenario
+        strengthens weights. Maintained as versioned data by the operator and
+        parsed by the host before the call.
+    marks:
+      type: object
+      description: >
+        Current operator marks (marks schema v1): marked_on, remark_every_days,
+        and values mapping every declared scenario id to a probability in
+        [0.001, 0.999] that sum to 1.
+    observations:
+      type: array
+      description: >
+        Optional for adjudicate (default empty): dated indicator observations
+        (indicator, observed yes/no, on, optional source). At most one entry
+        per indicator; the host de-duplicates.
+      items:
+        type: object
+    outcome:
+      type: [object, "null"]
+      description: >
+        Required for calibrate: resolved_on date and the winning scenario id.
+        Null or omitted for adjudicate.
+    marks_history:
+      type: array
+      description: >
+        Optional for calibrate: earlier mark sets (same shape as marks) whose
+        Brier scores are returned as brier_trend in ascending marked_on order.
+      items:
+        type: object
+  required:
+    - action
+    - as_of
+    - framework
+    - marks
+  additionalProperties: false
+outputs:
+  status:
+    type: string
+    description: completed for an evaluation run; error for a contract violation.
+  framework_id:
+    type: string
+    description: The framework_id of the evaluated framework.
+  as_of:
+    type: string
+    description: The evaluation date echoed from the input.
+  scenarios:
+    type: array
+    description: >
+      One entry per declared scenario in declaration order: id, operator_mark,
+      fired indicator ids, and for adjudicate the model_implied probability and
+      delta (3 decimals, or null under insufficient_data).
+  calibration:
+    type: object
+    description: >
+      next_remark_due, days_to_adjudication, brier (null for adjudicate), and
+      for calibrate brier_trend (per historical mark set, or null).
+  fired_any:
+    type: boolean
+    description: True when at least one observed indicator carries a declared weight.
+  marks_stale:
+    type: boolean
+    description: True when as_of is later than next_remark_due.
+  insufficient:
+    type: boolean
+    description: True when insufficient_data is non-empty.
+  insufficient_data:
+    type: array
+    description: Honest refusals with a reason code from a closed set and a detail object.
+requirements: []
+constitution: |
+  1. Compute only - no data fetching, no side effects, no automated re-marking.
+  2. Deterministic, offline core - no network and no clock in execute(); identical input returns identical output.
+  3. Never overwrite operator marks - model-implied values are shown next to marks, never in place of them.
+  4. Refuse rather than guess - undeclared scenarios or indicators are contract errors; what cannot be computed honestly returns insufficient_data with a reason code.
+  5. Label the arithmetic - model-implied probabilities are "what the declared weights imply", not forecasts or recommendations, and every output says so.
+presentation:
+  icon: gauge
+  color: "#0f766e"

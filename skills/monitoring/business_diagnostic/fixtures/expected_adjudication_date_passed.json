@@ -1,0 +1,52 @@
+{
+  "status": "completed",
+  "framework_id": "demo_launch_2026",
+  "as_of": "2027-12-31",
+  "scenarios": [
+    {
+      "id": "A",
+      "operator_mark": 0.15,
+      "model_implied": null,
+      "delta": null,
+      "fired": []
+    },
+    {
+      "id": "B",
+      "operator_mark": 0.45,
+      "model_implied": null,
+      "delta": null,
+      "fired": []
+    },
+    {
+      "id": "C",
+      "operator_mark": 0.3,
+      "model_implied": null,
+      "delta": null,
+      "fired": []
+    },
+    {
+      "id": "D",
+      "operator_mark": 0.1,
+      "model_implied": null,
+      "delta": null,
+      "fired": []
+    }
+  ],
+  "calibration": {
+    "next_remark_due": "2026-10-16",
+    "days_to_adjudication": 0,
+    "brier": null
+  },
+  "fired_any": false,
+  "marks_stale": true,
+  "insufficient": true,
+  "insufficient_data": [
+    {
+      "reason": "adjudication_date_passed",
+      "detail": {
+        "as_of": "2027-12-31",
+        "adjudication_date": "2027-12-31"
+      }
+    }
+  ]
+}

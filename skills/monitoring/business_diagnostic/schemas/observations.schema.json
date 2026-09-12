@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "skillware:monitoring/business_diagnostic:observations:1",
+  "description": "Dated indicator observations for action adjudicate. Runtime also requires: indicator is a declared id, at most one observation per indicator (the host de-duplicates), marks.marked_on < on <= framework.adjudication_date.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["indicator", "observed", "on"],
+    "additionalProperties": false,
+    "properties": {
+      "indicator": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+      "observed": {"enum": ["yes", "no"]},
+      "on": {"type": "string", "format": "date"},
+      "source": {"type": "string"}
+    }
+  }
+}
