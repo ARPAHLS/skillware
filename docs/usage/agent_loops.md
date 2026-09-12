@@ -58,6 +58,8 @@ Repeat until the model stops with natural-language text (not `tool_use` / functi
 
 ## Multi-skill sessions (SkillContext)
 
+For the choice between full Directives, brief registry lines, and host-managed progressive loading, see [Choose host context (Directive vs brief)](skill_chaining.md#choose-host-context-directive-vs-brief). `SkillContext.execute()` validates skill parameters; `prepare()` returns the Directive to the host but does not inject it into the model context.
+
 For agents that expose **many tools** from the registry, replace steps 1–4 with `SkillContext`:
 
 ```python
@@ -70,7 +72,7 @@ tools = ctx.tools("gemini")  # or claude | openai | deepseek
 # Send system + tools + user message to the model ...
 # On tool_call:
 
-result = ctx.execute(skill_id, arguments)  # auto-prepares; validates if you call prepare() first
+result = ctx.execute(skill_id, arguments)  # auto-prepares and validates parameters
 # Return result JSON to the model; loop continues
 ```
 
@@ -165,4 +167,3 @@ skills in one harness.
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |
 | `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-
