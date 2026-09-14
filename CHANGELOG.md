@@ -8,13 +8,17 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-09-14
+
 ### Added
 
 - **Tests:** Five-provider Usage Examples guard in `tests/test_skill_docs.py` — every catalog page must expose Gemini, Claude, OpenAI, DeepSeek, and Ollama snippets with `load_skill` and `skill.execute` (#104).
-- **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups.
+- **CLI:** `skillware theme [pastel|ocean|mono]` subcommand — set or interactively choose the global presentation theme; `--help` topic index now includes Context, Chains, and Theme alongside existing groups (#335).
 - **Skill (`creative/deck_builder` v0.1.0):** Deterministic Microsoft PowerPoint (`.pptx`) presentation assembly from structured JSON deck specifications — 10 slide layout types (title, section, bullets, two-column, image, image with caption, quote, table, chart, blank), 3 bundled 16:9 widescreen master templates (pitch, corporate, minimal), theme token customization, pre-flight validation with soft-limit truncation warnings, directory traversal defenses, and inspection actions (#276).
 - **Skill (`data_engineering/semantic_web_proxy` v0.1.0):** Semantic web proxy that reduces a live page or raw HTML to token-efficient Markdown, plain text, or JSON via trafilatura — boilerplate, script, and navigation stripping, opt-in comment threads, document metadata, estimated token savings with optional context-window share, an SSRF guard that re-validates every redirect hop, and a `page_likely_requires_javascript` warning instead of a silently empty payload for client-rendered pages (#42).
 - **Examples:** [`semantic_web_proxy_demo.py`](examples/semantic_web_proxy_demo.py) — offline fixture-backed demo of boilerplate stripping, comment inclusion, the render warning, and the SSRF guard (#42).
+- **Examples:** [`claude_uk_companies_house_handler.py`](examples/claude_uk_companies_house_handler.py) — interactive UK Companies House v1.2.1 Claude loop with multi-turn tool chaining and disambiguation hints (#346).
+- **Scripts:** [`uk_companies_house_host_simulation.py`](scripts/uk_companies_house_host_simulation.py) — maintainer stress harness for host/Gemini/Claude NLP loops against live Companies House API (not run in CI).
 
 ### Fixed
 
@@ -25,20 +29,18 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
-- **Skill (`finance/uk_companies_house_handler` v1.2.1):** Stabilization upgrade for multi-turn agent loops — single-step stack pop execution for `run_pipeline` (`steps.pop(0)`) preserving turn-level steering and intermediate visibility; in-flight `<from_resolve>` parameter substitution across remaining steps; decoupled composite actions (`resolve_and_get_officers`, `resolve_and_get_filings`) executing directly without wrapping `_run_pipeline` and skipping profile fetch when `company_number` is already known; breaking rename of `map_intent` output `suggested_pipeline` to `steps` with parameter merging via `action_params`; removed hallucinated `snippet_type` from `_resolve_company` candidate parsing; strict `status: "partial"` lifecycle reserved exclusively for in-flight `run_pipeline` calls with remaining steps (standard 10-item previews return `ready`); sanitized session context to lean keys (`company_number`, `company_name`, `last_action`, `selected_transaction_id`) dropping persisted filter hints; excised deprecated `next_actions` envelope field (#341).
+- **Skill (`finance/uk_companies_house_handler` v1.2.1):** Stabilization upgrade for multi-turn agent loops — single-step stack pop execution for `run_pipeline` (`steps.pop(0)`) preserving turn-level steering and intermediate visibility; in-flight `<from_resolve>` parameter substitution across remaining steps; decoupled composite actions (`resolve_and_get_officers`, `resolve_and_get_filings`) executing directly without wrapping `_run_pipeline` and skipping profile fetch when `company_number` is already known; breaking rename of `map_intent` output `suggested_pipeline` to `steps` with parameter merging via `action_params`; removed hallucinated `snippet_type` from `_resolve_company` candidate parsing; strict `status: "partial"` lifecycle reserved exclusively for in-flight `run_pipeline` calls with remaining steps (standard 10-item previews return `ready`); sanitized session context to lean keys (`company_number`, `company_name`, `last_action`, `selected_transaction_id`) dropping persisted filter hints; excised deprecated `next_actions` envelope field; directive expanded for empty registry rows and mandatory user-facing replies; `agent_hint` on empty `officers[]` / `filings[]` (#341, #346).
 - **Docs (skill catalog):** Backfill runnable five-provider agent loops on all catalog pages — including `gmail_handler`, `semantic_web_proxy`, and stub Ollama sections — aligned with `docs/usage/skill_usage_template.md` (#104).
 - **Docs (`install_extras.md`):** Backfill `deck_builder`, `gmail_handler`, and `[all]` package rows; add CI guard comparing the install guide to `pyproject.toml` optional-dependencies.
 - **Docs (skill catalog):** Skill history sweep — merge SHAs for `deck_builder` and `semantic_web_proxy`, `#345` rows for Gemini 3.5 bumps (`mica_module`, `tos_evaluator`, `mental_coach`, `synthetic_generator`, `token_limiter`).
 - **Docs / examples:** Default Gemini model IDs migrated from 2.5 Flash / Flash-Lite to `gemini-3.5-flash` and `gemini-3.5-flash-lite` across catalog pages, runnable examples, skill defaults, and `docs/usage/gemini.md` (#265).
-- **Docs / examples:** Default Claude Haiku snippets migrated to `claude-haiku-4-5-20251001` across catalog pages, `docs/usage/claude.md`, and `examples/claude_token_limiter.py`; `model_pricing.json` updated.
-- **Examples:** `claude_uk_companies_house_handler.py` — interactive UK Companies House v2b loop; Gemini/Claude examples print `needs_input` disambiguation hints.
-- **Docs (`uk_companies_house_handler`):** Rate-limit links, agent-loop host guidance, multi-turn Claude snippet; `agent_loops.md` references Claude example and stress harness.
-- **Skill (`finance/uk_companies_house_handler` v1.2.1):** Directive expanded — host must interpret envelopes, handle empty registry rows, and always produce user-facing replies; `agent_hint` on empty `officers[]` / `filings[]`.
-- **Examples:** `claude_uk_companies_house_handler.py`; Gemini/Claude UK Companies House loops use `bundle["class"]()` and disambiguation hints.
-- **Docs:** UK pipeline/composite patterns moved from generic `agent_loops.md` to [UK Companies House catalog](docs/skills/uk_companies_house_handler.md); agent loops doc adds generic multi-turn guidance only.
+- **Docs / examples:** Default Claude Haiku snippets migrated to `claude-haiku-4-5-20251001` across catalog pages, `docs/usage/claude.md`, and `examples/claude_token_limiter.py`; `model_pricing.json` updated (#346).
+- **Docs (`uk_companies_house_handler`):** Rate-limit links, agent-loop host guidance, multi-turn Claude snippet; UK pipeline/composite patterns moved from generic `agent_loops.md` to the catalog page; generic multi-turn guidance only in `agent_loops.md` (#346).
+- **Examples:** Gemini/Claude UK Companies House loops use `bundle["class"]()` and print `needs_input` disambiguation hints (#346).
 - **Skills (`compliance/tos_evaluator`, `compliance/mica_module`, `wellness/mental_coach`, `data_engineering/synthetic_generator` v0.1.1):** Default Gemini evaluator / generator model IDs updated to 3.5 Flash / Flash-Lite (#265).
 - **Skill (`monitoring/token_limiter`):** `model_pricing.json` updated with Gemini 3.5 Standard-tier list prices (Sep 2026) (#265).
-- **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`).
+- **CLI:** Brief `skillware --help` topic list aligned with Context, Chains, and Theme command groups (matching `docs/usage/cli.md`) (#335).
+- **Security:** Bump support windows — `>= 0.5.5` patched, `0.4.6–0.5.4` silent (no security fixes), `< 0.4.6` unsupported with CLI advisory (`SECURITY.md`, `version_policy.py`).
 
 ## [0.5.4] - 2026-09-03
 

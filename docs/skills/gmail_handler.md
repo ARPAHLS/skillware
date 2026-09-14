@@ -501,6 +501,7 @@ Commits that touched this skill bundle or its catalog page ([`office/gmail_handl
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`907c7dc`](https://github.com/ARPAHLS/skillware/commit/907c7dc) | feat(gmail_handler): v0.2 attachments, reply signatures, and multi-profile sigs | 19 Aug 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`a1bab61`](https://github.com/ARPAHLS/skillware/commit/a1bab61) | Add mail CLI and config for gmail_handler operator UX (#292) | 19 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

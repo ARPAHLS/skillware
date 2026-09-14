@@ -639,7 +639,8 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(pending merge)* | fix(uk_companies_house_handler): stabilize multi-turn pipelines and lean context (#341) | 10 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09) |
+| [`051b910`](https://github.com/ARPAHLS/skillware/commit/051b910b891608b5481e3a730b0bc88b102c39a3) | Refactor and update uk_companies_house_handler for v1.2.1 (#341) (#346) | 11 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`01cd620`](https://github.com/ARPAHLS/skillware/commit/01cd620) | feat(uk_companies_house_handler): upgrade to v2b with pipeline orchestration and composites (#220) (#308) | 24 Aug 2026 | `1.2.0` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
 | [`84cd790`](https://github.com/ARPAHLS/skillware/commit/84cd790) | feat: complete uk companies house handler v2a (#220) (#255) | 22 Jul 2026 | `1.1.0` | [@Areen-09](https://github.com/Areen-09) |

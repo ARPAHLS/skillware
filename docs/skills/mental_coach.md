@@ -237,6 +237,7 @@ Commits that touched this skill bundle or its catalog page ([`wellness/mental_co
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`525ecd0`](https://github.com/ARPAHLS/skillware/commit/525ecd01967080bc9631a04395ade9b80c3403d4) | docs: migrate Gemini defaults to 3.5 Flash / Flash-Lite — default evaluator model (#265) (#345) | 9 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
