@@ -9,6 +9,8 @@ Runnable examples in this directory show how to load Skillware skills, adapt the
 - [Claude](../docs/usage/claude.md)
 - [OpenAI](../docs/usage/openai.md)
 - [OpenAI-compatible hosts](../docs/usage/openai_compatible.md)
+- [Enterprise cloud (Bedrock, Azure, Vertex)](../docs/usage/enterprise_cloud.md)
+- [AWS Bedrock](../docs/usage/bedrock.md)
 - [DeepSeek](../docs/usage/deepseek.md)
 - [Ollama](../docs/usage/ollama.md)
 - [Install extras](../docs/usage/install_extras.md)
@@ -49,6 +51,7 @@ pip install -e ".[dev,all,agents]"
 | `ollama_tos_evaluator.py` | `compliance/tos_evaluator` | Ollama | `[compliance_tos_evaluator]`; install `ollama` separately | None | Runs the terms-of-service evaluator with local Ollama prompt-mode calls. |
 | `openai_tos_evaluator.py` | `compliance/tos_evaluator` | OpenAI | `[compliance_tos_evaluator]`, `[openai]` | `OPENAI_API_KEY` | Runs the terms-of-service evaluator with OpenAI function calling. |
 | `openai_compatible_host.py` | `compliance/tos_evaluator` | Groq (OpenAI-compatible) | `[compliance_tos_evaluator]`, `[openai]` | `GROQ_API_KEY`, `GROQ_MODEL` | Runs the terms-of-service evaluator through Groq's OpenAI-compatible API. |
+| `bedrock_tos_evaluator.py` | `compliance/tos_evaluator` | AWS Bedrock Converse | `[compliance_tos_evaluator]`, `[bedrock]` | `AWS_REGION`, `BEDROCK_MODEL_ID`; AWS credentials via IAM or env | Runs the terms-of-service evaluator through Bedrock Converse tool use. |
 | `pii_guardrail_flow.py` | `compliance/pii_masker` | Local execute | `[compliance_pii_masker]` | None | Demonstrates local PII masking before passing text to an external agent. |
 | `prompt_injection_firewall_demo.py` | `security/prompt_injection_firewall` | Local execute | `[security_prompt_injection_firewall]` | None | Offline prompt-injection scan and sanitization with no API keys. |
 | `sanitize_input_chain_demo.py` | `security/prompt_injection_firewall`, `optimization/prompt_rewriter` | Local execute | `[security_prompt_injection_firewall]`, `[optimization_prompt_rewriter]` | None | Named chain demo: firewall then rewriter with conditional skip (`run_chain`). |

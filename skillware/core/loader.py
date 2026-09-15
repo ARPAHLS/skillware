@@ -392,6 +392,27 @@ class SkillLoader:
         }
 
     @staticmethod
+    def _sanitize_bedrock_tool_name(name: str) -> str:
+        return SkillLoader._sanitize_function_tool_name(name)
+
+    @staticmethod
+    def to_bedrock_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Converts a skill manifest to an AWS Bedrock Converse toolSpec entry.
+        Pass the return value inside toolConfig.tools when calling converse().
+        See: https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html
+        """
+        manifest = skill_bundle.get("manifest", {})
+        raw_name = manifest.get("name", "unknown_tool")
+        return {
+            "toolSpec": {
+                "name": SkillLoader._sanitize_bedrock_tool_name(raw_name),
+                "description": manifest.get("description", ""),
+                "inputSchema": {"json": manifest.get("parameters", {})},
+            }
+        }
+
+    @staticmethod
     def to_ollama_prompt(skill_bundle: Dict[str, Any]) -> str:
         """
         Converts a skill manifest to a textual description suitable for a system prompt.

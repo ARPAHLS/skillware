@@ -142,3 +142,10 @@ response = client.models.generate_content(
     ),
 )
 ```
+
+## Related documents
+
+- [Vertex AI (Gemini)](vertex.md) (same `to_gemini_tool()` adapter)
+- [Enterprise cloud overview](enterprise_cloud.md)
+- [Agent loops](agent_loops.md)
+- [Install extras](install_extras.md)

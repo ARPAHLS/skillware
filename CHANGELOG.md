@@ -8,7 +8,16 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Core:** `SkillLoader.to_bedrock_tool()` for AWS Bedrock Converse tool-use API — maps manifest parameters to `toolSpec` / `inputSchema.json` (#262).
+- **Docs:** Enterprise cloud usage guides — [enterprise_cloud.md](docs/usage/enterprise_cloud.md) (hosting + adapter routing), [bedrock.md](docs/usage/bedrock.md), [azure_openai.md](docs/usage/azure_openai.md), [vertex.md](docs/usage/vertex.md) (#262).
+- **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
+
+### Changed
+
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
+- **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
 
 ## [0.5.5] - 2026-09-14
 

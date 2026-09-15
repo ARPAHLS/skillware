@@ -148,6 +148,7 @@ def test_context_all_providers_match_loader():
     assert ctx.tools("claude")[0] == SkillLoader.to_claude_tool(bundle)
     assert ctx.tools("openai")[0] == SkillLoader.to_openai_tool(bundle)
     assert ctx.tools("deepseek")[0] == SkillLoader.to_deepseek_tool(bundle)
+    assert ctx.tools("bedrock")[0] == SkillLoader.to_bedrock_tool(bundle)
     pytest.importorskip("google.genai")
     assert SkillLoader.to_gemini_tool(bundle) is not None
     assert len(ctx.tools("gemini")) == 1

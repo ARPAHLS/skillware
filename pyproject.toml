@@ -68,6 +68,9 @@ agents = [
     "anthropic",
     "openai",
 ]
+bedrock = [
+    "boto3",
+]
 security_deceptive_ui_guard_render = [
     "playwright",
 ]

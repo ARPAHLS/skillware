@@ -144,6 +144,7 @@ def test_scenario_open_agent_full_registry():
     assert ctx.tools("openai")
     assert ctx.tools("claude")
     assert ctx.tools("deepseek")
+    assert ctx.tools("bedrock")
 
     model = SimulatedModel(
         [
