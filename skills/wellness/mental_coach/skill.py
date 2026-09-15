@@ -336,7 +336,7 @@ Return JSON only:
                 "final_context_for_agent": context,
             }
 
-        api_key = os.environ.get("GOOGLE_API_KEY")
+        api_key = self.credential("GOOGLE_API_KEY")
         if not api_key:
             return {
                 "policy_status": "CAUTION",

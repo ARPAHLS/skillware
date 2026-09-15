@@ -1,6 +1,6 @@
 # API Keys for Skills
 
-Many Skillware skills call external services (block explorers, model APIs, and similar). Those skills read credentials from **environment variables** with fixed names declared in each skill's `manifest.yaml` under `env_vars`. This page explains how to configure keys safely. It does not list every skill in the registry; each [skill documentation page](../skills/README.md) states which variables that skill expects.
+Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host `config` first**, then `os.environ` for local `.env` workflows. This page covers local setup, cloud injection, and `skillware doctor` checks.
 
 ---
 
@@ -98,29 +98,21 @@ docker run --env-file .env your-image python examples/gemini_wallet_check.py
 
 ## Secret managers
 
-Fetch secrets in your **host application**, then inject them through a **secret provider** — you do not have to push values into global `os.environ`.
-
-### Recommended: inject via `config`
-
-Skillware resolves manifest `env_vars` names through a pluggable provider and passes the result to `BaseSkill(config=...)`:
+Production hosts inject credentials without polluting global `os.environ`:
 
 ```python
 from skillware.core.loader import SkillLoader
-from skillware.core.secrets import MappingSecretProvider
-
-# Values from Vault, AWS Secrets Manager, K8s secrets, etc.
-vault_payload = {"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}
+from skillware.core.secrets import MappingSecretProvider, CallableSecretProvider
 
 bundle = SkillLoader.load_skill("finance/wallet_screening")
 config = SkillLoader.resolve_env_vars(
     bundle["manifest"],
-    MappingSecretProvider(vault_payload),
+    MappingSecretProvider({"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}),
 )
 skill = bundle["class"](config=config)
-result = skill.execute({"address": "0x..."})
 ```
 
-Multi-skill hosts can pass the same provider to `SkillContext`:
+Or multi-skill:
 
 ```python
 from skillware import SkillContext
@@ -132,48 +124,20 @@ ctx = SkillContext(
 ctx.execute("finance/wallet_screening", {"address": "0x..."})
 ```
 
-| Provider | When to use |
+| Provider | Use when |
 | :--- | :--- |
-| `MappingSecretProvider(dict)` | You already fetched secrets into a dict (Vault/KMS/K8s init) |
-| `EnvSecretProvider()` | Solo dev / 12-factor: resolve from `os.environ` without mutating env at inject time |
-| Custom class implementing `get(key)` | Enterprise backends, workload identity, ephemeral tokens |
+| `MappingSecretProvider(dict)` | Secrets already fetched (Vault, K8s, Secrets Manager) |
+| `CallableSecretProvider(fetcher)` | Wrap STS / workload identity / KMS SDK in one callback |
+| `EnvSecretProvider()` | Resolve from existing `os.environ` (after `load_env_file()`) |
+| Custom `get(key)` class | Full control (ephemeral tokens per call) |
 
-### Workload identity and ephemeral tokens
+`get(key)` runs at resolution time — each `SkillContext.execute()` with a provider re-fetches, so short-lived tokens work. Use one context (or provider) per tenant.
 
-`SecretProvider.get()` is called at **resolution time** (each `resolve_env_vars()` / each `SkillContext.execute()` when a provider is configured). Implement `get()` to fetch a fresh token when needed:
+**Local dev unchanged:** `load_env_file()` + default skill construction still reads `.env` via `credential()` fallback.
 
-```python
-class WorkloadIdentityProvider:
-    def get(self, key: str) -> str | None:
-        if key == "ETHERSCAN_API_KEY":
-            return assume_role_via_web_identity()  # STS, Azure MI, GCP ADC, etc.
-        return None
-```
+**Check readiness:** `skillware doctor` reports missing **required** `env_vars` (**ENVS** column).
 
-Static strings and short-lived tokens use the same interface — the host controls freshness inside `get()`.
-
-### Multi-tenant hosts
-
-| Do | Avoid |
-| :--- | :--- |
-| One `SkillContext` (or provider) per tenant / request with tenant-scoped secrets | Relying on process-global `os.environ` when serving multiple tenants |
-| Pass `secret_provider=` so credentials land in `config` only | Let skills read `os.environ` directly in production (legacy; being phased per skill) |
-
-Framework rule: **only `EnvSecretProvider` reads `os.environ` for skill keys.** When `SkillContext(secret_provider=...)` is set, credentials are re-resolved on each `execute()` and skills are constructed with fresh `config` (no instance cache on that path).
-
-Runnable offline demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
-
-### Legacy: export to `os.environ`
-
-Still supported for solo dev and scripts that call `load_env_file()`:
-
-| Platform | Approach |
-| :--- | :--- |
-| **AWS Secrets Manager** | Retrieve in app init; `os.environ["ETHERSCAN_API_KEY"] = value` |
-| **GCP Secret Manager** | Access version payload; assign to the manifest variable name |
-| **Azure Key Vault** | Resolve secret; export under the manifest variable name |
-
-Keep secret-fetching code in your application layer, not inside contributed skills. Manifest `env_vars` names remain the portable contract.
+Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
 ---
 

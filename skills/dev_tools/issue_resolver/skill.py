@@ -180,9 +180,7 @@ class IssueResolverSkill(BaseSkill):
     def _resolve_token(self, params: Dict[str, Any]) -> str:
         token = (params.get("github_token") or "").strip()
         if not token:
-            token = (
-                self.config.get("GITHUB_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
-            )
+            token = self.credential("GITHUB_TOKEN") or ""
         return token
 
     def _action(self, params: Dict[str, Any]) -> str:

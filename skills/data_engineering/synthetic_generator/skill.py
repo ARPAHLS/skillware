@@ -40,7 +40,7 @@ class SyntheticGeneratorSkill(BaseSkill):
         import google.genai as genai
         from google.genai import types
 
-        api_key = self.config.get("GOOGLE_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        api_key = self.credential("GOOGLE_API_KEY")
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
             model=model_name,
@@ -52,9 +52,7 @@ class SyntheticGeneratorSkill(BaseSkill):
     def _call_anthropic(self, prompt: str, temperature: float, model_name: str) -> str:
         import anthropic
 
-        api_key = self.config.get("ANTHROPIC_API_KEY") or os.environ.get(
-            "ANTHROPIC_API_KEY"
-        )
+        api_key = self.credential("ANTHROPIC_API_KEY")
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
             model=model_name,

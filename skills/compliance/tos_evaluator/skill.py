@@ -475,7 +475,7 @@ class TOSEvaluatorSkill(BaseSkill):
         if genai is None or types is None:
             return {"status": "skipped", "reason": "google-genai is not installed."}
 
-        api_key = os.environ.get("GOOGLE_API_KEY")
+        api_key = self.credential("GOOGLE_API_KEY")
         if not api_key:
             return {"status": "skipped", "reason": "GOOGLE_API_KEY is not configured."}
 

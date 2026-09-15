@@ -5,8 +5,10 @@ from __future__ import annotations
 from skillware import SkillContext
 from skillware.core.loader import SkillLoader
 from skillware.core.secrets import (
+    CallableSecretProvider,
     EnvSecretProvider,
     MappingSecretProvider,
+    audit_manifest_env_vars,
     resolve_manifest_env_vars,
 )
 
@@ -53,6 +55,42 @@ def test_skill_loader_resolve_env_vars_defaults_to_env(monkeypatch):
 def test_skill_loader_resolve_env_vars_empty_manifest():
     assert SkillLoader.resolve_env_vars({}) == {}
     assert SkillLoader.resolve_env_vars({"env_vars": "invalid"}) == {}
+
+
+def test_callable_secret_provider():
+    calls: list[str] = []
+
+    def fetch(key: str) -> str | None:
+        calls.append(key)
+        return f"value-for-{key}"
+
+    provider = CallableSecretProvider(fetch)
+    assert provider.get("ETHERSCAN_API_KEY") == "value-for-ETHERSCAN_API_KEY"
+    assert calls == ["ETHERSCAN_API_KEY"]
+
+
+def test_audit_manifest_env_vars_missing_required():
+    status, detail = audit_manifest_env_vars(
+        MANIFEST_WITH_ENV,
+        MappingSecretProvider({}),
+    )
+    assert status == "fail"
+    assert "ETHERSCAN_API_KEY" in detail
+
+
+def test_audit_manifest_env_vars_ok_when_present():
+    status, detail = audit_manifest_env_vars(
+        MANIFEST_WITH_ENV,
+        MappingSecretProvider({"ETHERSCAN_API_KEY": "present"}),
+    )
+    assert status == "ok"
+    assert detail == ""
+
+
+def test_audit_manifest_env_vars_skip_when_undeclared():
+    status, detail = audit_manifest_env_vars({"name": "test/skill"})
+    assert status == "—"
+    assert detail == ""
 
 
 class _EphemeralTokenProvider:

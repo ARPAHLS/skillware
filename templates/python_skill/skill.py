@@ -19,6 +19,7 @@ class MyAwesomeSkill(BaseSkill):
         """
         The main execution logic for the skill.
         Expects 'param1' in params as defined in manifest.yaml.
+        For API keys declared in manifest env_vars, use self.credential("KEY_NAME").
         """
         param1 = params.get("param1", "default")
 

@@ -110,7 +110,7 @@ Every model expects a different tool-schema shape. The **Interface** layer trans
 - `SkillLoader.to_bedrock_tool(skill)` — AWS Bedrock Converse `toolSpec`
 - `SkillLoader.to_ollama_prompt(skill)` — textual tool block for Ollama loops
 
-Hosts inject skill API keys through `SkillLoader.resolve_env_vars()` and `BaseSkill(config=...)` (see [API keys](usage/api_keys.md#secret-managers)).
+Skills read declared keys via `BaseSkill.credential()`. Hosts inject through `SkillLoader.resolve_env_vars()` / `SkillContext(secret_provider=...)` (see [API keys](usage/api_keys.md#secret-managers)).
 
 **Multiple skills:** use [`SkillContext`](usage/skill_chaining.md#skillcontext--discovery-filters) instead of loading each skill separately — `merge_system()`, `tools(provider)`, `ollama_prompt`, and `execute()` on one session. Single-skill `load_skill()` is unchanged.
 

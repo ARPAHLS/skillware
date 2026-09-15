@@ -23,6 +23,10 @@ parameters:
     - user_prompt
 requirements:
   - google-genai
+env_vars:
+  GOOGLE_API_KEY:
+    description: Optional. Required when run_evaluator uses Gemini.
+    required: false
 constitution: |
   1. COMPLIANCE: Do not invent or hallucinate financial regulations. Base all enforcement strictly on the provided MiCA corpus blocks.
   2. FOCUS: Act exclusively as a compliance firewall and RAG engine; retrieve relevant chunks incrementally.

@@ -51,10 +51,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
-        self.companies_house_api_key = os.environ.get("COMPANIES_HOUSE_API_KEY")
-
-        if not self.companies_house_api_key and self.config:
-            self.companies_house_api_key = self.config.get("COMPANIES_HOUSE_API_KEY")
+        self.companies_house_api_key = self.credential("COMPANIES_HOUSE_API_KEY")
 
         if not self.companies_house_api_key:
             raise ValueError(

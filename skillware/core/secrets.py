@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Mapping, Optional, Protocol, runtime_checkable
+from typing import Any, Callable, Dict, Mapping, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -53,6 +53,20 @@ class MappingSecretProvider:
         return text or None
 
 
+class CallableSecretProvider:
+    """Wrap a host callback (Vault, STS, KMS) as a ``SecretProvider``."""
+
+    def __init__(self, fetcher: Callable[[str], Optional[str]]) -> None:
+        self._fetcher = fetcher
+
+    def get(self, key: str) -> Optional[str]:
+        value = self._fetcher(key)
+        if value is None:
+            return None
+        text = str(value).strip()
+        return text or None
+
+
 def resolve_manifest_env_vars(
     manifest: Mapping[str, Any],
     provider: SecretProvider,
@@ -75,6 +89,36 @@ def resolve_manifest_env_vars(
         if value is not None:
             resolved[key] = value
     return resolved
+
+
+def audit_manifest_env_vars(
+    manifest: Mapping[str, Any],
+    provider: Optional[SecretProvider] = None,
+) -> tuple[str, str]:
+    """
+    Check manifest ``env_vars`` against a provider (default ``EnvSecretProvider``).
+
+    Returns ``(status, detail)`` where status is ``ok``, ``fail``, or ``—`` (none declared).
+    """
+    env_vars = manifest.get("env_vars")
+    if not isinstance(env_vars, dict) or not env_vars:
+        return "—", ""
+
+    active = provider if provider is not None else EnvSecretProvider()
+    resolved = resolve_manifest_env_vars(manifest, active)
+    missing_required: list[str] = []
+    for key, meta in env_vars.items():
+        if not isinstance(key, str) or not key.strip():
+            continue
+        required = True
+        if isinstance(meta, dict):
+            required = bool(meta.get("required", False))
+        if required and key not in resolved:
+            missing_required.append(key)
+
+    if missing_required:
+        return "fail", "missing: " + ", ".join(sorted(missing_required))
+    return "ok", ""
 
 
 def coerce_secret_provider(

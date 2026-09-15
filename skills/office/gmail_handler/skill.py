@@ -1064,13 +1064,8 @@ class GmailHandlerSkill(BaseSkill):
         return emails
 
     def _credentials(self) -> Dict[str, str]:
-        cfg = self.config if isinstance(self.config, dict) else {}
-        address = (
-            os.environ.get("GMAIL_ADDRESS") or cfg.get("GMAIL_ADDRESS") or ""
-        ).strip()
-        password = (
-            os.environ.get("GMAIL_APP_PASSWORD") or cfg.get("GMAIL_APP_PASSWORD") or ""
-        ).strip()
+        address = (self.credential("GMAIL_ADDRESS") or "").strip()
+        password = (self.credential("GMAIL_APP_PASSWORD") or "").strip()
         return {"address": address, "password": password}
 
     def _credentials_error(
