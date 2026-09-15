@@ -252,7 +252,7 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 
 **Optional but common:**
 
-- `env_vars` — API keys and configuration (never hardcode secrets in `skill.py`); document the same names on the skill catalog page and link to [API keys for skills](docs/usage/api_keys.md)
+- `env_vars` — API keys and configuration (never hardcode secrets in `skill.py`); read them with `self.credential(name)` (config first, then env); document names on the catalog page and link to [API keys for skills](docs/usage/api_keys.md)
 - `category`, `outputs`, `presentation` — when they clarify the skill contract. Use **`outputs:`** with named keys (never legacy singular **`output:`**).
 
 **Example:**

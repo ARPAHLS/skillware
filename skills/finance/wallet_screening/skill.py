@@ -24,9 +24,7 @@ class WalletScreeningSkill(BaseSkill):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
-        self.etherscan_api_key = os.environ.get("ETHERSCAN_API_KEY")
-        if not self.etherscan_api_key and self.config:
-            self.etherscan_api_key = self.config.get("ETHERSCAN_API_KEY")
+        self.etherscan_api_key = self.credential("ETHERSCAN_API_KEY")
 
         # Config
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")

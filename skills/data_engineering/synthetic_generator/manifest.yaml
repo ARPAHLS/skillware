@@ -8,6 +8,13 @@ issuer:
   github: rosspeili
   org: ARPAHLS
 requirements: []
+env_vars:
+  GOOGLE_API_KEY:
+    description: Optional. Required when model_provider is gemini.
+    required: false
+  ANTHROPIC_API_KEY:
+    description: Optional. Required when model_provider is anthropic.
+    required: false
 parameters:
   type: "object"
   properties:

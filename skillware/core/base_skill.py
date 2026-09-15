@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
@@ -16,6 +17,25 @@ class BaseSkill(ABC):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
+
+    def credential(self, key: str) -> Optional[str]:
+        """
+        Resolve a manifest ``env_vars`` name.
+
+        Host-injected ``config`` wins over ``os.environ`` so multi-tenant and
+        KMS-backed providers do not rely on process-global state. Local dev
+        still works via ``.env`` / exports when the host omits ``config``.
+        """
+        cfg_val = self.config.get(key)
+        if cfg_val is not None:
+            text = str(cfg_val).strip()
+            if text:
+                return text
+        env_val = os.environ.get(key)
+        if env_val is None:
+            return None
+        text = str(env_val).strip()
+        return text or None
 
     @property
     @abstractmethod

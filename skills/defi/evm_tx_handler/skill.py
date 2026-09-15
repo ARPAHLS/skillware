@@ -194,7 +194,7 @@ class EvmTxHandlerSkill(BaseSkill):
         env_key = chain_cfg.get("rpc_env")
         if not env_key:
             raise ValueError(f"chains.yaml missing rpc_env for {chain!r}.")
-        url = os.environ.get(env_key) or (self.config or {}).get(env_key)
+        url = self.credential(env_key)
         if not url:
             raise ValueError(f"Missing RPC: set environment variable {env_key}.")
         return url
@@ -211,7 +211,7 @@ class EvmTxHandlerSkill(BaseSkill):
 
     def _wallet_key_configured(self) -> bool:
         env_name = self._private_key_env()
-        key = os.environ.get(env_name) or (self.config or {}).get(env_name)
+        key = self.credential(env_name)
         return bool(key and str(key).strip())
 
     def _missing_wallet_key_response(self) -> Dict[str, Any]:
@@ -246,7 +246,7 @@ class EvmTxHandlerSkill(BaseSkill):
         if missing:
             raise ValueError(missing["message"])
         env_name = self._private_key_env()
-        key = os.environ.get(env_name) or (self.config or {}).get(env_name)
+        key = self.credential(env_name)
         if key.startswith("0x"):
             key = key[2:]
         return Account.from_key(key)
@@ -538,9 +538,7 @@ class EvmTxHandlerSkill(BaseSkill):
 
     def _coingecko_headers(self) -> Dict[str, str]:
         headers: Dict[str, str] = {"Accept": "application/json"}
-        api_key = os.environ.get("COINGECKO_API_KEY") or (self.config or {}).get(
-            "COINGECKO_API_KEY"
-        )
+        api_key = self.credential("COINGECKO_API_KEY")
         if api_key:
             headers["x-cg-pro-api-key"] = str(api_key)
         return headers

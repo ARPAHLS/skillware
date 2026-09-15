@@ -222,7 +222,7 @@ class MiCAModuleSkill(BaseSkill):
                 ),
             }
 
-        api_key = os.environ.get("GOOGLE_API_KEY")
+        api_key = self.credential("GOOGLE_API_KEY")
         if not api_key:
             return {
                 "policy_status": "CAUTION",

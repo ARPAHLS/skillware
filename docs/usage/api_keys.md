@@ -1,6 +1,6 @@
 # API Keys for Skills
 
-Many Skillware skills call external services (block explorers, model APIs, and similar). Those skills read credentials from **environment variables** with fixed names declared in each skill's `manifest.yaml` under `env_vars`. This page explains how to configure keys safely. It does not list every skill in the registry; each [skill documentation page](../skills/README.md) states which variables that skill expects.
+Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host `config` first**, then `os.environ` for local `.env` workflows. This page covers local setup, cloud injection, and `skillware doctor` checks.
 
 ---
 
@@ -64,6 +64,8 @@ Run your script from the repository root (or pass an explicit path: `load_env_fi
 
 Add `.env` to `.gitignore` (already ignored in this repository). Never commit real keys.
 
+When developing Skillware from a branch, use `pip install -e .` so bundled skills load the in-tree `BaseSkill.credential()` helper.
+
 ### Shell export
 
 ```bash
@@ -98,15 +100,46 @@ docker run --env-file .env your-image python examples/gemini_wallet_check.py
 
 ## Secret managers
 
-Pattern: fetch the secret at startup, then set `os.environ["EXPECTED_NAME"]` before loading or executing skills.
+Production hosts inject credentials without polluting global `os.environ`:
 
-| Platform | Approach |
+```python
+from skillware.core.loader import SkillLoader
+from skillware.core.secrets import MappingSecretProvider, CallableSecretProvider
+
+bundle = SkillLoader.load_skill("finance/wallet_screening")
+config = SkillLoader.resolve_env_vars(
+    bundle["manifest"],
+    MappingSecretProvider({"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}),
+)
+skill = bundle["class"](config=config)
+```
+
+Or multi-skill:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext(
+    categories=["finance"],
+    secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
+)
+ctx.execute("finance/wallet_screening", {"address": "0x..."})
+```
+
+| Provider | Use when |
 | :--- | :--- |
-| **AWS Secrets Manager** | Retrieve secret in app init; `os.environ["ETHERSCAN_API_KEY"] = value` |
-| **GCP Secret Manager** | Access version payload; assign to the env name the skill documents |
-| **Azure Key Vault** | Resolve secret; export under the manifest variable name |
+| `MappingSecretProvider(dict)` | Secrets already fetched (Vault, K8s, Secrets Manager) |
+| `CallableSecretProvider(fetcher)` | Wrap STS / workload identity / KMS SDK in one callback |
+| `EnvSecretProvider()` | Resolve from existing `os.environ` (after `load_env_file()`) |
+| Custom `get(key)` class | Full control (ephemeral tokens per call) |
 
-Keep secret-fetching code in your application layer, not inside contributed skills. Skills should continue to read standard environment variable names for portability.
+`get(key)` runs at resolution time — each `SkillContext.execute()` with a provider re-fetches, so short-lived tokens work. Use one context (or provider) per tenant.
+
+**Local dev unchanged:** `load_env_file()` + default skill construction still reads `.env` via `credential()` fallback.
+
+**Check readiness:** `skillware doctor` reports missing **required** `env_vars` (**ENVS** column).
+
+Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
 ---
 
@@ -122,7 +155,7 @@ If your organization uses different secret names:
    export ETHERSCAN_API_KEY="$(vault read -field=key secret/etherscan)"
    ```
 
-2. **Alternative:** If the skill accepts a configuration dict (some skills read `self.config` as a fallback), pass the key there only when documented on the skill page. Do not assume all skills support custom config keys.
+2. **Alternative:** Use `SkillLoader.resolve_env_vars()` and pass `config=` when constructing the skill (see [Secret managers](#secret-managers)). Skills that honor `self.config` receive injected values without global env mutation.
 
 3. **Avoid:** Renaming the variable in `.env` to `MY_ETHERSCAN_KEY` without exporting `ETHERSCAN_API_KEY`—the skill will behave as if the key is missing.
 

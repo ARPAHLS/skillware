@@ -279,7 +279,7 @@ Bundled registry paths cannot be edited. Global config (`~/.config/skillware/con
 
 ### skillware doctor
 
-Check whether skills can load in the current environment — manifest **requirements** pre-flight (**DEPS**) and `skill.py` import (**LOAD**) — without running `execute()`. Uses the same skill roots as `skillware list`.
+Check whether skills can load in the current environment — manifest **requirements** (**DEPS**), `skill.py` import (**LOAD**), and required **`env_vars`** (**ENVS**) — without running `execute()`. Uses the same skill roots as `skillware list`.
 
     skillware doctor
     skillware doctor finance/wallet_screening
@@ -295,9 +295,9 @@ Check whether skills can load in the current environment — manifest **requirem
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
 
-**DEPS** validates manifest `requirements` (same rules as `SkillLoader.load_skill()`). **LOAD** imports `skill.py` and discovers the `BaseSkill` subclass; it is skipped (shown as `—`) when **DEPS** fails. The **DETAIL** column shows the first line of any error.
+**DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
-Exit code is non-zero when any skill fails **DEPS** or **LOAD**. For full bundle behavior, use `skillware test`.
+Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
 
 Interactive menu: **`5` / `doctor`**.
 

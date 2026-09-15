@@ -9,7 +9,7 @@ Skillware is plain Python — it runs anywhere you can `pip install skillware` (
 | **Host** | Where does my agent process run? | Any Python 3.10+ environment. Install once, load skills, call `execute()`. |
 | **Model API** | Which endpoint does the loop call for inference? | Pick the adapter that matches the wire format (see below). |
 
-Skill **runtime keys** (Etherscan, Companies House, Gmail, etc.) stay on the skill manifest's `env_vars`. **Cloud IAM** covers the model client (Bedrock role, Azure credential, Vertex ADC) — not skill secrets.
+Skill **runtime keys** (Etherscan, Companies House, Gmail, etc.) stay on the skill manifest's `env_vars`. Inject them via a [secret provider](api_keys.md#secret-managers) (`SkillLoader.resolve_env_vars`, `SkillContext(secret_provider=...)`) rather than relying on process-global `os.environ` in production. **Cloud IAM** covers the model client (Bedrock role, Azure credential, Vertex ADC) — not skill API keys.
 
 ## Choose the adapter
 

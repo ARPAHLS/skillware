@@ -13,8 +13,8 @@ class PDFFormFillerSkill(BaseSkill):
 
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
-        # Initialize Anthropic client - expects ANTHROPIC_API_KEY in env
-        self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        api_key = self.credential("ANTHROPIC_API_KEY")
+        self.client = anthropic.Anthropic(api_key=api_key) if api_key else None
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -75,6 +75,9 @@ class PDFFormFillerSkill(BaseSkill):
         """
 
         # 4. Call LLM to map instructions -> fields
+        if self.client is None:
+            return {"error": "Missing ANTHROPIC_API_KEY environment variable."}
+
         try:
             message = self.client.messages.create(
                 model="claude-3-haiku-20240307",

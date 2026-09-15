@@ -1555,12 +1555,13 @@ def _resolve_doctor_skill_ids(
 def _diagnose_skill(
     skill_id: str,
     skills_root_override: Optional[Path] = None,
-) -> Tuple[str, str, str]:
-    """Return (deps_status, load_status, detail). Status values: ok, fail, skip."""
+) -> Tuple[str, str, str, str]:
+    """Return (deps_status, load_status, envs_status, detail)."""
     load_target = _doctor_load_target(skill_id, skills_root_override)
+    bundle: Optional[Dict[str, Any]] = None
 
     try:
-        SkillLoader.load_skill(
+        bundle = SkillLoader.load_skill(
             load_target,
             execute_module=False,
             check_requirements=True,
@@ -1568,7 +1569,12 @@ def _diagnose_skill(
         deps_status = "ok"
     except ImportError as exc:
         detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
-        return "fail", "skip", detail
+        return "fail", "skip", "—", detail
+
+    from skillware.core.secrets import audit_manifest_env_vars
+
+    manifest = (bundle or {}).get("manifest") or {}
+    envs_status, envs_detail = audit_manifest_env_vars(manifest)
 
     try:
         SkillLoader.load_skill(
@@ -1576,10 +1582,12 @@ def _diagnose_skill(
             execute_module=True,
             check_requirements=False,
         )
-        return deps_status, "ok", ""
+        return deps_status, "ok", envs_status, envs_detail
     except ImportError as exc:
         detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
-        return deps_status, "fail", detail
+        if envs_detail:
+            detail = f"{envs_detail}; {detail}" if detail else envs_detail
+        return deps_status, "fail", envs_status, detail
 
 
 def cmd_doctor(
@@ -1611,10 +1619,11 @@ def cmd_doctor(
     table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
     table.add_column("DEPS", no_wrap=True, ratio=1)
     table.add_column("LOAD", no_wrap=True, ratio=1)
+    table.add_column("ENVS", no_wrap=True, ratio=1)
     table.add_column("DETAIL", style="dim", ratio=4)
 
     failures = 0
-    rows: List[Tuple[str, Text, Text, str]] = []
+    rows: List[Tuple[str, Text, Text, Text, str]] = []
     spinner_label = (
         f"Diagnosing {len(skill_ids)} skill(s)…"
         if len(skill_ids) != 1
@@ -1623,14 +1632,14 @@ def cmd_doctor(
     with Status(spinner_label, console=console, spinner="dots"):
         for sid in sorted(skill_ids):
             try:
-                deps_status, load_status, detail = _diagnose_skill(
+                deps_status, load_status, envs_status, detail = _diagnose_skill(
                     sid, skills_root_override=skills_root_override
                 )
             except FileNotFoundError as exc:
                 console.print(str(exc), style=ERROR_STYLE)
                 return 1
 
-            if deps_status != "ok" or load_status == "fail":
+            if deps_status != "ok" or load_status == "fail" or envs_status == "fail":
                 failures += 1
 
             deps_cell = Text(
@@ -1644,15 +1653,23 @@ def cmd_doctor(
             else:
                 load_cell = Text(load_status, style=ERROR_STYLE)
 
-            rows.append((sid, deps_cell, load_cell, detail or "—"))
+            if envs_status == "—":
+                envs_cell = Text("—", style="dim")
+            elif envs_status == "ok":
+                envs_cell = Text(envs_status, style=ID_STYLE)
+            else:
+                envs_cell = Text(envs_status, style=ERROR_STYLE)
 
-    for sid, deps_cell, load_cell, detail in rows:
-        table.add_row(sid, deps_cell, load_cell, detail)
+            rows.append((sid, deps_cell, load_cell, envs_cell, detail or "—"))
+
+    for sid, deps_cell, load_cell, envs_cell, detail in rows:
+        table.add_row(sid, deps_cell, load_cell, envs_cell, detail)
 
     console.print(table)
     console.print(
-        "DEPS = manifest requirements; LOAD = skill.py import. "
-        "See docs/usage/install_extras.md",
+        "DEPS = manifest requirements; LOAD = skill.py import; "
+        "ENVS = required manifest env_vars (via EnvSecretProvider). "
+        "See docs/usage/install_extras.md and docs/usage/api_keys.md",
         style="dim",
     )
     return 1 if failures else 0

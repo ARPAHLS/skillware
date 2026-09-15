@@ -10,6 +10,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
+- **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).
+- **Core:** `SkillContext(secret_provider=...)` resolves credentials on each `execute()` and passes them via `config` (supports ephemeral tokens from custom providers) (#39).
+- **CLI:** `skillware doctor` **ENVS** column — reports missing required manifest `env_vars` (#39).
+- **Examples:** [`secret_provider_demo.py`](examples/secret_provider_demo.py) — host-injected credentials without `os.environ` (#39).
 - **Core:** `SkillLoader.to_bedrock_tool()` for AWS Bedrock Converse tool-use API — maps manifest parameters to `toolSpec` / `inputSchema.json` (#262).
 - **Docs:** Enterprise cloud usage guides — [enterprise_cloud.md](docs/usage/enterprise_cloud.md) (hosting + adapter routing), [bedrock.md](docs/usage/bedrock.md), [azure_openai.md](docs/usage/azure_openai.md), [vertex.md](docs/usage/vertex.md) (#262).
 - **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
@@ -18,6 +23,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
+- **Skills:** Bundled skills with `env_vars` now use `self.credential()` for config-first secret resolution (#39).
 
 ## [0.5.5] - 2026-09-14
 

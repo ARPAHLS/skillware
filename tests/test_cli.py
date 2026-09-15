@@ -1013,6 +1013,7 @@ def test_interactive_doctor_dispatches(monkeypatch):
     output = buf.getvalue()
     assert "DEPS" in output
     assert "LOAD" in output
+    assert "ENVS" in output
     assert "manifest requirements" in output.lower()
 
 
@@ -1043,6 +1044,37 @@ def test_cmd_doctor_reports_ok_skill(tmp_path, monkeypatch):
     output = buf.getvalue()
     assert "office/demo" in output
     assert " ok " in output or "ok" in output
+
+
+def test_cmd_doctor_reports_missing_env_vars(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    skill_dir = tmp_path / "skills" / "finance" / "needs_key"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: finance/needs_key\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n"
+        "env_vars:\n  ETHERSCAN_API_KEY:\n    required: true\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class NeedsKeySkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("ETHERSCAN_API_KEY", raising=False)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_doctor(skill_id="finance/needs_key", console=console) == 1
+
+    output = buf.getvalue()
+    assert "finance/needs_key" in output
+    assert "ETHERSCAN_API_KEY" in output
 
 
 def test_cmd_doctor_reports_missing_deps(tmp_path, monkeypatch):

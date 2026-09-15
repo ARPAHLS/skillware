@@ -6,7 +6,7 @@ import yaml
 import json
 import importlib.util
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Type
+from typing import Any, Dict, List, Mapping, Optional, Type
 
 import skillware.core.discovery as _discovery
 from skillware.core.discovery import (
@@ -173,6 +173,27 @@ class SkillLoader:
                 "execute_module=True) (default) for a full load."
             )
         return skill_class
+
+    @staticmethod
+    def resolve_env_vars(
+        manifest: Mapping[str, Any],
+        provider: Optional[Any] = None,
+    ) -> Dict[str, str]:
+        """
+        Resolve manifest ``env_vars`` through a secret provider.
+
+        Defaults to ``EnvSecretProvider`` (the framework path that reads
+        ``os.environ``). Hosts can pass ``MappingSecretProvider`` or a custom
+        ``get()`` implementation (Vault, workload identity, ephemeral STS tokens)
+        to inject credentials without mutating global environment state.
+        """
+        from skillware.core.secrets import (
+            EnvSecretProvider,
+            resolve_manifest_env_vars,
+        )
+
+        active = provider if provider is not None else EnvSecretProvider()
+        return resolve_manifest_env_vars(manifest, active)
 
     @staticmethod
     def load_skill(

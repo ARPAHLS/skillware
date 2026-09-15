@@ -21,6 +21,7 @@ outputs:
     type: string
     description: "Description of the output"
 requirements: []
+env_vars: {}
 constitution: |
   1. Always provide helpful and accurate results.
   2. Do not include sensitive information in the output.
