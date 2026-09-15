@@ -97,7 +97,7 @@ The loader resolves `category/skill_name` against configured skill roots (run `s
 - Parses `manifest.yaml` (including `issuer` for attribution).
 - Reads `instructions.md` and `card.json`.
 
-For provenance tiers and operator security, see [Skill trust model](security/skill-trust-model.md).
+For provenance tiers, credentials, and operator tooling, see [Skill trust model](security/skill-trust-model.md).
 
 ### Step 2: Adaptation (Interface)
 

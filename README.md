@@ -150,9 +150,7 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Edit `.env` with agent keys (for example Gemini) and any keys your skills need. Agent keys power your LLM client; skill keys are declared per skill in the [Skill library](docs/skills/README.md). See [API keys for skills](docs/usage/api_keys.md) for setup, security, and framework variables.
-
-> Note: any loaded skill runs in your process and can read every variable in `os.environ`. Before wiring in real keys — especially with skills you did not write — see the [skill trust model](docs/security/skill-trust-model.md).
+Edit `.env` with agent keys (for example Gemini) and any keys your skills need. Agent keys power your LLM client; skill keys are declared per skill in the [Skill library](docs/skills/README.md). See [API keys for skills](docs/usage/api_keys.md) for local `.env` setup, production secret injection, and `skillware doctor` checks.
 
 ### 4. Usage Example (Gemini)
 

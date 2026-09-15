@@ -18,7 +18,7 @@ For pip-installed apps, bundled maintainer skills are the default; add private s
 
 By default, `SkillLoader.load_skill()` validates manifest `requirements` before loading `skill.py`: unpinned deps must be importable; pinned specifiers (for example `web3>=6.0.0`) must match the installed version. See [Install extras — Loader behavior](install_extras.md#loader-behavior).
 
-> **Security:** Loading a skill executes its `skill.py` in your process — there is no sandbox, and the first matching id in the search order wins (a local skill can shadow a bundled one). Only load skills you trust, and see the [skill trust model](../security/skill-trust-model.md) before loading external skills.
+> **Tip:** Bundled registry skills are the default after `pip install skillware`. Local or external skills with the same id **shadow** the bundled copy — see `skillware paths`. Credential setup and provenance: [API keys](api_keys.md) · [Skill trust model](../security/skill-trust-model.md).
 
 To list locally available skills, inspect path resolution, show config, check load readiness, or run bundle tests from the terminal, see the [CLI reference](cli.md) (`skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`).
 

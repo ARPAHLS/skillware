@@ -1,122 +1,182 @@
 # Skill Trust Model & Operator Security
 
-This page explains how Skillware resolves and executes skills on disk, and how you should reason about trusting them.
+How Skillware loads skills, how you run them with confidence, and where to look when something is not the bundled default.
 
-**None of these tiers are sandboxed today.** Loading a skill runs its Python in your host process. Trust in Skillware is based on provenance — where a skill came from and who reviewed it — not on runtime isolation. Nothing described below prevents a skill from doing anything your own process can do. Read this page before loading skills you did not write.
+Most users: `pip install skillware`, copy `.env`, run `skillware doctor`, load bundled skills, execute. The sections below add detail when you use project skills, external paths, or multi-skill hosts.
 
-## 1. Executive summary
+---
 
-When you load a skill, Skillware executes that skill's skill.py in your host process. Import runs the module's top-level code immediately, and from that point the skill's code has the same reach your process has: the full filesystem and every environment variable in os.environ, including secrets and API keys.
+## 1. What you can rely on today
 
-There is no isolation, no permission boundary, and no capability restriction around this execution. SkillLoader checks that a skill's declared requirements are importable and, when a manifest entry includes a version specifier, that the installed distribution satisfies it — but it does not inspect, restrict, or sandbox what the code does. So the real decision each time you load a skill is: am I willing to hand this code my machine and my secrets?
+| Layer | What it gives you |
+| :--- | :--- |
+| **Bundled registry** | Maintainer-reviewed skills in the wheel — Contract, Effect, Directive, Assurance, and Presentation in every bundle |
+| **Manifest contract** | Declared `env_vars`, `requirements`, `constitution`, and `issuer` — documented before you run |
+| **Load-time checks** | Import/version validation for declared `requirements` before `skill.py` executes |
+| **Credentials (#39)** | `BaseSkill.credential()` (config first, `.env` fallback); hosts inject via [secret providers](../usage/api_keys.md#secret-managers) without polluting global `os.environ` |
+| **CLI readiness** | `skillware doctor` (deps, import, **ENVS**), `skillware paths` / `paths shadows` (tiers and shadowing), `skillware test` (Assurance) |
+| **Multi-skill hosts** | `SkillContext` discovery with tier labels, shadow warnings, and optional `secret_provider` per session |
 
-The trust tiers in this document describe how much you should trust a skill's origin. They are not isolation levels. To be explicit: none of them are sandboxed today.
+Skills run in your Python process — the same model as importing a local library. Skillware focuses on **clear provenance**, **declared credentials**, and **operator tooling** so you know what runs and whether it is ready.
 
-## 2. How skills are resolved on disk
+---
 
-When you pass a registry id (for example finance/wallet_screening) rather than a path that already exists, the loader searches skill roots and uses the first match it finds.
+## 2. How skills are resolved
+
+Pass a registry id (for example `finance/wallet_screening`) or an absolute path to a skill directory.
 
 **Default (no config file):**
 
-1. SKILLWARE_SKILL_PATH — one or more roots, separated by your OS path separator.
-2. `./skills/` in the current working directory, and its parent directories (walk up to six levels).
-3. Bundled skills shipped inside the installed skillware package (for example under site-packages/skills/).
+1. `SKILLWARE_SKILL_PATH` — one or more roots (OS path separator between entries)
+2. `./skills/` in the current working directory and its parents (up to six levels)
+3. Bundled skills inside the installed `skillware` package (`site-packages/skills/`)
 
-**With config (`.skillware.yaml` or global `config.yaml`):** tiers follow `resolution.order` (default: project → external → bundled). Persist private roots under `paths.external`; set `paths.project` to `auto` or an explicit directory. Bundled registry skills are always included and remain available when you have no local `skills/` tree (only existing roots are searched). See `skillware config show` and [CLI config](../usage/cli.md#skillware-config).
+**With config (`.skillware.yaml` or global `config.yaml`):** resolution follows `resolution.order` (default: **project → external → bundled**). Persist private roots under `paths.external`; set `paths.project` to `auto` or an explicit directory. Bundled registry skills are always included. See `skillware config show` and [CLI config](../usage/cli.md#skillware-config).
 
-If you pass a path that already points at a skill directory (absolute or relative to the current directory), the loader uses it directly and skips the search entirely.
+An absolute or cwd-relative path to a skill directory skips search and loads that folder directly.
 
 ### Shadowing
 
-Because the search stops at the first matching id, a skill earlier in the order shadows any skill with the same id later in the order. If a finance/wallet_screening exists under project or external paths before bundled, it is loaded instead of the bundled, maintainer-reviewed copy — and the bundled copy never runs.
+Search stops at the **first** matching id. A project or external skill with the same id as a bundled one **replaces** the bundled copy for that process.
 
-Run `skillware paths` and `skillware config show` to see which roots are active and which IDs shadow bundled registry skills.
+Inspect active roots and conflicts:
 
-The practical consequence: placing a skill with the same id as an official one, anywhere earlier in the search order, silently replaces the official skill. Shadowing is a normal feature of the resolution order, but it means the id you ask for does not by itself tell you which code will run — the location does.
+```bash
+skillware paths
+skillware paths shadows   # summary only
+```
+
+`SkillContext` also appends shadow warnings to `ctx.warnings` when it discovers overlapping ids.
 
 ### Flat vs registry layout
 
-A private, local skill can live either in registry layout (`<skill_root>/<category>/<skill_name>/`) or in a flat layout (`<skill_root>/<skill_name>/`). Both load. One practical wrinkle: `skillware list` only discovers the two-level registry layout, so a flat skill loads fine but does not appear in `list`. If a local skill loads but is missing from `list`, a flat layout is usually why.
+Registry layout: `<root>/<category>/<skill_name>/`. Flat layout: `<root>/<skill_name>/`. Both load. `skillware list` only discovers registry layout — a flat skill may load but not appear in `list`.
+
+---
 
 ## 3. Provenance tiers
 
-A skill's tier describes where it came from and who reviewed it, which is the basis for how much you should trust it. It does not describe runtime isolation. All tiers execute the same way, in your host process.
+The tier describes **who reviewed the origin**, not a runtime sandbox.
 
-| Tier | Where it comes from | Reviewed by | Basis for trust | Sandboxed? |
-| :--- | :--- | :--- | :--- | :--- |
-| **Bundled registry** | Shipped in the skillware wheel (site-packages/skills/) | Maintainers, via pull-request review | Public review before it ships | No |
-| **Project-local** | ./skills/ in your project (cwd or a parent) | You / your team | You put it there | No |
-| **External** | SKILLWARE_SKILL_PATH or an absolute path | No one, until you review it | Treat as untrusted until read | No |
+| Tier | Source | Reviewed by | Recommended for |
+| :--- | :--- | :--- | :--- |
+| **Bundled** | Shipped in the `skillware` wheel | Maintainers (pull-request review) | Default — production agents and tutorials |
+| **Project** | `./skills/` in your repo (cwd or parent) | You / your team | Private extensions and overrides |
+| **External** | `SKILLWARE_SKILL_PATH` or absolute path | You, when you adopt it | Private registries, pinned forks, experiments |
 
-**Bundled registry.** These ship inside the package and go through maintainer pull-request review before release. This is the most trustworthy origin, but review is not isolation: a bundled skill still runs unsandboxed in your process.
+**Bundled** — reviewed before release, documented `env_vars`, registry Assurance tests, and `credential()` for declared keys.
 
-**Project-local.** Skills in your project's ./skills/ (or a parent's). Trust here is simply trust in you and your team — you are responsible for the code you place there.
+**Project** — your code; same secret-provider patterns as production when multiple skills share a process.
 
-**External.** Skills loaded from SKILLWARE_SKILL_PATH or an absolute path. This is third-party code you did not write and no one has reviewed for you. Treat it as untrusted until you have read it yourself.
+**External** — pin versions (commit or copy) when you depend on them; re-check on update. Skillware loads the code; maintenance and review are between you and the skill author (see identity RFC #234).
 
-### Operator expectations
+**Support:** bundled skill or loader issues → this repository. Issues inside an external skill → that skill's maintainer.
 
-What you can reasonably expect from each origin:
+---
 
-- **Bundled** skills are maintainer-reviewed before they ship — and still run unsandboxed in your process. Review raises confidence in the code's intent; it does not add isolation.
-- **Project and External** skills are your responsibility as the operator. As the identity RFC (#234) puts it: the project can provide the emulator for any skill, but external ROMs/skills are 100% the responsibility of the user. Nothing implies vetting of code the maintainers have never seen.
-- **External skills can change out of band.** A skill imported from a URL or git repository can change at any time, independently of Skillware releases. If you depend on one, pin it (a specific commit or copy) and re-review when you update.
-- **Where to report problems:** issues with bundled skills or the loader belong in this repository. Problems inside an external skill belong with that skill's maintainer — this repo can't fix or vouch for code it doesn't host.
+## 4. Manifest, constitution, and Assurance
 
-## 4. constitution is guidance, not isolation
+Every registry bundle follows [skill anatomy](../introduction.md#skill-anatomy):
 
-A skill's manifest.yaml can declare a constitution — a set of natural-language rules such as "use a dedicated wallet only," "never pass private keys in tool arguments," or "fail closed on missing confirmation." For example, defi/evm_tx_handler declares a constitution covering dedicated wallets, secret handling, and fail-closed behavior.
+- **Contract** (`manifest.yaml`) — name, version, parameters, `env_vars`, `requirements`, `constitution`, `issuer`
+- **Effect** (`skill.py`) — deterministic `execute()`; bundled skills use `credential()` for declared keys
+- **Directive** (`instructions.md`) — when and how the host agent should call the skill
+- **Assurance** (`test_skill.py`) — offline pytest; run locally with `skillware test <id>` or `pytest skills/`
 
-A constitution guides the agent (the LLM calling the skill). It does not constrain skill.py. Nothing in the loader enforces a constitution at the Python level — code that ignores every rule in the constitution loads and runs exactly the same. The constitution is a prompt-level norm, not a process-level boundary.
+**Constitution** — agent-facing rules in Contract (dedicated wallets, confirm-before-send, no secret logging). Reviewers and operators rely on them; bundled skills are written to honor them.
 
-The same distinction applies to other manifest fields. Declaring env_vars documents which variables a skill expects; it does not limit what the code can read. The loader's requirements check confirms that declared packages are importable and, when a manifest entry includes a version specifier, that the installed distribution satisfies it — it does not inspect what the code does with them. In short:
+**`env_vars`** — exact credential names the skill expects. `skillware doctor` reports missing **required** keys in the **ENVS** column. Hosts inject values via `SkillLoader.resolve_env_vars()` or `SkillContext(secret_provider=...)`.
 
-| constitution / manifest does | It does not |
-| :--- | :--- |
-| Tell the agent how the skill should be used | Sandbox or restrict skill.py |
-| Document expected env vars and dependencies | Limit which env vars or files the code can access |
-| Validate importability (and version pins when declared) before load | Enforce dependency versions by upgrading packages automatically |
-| Set norms reviewers and agents can rely on | Enforce those norms at runtime |
+**`requirements`** — optional dependencies checked at load (importable; version pins enforced when declared).
 
-### Instruction-only content
+---
 
-Some skill content is instructions rather than code — markdown packs and similar material that an agent reads. Loading it does not execute Python in your process, but that does not make it safe: instructions can still steer what the agent does (including how it uses other tools and skills). The risk moves from process access to agent behavior. Treat instruction-only content from outside your project with the same provenance judgment as executable skills: read it before you let an agent follow it.
+## 5. Credentials and production hosts
 
-**Assurance (`test_skill.py`)** — Registry bundles ship pytest coverage for deterministic Effect behavior. Passing Assurance is the contributor contract for regressions; it does not sandbox execution or prove a skill is safe to run.
+**Local development:** copy `.env.example` → `.env`, optionally `load_env_file()`, construct skills normally — `credential()` falls back to `os.environ`.
 
-## 5. Concrete flows
+**Production:** inject manifest keys through a [secret provider](../usage/api_keys.md#secret-managers):
 
-Three common setups and what to watch for in each.
+```python
+from skillware import SkillContext
+from skillware.core.secrets import MappingSecretProvider
 
-**pip-only agent.** You pip install skillware and use only bundled skills (Bundled). Origin trust is highest here — the skills were reviewed before shipping — but execution is still unsandboxed: a bundled skill runs in your process with full access like any other. The risk is lower because of review, not because of isolation.
+ctx = SkillContext(
+    skills=["office/gmail_handler"],
+    secret_provider=MappingSecretProvider({
+        "GMAIL_ADDRESS": "...",
+        "GMAIL_APP_PASSWORD": "...",
+    }),
+)
+ctx.execute("office/gmail_handler", {"action": "mailbox_status"})
+```
 
-**Development with ./skills/.** You keep project skills in ./skills/ (Project). Two things to keep in mind: trust rests on whoever on your team wrote the code, and shadowing applies — a local skill with the same id as a bundled one replaces it. Check that you are not unintentionally overriding an official skill with a local id.
+- `MappingSecretProvider(dict)` — values already fetched (Vault, K8s, cloud secret store)
+- `CallableSecretProvider(fetcher)` — callback per key (STS, workload identity)
+- `EnvSecretProvider()` — read from `os.environ` after `load_env_file()`
+- Custom `get(key)` — full control (ephemeral tokens)
 
-**External path.** You point SKILLWARE_SKILL_PATH at a third-party skills directory (External). This is the highest-risk case: unreviewed code runs in your process with access to your entire os.environ. Because a skill can read environment variables and make network calls, a malicious or careless external skill could read your API keys or secrets and send them elsewhere — nothing in the loader prevents this. Only load external skills you have read.
+With a provider set, `SkillContext.execute()` re-resolves credentials each call — short-lived tokens work. Use one context (or provider) per tenant.
 
-### Browse and checkout defense chain
+Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
-When autonomous browser agents navigate e-commerce, banking, or SaaS portals, host agents should establish a dual-defense chain:
-1. **Pre-click & Pre-context**: Run `security/deceptive_ui_guard` across sanitized page HTML to detect channel mismatches, hidden checkout fees, drip pricing, and mislabeled CTAs before interacting with buttons or entering payment information.
-2. **Text-channel firewalling**: Pass the resulting `sanitized_excerpt` through `security/prompt_injection_firewall` before feeding untrusted text into the agent's LLM context window to prevent prompt injection and instruction overrides.
+---
 
-## 6. Operator checklist
+## 6. Multi-skill sessions and chains
 
-Because there is no default isolation, these precautions are on you, the operator — the loader does not do them for you:
+[`SkillContext`](../usage/skill_chaining.md#skillcontext--discovery-filters) discovers skills by id, category, or root filter; labels each id with its tier in brief lines; surfaces shadow conflicts in `warnings`; and exposes `tools(provider)` for Gemini, Claude, OpenAI, DeepSeek, Bedrock, and Ollama.
 
-- Read external (External) skills before you load them. Do not run third-party skill code you have not looked at.
-- Use dedicated, least-privilege API keys for agent work. Any loaded skill can read every variable in os.environ, so do not expose production or personal full-access keys.
-- Do not run untrusted skills on a machine that holds production secrets.
-- Watch for shadowing: confirm a local ./skills/ id is not unintentionally overriding a bundled skill.
-- When running skills you do not fully trust, run them in a minimal or containerized environment. This is your own isolation, outside Skillware — the loader provides none.
+Named **chains** (`skillware chain …`) run ordered steps with optional `when:` skips — useful for guardrails (sanitize → mask PII → call model) without ad-hoc orchestration code.
 
-## 7. Where this is going
+When mixing bundled and local skills, run `skillware paths shadows` once during setup.
 
-This document describes the current state (Phase 0): an honest account of how loading works today, with no isolation. Isolation and trust controls are being discussed in follow-up work:
+---
 
-- #110 — Phase 1: operator warnings and a trust flag for remote/external code.
-- #111 and #39 — scoped secrets, so skills see only the environment they need.
-- #112–#114 — research into stronger isolation (for example WASM or container-based sandboxing).
-- #17 — the parent Security Sandboxing RFC, which remains the decision record for this area.
+## 7. Untrusted inputs
 
-Until those land, treat every tier as unsandboxed and trust skills by their provenance.
+Some skills consume **third-party content** (web pages, email, attachments). Bundled skills mark risky payloads (for example `untrusted_content: true` on Gmail read/download) so agents treat them as data, not instructions.
+
+Recommended defense chain for browser agents:
+
+1. **`security/deceptive_ui_guard`** — scan page HTML before clicks or checkout
+2. **`security/prompt_injection_firewall`** — scan text before it enters the model context
+
+Compose with [`SkillContext`](../usage/skill_chaining.md) or explicit `execute()` calls at the trust boundary. See skill catalog pages for chaining examples (`gmail_handler`, `semantic_web_proxy`, `pii_masker`).
+
+Instruction-only packs (markdown the agent reads, no `skill.py` execute) still affect agent behavior — apply the same provenance judgment as executable skills when the source is external.
+
+---
+
+## 8. Common setups
+
+**pip-only agent (recommended).** Install skillware, use bundled skills, `.env` locally or secret providers in production. Run `skillware doctor` before going live.
+
+**Project `./skills/`.** Add team skills under `./skills/<category>/<name>/`. Check `skillware paths shadows` so a local id is not accidentally overriding a bundled skill.
+
+**External path.** Point `SKILLWARE_SKILL_PATH` at a private tree; pin versions; use secret providers for production keys.
+
+**Enterprise cloud.** Model credentials (Bedrock IAM, Azure SP, Vertex ADC) are separate from skill `env_vars` — see [enterprise cloud](../usage/enterprise_cloud.md).
+
+---
+
+## 9. Operator checklist
+
+- Start with **bundled** skills; run **`skillware doctor`**
+- Use **dedicated, least-privilege keys** (agent mailbox, scoped API tokens)
+- In production, prefer **secret providers** over exporting keys to `os.environ`
+- Run **`skillware paths shadows`** when adding project or external skills
+- Pin and re-read **external** skills when you update them
+- Chain **security skills** at untrusted-input boundaries when agents browse or read mail
+
+---
+
+## 10. Roadmap
+
+**Shipped (#39):** host-injected credentials, `credential()` on bundled skills, doctor **ENVS** checks.
+
+**Planned:**
+
+- #110 — operator warnings and a trust flag for remote/external code
+- #111 — tighter scoped-secret enforcement
+- #112–#114 — stronger isolation research (WASM, containers)
+- #17 — parent Security Sandboxing RFC

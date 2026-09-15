@@ -21,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
 - **Skills:** Bundled skills with `env_vars` now use `self.credential()` for config-first secret resolution (#39).
