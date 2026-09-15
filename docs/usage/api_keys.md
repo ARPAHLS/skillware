@@ -64,6 +64,8 @@ Run your script from the repository root (or pass an explicit path: `load_env_fi
 
 Add `.env` to `.gitignore` (already ignored in this repository). Never commit real keys.
 
+When developing Skillware from a branch, use `pip install -e .` so bundled skills load the in-tree `BaseSkill.credential()` helper.
+
 ### Shell export
 
 ```bash
