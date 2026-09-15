@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+- **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
+
 ## [0.5.5] - 2026-09-14
 
 ### Added
