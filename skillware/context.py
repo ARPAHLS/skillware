@@ -281,13 +281,13 @@ class SkillContext:
     def execute(self, skill_id: str, params: Mapping[str, Any]) -> Any:
         prep = self.prepare(skill_id)
         skill_cls = SkillLoader.get_skill_class(dict(prep.bundle))
-        if skill_id not in self._instances:
-            config = self._skill_config(prep.manifest)
-            if config is None:
+        if self._secret_provider is None:
+            if skill_id not in self._instances:
                 self._instances[skill_id] = skill_cls()
-            else:
-                self._instances[skill_id] = skill_cls(config=config)
-        instance = self._instances[skill_id]
+            instance = self._instances[skill_id]
+        else:
+            config = self._skill_config(prep.manifest) or {}
+            instance = skill_cls(config=config)
         instance.validate_params(dict(params))
         return instance.execute(dict(params))
 

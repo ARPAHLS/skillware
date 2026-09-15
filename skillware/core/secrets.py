@@ -8,14 +8,28 @@ from typing import Any, Dict, Mapping, Optional, Protocol, runtime_checkable
 
 @runtime_checkable
 class SecretProvider(Protocol):
-    """Resolve a credential by manifest ``env_vars`` name."""
+    """
+    Resolve a credential by manifest ``env_vars`` name.
+
+    Implementations may return static strings (Vault, K8s secrets) or fetch
+    ephemeral values on each call (AWS STS via workload identity, Azure
+    managed identity, GCP metadata, HashiCorp Vault lease renewal). Callers
+    invoke ``get()`` at resolution time — keep fetches out of skill ``execute()``.
+    """
 
     def get(self, key: str) -> Optional[str]:
         """Return the secret value, or ``None`` when unset or empty."""
 
 
 class EnvSecretProvider:
-    """Read secrets from ``os.environ`` (default local / 12-factor path)."""
+    """
+    Read secrets from ``os.environ``.
+
+    This is the only framework class that should read process-global
+    environment variables for skill credentials. Solo-dev and 12-factor hosts
+    use this path; production multi-tenant hosts should prefer injected
+    providers instead of mutating ``os.environ``.
+    """
 
     def get(self, key: str) -> Optional[str]:
         value = os.environ.get(key)
@@ -26,7 +40,7 @@ class EnvSecretProvider:
 
 
 class MappingSecretProvider:
-    """Inject secrets from an in-memory mapping (Vault/KMS fetch at host init)."""
+    """Inject secrets from an in-memory mapping (host fetched at init)."""
 
     def __init__(self, secrets: Mapping[str, str]) -> None:
         self._secrets = {str(k): str(v) for k, v in secrets.items() if v is not None}
@@ -46,8 +60,8 @@ def resolve_manifest_env_vars(
     """
     Resolve manifest ``env_vars`` keys through ``provider``.
 
-    Returns only keys with non-empty values. Skills may still fall back to
-    ``os.environ`` when a key is omitted and the host did not inject config.
+    Calls ``provider.get(key)`` once per declared key. Returns only keys with
+    non-empty values for injection into ``BaseSkill(config=...)``.
     """
     env_vars = manifest.get("env_vars")
     if not isinstance(env_vars, dict):

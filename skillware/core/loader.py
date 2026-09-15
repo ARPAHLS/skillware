@@ -182,9 +182,10 @@ class SkillLoader:
         """
         Resolve manifest ``env_vars`` through a secret provider.
 
-        Defaults to ``EnvSecretProvider`` (``os.environ``). Hosts can pass
-        ``MappingSecretProvider`` or a custom provider to inject credentials
-        without mutating global environment state.
+        Defaults to ``EnvSecretProvider`` (the framework path that reads
+        ``os.environ``). Hosts can pass ``MappingSecretProvider`` or a custom
+        ``get()`` implementation (Vault, workload identity, ephemeral STS tokens)
+        to inject credentials without mutating global environment state.
         """
         from skillware.core.secrets import (
             EnvSecretProvider,

@@ -55,6 +55,37 @@ def test_skill_loader_resolve_env_vars_empty_manifest():
     assert SkillLoader.resolve_env_vars({"env_vars": "invalid"}) == {}
 
 
+class _EphemeralTokenProvider:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def get(self, key: str) -> str | None:
+        if key != "ETHERSCAN_API_KEY":
+            return None
+        self.calls += 1
+        return f"token-{self.calls}"
+
+
+def test_skill_context_re_resolves_secrets_each_execute(monkeypatch):
+    monkeypatch.delenv("ETHERSCAN_API_KEY", raising=False)
+    provider = _EphemeralTokenProvider()
+    ctx = SkillContext(skill="finance/wallet_screening", secret_provider=provider)
+    prep = ctx.prepare("finance/wallet_screening")
+    skill_cls = SkillLoader.get_skill_class(dict(prep.bundle))
+    captured: list[str | None] = []
+
+    def fake_execute(self, params):
+        captured.append(self.etherscan_api_key)
+        return {"status": "mocked"}
+
+    monkeypatch.setattr(skill_cls, "execute", fake_execute)
+    address = {"address": "0x0000000000000000000000000000000000000001"}
+    ctx.execute("finance/wallet_screening", address)
+    ctx.execute("finance/wallet_screening", address)
+    assert captured == ["token-1", "token-2"]
+    assert provider.calls == 2
+
+
 def test_skill_context_accepts_secret_mapping(monkeypatch):
     monkeypatch.delenv("ETHERSCAN_API_KEY", raising=False)
     ctx = SkillContext(

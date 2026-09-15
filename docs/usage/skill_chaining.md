@@ -100,6 +100,7 @@ ctx = SkillContext(categories=["security"], mode="brief")
 system = ctx.merge_system(host_system_prompt)
 tools = ctx.tools("gemini")   # gemini | claude | openai | deepseek | bedrock
 ollama_block = ctx.ollama_prompt  # brief + JSON tool blocks for Ollama prompt mode
+# Optional: secret_provider=MappingSecretProvider({...}) or a custom get() for Vault / workload identity
 ```
 
 CLI mirror:

@@ -117,7 +117,7 @@ config = SkillLoader.resolve_env_vars(
     MappingSecretProvider(vault_payload),
 )
 skill = bundle["class"](config=config)
-result = skill.execute({"wallet_address": "0x..."})
+result = skill.execute({"address": "0x..."})
 ```
 
 Multi-skill hosts can pass the same provider to `SkillContext`:
@@ -129,14 +129,37 @@ ctx = SkillContext(
     categories=["finance"],
     secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
 )
-ctx.execute("finance/wallet_screening", {"wallet_address": "0x..."})
+ctx.execute("finance/wallet_screening", {"address": "0x..."})
 ```
 
 | Provider | When to use |
 | :--- | :--- |
 | `MappingSecretProvider(dict)` | You already fetched secrets into a dict (Vault/KMS/K8s init) |
-| `EnvSecretProvider()` | Explicit resolve-from-env without changing `SkillContext` defaults |
-| Custom class implementing `get(key)` | Enterprise backends (wrap your SDK client) |
+| `EnvSecretProvider()` | Solo dev / 12-factor: resolve from `os.environ` without mutating env at inject time |
+| Custom class implementing `get(key)` | Enterprise backends, workload identity, ephemeral tokens |
+
+### Workload identity and ephemeral tokens
+
+`SecretProvider.get()` is called at **resolution time** (each `resolve_env_vars()` / each `SkillContext.execute()` when a provider is configured). Implement `get()` to fetch a fresh token when needed:
+
+```python
+class WorkloadIdentityProvider:
+    def get(self, key: str) -> str | None:
+        if key == "ETHERSCAN_API_KEY":
+            return assume_role_via_web_identity()  # STS, Azure MI, GCP ADC, etc.
+        return None
+```
+
+Static strings and short-lived tokens use the same interface — the host controls freshness inside `get()`.
+
+### Multi-tenant hosts
+
+| Do | Avoid |
+| :--- | :--- |
+| One `SkillContext` (or provider) per tenant / request with tenant-scoped secrets | Relying on process-global `os.environ` when serving multiple tenants |
+| Pass `secret_provider=` so credentials land in `config` only | Let skills read `os.environ` directly in production (legacy; being phased per skill) |
+
+Framework rule: **only `EnvSecretProvider` reads `os.environ` for skill keys.** When `SkillContext(secret_provider=...)` is set, credentials are re-resolved on each `execute()` and skills are constructed with fresh `config` (no instance cache on that path).
 
 Runnable offline demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
