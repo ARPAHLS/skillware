@@ -13,6 +13,7 @@ from skillware.core.discovery import (
     list_registry_skill_ids,
 )
 from skillware.core.loader import SkillLoader
+from skillware.core.secrets import SecretProvider, coerce_secret_provider
 
 ContextMode = str  # brief | tools_only | directives
 
@@ -153,9 +154,11 @@ class SkillContext:
         max_skills: Optional[int] = None,
         mode: ContextMode = "brief",
         check_requirements: bool = True,
+        secret_provider: Optional[SecretProvider | Mapping[str, str]] = None,
     ) -> None:
         self.mode = mode if mode in {"brief", "tools_only", "directives"} else "brief"
         self._check_requirements = check_requirements
+        self._secret_provider = coerce_secret_provider(secret_provider)
         self.skill_ids, self.warnings, self._tier_by_id = _discover_skill_ids(
             skill=skill,
             skills=skills,
@@ -270,11 +273,20 @@ class SkillContext:
             bundle=bundle,
         )
 
+    def _skill_config(self, manifest: Mapping[str, Any]) -> Optional[Dict[str, str]]:
+        if self._secret_provider is None:
+            return None
+        return SkillLoader.resolve_env_vars(manifest, self._secret_provider)
+
     def execute(self, skill_id: str, params: Mapping[str, Any]) -> Any:
         prep = self.prepare(skill_id)
         skill_cls = SkillLoader.get_skill_class(dict(prep.bundle))
         if skill_id not in self._instances:
-            self._instances[skill_id] = skill_cls()
+            config = self._skill_config(prep.manifest)
+            if config is None:
+                self._instances[skill_id] = skill_cls()
+            else:
+                self._instances[skill_id] = skill_cls(config=config)
         instance = self._instances[skill_id]
         instance.validate_params(dict(params))
         return instance.execute(dict(params))

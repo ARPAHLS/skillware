@@ -116,6 +116,12 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Demo complete.",
         ],
     ),
+    (
+        "secret_provider_demo.py",
+        [
+            "Host-injected ETHERSCAN_API_KEY accepted via config (no os.environ).",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

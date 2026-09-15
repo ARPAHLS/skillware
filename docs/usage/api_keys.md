@@ -98,15 +98,59 @@ docker run --env-file .env your-image python examples/gemini_wallet_check.py
 
 ## Secret managers
 
-Pattern: fetch the secret at startup, then set `os.environ["EXPECTED_NAME"]` before loading or executing skills.
+Fetch secrets in your **host application**, then inject them through a **secret provider** — you do not have to push values into global `os.environ`.
+
+### Recommended: inject via `config`
+
+Skillware resolves manifest `env_vars` names through a pluggable provider and passes the result to `BaseSkill(config=...)`:
+
+```python
+from skillware.core.loader import SkillLoader
+from skillware.core.secrets import MappingSecretProvider
+
+# Values from Vault, AWS Secrets Manager, K8s secrets, etc.
+vault_payload = {"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}
+
+bundle = SkillLoader.load_skill("finance/wallet_screening")
+config = SkillLoader.resolve_env_vars(
+    bundle["manifest"],
+    MappingSecretProvider(vault_payload),
+)
+skill = bundle["class"](config=config)
+result = skill.execute({"wallet_address": "0x..."})
+```
+
+Multi-skill hosts can pass the same provider to `SkillContext`:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext(
+    categories=["finance"],
+    secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
+)
+ctx.execute("finance/wallet_screening", {"wallet_address": "0x..."})
+```
+
+| Provider | When to use |
+| :--- | :--- |
+| `MappingSecretProvider(dict)` | You already fetched secrets into a dict (Vault/KMS/K8s init) |
+| `EnvSecretProvider()` | Explicit resolve-from-env without changing `SkillContext` defaults |
+| Custom class implementing `get(key)` | Enterprise backends (wrap your SDK client) |
+
+Runnable offline demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
+
+### Legacy: export to `os.environ`
+
+Still supported for solo dev and scripts that call `load_env_file()`:
 
 | Platform | Approach |
 | :--- | :--- |
-| **AWS Secrets Manager** | Retrieve secret in app init; `os.environ["ETHERSCAN_API_KEY"] = value` |
-| **GCP Secret Manager** | Access version payload; assign to the env name the skill documents |
+| **AWS Secrets Manager** | Retrieve in app init; `os.environ["ETHERSCAN_API_KEY"] = value` |
+| **GCP Secret Manager** | Access version payload; assign to the manifest variable name |
 | **Azure Key Vault** | Resolve secret; export under the manifest variable name |
 
-Keep secret-fetching code in your application layer, not inside contributed skills. Skills should continue to read standard environment variable names for portability.
+Keep secret-fetching code in your application layer, not inside contributed skills. Manifest `env_vars` names remain the portable contract.
 
 ---
 
@@ -122,7 +166,7 @@ If your organization uses different secret names:
    export ETHERSCAN_API_KEY="$(vault read -field=key secret/etherscan)"
    ```
 
-2. **Alternative:** If the skill accepts a configuration dict (some skills read `self.config` as a fallback), pass the key there only when documented on the skill page. Do not assume all skills support custom config keys.
+2. **Alternative:** Use `SkillLoader.resolve_env_vars()` and pass `config=` when constructing the skill (see [Secret managers](#secret-managers)). Skills that honor `self.config` receive injected values without global env mutation.
 
 3. **Avoid:** Renaming the variable in `.env` to `MY_ETHERSCAN_KEY` without exporting `ETHERSCAN_API_KEY`—the skill will behave as if the key is missing.
 
