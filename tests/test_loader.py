@@ -616,3 +616,44 @@ def test_to_deepseek_tool():
     tool = SkillLoader.to_deepseek_tool(dummy_bundle)
     assert tool["type"] == "function"
     assert tool["function"]["name"] == "compliance_tos_evaluator"
+
+
+def test_sanitize_bedrock_tool_name():
+    assert (
+        SkillLoader._sanitize_bedrock_tool_name("compliance/tos_evaluator")
+        == "compliance_tos_evaluator"
+    )
+    assert SkillLoader._sanitize_bedrock_tool_name("") == "unknown_tool"
+
+
+def test_to_bedrock_tool():
+    dummy_bundle = {
+        "manifest": {
+            "name": "compliance/tos_evaluator",
+            "description": "Evaluate site policy.",
+            "parameters": {
+                "type": "object",
+                "properties": {"target_url": {"type": "string", "description": "URL"}},
+                "required": ["target_url"],
+            },
+        }
+    }
+    tool = SkillLoader.to_bedrock_tool(dummy_bundle)
+    spec = tool["toolSpec"]
+    assert spec["name"] == "compliance_tos_evaluator"
+    assert spec["description"] == "Evaluate site policy."
+    assert spec["inputSchema"]["json"]["type"] == "object"
+    assert "target_url" in spec["inputSchema"]["json"]["properties"]
+
+
+def test_bedrock_tool_name_matches_openai_sanitization():
+    dummy_bundle = {
+        "manifest": {
+            "name": "finance/wallet_screening",
+            "description": "Screen wallets.",
+            "parameters": {"type": "object", "properties": {}},
+        }
+    }
+    openai_name = SkillLoader.to_openai_tool(dummy_bundle)["function"]["name"]
+    bedrock_name = SkillLoader.to_bedrock_tool(dummy_bundle)["toolSpec"]["name"]
+    assert bedrock_name == openai_name == "finance_wallet_screening"

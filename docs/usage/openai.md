@@ -149,6 +149,7 @@ print(response.choices[0].message.content)
 
 ## Related documents
 
+- [Azure OpenAI](azure_openai.md) (same `to_openai_tool()` adapter)
 - [OpenAI-compatible model hosts](openai_compatible.md)
 - [API keys for skills](api_keys.md)
 - [Usage: DeepSeek](deepseek.md) (separate adapter)

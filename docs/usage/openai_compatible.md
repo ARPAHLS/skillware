@@ -16,6 +16,8 @@ then use the model ID published by that host.
 | OpenAI or a host that accepts the OpenAI `tools` schema | `to_openai_tool()` | This guide and [OpenAI](openai.md) |
 | DeepSeek's first-party API | `to_deepseek_tool()` | [DeepSeek](deepseek.md) |
 | Gemini or Claude's native tool API | `to_gemini_tool()` or `to_claude_tool()` | [Gemini](gemini.md) or [Claude](claude.md) |
+| AWS Bedrock Converse API | `to_bedrock_tool()` | [Bedrock](bedrock.md) |
+| Azure OpenAI or Vertex AI (Gemini) | `to_openai_tool()` or `to_gemini_tool()` | [Enterprise cloud](enterprise_cloud.md) |
 | Ollama prompt mode, without OpenAI-style tool calling | `to_ollama_prompt()` | [Ollama](ollama.md) |
 
 Use a provider-specific adapter when the provider's schema differs. Do not add

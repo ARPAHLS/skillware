@@ -152,6 +152,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "ollama_novelty_extractor.py": "Requires local Ollama server and models installed.",
     "ollama_skills_test.py": "Requires local Ollama server and models installed.",
     "ollama_tos_evaluator.py": "Requires local Ollama server and models installed.",
+    "bedrock_tos_evaluator.py": "Requires AWS_REGION, BEDROCK_MODEL_ID, and AWS credentials for Bedrock Converse.",
     "openai_compatible_host.py": "Requires GROQ_API_KEY for Groq OpenAI-compatible host.",
     "openai_tos_evaluator.py": "Requires OPENAI_API_KEY for OpenAI function calling.",
     "pii_guardrail_flow.py": "Optionally runs with local/external agent model.",

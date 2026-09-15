@@ -46,6 +46,8 @@ Provider guides contain full API details. Skill pages contain copy-paste example
 
 OpenAI-compatible hosts reuse `to_openai_tool()`; see the [host guide](openai_compatible.md) and runnable [Groq example](../../examples/openai_compatible_host.py).
 
+Enterprise cloud (Bedrock Converse, Azure OpenAI, Vertex AI) uses the same loop with existing adapters — see [enterprise_cloud.md](enterprise_cloud.md). Runnable Bedrock example: [`bedrock_tos_evaluator.py`](../../examples/bedrock_tos_evaluator.py).
+
 **Optional param validation:** Some agent-loop examples (e.g. `claude_wallet_check.py`, `gemini_tos_evaluator.py`) call `skill.validate_params(...)` before `execute()`; others call `execute()` directly.
 
 ### Multi-turn tool loops
@@ -67,7 +69,7 @@ from skillware import SkillContext
 
 ctx = SkillContext()  # or categories=, skills=, roots= — see skill_chaining.md
 system = ctx.merge_system(host_system_prompt)
-tools = ctx.tools("gemini")  # or claude | openai | deepseek
+tools = ctx.tools("gemini")  # or claude | openai | deepseek | bedrock
 
 # Send system + tools + user message to the model ...
 # On tool_call:
@@ -109,9 +111,10 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 | Claude | `to_claude_tool(bundle)["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
 | OpenAI | `to_openai_tool(bundle)["function"]["name"]` (sanitized, e.g. `compliance_tos_evaluator`) |
 | DeepSeek | `to_deepseek_tool(bundle)["function"]["name"]` (same sanitization rules) |
+| Bedrock Converse | `to_bedrock_tool(bundle)["toolSpec"]["name"]` (same sanitization rules) |
 | Ollama (prompt) | `"tool"` field in the JSON block the model emits (same as `manifest["name"]` when the manifest uses the full registry ID) |
 
-**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, and DeepSeek (`office_pdf_form_filler`, `optimization_prompt_rewriter`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
+**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, DeepSeek, and Bedrock Converse (`office_pdf_form_filler`, `optimization_prompt_rewriter`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
 
 ## Minimal execute (no LLM)
 
@@ -137,8 +140,9 @@ Full runnable loops live under `examples/` where listed. See the
 per-skill pip extras, SDK extras, and required environment variables. Install
 each skill with `pip install "skillware[<category>_<skill>]"` (see
 [Install extras](install_extras.md)). Gemini reference scripts use the
-`google-genai` SDK (`import google.genai`). All [skill catalog pages](../skills/README.md)
-include compact **Usage Examples** per provider.
+`google-genai` SDK (`import google.genai`). Bedrock Converse reference:
+[`bedrock_tos_evaluator.py`](../../examples/bedrock_tos_evaluator.py) ([bedrock.md](bedrock.md)).
+All [skill catalog pages](../skills/README.md) include compact **Usage Examples** per provider.
 
 `Local execute / mixed` means the checked-in script is not a single-provider
 agent loop. It either calls `skill.execute(...)` directly or loads multiple

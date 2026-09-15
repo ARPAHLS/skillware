@@ -107,6 +107,7 @@ Every model expects a different tool-schema shape. The **Interface** layer trans
 - `SkillLoader.to_claude_tool(skill)` — Claude tools + JSON Schema
 - `SkillLoader.to_openai_tool(skill)` — OpenAI Chat Completions tools
 - `SkillLoader.to_deepseek_tool(skill)` — DeepSeek-compatible tools
+- `SkillLoader.to_bedrock_tool(skill)` — AWS Bedrock Converse `toolSpec`
 - `SkillLoader.to_ollama_prompt(skill)` — textual tool block for Ollama loops
 
 **Multiple skills:** use [`SkillContext`](usage/skill_chaining.md#skillcontext--discovery-filters) instead of loading each skill separately — `merge_system()`, `tools(provider)`, `ollama_prompt`, and `execute()` on one session. Single-skill `load_skill()` is unchanged.
@@ -137,6 +138,7 @@ Skillware is designed to be the "Standard Library" for all agents.
 | **Ollama** | Native `ollama` Python client support. Fully local JSON handling. |
 | **OpenAI GPT** | `to_openai_tool()`; Chat Completions tool calling. |
 | **DeepSeek** | `to_deepseek_tool()`; separate adapter, OpenAI-compatible client. |
+| **AWS Bedrock** | `to_bedrock_tool()`; Converse API tool use. Azure OpenAI and Vertex reuse OpenAI/Gemini adapters — see [Enterprise cloud](usage/enterprise_cloud.md). |
 | **Local LLaMA** | (Planned) GBNF Grammar generation from manifests. |
 
 ---

@@ -231,10 +231,12 @@ class SkillContext:
                 tools.append(SkillLoader.to_openai_tool(bundle))
             elif provider_key == "deepseek":
                 tools.append(SkillLoader.to_deepseek_tool(bundle))
+            elif provider_key == "bedrock":
+                tools.append(SkillLoader.to_bedrock_tool(bundle))
             else:
                 raise ValueError(
                     f"Unknown provider {provider!r}; "
-                    "choose gemini, claude, openai, or deepseek"
+                    "choose gemini, claude, openai, deepseek, or bedrock"
                 )
         return tools
 

@@ -98,7 +98,7 @@ from skillware import SkillContext
 
 ctx = SkillContext(categories=["security"], mode="brief")
 system = ctx.merge_system(host_system_prompt)
-tools = ctx.tools("gemini")   # gemini | claude | openai | deepseek
+tools = ctx.tools("gemini")   # gemini | claude | openai | deepseek | bedrock
 ollama_block = ctx.ollama_prompt  # brief + JSON tool blocks for Ollama prompt mode
 ```
 
@@ -364,7 +364,8 @@ Runnable reference scripts:
 Continue with provider guides and single-skill loops:
 
 - [Agent loops](agent_loops.md) — load / wire / prompt / execute / return
-- [examples/README.md](../../examples/README.md) — Gemini, Claude, Ollama, OpenAI reference loops
+- [examples/README.md](../../examples/README.md) — Gemini, Claude, Ollama, OpenAI, Bedrock reference loops
+- [Enterprise cloud](enterprise_cloud.md) — Bedrock, Azure OpenAI, Vertex routing
 
 ---
 

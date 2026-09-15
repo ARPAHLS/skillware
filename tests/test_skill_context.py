@@ -1,5 +1,7 @@
 """Tests for SkillContext."""
 
+import pytest
+
 from skillware import SkillContext
 from skillware.core.loader import SkillLoader
 
@@ -22,6 +24,26 @@ def test_skill_context_tools_openai_matches_loader():
     tools = ctx.tools("openai")
     assert len(tools) == 1
     assert tools[0] == expected
+
+
+def test_skill_context_tools_bedrock_matches_loader():
+    ctx = SkillContext(skill="optimization/prompt_rewriter", mode="brief")
+    bundle = SkillLoader.load_skill(
+        "optimization/prompt_rewriter",
+        execute_module=False,
+    )
+    expected = SkillLoader.to_bedrock_tool(bundle)
+    tools = ctx.tools("bedrock")
+    assert len(tools) == 1
+    assert tools[0] == expected
+
+
+def test_skill_context_tools_unknown_provider():
+    ctx = SkillContext(skill="optimization/prompt_rewriter")
+    with pytest.raises(
+        ValueError, match="choose gemini, claude, openai, deepseek, or bedrock"
+    ):
+        ctx.tools("ollama")
 
 
 def test_skill_context_prepare_and_execute():

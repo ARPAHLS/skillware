@@ -110,7 +110,7 @@ def extra_to_registry_id(
     extra: str,
     categories: Optional[Iterable[str]] = None,
 ) -> Optional[str]:
-    if extra in {"all", "dev", "gemini", "claude", "openai", "agents"}:
+    if extra in {"all", "dev", "gemini", "claude", "openai", "bedrock", "agents"}:
         return None
     if categories is None:
         return None

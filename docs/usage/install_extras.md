@@ -12,7 +12,7 @@ Use this guide to choose the smallest install that matches what you run. For loa
 | **Recommended:** one bundled skill (always use this in docs) | `pip install "skillware[<category>_<skill>]"` |
 | All skills in a category | `pip install "skillware[<category>]"` |
 | Every bundled skill's runtime deps | `pip install "skillware[all]"` |
-| Agent SDK adapters (Gemini, Claude, OpenAI) | `pip install "skillware[gemini]"` (or `[claude]`, `[openai]`, `[agents]`) |
+| Agent SDK adapters (Gemini, Claude, OpenAI, Bedrock) | `pip install "skillware[gemini]"` (or `[claude]`, `[openai]`, `[bedrock]`, `[agents]`) |
 | Clone-repo development + tests | `pip install -e ".[dev,all]"` |
 | Development + agent SDK examples | `pip install -e ".[dev,all,agents]"` |
 
@@ -48,9 +48,9 @@ flowchart TD
     B --> B1["pip install skillware[category_skill]"]
     C --> C1["pip install skillware[category]"]
     D --> D1["pip install skillware[all]"]
-    E --> E1["pip install skillware[gemini] or [claude] or [openai] or [agents]"]
+    E --> E1["pip install skillware[gemini] or [claude] or [openai] or [bedrock] or [agents]"]
 
-    B1 --> F[Also need SDK? Add gemini/claude/openai/agents]
+    B1 --> F[Also need SDK? Add gemini/claude/openai/bedrock/agents]
     C1 --> F
     D1 --> F
 ```
@@ -137,14 +137,16 @@ pip install -e ".[dev,all,agents]"
 
 ## Agent SDK extras
 
-For `SkillLoader.to_gemini_tool()`, `to_claude_tool()`, `to_openai_tool()`, and provider examples — not required for `execute()` on skills that do not call that SDK internally.
+For `SkillLoader.to_gemini_tool()`, `to_claude_tool()`, `to_openai_tool()`, `to_bedrock_tool()`, and provider examples — not required for `execute()` on skills that do not call that SDK internally.
 
 | Extra | Package | Guide |
 | :--- | :--- | :--- |
 | `gemini` | `google-genai` | [gemini.md](gemini.md) |
 | `claude` | `anthropic` | [claude.md](claude.md) |
 | `openai` | `openai` | [openai.md](openai.md) |
-| `agents` | all three SDKs | [agent_loops.md](agent_loops.md) |
+| `bedrock` | `boto3` | [bedrock.md](bedrock.md) |
+| `agents` | Gemini, Claude, OpenAI SDKs | [agent_loops.md](agent_loops.md) |
+| (routing) | — | [enterprise_cloud.md](enterprise_cloud.md) |
 
 ```bash
 pip install "skillware[gemini]"
@@ -177,7 +179,7 @@ Packaging smoke tests use `check_requirements=False` so a base wheel install can
 
 Core dependencies (`requests`, `pyyaml`, `beautifulsoup4`, …) should **not** be duplicated in extras — the sync script filters them automatically. Manifests may still list them for documentation; use `bs4` or `beautifulsoup4` interchangeably for Beautiful Soup.
 
-Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `agents`) live **above** the generated block in `pyproject.toml` and are not touched by the sync script.
+Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `bedrock`, `agents`) live **above** the generated block in `pyproject.toml` and are not touched by the sync script.
 
 See [Packaging (PyPI and pip install)](../CONTRIBUTING.md#packaging-pypi-and-pip-install) in CONTRIBUTING.md.
 

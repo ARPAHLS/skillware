@@ -29,6 +29,10 @@ To list locally available skills, inspect path resolution, show config, check lo
 | OpenAI (ChatGPT) | `to_openai_tool()` | [openai.md](openai.md) | `OPENAI_API_KEY` |
 | OpenAI-compatible hosts | `to_openai_tool()` | [openai_compatible.md](openai_compatible.md) | Host-specific key |
 | DeepSeek | `to_deepseek_tool()` | [deepseek.md](deepseek.md) | `DEEPSEEK_API_KEY` |
+| AWS Bedrock Converse | `to_bedrock_tool()` | [bedrock.md](bedrock.md) | IAM / AWS credentials; `skillware[bedrock]` |
+| Azure OpenAI | `to_openai_tool()` | [azure_openai.md](azure_openai.md) | Azure deployment credentials |
+| Vertex AI (Gemini) | `to_gemini_tool()` | [vertex.md](vertex.md) | GCP ADC / service account |
+| Enterprise cloud (routing) | (see guide) | [enterprise_cloud.md](enterprise_cloud.md) | Hosting + adapter choice |
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
 | CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples`, `skillware context`, `skillware chain` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |

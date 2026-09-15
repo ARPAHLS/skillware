@@ -12,6 +12,7 @@ from skillware.core.extras import (
     GENERATED_END,
     build_extras_map,
     collect_skill_requirements,
+    extra_to_registry_id,
     registry_id_to_extra,
     render_generated_block,
 )
@@ -205,3 +206,7 @@ def test_sync_extras_check_script():
         check=False,
     )
     assert result.returncode == 0, result.stderr or result.stdout
+
+
+def test_extra_to_registry_id_treats_bedrock_as_meta_extra():
+    assert extra_to_registry_id("bedrock", categories=["compliance"]) is None
