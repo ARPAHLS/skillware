@@ -82,7 +82,6 @@ def test_missing_company_number(skill):
         result = skill.execute({"action": action})
         assert result["status"] == "error"
         assert result["error_code"] == "missing_company_number"
-        assert "resolve_company" in result.get("next_actions", [])
 
 
 # --- resolve_company Tests ---
@@ -165,7 +164,6 @@ def test_resolve_company_single_active_match(mock_request, skill):
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
     assert result["company_name"] == "BP P.L.C."
-    assert "next_actions" in result
     assert "fetched_at" in result
 
 
@@ -181,6 +179,7 @@ def test_resolve_company_no_results(mock_request, skill):
 
     assert result["status"] == "error"
     assert result["error_code"] == "no_results"
+    assert "agent_hint" in result
 
 
 def test_resolve_company_missing_query(skill):
@@ -226,7 +225,6 @@ def test_get_company_profile(mock_request, skill):
     assert result["company_name"] == "BP P.L.C."
     assert result["company_status"] == "active"
     assert result["sic_codes"] == ["06100"]
-    assert "next_actions" in result
     assert "fetched_at" in result
 
 
@@ -310,6 +308,57 @@ def test_get_officers_include_resigned(mock_request, skill):
     assert len(result["officers"]) == 2
     assert result["officers"][0]["name"] == "SMITH, John"
     assert result["officers"][1]["name"] == "DOE, Jane"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_officers_empty_list_agent_hint(mock_request, skill):
+    """Empty officers[] on success includes agent_hint for the host."""
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        "items": [],
+        "total_results": 0,
+        "active_count": 0,
+    }
+    mock_response.raise_for_status = MagicMock()
+    mock_request.return_value = mock_response
+
+    result = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00061707",
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert result["officers"] == []
+    assert "agent_hint" in result
+    assert "empty" in result["agent_hint"].lower()
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_filing_history_empty_list_agent_hint(mock_request, skill):
+    """Empty filings[] on success includes agent_hint for the host."""
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        "items": [],
+        "total_count": 0,
+        "filing_history_status": "filing-history-available",
+    }
+    mock_response.raise_for_status = MagicMock()
+    mock_request.return_value = mock_response
+
+    result = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": "00061707",
+            "category": "accounts",
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert result["filings"] == []
+    assert "agent_hint" in result
+    assert "empty" in result["agent_hint"].lower()
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -479,11 +528,11 @@ def test_map_intent_ceo_query(skill):
     )
 
     assert result["status"] == "ready"
-    assert "suggested_pipeline" in result
+    assert "steps" in result
     assert result["terminology_map"]["ceo"] == "director"
 
     # Pipeline should start with resolve_company
-    pipeline = result["suggested_pipeline"]
+    pipeline = result["steps"]
     assert pipeline[0]["action"] == "resolve_company"
     assert pipeline[0]["params"]["query"] == "BP"
 
@@ -505,7 +554,7 @@ def test_map_intent_owner_query(skill):
 
     assert result["status"] == "ready"
     assert result["terminology_map"]["owner"] == "person_with_significant_control"
-    action_names = [step["action"] for step in result["suggested_pipeline"]]
+    action_names = [step["action"] for step in result["steps"]]
     assert "resolve_company" in action_names
     assert "get_pscs" in action_names
 
@@ -521,7 +570,7 @@ def test_map_intent_officer_and_filings(skill):
     )
 
     assert result["status"] == "ready"
-    pipeline = result["suggested_pipeline"]
+    pipeline = result["steps"]
     action_names = [step["action"] for step in pipeline]
     assert action_names == [
         "resolve_company",
@@ -540,7 +589,7 @@ def test_map_intent_missing_company_query(skill):
     )
     assert result["status"] == "needs_input"
     assert result["reason"] == "missing_company_query"
-    assert "suggested_pipeline" not in result
+    assert "steps" not in result
     assert "insert_company_name_here" not in json.dumps(result)
 
 
@@ -556,9 +605,9 @@ def test_map_intent_10k_document_terminology(skill):
     assert result["status"] == "ready"
     assert result["terminology_map"]["10k"] == "accounts"
     filing_step = next(
-        s for s in result["suggested_pipeline"] if s["action"] == "get_filing_history"
+        s for s in result["steps"] if s["action"] == "get_filing_history"
     )
-    assert filing_step["params"]["category"] == "accounts"
+    assert filing_step["action"] == "get_filing_history"
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -696,7 +745,6 @@ def test_context_propagation(mock_request, skill):
             "action": "get_company_profile",
             "context": {
                 "company_number": "12345678",
-                "officer_filter": "Smith",
             },
         }
     )
@@ -707,23 +755,6 @@ def test_context_propagation(mock_request, skill):
     assert ctx["last_action"] == "get_company_profile"
     assert ctx["company_number"] == "12345678"
     assert ctx["company_name"] == "TEST COMPANY LTD"
-    assert ctx["officer_filter"] == "Smith"
-
-
-def test_partial_response(skill):
-    """_partial_response should build the correct envelope."""
-    result = skill._partial_response(
-        data={"some_key": "some_val"},
-        next_actions=["do_something_else"],
-        context={"state": 1},
-        pipeline={"completed_steps": 1, "total_steps": 2},
-    )
-    assert result["status"] == "partial"
-    assert result["some_key"] == "some_val"
-    assert result["next_actions"] == ["do_something_else"]
-    assert result["context"] == {"state": 1}
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert "fetched_at" in result
 
 
 # --- v2b Pipeline and Composite Actions Tests ---
@@ -745,7 +776,7 @@ def test_run_pipeline_invalid_step(skill):
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_run_pipeline_success_multi_step(mock_request, skill):
-    """run_pipeline executes ordered steps and merges context."""
+    """run_pipeline executes ordered steps one at a time via stack pop."""
     mock_search = MagicMock()
     mock_search.json.return_value = {
         "items": [
@@ -778,7 +809,8 @@ def test_run_pipeline_success_multi_step(mock_request, skill):
 
     mock_request.side_effect = [mock_search, mock_officers]
 
-    result = skill.execute(
+    # Step 1: resolve_company
+    step1_res = skill.execute(
         {
             "action": "run_pipeline",
             "steps": [
@@ -794,18 +826,35 @@ def test_run_pipeline_success_multi_step(mock_request, skill):
         }
     )
 
-    assert result["status"] == "ready"
-    assert result["company_number"] == "00102498"
-    assert len(result["officers"]) == 1
-    assert result["officers"][0]["name"] == "SMITH, John"
-    assert result["pipeline"] == {"completed_steps": 2, "total_steps": 2}
-    assert result["context"]["company_number"] == "00102498"
-    assert result["context"]["last_action"] == "run_pipeline"
+    assert step1_res["status"] == "partial"
+    assert step1_res["company_number"] == "00102498"
+    assert step1_res["pipeline"]["completed_steps"] == 1
+    assert step1_res["pipeline"]["total_steps"] == 2
+    assert len(step1_res["steps"]) == 1
+    assert step1_res["steps"][0]["action"] == "get_officers"
+    assert step1_res["steps"][0]["params"]["company_number"] == "00102498"
+
+    # Step 2: get_officers
+    step2_res = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": step1_res["steps"],
+            "pipeline": step1_res["pipeline"],
+            "context": step1_res["context"],
+        }
+    )
+
+    assert step2_res["status"] == "ready"
+    assert step2_res["company_number"] == "00102498"
+    assert len(step2_res["officers"]) == 1
+    assert step2_res["officers"][0]["name"] == "SMITH, John"
+    assert step2_res["pipeline"]["completed_steps"] == 2
+    assert step2_res["pipeline"]["total_steps"] == 2
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
-def test_run_pipeline_merges_multiple_data_steps(mock_request, skill):
-    """run_pipeline retains data from all steps (both officers and filings)."""
+def test_run_pipeline_multi_step_sequential_loop(mock_request, skill):
+    """run_pipeline executes multiple steps turn-by-turn with clean step data."""
     mock_officers = MagicMock()
     mock_officers.json.return_value = {
         "items": [
@@ -817,7 +866,6 @@ def test_run_pipeline_merges_multiple_data_steps(mock_request, skill):
         ],
         "total_results": 1,
         "active_count": 1,
-        "company_name": "BP P.L.C.",
     }
     mock_officers.raise_for_status = MagicMock()
 
@@ -836,9 +884,17 @@ def test_run_pipeline_merges_multiple_data_steps(mock_request, skill):
     }
     mock_filings.raise_for_status = MagicMock()
 
-    mock_request.side_effect = [mock_officers, mock_filings]
+    mock_profile = MagicMock()
+    mock_profile.json.return_value = {
+        "company_name": "BP P.L.C.",
+        "company_status": "active",
+    }
+    mock_profile.raise_for_status = MagicMock()
 
-    result = skill.execute(
+    mock_request.side_effect = [mock_officers, mock_profile, mock_filings]
+
+    # Turn 1
+    res1 = skill.execute(
         {
             "action": "run_pipeline",
             "steps": [
@@ -854,36 +910,31 @@ def test_run_pipeline_merges_multiple_data_steps(mock_request, skill):
         }
     )
 
-    assert result["status"] == "ready"
-    assert result["company_number"] == "00102498"
-    assert "officers" in result
-    assert len(result["officers"]) == 1
-    assert result["officers"][0]["name"] == "SMITH, John"
-    assert "filings" in result
-    assert len(result["filings"]) == 1
-    assert result["filings"][0]["category"] == "officers"
-    assert "terminology_note" in result
-    assert result["pipeline"] == {"completed_steps": 2, "total_steps": 2}
+    assert res1["status"] == "partial"
+    assert "officers" in res1
+    assert "filings" not in res1
+    assert res1["pipeline"]["completed_steps"] == 1
+    assert res1["pipeline"]["total_steps"] == 2
+
+    # Turn 2
+    res2 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": res1["steps"],
+            "pipeline": res1["pipeline"],
+            "context": res1["context"],
+        }
+    )
+
+    assert res2["status"] == "ready"
+    assert "filings" in res2
+    assert res2["pipeline"]["completed_steps"] == 2
+    assert res2["pipeline"]["total_steps"] == 2
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_run_pipeline_resumed_progress_tracking(mock_request, skill):
     """run_pipeline preserves multi-turn progress when incoming pipeline state is passed."""
-    mock_officers = MagicMock()
-    mock_officers.json.return_value = {
-        "items": [
-            {
-                "name": "SMITH, John",
-                "officer_role": "director",
-                "appointed_on": "2020-03-01",
-            }
-        ],
-        "total_results": 1,
-        "active_count": 1,
-        "company_name": "BP P.L.C.",
-    }
-    mock_officers.raise_for_status = MagicMock()
-
     mock_filings = MagicMock()
     mock_filings.json.return_value = {
         "items": [
@@ -898,24 +949,19 @@ def test_run_pipeline_resumed_progress_tracking(mock_request, skill):
         "filing_history_status": "filing-history-available",
     }
     mock_filings.raise_for_status = MagicMock()
-
-    mock_request.side_effect = [mock_officers, mock_filings]
+    mock_request.return_value = mock_filings
 
     result = skill.execute(
         {
             "action": "run_pipeline",
             "steps": [
                 {
-                    "action": "get_officers",
-                    "params": {"company_number": "00102498"},
-                },
-                {
                     "action": "get_filing_history",
                     "params": {"company_number": "00102498"},
                 },
             ],
             "pipeline": {
-                "completed_steps": 1,
+                "completed_steps": 2,
                 "total_steps": 3,
             },
         }
@@ -923,15 +969,14 @@ def test_run_pipeline_resumed_progress_tracking(mock_request, skill):
 
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
-    assert "officers" in result
     assert "filings" in result
-    # Progress should reflect 1 prior completed + 2 current = 3 total out of 3
-    assert result["pipeline"] == {"completed_steps": 3, "total_steps": 3}
+    assert result["pipeline"]["completed_steps"] == 3
+    assert result["pipeline"]["total_steps"] == 3
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_run_pipeline_resume_skips_done_steps(mock_request, skill):
-    """Resume skips completed steps and substitutes <from_resolve> placeholders."""
+    """Resume substitutes <from_resolve> placeholders in remaining steps."""
     mock_officers = MagicMock()
     mock_officers.json.return_value = {
         "items": [
@@ -946,45 +991,21 @@ def test_run_pipeline_resume_skips_done_steps(mock_request, skill):
         "company_name": "BP P.L.C.",
     }
     mock_officers.raise_for_status = MagicMock()
-
-    mock_filings = MagicMock()
-    mock_filings.json.return_value = {
-        "items": [
-            {
-                "date": "2026-08-19",
-                "category": "officers",
-                "type": "AP03",
-                "description": "appoint-person-secretary",
-            }
-        ],
-        "total_count": 1,
-        "filing_history_status": "filing-history-available",
-    }
-    mock_filings.raise_for_status = MagicMock()
-
-    mock_request.side_effect = [mock_officers, mock_filings]
+    mock_request.return_value = mock_officers
 
     result = skill.execute(
         {
             "action": "run_pipeline",
             "steps": [
                 {
-                    "action": "resolve_company",
-                    "params": {"query": "bp"},
-                },
-                {
                     "action": "get_officers",
-                    "params": {"company_number": "<from_resolve>"},
-                },
-                {
-                    "action": "get_filing_history",
                     "params": {"company_number": "<from_resolve>"},
                 },
             ],
             "company_number": "00102498",
             "pipeline": {
                 "completed_steps": 1,
-                "total_steps": 3,
+                "total_steps": 2,
             },
         }
     )
@@ -992,13 +1013,13 @@ def test_run_pipeline_resume_skips_done_steps(mock_request, skill):
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
     assert "officers" in result
-    assert "filings" in result
-    assert result["pipeline"] == {"completed_steps": 3, "total_steps": 3}
+    assert result["pipeline"]["completed_steps"] == 2
+    assert result["pipeline"]["total_steps"] == 2
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_get_officers_partial_status(mock_request, skill):
-    """get_officers returns status=partial when active_count exceeds returned limit."""
+    """get_officers returns status=ready even when active_count exceeds preview limit."""
     mock_response = MagicMock()
     mock_response.json.return_value = {
         "items": [
@@ -1011,6 +1032,7 @@ def test_get_officers_partial_status(mock_request, skill):
         ],
         "total_results": 20,
         "active_count": 15,
+        "company_name": "BP P.L.C.",
     }
     mock_response.raise_for_status = MagicMock()
     mock_request.return_value = mock_response
@@ -1023,16 +1045,15 @@ def test_get_officers_partial_status(mock_request, skill):
         }
     )
 
-    assert result["status"] == "partial"
+    assert result["status"] == "ready"
     assert len(result["officers"]) == 10
     assert result["active_count"] == 15
-    assert "agent_hint" in result
-    assert "Showing 10 active officers" in result["agent_hint"]
+    assert result["total_results"] == 20
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_get_filings_partial_status(mock_request, skill):
-    """get_filing_history returns status=partial when total filings exceed limit."""
+    """get_filing_history returns status=ready even when total filings exceed limit."""
     mock_response = MagicMock()
     mock_response.json.return_value = {
         "items": [
@@ -1046,6 +1067,7 @@ def test_get_filings_partial_status(mock_request, skill):
         ],
         "total_count": 15549,
         "filing_history_status": "filing-history-available",
+        "company_name": "BP P.L.C.",
     }
     mock_response.raise_for_status = MagicMock()
     mock_request.return_value = mock_response
@@ -1058,11 +1080,9 @@ def test_get_filings_partial_status(mock_request, skill):
         }
     )
 
-    assert result["status"] == "partial"
+    assert result["status"] == "ready"
     assert len(result["filings"]) == 10
     assert result["total_results"] == 15549
-    assert "agent_hint" in result
-    assert "Showing 10 filings out of 15549" in result["agent_hint"]
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1106,7 +1126,7 @@ def test_get_officers_terminology_note_contextual(mock_request, skill):
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_run_pipeline_stops_on_needs_input(mock_request, skill):
-    """run_pipeline stops on disambiguation and sets next_actions."""
+    """run_pipeline stops on disambiguation when multiple matches are found."""
     mock_search = MagicMock()
     mock_search.json.return_value = {
         "items": [
@@ -1154,8 +1174,11 @@ def test_run_pipeline_stops_on_needs_input(mock_request, skill):
     assert result["status"] == "needs_input"
     assert result["reason"] == "multiple_matches"
     assert len(result["candidates"]) == 4
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert result["next_actions"] == ["get_officers"]
+    assert result["pipeline"]["completed_steps"] == 1
+    assert result["pipeline"]["total_steps"] == 2
+    assert result["steps"] == [
+        {"action": "get_officers", "params": {"active_only": True}}
+    ]
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1187,8 +1210,9 @@ def test_run_pipeline_stops_on_error(mock_request, skill):
 
     assert result["status"] == "error"
     assert result["error_code"] == "not_found"
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert result["next_actions"] == ["get_officers"]
+    assert result["pipeline"]["completed_steps"] == 1
+    assert result["pipeline"]["total_steps"] == 2
+    assert result["steps"] == [{"action": "get_officers"}]
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1218,7 +1242,6 @@ def test_resolve_and_get_officers_single_match(mock_request, skill):
         ],
         "total_results": 1,
         "active_count": 1,
-        "company_name": "BP P.L.C.",
     }
     mock_officers.raise_for_status = MagicMock()
 
@@ -1235,7 +1258,7 @@ def test_resolve_and_get_officers_single_match(mock_request, skill):
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
     assert len(result["officers"]) == 1
-    assert result["pipeline"] == {"completed_steps": 2, "total_steps": 2}
+    assert "pipeline" not in result
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1278,8 +1301,7 @@ def test_resolve_and_get_officers_multiple_matches(mock_request, skill):
 
     assert result["status"] == "needs_input"
     assert result["reason"] == "multiple_matches"
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert result["next_actions"] == ["get_officers"]
+    assert "pipeline" not in result
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1296,10 +1318,16 @@ def test_resolve_and_get_officers_with_company_number(mock_request, skill):
         ],
         "total_results": 1,
         "active_count": 1,
-        "company_name": "BP P.L.C.",
     }
     mock_officers.raise_for_status = MagicMock()
-    mock_request.return_value = mock_officers
+
+    mock_profile = MagicMock()
+    mock_profile.json.return_value = {
+        "company_name": "BP P.L.C.",
+        "company_status": "active",
+    }
+    mock_profile.raise_for_status = MagicMock()
+    mock_request.side_effect = [mock_officers, mock_profile]
 
     result = skill.execute(
         {
@@ -1310,15 +1338,16 @@ def test_resolve_and_get_officers_with_company_number(mock_request, skill):
 
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
+    assert result["company_name"] == "BP P.L.C."
     assert len(result["officers"]) == 1
-    assert mock_request.call_count == 1
+    assert mock_request.call_count == 2
 
 
 def test_resolve_and_get_officers_missing_query(skill):
     """resolve_and_get_officers without query or company_number returns error."""
     result = skill.execute({"action": "resolve_and_get_officers"})
     assert result["status"] == "error"
-    assert result["error_code"] == "missing_query"
+    assert result["error_code"] == "missing_company"
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1365,7 +1394,7 @@ def test_resolve_and_get_filings_single_match(mock_request, skill):
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
     assert len(result["filings"]) == 1
-    assert result["pipeline"] == {"completed_steps": 2, "total_steps": 2}
+    assert "pipeline" not in result
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1408,8 +1437,7 @@ def test_resolve_and_get_filings_multiple_matches(mock_request, skill):
 
     assert result["status"] == "needs_input"
     assert result["reason"] == "multiple_matches"
-    assert result["pipeline"] == {"completed_steps": 1, "total_steps": 2}
-    assert result["next_actions"] == ["get_filing_history"]
+    assert "pipeline" not in result
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1429,7 +1457,14 @@ def test_resolve_and_get_filings_with_company_number(mock_request, skill):
         "filing_history_status": "filing-history-available",
     }
     mock_filings.raise_for_status = MagicMock()
-    mock_request.return_value = mock_filings
+
+    mock_profile = MagicMock()
+    mock_profile.json.return_value = {
+        "company_name": "BP P.L.C.",
+        "company_status": "active",
+    }
+    mock_profile.raise_for_status = MagicMock()
+    mock_request.side_effect = [mock_filings, mock_profile]
 
     result = skill.execute(
         {
@@ -1440,57 +1475,16 @@ def test_resolve_and_get_filings_with_company_number(mock_request, skill):
 
     assert result["status"] == "ready"
     assert result["company_number"] == "00102498"
+    assert result["company_name"] == "BP P.L.C."
     assert len(result["filings"]) == 1
-    assert mock_request.call_count == 1
+    assert mock_request.call_count == 2
 
 
 def test_resolve_and_get_filings_missing_query(skill):
     """resolve_and_get_filings without query or company_number returns error."""
     result = skill.execute({"action": "resolve_and_get_filings"})
     assert result["status"] == "error"
-    assert result["error_code"] == "missing_query"
-
-
-@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
-def test_run_pipeline_resumes_from_next_actions(mock_request, skill):
-    """run_pipeline falls back to context next_actions when steps is omitted."""
-    mock_officers = MagicMock()
-    mock_officers.json.return_value = {
-        "items": [
-            {
-                "name": "MURPHY, Ken",
-                "officer_role": "director",
-                "appointed_on": "2020-10-01",
-            }
-        ],
-        "total_results": 1,
-        "active_count": 1,
-        "company_name": "TESCO PLC",
-    }
-    mock_officers.raise_for_status = MagicMock()
-    mock_request.return_value = mock_officers
-
-    result = skill.execute(
-        {
-            "action": "run_pipeline",
-            "company_number": "00445790",
-            "context": {
-                "last_action": "resolve_and_get_officers",
-                "next_actions": ["get_officers"],
-                "role_hint": "ceo",
-            },
-            "pipeline": {
-                "completed_steps": 1,
-                "total_steps": 2,
-            },
-        }
-    )
-
-    assert result["status"] == "ready"
-    assert result["company_number"] == "00445790"
-    assert len(result["officers"]) == 1
-    assert "CEO" in result["terminology_note"]
-    assert result["pipeline"] == {"completed_steps": 2, "total_steps": 2}
+    assert result["error_code"] == "missing_company"
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -1519,7 +1513,6 @@ def test_resolve_and_get_officers_with_role_hint(mock_request, skill):
         ],
         "total_results": 1,
         "active_count": 1,
-        "company_name": "TESCO PLC",
     }
     mock_officers.raise_for_status = MagicMock()
     mock_request.side_effect = [mock_search, mock_officers]
@@ -1534,7 +1527,60 @@ def test_resolve_and_get_officers_with_role_hint(mock_request, skill):
 
     assert result["status"] == "ready"
     assert result["company_number"] == "00445790"
+    assert result["company_name"] == "TESCO PLC"
     assert "CEO" in result["terminology_note"]
-    assert result["context"]["role_hint"] == "ceo"
+    assert "role_hint" not in result["context"]
     search_params = mock_request.call_args_list[0].kwargs["params"]
     assert search_params["q"] == "Tesco"
+
+
+def test_map_intent_with_action_params(skill):
+    """map_intent supports dedicated action_params to configure steps explicitly."""
+    result = skill.execute(
+        {
+            "action": "map_intent",
+            "intent_keywords": "director, filings, psc",
+            "entities": {"company_query": "Barclays"},
+            "action_params": {
+                "resolve_company": {"limit": 3},
+                "get_officers": {
+                    "limit": 7,
+                    "role_hint": "ceo",
+                    "officer_name": "Venkat",
+                    "active_only": True,
+                },
+                "get_filing_history": {
+                    "limit": 15,
+                    "category": "accounts",
+                },
+                "get_pscs": {
+                    "active_only": True,
+                },
+            },
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert "steps" in result
+    steps = result["steps"]
+    assert len(steps) == 4
+
+    assert steps[0]["action"] == "resolve_company"
+    assert steps[0]["params"]["query"] == "Barclays"
+    assert steps[0]["params"]["limit"] == 3
+
+    assert steps[1]["action"] == "get_officers"
+    assert steps[1]["params"]["company_number"] == "<from_resolve>"
+    assert steps[1]["params"]["limit"] == 7
+    assert steps[1]["params"]["role_hint"] == "ceo"
+    assert steps[1]["params"]["officer_name"] == "Venkat"
+    assert steps[1]["params"]["active_only"] is True
+
+    assert steps[2]["action"] == "get_filing_history"
+    assert steps[2]["params"]["company_number"] == "<from_resolve>"
+    assert steps[2]["params"]["limit"] == 15
+    assert steps[2]["params"]["category"] == "accounts"
+
+    assert steps[3]["action"] == "get_pscs"
+    assert steps[3]["params"]["company_number"] == "<from_resolve>"
+    assert steps[3]["params"]["active_only"] is True

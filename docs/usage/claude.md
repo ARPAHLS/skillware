@@ -1,13 +1,16 @@
 # Integration Guide: Anthropic Claude
 
-Skillware is designed to integrate seamlessly with Anthropic's Claude models (Claude 3 Opus, Sonnet, Haiku) via the `anthropic` Python SDK.
+Skillware integrates with Anthropic Claude via the `anthropic` Python SDK. Catalog snippets and Haiku-oriented examples default to **`claude-haiku-4-5-20251001`**; override with `ANTHROPIC_MODEL` when needed. Sonnet or Opus IDs remain valid for heavier agent loops.
 
 ## ⚡ Quick Snippet
 
 ```python
+import os
+from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 import anthropic
 
+load_env_file()
 client = anthropic.Anthropic()
 skill = SkillLoader.load_skill("finance/wallet_screening")
 
@@ -15,7 +18,7 @@ skill = SkillLoader.load_skill("finance/wallet_screening")
 claude_tool = SkillLoader.to_claude_tool(skill)
 
 message = client.messages.create(
-    model="claude-3-opus-20240229",
+    model=os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"),
     max_tokens=1024,
     system=skill['instructions'],  # Directive
     tools=[claude_tool],           # Interface
@@ -57,7 +60,7 @@ if message.stop_reason == "tool_use":
 
     # 2. Reply with Result
     response = client.messages.create(
-        model="claude-3-opus-20240229",
+        model=os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"),
         max_tokens=1024,
         system=skill['instructions'],
         tools=[claude_tool],
@@ -77,3 +80,5 @@ if message.stop_reason == "tool_use":
         ]
     )
 ```
+
+**Multi-turn loops:** After tool results, call the model again without a new user message when the model may chain further tool calls. Only append a user turn when the skill returns `needs_input` and you need disambiguation from the end user.

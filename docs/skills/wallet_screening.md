@@ -146,7 +146,7 @@ skill = bundle["class"](
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
 response = client.messages.create(
-    model="claude-3-5-haiku-latest",
+    model="claude-haiku-4-5-20251001",
     max_tokens=1024,
     system=bundle["instructions"],
     tools=tools,
@@ -307,6 +307,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`0b308d3`](https://github.com/ARPAHLS/skillware/commit/0b308d3) | feat(wallet_screening): paginate Etherscan txlist and surface warnings (#214) (#215) | 23 Jul 2026 | `1.0.1` | [@Hendobox](https://github.com/Hendobox) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `1.0.0` | [@rosspeili](https://github.com/rosspeili) |

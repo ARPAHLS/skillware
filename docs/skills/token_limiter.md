@@ -60,7 +60,7 @@ Indicative USD rates live in `skills/monitoring/token_limiter/data/model_pricing
 | `gpt-4o` | 2.50 | 10.00 |
 | `gpt-4o-mini` | 0.15 | 0.60 |
 | `claude-3-5-sonnet-latest` | 3.00 | 15.00 |
-| `claude-3-5-haiku-latest` | 0.80 | 4.00 |
+| `claude-haiku-4-5-20251001` | 0.80 | 4.00 |
 | `gemini-3.5-flash` | 1.50 | 9.00 |
 | `gemini-3.5-flash-lite` | 0.30 | 2.50 |
 | `deepseek-chat` | 0.27 | 1.10 |
@@ -148,7 +148,7 @@ skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
 response = client.messages.create(
-    model="claude-3-5-haiku-latest",
+    model="claude-haiku-4-5-20251001",
     max_tokens=1024,
     system=bundle["instructions"],
     tools=tools,

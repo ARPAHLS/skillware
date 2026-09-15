@@ -130,7 +130,7 @@ skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
 response = client.messages.create(
-    model="claude-3-5-haiku-latest",
+    model="claude-haiku-4-5-20251001",
     max_tokens=1024,
     system=bundle["instructions"],
     tools=tools,
@@ -256,6 +256,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/s
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`525ecd0`](https://github.com/ARPAHLS/skillware/commit/525ecd01967080bc9631a04395ade9b80c3403d4) | docs: migrate Gemini defaults to 3.5 Flash / Flash-Lite — default generator model (#265) (#345) | 9 Sep 2026 | `0.1.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`bca8181`](https://github.com/ARPAHLS/skillware/commit/bca8181) | Add category and per-skill pip extras with manifest sync (#236). (#256) | 16 Jul 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

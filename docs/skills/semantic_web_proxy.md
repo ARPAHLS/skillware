@@ -325,6 +325,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/s
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`d70af75`](https://github.com/ARPAHLS/skillware/commit/d70af75bb68bfa54e6e5fe41f996564ebcec791c) | feat(data_engineering): add semantic_web_proxy skill for token-efficient page extraction (#42) (#340) | 10 Sep 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
 <!-- skill-history:end -->
 

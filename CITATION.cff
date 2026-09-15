@@ -14,8 +14,8 @@ abstract: >-
   constitution and safety constraints, deterministic execute() implementations,
   and adapters for logical system providers — whether LLM APIs, hosted inference,
   or local runtimes.
-version: "0.5.4"
-date-released: "2026-09-03"
+version: "0.5.5"
+date-released: "2026-09-14"
 license: MIT
 repository-code: "https://github.com/ARPAHLS/skillware"
 url: "https://skillware.site"
