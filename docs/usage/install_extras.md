@@ -48,9 +48,9 @@ flowchart TD
     B --> B1["pip install skillware[category_skill]"]
     C --> C1["pip install skillware[category]"]
     D --> D1["pip install skillware[all]"]
-    E --> E1["pip install skillware[gemini] or [claude] or [openai] or [agents]"]
+    E --> E1["pip install skillware[gemini] or [claude] or [openai] or [bedrock] or [agents]"]
 
-    B1 --> F[Also need SDK? Add gemini/claude/openai/agents]
+    B1 --> F[Also need SDK? Add gemini/claude/openai/bedrock/agents]
     C1 --> F
     D1 --> F
 ```
