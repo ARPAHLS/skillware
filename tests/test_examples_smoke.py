@@ -168,6 +168,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "context_optimizer_demo.py": "Requires fastembed model download on first run.",
     "context_optimizer_chain_demo.py": "Requires fastembed model download on first run.",
     "context_optimizer_gemini_loop.py": "Requires GOOGLE_API_KEY and CONTEXT_OPTIMIZER_GEMINI_LIVE=1 for live phase.",
+    "context_optimizer_claude_loop.py": "Requires ANTHROPIC_API_KEY and CONTEXT_OPTIMIZER_CLAUDE_LIVE=1 for live phase.",
     "ollama_issue_resolver.py": "Requires local Ollama server and models installed.",
     "ollama_novelty_extractor.py": "Requires local Ollama server and models installed.",
     "ollama_skills_test.py": "Requires local Ollama server and models installed.",

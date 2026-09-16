@@ -220,13 +220,15 @@ Use `SkillContext` when you need **multiple tools**, **registry brief**, or **sh
 
 Define repeatable order under **`chains:`** in project `.skillware.yaml` or global `~/.config/skillware/config.yaml`. **Project overrides global** on name clash.
 
-See [`.skillware.yaml.example`](../../.skillware.yaml.example) for three reference chains:
+See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference chains:
 
 | Chain | Purpose |
 | :--- | :--- |
 | `sanitize_input` | Firewall → rewriter (rewriter skipped when `is_safe` is false) |
+| `optimize_document_context` | Firewall → context optimizer (optimizer skipped when `is_safe` is false) |
 | `preflight_untrusted_html` | HTML-mode firewall only |
 | `scan_then_gate` | Firewall → token limiter check |
+| `deck_build_pipeline` | Validate → lint → render deck spec |
 
 ### Python API
 

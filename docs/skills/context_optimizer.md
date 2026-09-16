@@ -71,7 +71,7 @@ Sample user message: *From this 500-page policy, find jurisdiction clauses for d
 
 ### Runnable examples
 
-See [examples/README.md](../../examples/README.md). Offline: `examples/context_optimizer_demo.py`, `examples/context_optimizer_chain_demo.py` (firewall → optimizer). Optional live loop: `examples/context_optimizer_gemini_loop.py` (`CONTEXT_OPTIMIZER_GEMINI_LIVE=1`).
+See [examples/README.md](../../examples/README.md). Offline: `examples/context_optimizer_demo.py`, `examples/context_optimizer_chain_demo.py` (firewall → optimizer). Optional live loops: `examples/context_optimizer_gemini_loop.py` (`CONTEXT_OPTIMIZER_GEMINI_LIVE=1`), `examples/context_optimizer_claude_loop.py` (`CONTEXT_OPTIMIZER_CLAUDE_LIVE=1`).
 
 ### Direct execute
 
@@ -86,8 +86,8 @@ document = Path("skills/optimization/context_optimizer/data/sample_policy.txt").
 result = skill.execute({
     "document_text": document,
     "agent_goal": "Find jurisdiction clauses for data handling.",
-    "max_tokens_return": 2000,
-    "min_score": 0.35,
+    "max_tokens_return": 250,
+    "min_score": 0.45,
 })
 print(result["status"])
 print(result["optimized_context"])
@@ -116,7 +116,8 @@ if not fw.get("is_safe"):
 opt = ctx.execute("optimization/context_optimizer", {
     "document_text": fw["sanitized_text"],
     "agent_goal": "jurisdiction and cross-border data handling",
-    "max_tokens_return": 1500,
+    "max_tokens_return": 250,
+    "min_score": 0.45,
 })
 print(opt["optimized_context"])
 ```
@@ -294,7 +295,7 @@ Initial release for [issue #44](https://github.com/ARPAHLS/skillware/issues/44).
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(pending)* | feat: add optimization/context_optimizer — query-aware extractive selection (#44) | 16 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`08e8300`](https://github.com/ARPAHLS/skillware/commit/08e8300ef) | feat: add optimization/context_optimizer — query-aware extractive selection (#44) | 16 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
