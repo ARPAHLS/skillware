@@ -3,8 +3,8 @@ UK Companies House Handler Skill
 
 Deterministic skill that wraps the Companies House REST API into structured
 actions with status-based responses. Supports company search, profile lookup,
-officer and PSC listing, filing history, and intent-to-operation mapping with
-UK corporate terminology translation.
+officer and PSC listing with role/name filters, filing history with helpers,
+turn-by-turn pipeline orchestration, and composite shortcuts.
 """
 
 import json
@@ -25,10 +25,10 @@ _VALID_ACTIONS = {
     "get_officers",
     "get_pscs",
     "get_filing_history",
-    "map_intent",
     "run_pipeline",
     "resolve_and_get_officers",
     "resolve_and_get_filings",
+    "resolve_company_officer",
 }
 
 _ACTIONS_REQUIRING_COMPANY_NUMBER = {
@@ -117,25 +117,30 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "get_officers": self._get_officers,
             "get_pscs": self._get_pscs,
             "get_filing_history": self._get_filing_history,
-            "map_intent": self._map_intent,
             "run_pipeline": self._run_pipeline,
             "resolve_and_get_officers": self._resolve_and_get_officers,
             "resolve_and_get_filings": self._resolve_and_get_filings,
+            "resolve_company_officer": self._resolve_company_officer,
         }
 
         try:
             result = dispatch[action](params)
 
             # Carry forward and merge context
+            ctx_num = context.get("company_number")
             company_number = (
-                result.get("company_number")
-                or params.get("company_number")
-                or context.get("company_number")
+                result.get("company_number") or params.get("company_number") or ctx_num
+            )
+            # Only inherit context company_name if company_number matches context
+            inherited_name = (
+                context.get("company_name")
+                if (not ctx_num or not company_number or ctx_num == company_number)
+                else None
             )
             company_name = (
                 result.get("company_name")
                 or params.get("company_name")
-                or context.get("company_name")
+                or inherited_name
             )
 
             if not company_name and company_number:
@@ -302,58 +307,192 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         return self._ready_response(profile)
 
+    def _match_officer_role(self, officer_role: str, target_role: str) -> bool:
+        """Deterministically match an officer role against a requested role/category."""
+        if not target_role:
+            return True
+        if not officer_role:
+            return False
+
+        norm_officer = str(officer_role).strip().lower().replace("_", "-")
+        norm_target = str(target_role).strip().lower()
+
+        # Check role_mappings first for synonyms / US terms (e.g. "ceo" -> "director")
+        role_map = self.terminology_map.get("role_mappings", {})
+        norm_key = norm_target.replace("-", "_")
+        mapped_target = role_map.get(norm_key, norm_target)
+        mapped_target_norm = str(mapped_target).strip().lower().replace("_", "-")
+
+        # Canonical role categories from terminology_map
+        role_categories = self.terminology_map.get("role_categories", {})
+
+        # Check category match (allowing singular or plural)
+        if mapped_target_norm in ("director", "directors") or norm_target in (
+            "director",
+            "directors",
+        ):
+            if norm_officer in role_categories.get("directors", []):
+                return True
+        elif mapped_target_norm in ("secretary", "secretaries") or norm_target in (
+            "secretary",
+            "secretaries",
+        ):
+            if norm_officer in role_categories.get("secretaries", []):
+                return True
+        elif mapped_target_norm == "corporate" or norm_target == "corporate":
+            if norm_officer in role_categories.get(
+                "corporate", []
+            ) or norm_officer.startswith("corporate-"):
+                return True
+
+        # Check exact role match
+        target_exact = norm_target.replace("_", "-")
+        if norm_officer == target_exact or norm_officer == mapped_target_norm:
+            return True
+
+        return False
+
     def _get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """List officers (directors, secretaries) for a company."""
+        """List officers (directors, secretaries) for a company with deterministic filtering."""
         company_number = params["company_number"].strip()
         active_only = params.get("active_only", True)
-        limit = params.get("limit", 10)
-        officer_name = params.get("officer_name", "").lower()
-        role_hint = params.get("role_hint", "").lower()
-        start_index = params.get("start_index", 0)
-
-        request_params: Dict[str, Any] = {
-            "items_per_page": min(limit, 100),
-            "start_index": start_index,
-        }
-
-        data = self._request(
-            "GET",
-            f"/company/{company_number}/officers",
-            params=request_params,
+        officer_name = (
+            (params.get("officer_name") or params.get("officer_filter") or "")
+            .strip()
+            .lower()
         )
+        officer_role = (params.get("officer_role") or "").strip().lower()
+        role_hint = (params.get("role_hint") or "").strip().lower()
+        start_index = int(params.get("start_index") or 0)
+        limit_param = params.get("limit")
 
-        officers = []
-        for item in data.get("items", []):
-            officer = {
-                "name": item.get("name", ""),
-                "officer_role": item.get("officer_role", ""),
-                "appointed_on": item.get("appointed_on", ""),
-                "resigned_on": item.get("resigned_on"),
-                "nationality": item.get("nationality", ""),
-                "occupation": item.get("occupation", ""),
-                "country_of_residence": item.get("country_of_residence", ""),
+        has_filter = bool(officer_name or officer_role)
+
+        if has_filter:
+            limit = int(limit_param) if limit_param is not None else 100
+            max_pages = 10
+            page_size = 100
+            current_start = start_index
+            officers = []
+            matched_count = 0
+            total_results = None
+            active_count = None
+
+            for _ in range(max_pages):
+                req_params = {
+                    "items_per_page": page_size,
+                    "start_index": current_start,
+                }
+                data = self._request(
+                    "GET",
+                    f"/company/{company_number}/officers",
+                    params=req_params,
+                )
+                if total_results is None:
+                    total_results = data.get("total_results")
+                    active_count = data.get("active_count")
+
+                items = data.get("items", [])
+                if not items:
+                    break
+
+                for item in items:
+                    resigned = bool(item.get("resigned_on"))
+                    if active_only and resigned:
+                        continue
+
+                    role = item.get("officer_role", "")
+                    if officer_role and not self._match_officer_role(
+                        role, officer_role
+                    ):
+                        continue
+
+                    name = item.get("name", "")
+                    if officer_name:
+                        name_lower = name.lower()
+                        if not all(
+                            part in name_lower
+                            for part in officer_name.replace(",", " ").split()
+                        ):
+                            continue
+
+                    matched_count += 1
+                    if len(officers) < limit:
+                        officers.append(
+                            {
+                                "name": name,
+                                "officer_role": role,
+                                "appointed_on": item.get("appointed_on", ""),
+                                "resigned_on": item.get("resigned_on"),
+                                "nationality": item.get("nationality", ""),
+                                "occupation": item.get("occupation", ""),
+                                "country_of_residence": item.get(
+                                    "country_of_residence", ""
+                                ),
+                            }
+                        )
+
+                current_start += len(items)
+                if total_results is not None and current_start >= total_results:
+                    break
+                if len(items) < page_size:
+                    break
+                if len(officers) >= limit:
+                    break
+
+            items_per_page = page_size
+        else:
+            limit = int(limit_param) if limit_param is not None else 10
+            page_size = min(limit, 100)
+            req_params = {
+                "items_per_page": page_size,
+                "start_index": start_index,
             }
-
-            # Filter resigned officers when active_only is requested
-            if active_only and officer.get("resigned_on"):
-                continue
-
-            if officer_name and officer_name not in officer.get("name", "").lower():
-                continue
-
-            officers.append(officer)
-            if len(officers) >= limit:
-                break
+            data = self._request(
+                "GET",
+                f"/company/{company_number}/officers",
+                params=req_params,
+            )
+            total_results = data.get("total_results")
+            active_count = data.get("active_count")
+            items = data.get("items", [])
+            officers = []
+            matched_count = 0
+            for item in items:
+                resigned = bool(item.get("resigned_on"))
+                if active_only and resigned:
+                    continue
+                matched_count += 1
+                if len(officers) < limit:
+                    officers.append(
+                        {
+                            "name": item.get("name", ""),
+                            "officer_role": item.get("officer_role", ""),
+                            "appointed_on": item.get("appointed_on", ""),
+                            "resigned_on": item.get("resigned_on"),
+                            "nationality": item.get("nationality", ""),
+                            "occupation": item.get("occupation", ""),
+                            "country_of_residence": item.get(
+                                "country_of_residence", ""
+                            ),
+                        }
+                    )
+            items_per_page = page_size
 
         company_name = params.get("context", {}).get("company_name", "")
 
         if any(
-            term in role_hint
+            term in role_hint or term in officer_role
             for term in ("ceo", "chief_executive", "president", "coo", "cfo")
         ):
             terminology_note = (
                 "UK companies use directors, not CEOs; this list "
                 "includes statutory directors and secretaries."
+            )
+        elif not active_only:
+            terminology_note = (
+                "Statutory company officers in the UK comprise directors and "
+                "secretaries. Includes both active and resigned officers on record."
             )
         else:
             terminology_note = (
@@ -361,16 +500,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "and secretaries."
             )
 
-        total_results = data.get("total_results")
-        active_count = data.get("active_count")
-
         result = {
             "company_number": company_number,
             "company_name": company_name,
             "total_results": total_results,
             "active_count": active_count,
+            "matched_count": matched_count,
             "officers": officers,
             "terminology_note": terminology_note,
+            "start_index": start_index,
+            "items_per_page": items_per_page,
+            "active_only": active_only,
         }
 
         empty_hint = ""
@@ -440,12 +580,23 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         )
 
     def _get_filing_history(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """List filing history for a company."""
+        """List filing history for a company with deterministic date sort and helpers."""
         company_number = params["company_number"].strip()
         limit = params.get("limit", 10)
-
-        request_params: Dict[str, Any] = {"items_per_page": limit}
         category = params.get("category")
+        latest_only = bool(params.get("latest_only", False))
+        latest_per_category = bool(params.get("latest_per_category", False))
+        start_index = int(params.get("start_index") or 0)
+
+        if latest_per_category or latest_only or (limit is not None and limit > 10):
+            items_per_page = 100
+        else:
+            items_per_page = min(limit, 100) if limit is not None else 10
+
+        request_params: Dict[str, Any] = {
+            "items_per_page": items_per_page,
+            "start_index": start_index,
+        }
         if category:
             request_params["category"] = category
 
@@ -474,15 +625,39 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
             filings.append(filing)
 
-        company_name = params.get("context", {}).get("company_name", "")
+        # Deterministic newest-first sort by date
+        filings.sort(key=lambda x: str(x.get("date", "")), reverse=True)
 
+        if latest_only:
+            filings = filings[:1]
+        elif latest_per_category:
+            deduped = []
+            seen_categories = set()
+            for f in filings:
+                cat = f.get("category", "")
+                if cat not in seen_categories:
+                    seen_categories.add(cat)
+                    deduped.append(f)
+            filings = deduped
+            if limit is not None:
+                filings = filings[:limit]
+        else:
+            if limit is not None:
+                filings = filings[:limit]
+
+        company_name = params.get("context", {}).get("company_name", "")
         total_results = data.get("total_count")
+
         result = {
             "company_number": company_number,
             "company_name": company_name,
             "total_results": total_results,
             "filing_history_status": data.get("filing_history_status", ""),
             "filings": filings,
+            "start_index": start_index,
+            "items_per_page": items_per_page,
+            "latest_only": latest_only,
+            "latest_per_category": latest_per_category,
         }
 
         empty_hint = ""
@@ -497,158 +672,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             result,
             agent_hint=empty_hint,
             source="companies_house_api",
-        )
-
-    def _map_intent(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Map user intent keywords to a suggested action pipeline."""
-        keywords_raw = params.get("intent_keywords", "")
-        if isinstance(keywords_raw, list):
-            keywords = keywords_raw
-        else:
-            keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
-        entities = dict(params.get("entities") or {})
-        action_params = dict(params.get("action_params") or {})
-
-        if not keywords and not entities and not action_params:
-            return self._error_response(
-                "missing_intent",
-                "Provide 'intent_keywords', 'entities', or 'action_params' for intent mapping.",
-            )
-
-        role_map = self.terminology_map.get("role_mappings", {})
-        intent_map = self.terminology_map.get("intent_to_action", {})
-        document_types = self.terminology_map.get("document_types", {})
-        entity_types = self.terminology_map.get("entity_types", {})
-        status_mappings = self.terminology_map.get("status_mappings", {})
-
-        terminology_translations: Dict[str, str] = {}
-        filing_categories: List[str] = []
-        for kw in keywords:
-            normalized = self._normalize_keyword(kw)
-            role = self._lookup_terminology(normalized, role_map)
-            if role:
-                terminology_translations[kw] = role
-            doc_type = self._lookup_terminology(normalized, document_types)
-            if doc_type:
-                terminology_translations[kw] = doc_type
-                if doc_type not in filing_categories:
-                    filing_categories.append(doc_type)
-            entity = self._lookup_terminology(normalized, entity_types)
-            if entity:
-                terminology_translations[kw] = entity
-            status = self._lookup_terminology(normalized, status_mappings)
-            if status:
-                terminology_translations[kw] = status
-
-        suggested_actions: List[str] = []
-        seen_actions: set = set()
-        for kw in keywords:
-            normalized = self._normalize_keyword(kw)
-            action = self._lookup_terminology(normalized, intent_map)
-            if action and action not in seen_actions:
-                suggested_actions.append(action)
-                seen_actions.add(action)
-
-        company_query = str(entities.get("company_query") or "").strip()
-        # Also consider actions mentioned in action_params if not already present
-        for act in action_params:
-            if act not in seen_actions and act != "resolve_company":
-                suggested_actions.append(act)
-                seen_actions.add(act)
-
-        needs_resolve = any(
-            action in _ACTIONS_REQUIRING_COMPANY_NUMBER for action in suggested_actions
-        )
-
-        if needs_resolve and not company_query:
-            return self._needs_input_response(
-                "missing_company_query",
-                [],
-                agent_hint=(
-                    "Ask the user which UK company they mean, then call "
-                    "map_intent again with entities.company_query or call "
-                    "resolve_company / a composite action with a clean query."
-                ),
-            )
-
-        role_hint = action_params.get("get_officers", {}).get("role_hint")
-        officer_name = action_params.get("get_officers", {}).get("officer_name")
-        active_officers = action_params.get("get_officers", {}).get("active_only")
-        active_pscs = action_params.get("get_pscs", {}).get("active_only")
-        officers_limit = action_params.get("get_officers", {}).get("limit")
-        filings_limit = action_params.get("get_filing_history", {}).get("limit")
-        companies_limit = action_params.get("resolve_company", {}).get("limit")
-        category = action_params.get("get_filing_history", {}).get("category")
-
-        pipeline: List[Dict[str, Any]] = []
-        if company_query or needs_resolve:
-            res_params: Dict[str, Any] = {"query": company_query}
-            if companies_limit is not None:
-                res_params["limit"] = companies_limit
-            pipeline.append(
-                {
-                    "action": "resolve_company",
-                    "params": res_params,
-                }
-            )
-
-        for action in suggested_actions:
-            if action == "resolve_company":
-                continue
-            step_params: Dict[str, Any] = {}
-            if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
-                step_params["company_number"] = "<from_resolve>"
-
-            if action == "get_officers":
-                if role_hint is not None:
-                    step_params["role_hint"] = role_hint
-                if officer_name is not None:
-                    step_params["officer_name"] = officer_name
-                if active_officers is not None:
-                    step_params["active_only"] = active_officers
-                if officers_limit is not None:
-                    step_params["limit"] = officers_limit
-
-            elif action == "get_pscs":
-                if active_pscs is not None:
-                    step_params["active_only"] = active_pscs
-
-            elif action == "get_filing_history":
-                if category is not None:
-                    step_params["category"] = category
-                if filings_limit is not None:
-                    step_params["limit"] = filings_limit
-
-            if action in action_params and isinstance(action_params[action], dict):
-                step_params.update(action_params[action])
-
-            pipeline.append({"action": action, "params": step_params})
-
-        if not pipeline and company_query:
-            pipeline.append(
-                {
-                    "action": "resolve_company",
-                    "params": res_params,
-                }
-            )
-
-        endpoint_index = self.api_index.get("endpoints", {})
-        relevant_endpoints = []
-        for action in suggested_actions:
-            ep = endpoint_index.get(action, {})
-            if ep.get("path"):
-                relevant_endpoints.append(ep["path"])
-
-        return self._ready_response(
-            {
-                "steps": pipeline,
-                "pipeline": {
-                    "completed_steps": 0,
-                    "total_steps": len(pipeline),
-                },
-                "terminology_map": terminology_translations,
-                "relevant_endpoints": relevant_endpoints,
-            },
         )
 
     def _run_pipeline(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -709,6 +732,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         total_steps = max(prior_total, completed_steps + len(steps))
 
         # As soon as company_number is resolved, update all remaining steps in the stack
+        # up until the next company resolution step.
         resolved_number = (
             result.get("company_number")
             or company_number
@@ -716,6 +740,13 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         )
         if resolved_number:
             for rem_step in steps:
+                if rem_step.get("action") in (
+                    "resolve_company",
+                    "resolve_and_get_officers",
+                    "resolve_and_get_filings",
+                    "resolve_company_officer",
+                ):
+                    break
                 rem_params = rem_step.setdefault("params", {})
                 if not rem_params.get("company_number") or rem_params.get(
                     "company_number"
@@ -759,7 +790,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return result
 
     def _resolve_and_get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Resolve company and fetch officers in an orchestrated pipeline."""
+        """Resolve company and fetch officers in an orchestrated composite action."""
         context = dict(params.get("context") or {})
         company_number = str(
             params.get("company_number") or context.get("company_number") or ""
@@ -815,7 +846,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return self._get_officers(officer_params)
 
     def _resolve_and_get_filings(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Resolve company and fetch filing history in an orchestrated pipeline."""
+        """Resolve company and fetch filing history in an orchestrated composite action."""
         context = dict(params.get("context") or {})
         company_number = str(
             params.get("company_number") or context.get("company_number") or ""
@@ -867,6 +898,62 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         filing_params["context"] = filing_context
         filing_params["action"] = "get_filing_history"
         return self._get_filing_history(filing_params)
+
+    def _resolve_company_officer(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Resolve company and filter officers by role and/or name in an orchestrated composite action."""
+        context = dict(params.get("context") or {})
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        query = (
+            params.get("query")
+            or params.get("company_query")
+            or context.get("company_name")
+        )
+
+        if not company_number and not query:
+            return self._error_response(
+                "missing_company",
+                "No company_number or query provided.",
+                context=context,
+            )
+
+        # Branch YES: User query has company number -> get_officers directly
+        if company_number:
+            officer_params = dict(params)
+            officer_params["company_number"] = company_number
+            officer_params["action"] = "get_officers"
+            return self._get_officers(officer_params)
+
+        # Branch NO: User query does not have company number -> resolve_company
+        resolve_limit = params.get("resolve_limit", 5)
+        resolve_params = {
+            "action": "resolve_company",
+            "query": query,
+            "limit": resolve_limit,
+            "context": context,
+        }
+        resolve_res = self.execute(resolve_params)
+
+        if resolve_res.get("status") == "needs_input":
+            return resolve_res
+
+        if resolve_res.get("status") == "error":
+            return resolve_res
+
+        # Single match -> get_officers
+        resolved_number = resolve_res.get("company_number", "")
+        resolved_name = resolve_res.get("company_name", "")
+
+        officer_context = dict(context)
+        if resolved_name:
+            officer_context["company_name"] = resolved_name
+
+        officer_params = dict(params)
+        officer_params["company_number"] = resolved_number
+        officer_params["context"] = officer_context
+        officer_params["action"] = "get_officers"
+        return self._get_officers(officer_params)
 
     # --- HTTP Layer ---
 
@@ -979,21 +1066,6 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         while normalized and normalized[-1] in "?.,!;:":
             normalized = normalized[:-1].strip()
         return normalized
-
-    @staticmethod
-    def _normalize_keyword(keyword: str) -> str:
-        """Normalize intent/terminology keywords for YAML map lookup."""
-        return keyword.lower().strip().replace(" ", "_").replace("-", "_")
-
-    @staticmethod
-    def _lookup_terminology(normalized: str, mapping: Dict[str, str]) -> str:
-        """Look up a normalized keyword in a terminology map with alias tolerance."""
-        if normalized in mapping:
-            return mapping[normalized]
-        compact = normalized.replace("_", "")
-        if compact in mapping:
-            return mapping[compact]
-        return ""
 
     @staticmethod
     def _load_json(path: str) -> Dict[str, Any]:

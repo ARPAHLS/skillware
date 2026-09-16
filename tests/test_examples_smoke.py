@@ -90,7 +90,7 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         "uk_companies_house_handler_demo.py",
         [
             "Flow A: composite resolve_and_get_officers",
-            "Flow B: map_intent + run_pipeline",
+            "Flow B: run_pipeline (direct steps: resolve + filings)",
             "=== flow complete ===",
         ],
     ),

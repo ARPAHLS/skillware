@@ -3,24 +3,25 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.2.1` — 11 Sep 2026
+**Version**: `1.3.0` — 17 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-A deterministic UK Companies House API handler for agents. Provides structured operations for company search, profile lookup, officer and PSC listing, filing history, multi-step pipeline orchestration, and intent-to-operation mapping with UK corporate terminology translation. Returns status-based responses (`ready`, `partial`, `needs_input`, `error`) with disambiguation support.
+A deterministic UK Companies House API handler for agents. Provides structured operations for company search, profile lookup, officer and PSC listing with deterministic role/name filtering, filing history with helpers, multi-step pipeline orchestration, and composite shortcuts. Returns status-based responses (`ready`, `partial`, `needs_input`, `error`) with disambiguation support.
 
 ## Capabilities
 
 - **Company Search and Disambiguation**: Search by name, receive ranked candidates, handle ambiguous queries (e.g. "BP") with structured `needs_input` responses.
 - **Company Profile**: Full profile by company number — status, type, SIC codes, registered address, charges, insolvency flags.
-- **Officers (Directors and Secretaries)**: List current and past officers with optional `active_only` filtering (**default `true`**). Includes UK terminology notes when `role_hint` indicates executive roles (CEO → director).
+- **Officers (Directors and Secretaries)**: List current and past officers with deterministic filtering by role categories (`director`, `secretary`, `corporate`), exact statutory roles, and name substrings, plus optional `active_only` filtering (**default `true`**). Includes UK terminology notes when `role_hint` indicates executive roles (CEO → director).
+- **Multi-Page Officer Scanning**: Automatically scans up to 10 pages (1,000 records) in batches of 100 when filtering officers by role or name to prevent missing records.
 - **Persons with Significant Control (PSC)**: List beneficial owners with natures of control, equivalent to the US concept of "beneficial owner" or "shareholder".
-- **Filing History**: List filings (accounts, confirmation statements, incorporations) with optional category filtering and document metadata links.
+- **Filing History & Helpers**: List filings (accounts, confirmation statements, incorporations) sorted deterministically newest-first by date, with optional category filtering and deterministic helper flags (`latest_only: true`, `latest_per_category: true`).
 - **Pipeline Orchestration (`run_pipeline`)**: Execute ordered steps sequentially, halting on disambiguation (`needs_input`) or `error`, and preserving execution progress in `pipeline`.
-- **Composite Actions**: One-step resolution and extraction for common workflows (`resolve_and_get_officers`, `resolve_and_get_filings`).
-- **Intent Mapping**: Translate common user intent keywords (CEO, owner, shareholder) to the correct UK Companies House actions and build suggested action pipelines.
+- **Composite Actions**: One-step resolution and extraction for common workflows (`resolve_and_get_officers`, `resolve_and_get_filings`, `resolve_company_officer`).
+- **Deterministic Step Composition**: Compose direct `run_pipeline` step stacks with `<from_resolve>` parameter substitution across turns without intermediate prompt overhead.
 - **State Tracking (Context)**: Automatically carries forward session state (like `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) between sequential tool calls to seamlessly link multi-step operations.
 
 ## Bundle layout
@@ -31,14 +32,14 @@ The skill is self-contained in `skills/finance/uk_companies_house_handler/`. [Sk
 Skill-context instructions (registry ID opener, not a persona). The host agent:
 - Passes **clean** `query` / `company_number` parameters and optional `role_hint` — the skill does not strip conversational prefixes.
 - Handles disambiguation when search returns `needs_input`, then resumes with `context` / `run_pipeline`.
-- Uses `terminology_map.yaml` as a reference lexicon; maps US/informal terms via reasoning plus `map_intent` hints.
+- Uses `terminology_map.yaml` as a reference lexicon for UK/US/finance term equivalents.
 - Renders full `officers[]` / `filings[]` lists, including truncated results (default limit 10) with active count hints.
 - **Always replies in plain language** — never ends with an empty or one-word answer; explains empty registry results and asks focused follow-ups when data is missing.
 
 ### Effect (`skill.py`)
 A single `execute()` entry point dispatches to nine action handlers:
 - **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`.
-- **Pipeline orchestration & composites**: `run_pipeline`, `map_intent`, `resolve_and_get_officers`, `resolve_and_get_filings`.
+- **Pipeline orchestration & composites**: `run_pipeline`, `resolve_and_get_officers`, `resolve_and_get_filings`, `resolve_company_officer`.
 - **HTTP layer**: Authenticated requests using API key as HTTP Basic username.
 - **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`. The `partial` status is used exclusively during multi-step `run_pipeline` execution when steps remain.
 - **Record limits and truncation**: Returns up to 10 active officers or recent filings by default (configurable via `limit`), with `total_results` and `active_count` metadata indicating truncation when more records exist, while maintaining `status: "ready"`.
@@ -49,7 +50,7 @@ A single `execute()` entry point dispatches to nine action handlers:
 ### 3. The Knowledge (`data/`)
 Compact, bundled reference data (not a full OpenAPI dump):
 - `api_index.json`: Endpoint index with methods, paths, parameter shapes, and rate limit info.
-- `terminology_map.yaml`: UK corporate terminology mappings, role translations, and intent-to-action routing.
+- `terminology_map.yaml`: UK corporate terminology mappings and statutory role category definitions.
 
 ## Integration Guide
 
@@ -74,7 +75,7 @@ Companies House enforces **600 requests per 5 minutes per API key**. See the off
 - Officer lists default to 10 active records; standalone actions return `ready` with `total_results` / `active_count` when truncated — render all returned rows. `partial` is reserved for in-flight `run_pipeline` only.
 - For stress testing NLP hosts, see `scripts/uk_companies_house_host_simulation.py` (`--provider host|gemini|claude|all`). Gemini free tier may need `--gemini-delay 15` between scenarios.
 
-## Direct execute — pipeline and composites (v2b)
+## Direct execute — pipeline and composites (v1.3.0)
 
 Use these patterns when calling `skill.execute()` directly (no LLM) or when building deterministic hosts. Mocked flows: [`examples/uk_companies_house_handler_demo.py`](../../examples/uk_companies_house_handler_demo.py). Interactive agent loops: [`examples/gemini_uk_companies_house_handler.py`](../../examples/gemini_uk_companies_house_handler.py), [`examples/claude_uk_companies_house_handler.py`](../../examples/claude_uk_companies_house_handler.py).
 
@@ -90,21 +91,43 @@ result = skill.execute(
 )
 ```
 
+**Composite (resolve company and filter officer):**
+
+```python
+result = skill.execute(
+    {
+        "action": "resolve_company_officer",
+        "query": "Barclays",
+        "officer_role": "director",
+        "role_hint": "ceo",
+    }
+)
+```
+
+**Filing helper (latest accounts):**
+
+```python
+result = skill.execute(
+    {
+        "action": "get_filing_history",
+        "company_number": "00102498",
+        "category": "accounts",
+        "latest_only": True,
+    }
+)
+```
+
 **Multi-step pipeline:**
 
 ```python
-intent = skill.execute(
-    {
-        "action": "map_intent",
-        "intent_keywords": "officers, filings",
-        "entities": {"company_query": "BP"},
-    }
-)
 result = skill.execute(
     {
         "action": "run_pipeline",
-        "steps": intent["steps"],
-        "context": intent.get("context", {}),
+        "steps": [
+            {"action": "resolve_company", "params": {"query": "BP"}},
+            {"action": "get_officers", "params": {"company_number": "<from_resolve>"}},
+            {"action": "get_filing_history", "params": {"company_number": "<from_resolve>", "latest_only": True}},
+        ],
     }
 )
 while result.get("status") == "partial":
@@ -439,64 +462,6 @@ print(json.dumps(result, indent=2))
 }
 ```
 
-### Input — map intent
-
-```json
-{
-  "action": "map_intent",
-  "intent_keywords": "ceo, 10k, officers, filings, accounts",
-  "entities": {"company_query": "Tesco"}
-}
-```
-
-### Output — planned steps
-
-```json
-{
-  "status": "ready",
-  "source": "companies_house_api",
-  "fetched_at": "2026-09-10T18:33:07+00:00",
-  "steps": [
-    {
-      "action": "resolve_company",
-      "params": {
-        "query": "Tesco"
-      }
-    },
-    {
-      "action": "get_officers",
-      "params": {
-        "company_number": "<from_resolve>"
-      }
-    },
-    {
-      "action": "get_filing_history",
-      "params": {
-        "company_number": "<from_resolve>"
-      }
-    }
-  ],
-  "pipeline": {
-    "completed_steps": 0,
-    "total_steps": 3
-  },
-  "terminology_map": {
-    "ceo": "director",
-    "10k": "accounts"
-  },
-  "relevant_endpoints": [
-    "/company/{company_number}/officers",
-    "/company/{company_number}/filing-history"
-  ],
-  "context": {
-    "company_number": null,
-    "company_name": null,
-    "selected_transaction_id": null,
-    "last_action": "map_intent"
-  }
-}
-```
-
 ### Input — run pipeline (turn-by-turn orchestration)
 
 ```json
@@ -639,6 +604,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`310`](https://github.com/ARPAHLS/skillware/issues/310) | feat(uk_companies_house_handler): upgrade to v2c with deterministic matchers and filing helpers (#220) (#310) | 17 Sep 2026 | `1.3.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`051b910`](https://github.com/ARPAHLS/skillware/commit/051b910b891608b5481e3a730b0bc88b102c39a3) | Refactor and update uk_companies_house_handler for v1.2.1 (#341) (#346) | 11 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.2.0` | [@rosspeili](https://github.com/rosspeili) |

@@ -22,15 +22,24 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Examples:** [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) — `suggest_outline` → `bg_remover` → `lint_deck` → `render` via `SkillContext` (#337).
 - **Skill (`optimization/context_optimizer` v0.1.0):** Query-aware extractive context selection — local `fastembed` chunk scoring against `agent_goal`, traceable `chunks_selected`, fail-closed `empty_result`, and constitution-bound extractive-only output (#44).
 - **Examples:** [`context_optimizer_demo.py`](examples/context_optimizer_demo.py), [`context_optimizer_chain_demo.py`](examples/context_optimizer_chain_demo.py) (firewall → optimizer), optional [`context_optimizer_gemini_loop.py`](examples/context_optimizer_gemini_loop.py), [`context_optimizer_claude_loop.py`](examples/context_optimizer_claude_loop.py) (#44).
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Phase v2c upgrade with deterministic matchers, filing helpers, and pagination controls — pure deterministic officer role matchers (`officer_role`) supporting 3 canonical categories (`directors`, `secretaries`, `corporate`) and 29 official Companies House statutory roles in `terminology_map.yaml` without NLU in Python; case-insensitive officer name substring matching (`officer_name` / `officer_filter`); multi-page officer scanning up to 10 pages (1,000 records max) in 100-item chunks for filtered queries; deterministic filing history sorting descending by date; filing helpers `latest_only: true` (single most recent filing) and `latest_per_category: true` (latest filing per category); direct host agent `run_pipeline` orchestration with `<from_resolve>` parameter substitution for multi-intent queries, removing redundant `map_intent` from manifest actions and agent directives; new decoupled composite action `resolve_company_officer` (resolve company -> halt on `needs_input` if ambiguous -> filter matching officer(s) by role and/or name in one turn); active vs. resigned transparency and disclaimers in envelopes (`active_only`, `matched_count`, `terminology_note`); strict context isolation preventing sticky filter contamination across turns (#310, #220).
 
 ### Changed
 
 - **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
-
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
 - **Skills:** Bundled skills with `env_vars` now use `self.credential()` for config-first secret resolution (#39).
+
+### Removed
+
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Excised redundant `map_intent` action, internal helper methods (`_map_intent`, `_normalize_keyword`, `_lookup_terminology`), and `intent_to_action` from `terminology_map.yaml` in favor of direct host agent `run_pipeline` step composition (#220).
+
+### Fixed
+
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Officer name filtering (`officer_name`) matches all word parts across candidate name, deterministically resolving natural order (`"Firstname Lastname"`) vs UK registry inverted order (`"SURNAME, Firstname"`) (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** `run_pipeline` halts `<from_resolve>` substitution upon encountering subsequent company resolution steps, preventing cross-company parameter corruption in multi-company pipelines; context `company_name` inheritance guarded against mismatched company numbers (#220).
 
 ## [0.5.5] - 2026-09-14
 

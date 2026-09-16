@@ -30,6 +30,65 @@ role_mappings:
   general_partner: llp_designated_member
   limited_partner: llp_member
 
+# Official statutory officer roles recognized by Companies House
+officer_roles:
+  - cic-manager
+  - corporate-director
+  - corporate-llp-designated-member
+  - corporate-llp-member
+  - corporate-manager-of-an-eeig
+  - corporate-managing-officer
+  - corporate-member-of-a-judicial-factor
+  - corporate-member-of-a-management-organ
+  - corporate-member-of-an-administrative-organ
+  - corporate-member-of-a-supervisory-organ
+  - corporate-nominee-director
+  - corporate-nominee-secretary
+  - corporate-secretary
+  - director
+  - general-partner-in-a-limited-partnership
+  - judicial-factor
+  - limited-partner-in-a-limited-partnership
+  - llp-designated-member
+  - llp-member
+  - manager-of-an-eeig
+  - managing-officer
+  - member-of-a-judicial-factor
+  - member-of-a-management-organ
+  - member-of-an-administrative-organ
+  - member-of-a-supervisory-organ
+  - nominee-director
+  - nominee-secretary
+  - person-authorised-to-accept
+  - person-authorised-to-represent
+  - person-authorised-to-represent-and-accept
+
+# Canonical role categories for deterministic officer filtering
+role_categories:
+  directors:
+    - director
+    - corporate-director
+    - nominee-director
+    - corporate-nominee-director
+  secretaries:
+    - secretary
+    - corporate-secretary
+    - nominee-secretary
+    - corporate-nominee-secretary
+  corporate:
+    - corporate-director
+    - corporate-secretary
+    - corporate-nominee-director
+    - corporate-nominee-secretary
+    - corporate-llp-designated-member
+    - corporate-llp-member
+    - corporate-manager-of-an-eeig
+    - corporate-managing-officer
+    - corporate-member-of-a-judicial-factor
+    - corporate-member-of-a-management-organ
+    - corporate-member-of-an-administrative-organ
+    - corporate-member-of-a-supervisory-organ
+
 entity_types:
   corporation: ltd
   inc: ltd
@@ -74,45 +133,3 @@ document_types:
   annual_filing: confirmation-statement
   registration: incorporation
 
-# Maps user intent keywords to the appropriate skill action
-intent_to_action:
-  search: resolve_company
-  find: resolve_company
-  lookup: resolve_company
-  look_up: resolve_company
-  who_is: get_officers
-  director: get_officers
-  directors: get_officers
-  officer: get_officers
-  officers: get_officers
-  officer_name: get_officers
-  officer_names: get_officers
-  board: get_officers
-  management: get_officers
-  leadership: get_officers
-  ceo: get_officers
-  owner: get_pscs
-  owners: get_pscs
-  ownership: get_pscs
-  shareholder: get_pscs
-  shareholders: get_pscs
-  beneficial_owner: get_pscs
-  psc: get_pscs
-  filings: get_filing_history
-  filing: get_filing_history
-  accounts: get_filing_history
-  annual_return: get_filing_history
-  annual_report: get_filing_history
-  10k: get_filing_history
-  10_k: get_filing_history
-  financial_statements: get_filing_history
-  documents: get_filing_history
-  profile: get_company_profile
-  details: get_company_profile
-  info: get_company_profile
-  information: get_company_profile
-  status: get_company_profile
-  registered: get_company_profile
-  secretary: get_officers
-  corporate_secretary: get_officers
-  beneficial_ownership: get_pscs

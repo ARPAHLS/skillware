@@ -1,4 +1,3 @@
-import json
 import os
 from unittest.mock import MagicMock, patch
 
@@ -514,100 +513,7 @@ def test_get_filing_history(mock_request, skill):
     assert "fetched_at" in result
 
 
-# --- map_intent Tests ---
-
-
-def test_map_intent_ceo_query(skill):
-    """map_intent translates CEO to director and suggests pipeline."""
-    result = skill.execute(
-        {
-            "action": "map_intent",
-            "intent_keywords": ["ceo", "bp", "director"],
-            "entities": {"company_query": "BP"},
-        }
-    )
-
-    assert result["status"] == "ready"
-    assert "steps" in result
-    assert result["terminology_map"]["ceo"] == "director"
-
-    # Pipeline should start with resolve_company
-    pipeline = result["steps"]
-    assert pipeline[0]["action"] == "resolve_company"
-    assert pipeline[0]["params"]["query"] == "BP"
-
-    # Should include get_officers for "director" keyword
-    action_names = [step["action"] for step in pipeline]
-    assert "get_officers" in action_names
-    assert "fetched_at" in result
-
-
-def test_map_intent_owner_query(skill):
-    """map_intent translates owner to PSC."""
-    result = skill.execute(
-        {
-            "action": "map_intent",
-            "intent_keywords": ["owner", "shareholders"],
-            "entities": {"company_query": "Tesco"},
-        }
-    )
-
-    assert result["status"] == "ready"
-    assert result["terminology_map"]["owner"] == "person_with_significant_control"
-    action_names = [step["action"] for step in result["steps"]]
-    assert "resolve_company" in action_names
-    assert "get_pscs" in action_names
-
-
-def test_map_intent_officer_and_filings(skill):
-    """map_intent maps officer and filings to resolve, officers, and filings."""
-    result = skill.execute(
-        {
-            "action": "map_intent",
-            "intent_keywords": "officer, filings",
-            "entities": {"company_query": "BP"},
-        }
-    )
-
-    assert result["status"] == "ready"
-    pipeline = result["steps"]
-    action_names = [step["action"] for step in pipeline]
-    assert action_names == [
-        "resolve_company",
-        "get_officers",
-        "get_filing_history",
-    ]
-
-
-def test_map_intent_missing_company_query(skill):
-    """map_intent without entities.company_query returns needs_input, not placeholders."""
-    result = skill.execute(
-        {
-            "action": "map_intent",
-            "intent_keywords": "leadership",
-        }
-    )
-    assert result["status"] == "needs_input"
-    assert result["reason"] == "missing_company_query"
-    assert "steps" not in result
-    assert "insert_company_name_here" not in json.dumps(result)
-
-
-def test_map_intent_10k_document_terminology(skill):
-    """map_intent translates 10-K-style keywords via document_types."""
-    result = skill.execute(
-        {
-            "action": "map_intent",
-            "intent_keywords": "10k,accounts",
-            "entities": {"company_query": "Tesco"},
-        }
-    )
-    assert result["status"] == "ready"
-    assert result["terminology_map"]["10k"] == "accounts"
-    filing_step = next(
-        s for s in result["steps"] if s["action"] == "get_filing_history"
-    )
-    assert filing_step["action"] == "get_filing_history"
+# --- run_pipeline Tests ---
 
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
@@ -630,13 +536,6 @@ def test_resolve_company_strips_trailing_punctuation(mock_request, skill):
 
     assert result["status"] == "ready"
     assert mock_request.call_args.kwargs["params"]["q"] == "Barclays"
-
-
-def test_map_intent_missing_input(skill):
-    """map_intent without keywords or entities returns error."""
-    result = skill.execute({"action": "map_intent"})
-    assert result["status"] == "error"
-    assert result["error_code"] == "missing_intent"
 
 
 # --- HTTP Error Handling Tests ---
@@ -1534,53 +1433,724 @@ def test_resolve_and_get_officers_with_role_hint(mock_request, skill):
     assert search_params["q"] == "Tesco"
 
 
-def test_map_intent_with_action_params(skill):
-    """map_intent supports dedicated action_params to configure steps explicitly."""
-    result = skill.execute(
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_multi_turn_with_step_substitution(mock_request, skill):
+    """run_pipeline executes turn-by-turn with <from_resolve> substitution across steps."""
+    mock_search = MagicMock()
+    mock_search.json.return_value = {
+        "items": [
+            {
+                "company_number": "00102498",
+                "title": "BP P.L.C.",
+                "company_status": "active",
+            }
+        ]
+    }
+    mock_search.raise_for_status = MagicMock()
+
+    mock_officers = MagicMock()
+    mock_officers.json.return_value = {
+        "items": [
+            {
+                "name": "LOONEY, Bernard",
+                "officer_role": "director",
+                "resigned_on": None,
+            }
+        ],
+        "total_results": 1,
+        "active_count": 1,
+    }
+    mock_officers.raise_for_status = MagicMock()
+
+    mock_filings = MagicMock()
+    mock_filings.json.return_value = {
+        "items": [
+            {
+                "transaction_id": "tx_123",
+                "category": "accounts",
+                "date": "2026-03-01",
+                "description": "Group accounts",
+            }
+        ],
+        "total_count": 1,
+    }
+    mock_filings.raise_for_status = MagicMock()
+
+    mock_request.side_effect = [mock_search, mock_officers, mock_filings]
+
+    steps = [
+        {"action": "resolve_company", "params": {"query": "BP"}},
         {
-            "action": "map_intent",
-            "intent_keywords": "director, filings, psc",
-            "entities": {"company_query": "Barclays"},
-            "action_params": {
-                "resolve_company": {"limit": 3},
-                "get_officers": {
-                    "limit": 7,
-                    "role_hint": "ceo",
-                    "officer_name": "Venkat",
-                    "active_only": True,
-                },
-                "get_filing_history": {
-                    "limit": 15,
-                    "category": "accounts",
-                },
-                "get_pscs": {
-                    "active_only": True,
-                },
+            "action": "get_officers",
+            "params": {"company_number": "<from_resolve>", "officer_name": "Looney"},
+        },
+        {
+            "action": "get_filing_history",
+            "params": {
+                "company_number": "<from_resolve>",
+                "latest_only": True,
+                "category": "accounts",
             },
+        },
+    ]
+
+    # Turn 1: execute step 1 (resolve_company)
+    turn1 = skill.execute({"action": "run_pipeline", "steps": steps})
+    assert turn1["status"] == "partial"
+    assert turn1["company_number"] == "00102498"
+    assert turn1["pipeline"]["completed_steps"] == 1
+    assert turn1["pipeline"]["total_steps"] == 3
+    # Verify remaining steps had <from_resolve> substituted with resolved company number
+    rem_steps = turn1["steps"]
+    assert len(rem_steps) == 2
+    assert rem_steps[0]["params"]["company_number"] == "00102498"
+    assert rem_steps[1]["params"]["company_number"] == "00102498"
+
+    # Turn 2: execute step 2 (get_officers)
+    turn2 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": rem_steps,
+            "context": turn1["context"],
+            "pipeline": turn1["pipeline"],
+        }
+    )
+    assert turn2["status"] == "partial"
+    assert turn2["pipeline"]["completed_steps"] == 2
+    assert len(turn2["officers"]) == 1
+    assert turn2["officers"][0]["name"] == "LOONEY, Bernard"
+    rem_steps2 = turn2["steps"]
+    assert len(rem_steps2) == 1
+
+    # Turn 3: execute step 3 (get_filing_history)
+    turn3 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": rem_steps2,
+            "context": turn2["context"],
+            "pipeline": turn2["pipeline"],
+        }
+    )
+    assert turn3["status"] == "ready"
+    assert turn3["pipeline"]["completed_steps"] == 3
+    assert "steps" not in turn3
+    assert len(turn3["filings"]) == 1
+    assert turn3["filings"][0]["category"] == "accounts"
+
+
+# --- Phase v2c Tests ---
+
+
+def test_match_officer_role_categories(skill):
+    """Test deterministic role matching across canonical categories and aliases."""
+    # Category: directors
+    assert skill._match_officer_role("director", "director") is True
+    assert skill._match_officer_role("corporate-director", "director") is True
+    assert skill._match_officer_role("nominee-director", "directors") is True
+    assert skill._match_officer_role("corporate-nominee-director", "director") is True
+    assert skill._match_officer_role("secretary", "director") is False
+
+    # Category: secretaries
+    assert skill._match_officer_role("secretary", "secretary") is True
+    assert skill._match_officer_role("corporate-secretary", "secretaries") is True
+    assert skill._match_officer_role("nominee-secretary", "secretary") is True
+    assert skill._match_officer_role("director", "secretary") is False
+
+    # Category: corporate
+    assert skill._match_officer_role("corporate-director", "corporate") is True
+    assert skill._match_officer_role("corporate-secretary", "corporate") is True
+    assert skill._match_officer_role("corporate-llp-member", "corporate") is True
+    assert skill._match_officer_role("director", "corporate") is False
+
+    # Alias / US term mapping
+    assert skill._match_officer_role("director", "ceo") is True
+    assert skill._match_officer_role("corporate-director", "cfo") is True
+    assert skill._match_officer_role("secretary", "company_secretary") is True
+
+    # Exact statutory role
+    assert skill._match_officer_role("cic-manager", "cic-manager") is True
+    assert (
+        skill._match_officer_role("llp-designated-member", "llp-designated-member")
+        is True
+    )
+    assert skill._match_officer_role("director", "cic-manager") is False
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_officer_role_and_name_filter(mock_request, skill):
+    """Deterministic filtering by role and case-insensitive name substring."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {"name": "SMITH, John", "officer_role": "director"},
+            {"name": "DOE, Jane", "officer_role": "director"},
+            {"name": "SMITH, Alice", "officer_role": "secretary"},
+            {"name": "CORPORATE AGENT LTD", "officer_role": "corporate-director"},
+        ],
+        "total_results": 4,
+        "active_count": 4,
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
+
+    # Filter by officer_name only
+    res = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "Smith",
+        }
+    )
+    assert res["status"] == "ready"
+    assert len(res["officers"]) == 2
+    assert res["matched_count"] == 2
+    assert {o["name"] for o in res["officers"]} == {"SMITH, John", "SMITH, Alice"}
+
+    # Filter by officer_role only
+    res2 = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_role": "secretary",
+        }
+    )
+    assert res2["status"] == "ready"
+    assert len(res2["officers"]) == 1
+    assert res2["officers"][0]["name"] == "SMITH, Alice"
+
+    # Filter by both officer_role (director category) and officer_name
+    res3 = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_role": "director",
+            "officer_name": "Smith",
+        }
+    )
+    assert res3["status"] == "ready"
+    assert len(res3["officers"]) == 1
+    assert res3["officers"][0]["name"] == "SMITH, John"
+
+    # Natural name order (Firstname Lastname matching inverted SURNAME, Firstname)
+    res_natural = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "John Smith",
+        }
+    )
+    assert res_natural["status"] == "ready"
+    assert len(res_natural["officers"]) == 1
+    assert res_natural["officers"][0]["name"] == "SMITH, John"
+
+    # Inverted with comma
+    res_comma = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "Smith, Alice",
+        }
+    )
+    assert res_comma["status"] == "ready"
+    assert len(res_comma["officers"]) == 1
+    assert res_comma["officers"][0]["name"] == "SMITH, Alice"
+
+    # Non-matching name with common surname
+    res_nonmatch = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "Bob Smith",
+        }
+    )
+    assert res_nonmatch["status"] == "ready"
+    assert len(res_nonmatch["officers"]) == 0
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_officer_multi_page_scanning(mock_request, skill):
+    """Multi-page scanning when filtering: scans across pages up to limit."""
+    # Page 1: 100 directors named Brown
+    page1 = MagicMock()
+    page1.json.return_value = {
+        "items": [
+            {"name": f"BROWN, Person {i}", "officer_role": "director"}
+            for i in range(100)
+        ],
+        "total_results": 105,
+        "active_count": 105,
+    }
+    page1.raise_for_status = MagicMock()
+
+    # Page 2: 5 directors including one target
+    page2 = MagicMock()
+    page2.json.return_value = {
+        "items": [
+            {"name": "TARGET, Wanted", "officer_role": "director"},
+            {"name": "OTHER, Person", "officer_role": "director"},
+        ],
+        "total_results": 105,
+        "active_count": 105,
+    }
+    page2.raise_for_status = MagicMock()
+
+    mock_request.side_effect = [page1, page2]
+
+    res = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "Target",
+            "context": {"company_name": "BP P.L.C."},
         }
     )
 
-    assert result["status"] == "ready"
-    assert "steps" in result
-    steps = result["steps"]
-    assert len(steps) == 4
+    assert res["status"] == "ready"
+    assert len(res["officers"]) == 1
+    assert res["officers"][0]["name"] == "TARGET, Wanted"
+    assert res["matched_count"] == 1
+    assert mock_request.call_count == 2
+    # Verify pagination offsets
+    assert mock_request.call_args_list[0].kwargs["params"]["start_index"] == 0
+    assert mock_request.call_args_list[1].kwargs["params"]["start_index"] == 100
 
-    assert steps[0]["action"] == "resolve_company"
-    assert steps[0]["params"]["query"] == "Barclays"
-    assert steps[0]["params"]["limit"] == 3
 
-    assert steps[1]["action"] == "get_officers"
-    assert steps[1]["params"]["company_number"] == "<from_resolve>"
-    assert steps[1]["params"]["limit"] == 7
-    assert steps[1]["params"]["role_hint"] == "ceo"
-    assert steps[1]["params"]["officer_name"] == "Venkat"
-    assert steps[1]["params"]["active_only"] is True
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_officer_active_vs_resigned_disclaimer(mock_request, skill):
+    """Transparency on active_only: false with explicit terminology_note disclaimer."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {"name": "ACTIVE, Alice", "officer_role": "director", "resigned_on": None},
+            {
+                "name": "RESIGNED, Bob",
+                "officer_role": "director",
+                "resigned_on": "2021-01-01",
+            },
+        ],
+        "total_results": 2,
+        "active_count": 1,
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
 
-    assert steps[2]["action"] == "get_filing_history"
-    assert steps[2]["params"]["company_number"] == "<from_resolve>"
-    assert steps[2]["params"]["limit"] == 15
-    assert steps[2]["params"]["category"] == "accounts"
+    # With active_only: true (default)
+    res_active = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+        }
+    )
+    assert len(res_active["officers"]) == 1
+    assert res_active["officers"][0]["name"] == "ACTIVE, Alice"
+    assert res_active["active_only"] is True
 
-    assert steps[3]["action"] == "get_pscs"
-    assert steps[3]["params"]["company_number"] == "<from_resolve>"
-    assert steps[3]["params"]["active_only"] is True
+    # With active_only: false
+    res_all = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "active_only": False,
+        }
+    )
+    assert len(res_all["officers"]) == 2
+    assert res_all["active_only"] is False
+    assert (
+        "Includes both active and resigned officers on record."
+        in res_all["terminology_note"]
+    )
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_filing_history_deterministic_date_sort(mock_request, skill):
+    """Filing history is deterministically sorted newest-first by date."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {
+                "date": "2021-05-10",
+                "category": "accounts",
+                "description": "old accounts",
+            },
+            {
+                "date": "2024-03-15",
+                "category": "accounts",
+                "description": "new accounts",
+            },
+            {
+                "date": "2022-11-20",
+                "category": "confirmation-statement",
+                "description": "mid statement",
+            },
+        ],
+        "total_count": 3,
+        "filing_history_status": "filing-history-available",
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
+
+    res = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": "00102498",
+        }
+    )
+
+    assert res["status"] == "ready"
+    assert [f["date"] for f in res["filings"]] == [
+        "2024-03-15",
+        "2022-11-20",
+        "2021-05-10",
+    ]
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_filing_helper_latest_only(mock_request, skill):
+    """latest_only: true returns only the single most recent filing."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {"date": "2021-05-10", "category": "accounts"},
+            {"date": "2024-03-15", "category": "accounts"},
+            {"date": "2023-01-01", "category": "confirmation-statement"},
+        ],
+        "total_count": 3,
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
+
+    res = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": "00102498",
+            "latest_only": True,
+        }
+    )
+
+    assert res["status"] == "ready"
+    assert res["latest_only"] is True
+    assert len(res["filings"]) == 1
+    assert res["filings"][0]["date"] == "2024-03-15"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_filing_helper_latest_per_category(mock_request, skill):
+    """latest_per_category: true deduplicates to latest filing per distinct category."""
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {
+        "items": [
+            {
+                "date": "2024-01-01",
+                "category": "accounts",
+                "description": "accounts-2024",
+            },
+            {
+                "date": "2023-01-01",
+                "category": "accounts",
+                "description": "accounts-2023",
+            },
+            {
+                "date": "2024-06-01",
+                "category": "confirmation-statement",
+                "description": "cs-2024",
+            },
+            {
+                "date": "2022-06-01",
+                "category": "confirmation-statement",
+                "description": "cs-2022",
+            },
+            {
+                "date": "2020-01-01",
+                "category": "incorporation",
+                "description": "inc-2020",
+            },
+        ],
+        "total_count": 5,
+    }
+    mock_resp.raise_for_status = MagicMock()
+    mock_request.return_value = mock_resp
+
+    res = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": "00102498",
+            "latest_per_category": True,
+        }
+    )
+
+    assert res["status"] == "ready"
+    assert res["latest_per_category"] is True
+    assert len(res["filings"]) == 3
+    # Check each category is represented once, with the newest date
+    cat_dates = {f["category"]: f["date"] for f in res["filings"]}
+    assert cat_dates["accounts"] == "2024-01-01"
+    assert cat_dates["confirmation-statement"] == "2024-06-01"
+    assert cat_dates["incorporation"] == "2020-01-01"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_composite_resolve_company_officer_direct_company_number(mock_request, skill):
+    """resolve_company_officer bypasses search if company_number is already known."""
+    mock_officers = MagicMock()
+    mock_officers.json.return_value = {
+        "items": [
+            {"name": "MURPHY, Ken", "officer_role": "director"},
+            {"name": "SMITH, Jane", "officer_role": "secretary"},
+        ],
+        "total_results": 2,
+        "active_count": 2,
+    }
+    mock_officers.raise_for_status = MagicMock()
+    mock_request.return_value = mock_officers
+
+    res = skill.execute(
+        {
+            "action": "resolve_company_officer",
+            "company_number": "00445790",
+            "officer_role": "director",
+            "officer_name": "Murphy",
+            "context": {"company_name": "TESCO PLC"},
+        }
+    )
+
+    assert res["status"] == "ready"
+    assert len(res["officers"]) == 1
+    assert res["officers"][0]["name"] == "MURPHY, Ken"
+    assert mock_request.call_count == 1  # only get_officers, no resolve_company
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_composite_resolve_company_officer_full_flow(mock_request, skill):
+    """resolve_company_officer resolves company and filters matching officers."""
+    mock_search = MagicMock()
+    mock_search.json.return_value = {
+        "items": [
+            {
+                "company_number": "00102498",
+                "title": "BP P.L.C.",
+                "company_status": "active",
+            }
+        ]
+    }
+    mock_search.raise_for_status = MagicMock()
+
+    mock_officers = MagicMock()
+    mock_officers.json.return_value = {
+        "items": [
+            {"name": "LOONEY, Bernard", "officer_role": "director"},
+            {"name": "SHERIDAN, Kerry", "officer_role": "secretary"},
+        ],
+        "total_results": 2,
+        "active_count": 2,
+    }
+    mock_officers.raise_for_status = MagicMock()
+    mock_request.side_effect = [mock_search, mock_officers]
+
+    res = skill.execute(
+        {
+            "action": "resolve_company_officer",
+            "query": "BP",
+            "officer_role": "director",
+            "officer_name": "Looney",
+        }
+    )
+
+    assert res["status"] == "ready"
+    assert res["company_number"] == "00102498"
+    assert res["company_name"] == "BP P.L.C."
+    assert len(res["officers"]) == 1
+    assert res["officers"][0]["name"] == "LOONEY, Bernard"
+    assert res["context"]["last_action"] == "resolve_company_officer"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_composite_resolve_company_officer_needs_input(mock_request, skill):
+    """resolve_company_officer halts on needs_input when query is ambiguous."""
+    mock_search = MagicMock()
+    mock_search.json.return_value = {
+        "items": [
+            {
+                "company_number": "01026167",
+                "title": "BARCLAYS BANK PLC",
+                "company_status": "active",
+            },
+            {
+                "company_number": "02223073",
+                "title": "BARCLAYS ALDERSGATE",
+                "company_status": "active",
+            },
+        ]
+    }
+    mock_search.raise_for_status = MagicMock()
+    mock_request.return_value = mock_search
+
+    res = skill.execute(
+        {
+            "action": "resolve_company_officer",
+            "query": "Barclays",
+            "officer_name": "John",
+        }
+    )
+
+    assert res["status"] == "needs_input"
+    assert res["reason"] == "multiple_matches"
+    assert len(res["candidates"]) == 2
+    assert mock_request.call_count == 1  # halted before get_officers
+
+
+def test_composite_resolve_company_officer_missing_company(skill):
+    """resolve_company_officer without query or company_number returns error."""
+    res = skill.execute({"action": "resolve_company_officer"})
+    assert res["status"] == "error"
+    assert res["error_code"] == "missing_company"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_context_isolation_no_sticky_filters(mock_request, skill):
+    """Context remains strictly lean and does not leak volatile filter parameters."""
+    mock_officers = MagicMock()
+    mock_officers.json.return_value = {
+        "items": [
+            {"name": "SMITH, John", "officer_role": "director"},
+            {"name": "DOE, Jane", "officer_role": "secretary"},
+        ],
+        "total_results": 2,
+        "active_count": 2,
+    }
+    mock_officers.raise_for_status = MagicMock()
+    mock_request.return_value = mock_officers
+
+    # Turn 1: Call with volatile filters
+    turn1 = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "officer_name": "Smith",
+            "officer_role": "director",
+            "role_hint": "ceo",
+        }
+    )
+
+    ctx = turn1["context"]
+    assert "officer_name" not in ctx
+    assert "officer_filter" not in ctx
+    assert "officer_role" not in ctx
+    assert "role_hint" not in ctx
+    assert "latest_only" not in ctx
+    assert set(ctx.keys()) == {
+        "company_number",
+        "company_name",
+        "selected_transaction_id",
+        "last_action",
+    }
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_pauses_on_ambiguous_company(mock_request, skill):
+    """run_pipeline halts with needs_input when resolve_company returns ambiguous candidates."""
+    mock_search = MagicMock()
+    mock_search.json.return_value = {
+        "items": [
+            {
+                "company_number": "00048839",
+                "title": "BARCLAYS PLC",
+                "company_status": "active",
+            },
+            {
+                "company_number": "01026167",
+                "title": "BARCLAYS BANK PLC",
+                "company_status": "active",
+            },
+        ]
+    }
+    mock_search.raise_for_status = MagicMock()
+    mock_request.return_value = mock_search
+
+    steps = [
+        {"action": "resolve_company", "params": {"query": "Barclays"}},
+        {"action": "get_officers", "params": {"company_number": "<from_resolve>"}},
+    ]
+
+    res = skill.execute({"action": "run_pipeline", "steps": steps})
+    assert res["status"] == "needs_input"
+    assert res["reason"] == "multiple_matches"
+    assert len(res["candidates"]) == 2
+    assert "resume run_pipeline" in res["agent_hint"]
+    assert len(res["steps"]) == 1
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_multi_company_resolve_boundary(mock_request, skill):
+    """run_pipeline stops substituting <from_resolve> when encountering a subsequent resolve_company step."""
+    mock_search_tesco = MagicMock()
+    mock_search_tesco.json.return_value = {
+        "items": [
+            {
+                "company_number": "00445790",
+                "title": "TESCO PLC",
+                "company_status": "active",
+            }
+        ]
+    }
+    mock_search_tesco.raise_for_status = MagicMock()
+
+    mock_filings = MagicMock()
+    mock_filings.json.return_value = {
+        "items": [
+            {
+                "category": "accounts",
+                "date": "2026-07-25",
+                "description": "accounts-group",
+            }
+        ],
+        "total_count": 1,
+    }
+    mock_filings.raise_for_status = MagicMock()
+
+    mock_request.side_effect = [mock_search_tesco, mock_filings]
+
+    steps = [
+        {"action": "resolve_company", "params": {"query": "Tesco"}},
+        {
+            "action": "get_filing_history",
+            "params": {"company_number": "<from_resolve>"},
+        },
+        {"action": "resolve_company", "params": {"query": "Barclays"}},
+        {
+            "action": "get_officers",
+            "params": {
+                "company_number": "<from_resolve>",
+                "officer_name": "John McFarlane",
+            },
+        },
+    ]
+
+    # Turn 1: resolve Tesco
+    turn1 = skill.execute({"action": "run_pipeline", "steps": steps})
+    assert turn1["status"] == "partial"
+    assert turn1["company_number"] == "00445790"
+
+    rem_steps = turn1["steps"]
+    assert len(rem_steps) == 3
+    # Tesco filings step got Tesco's number
+    assert rem_steps[0]["params"]["company_number"] == "00445790"
+    # Barclays resolve step
+    assert rem_steps[1]["action"] == "resolve_company"
+    # Barclays officers step MUST NOT be overwritten by Tesco's number!
+    assert rem_steps[2]["params"]["company_number"] == "<from_resolve>"
+
+    # Turn 2: get Tesco filings
+    turn2 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": rem_steps,
+            "context": turn1["context"],
+            "pipeline": turn1["pipeline"],
+        }
+    )
+    assert turn2["status"] == "partial"
+    rem_steps2 = turn2["steps"]
+    assert len(rem_steps2) == 2
+    assert rem_steps2[0]["action"] == "resolve_company"
+    # Barclays officers step MUST STILL remain <from_resolve>!
+    assert rem_steps2[1]["params"]["company_number"] == "<from_resolve>"
