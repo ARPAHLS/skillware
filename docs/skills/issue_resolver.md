@@ -4,7 +4,7 @@
 **Skill ID:** `dev_tools/issue_resolver`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.3.0` — 3 Aug 2026
+**Version**: `0.3.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../usage/install_extras.md).

@@ -1,5 +1,5 @@
 name: data_engineering/semantic_web_proxy
-version: 0.1.0
+version: 0.1.1
 description: >
   Deterministic semantic proxy that turns a noisy web page into a token-efficient
   payload. Fetches a public http(s) URL behind an SSRF guard (or accepts pre-fetched
@@ -7,7 +7,7 @@ description: >
   returns concentrated Markdown, plain text, or JSON plus an estimated token saving.
   Fetch-only: it does not execute JavaScript, and warns when a page appears to need
   a browser render.
-short_description: "Strips web pages to token-efficient Markdown or JSON with savings estimates."
+short_description: "Use before summarizing a live URL or HTML to cut tokens; converts pages to Markdown or JSON."
 issuer:
   name: Martin Rizzo Lozano
   email: rizzolozanomartin@gmail.com

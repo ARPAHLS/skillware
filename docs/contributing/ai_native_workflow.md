@@ -277,7 +277,7 @@ Complete the checklist that matches your issue during Stage 5.
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
 - [ ] `manifest.yaml` (Contract): `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
-- [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
+- [ ] Optional: `short_description` field — routing-oriented one-liner (target <= 120 chars; hard cap 160) for `skillware list` and brief registry lines. State what the skill does and when to use it; see [CONTRIBUTING.md](../../CONTRIBUTING.md#1-manifestyaml-contract).
 - [ ] `skill.py` (Effect): exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md` (Directive): when to use, how to interpret output, limitations
 - [ ] `card.json` (Presentation): `issuer` matches manifest; output-card `ui_schema.fields[].key` paths resolve in `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` (update fixture when `execute()` output changes)

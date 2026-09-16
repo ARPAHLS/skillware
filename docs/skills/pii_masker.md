@@ -3,7 +3,7 @@
 **ID**: `compliance/pii_masker`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 20 Jul 2026
+**Version**: `0.1.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[compliance_pii_masker]"`. See [Install extras](../usage/install_extras.md).
