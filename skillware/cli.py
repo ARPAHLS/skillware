@@ -6,6 +6,7 @@ import sys
 import yaml
 from collections import defaultdict
 from pathlib import Path
+from importlib.resources import files
 from typing import List, Dict, Any, Optional, Tuple, Union
 
 import requests
@@ -307,6 +308,11 @@ def _example_github_cell(script: str) -> Text:
 
 def _examples_readme_path() -> Optional[Path]:
     """Resolve a local examples/README.md from checkout or cwd walk."""
+
+    resource_path = files("skillware").joinpath("resources")/"examples"/"README.md"
+
+    if resource_path.is_file():
+        return resource_path
     candidates: List[Path] = []
 
     package_root = Path(__file__).resolve().parent.parent

@@ -197,6 +197,9 @@ include = ["skillware*", "skills*"]
 skillware = ["branding/*"]
 skills = ["**/*"]
 
+[tool.setuptools.cmdclass]
+build_py = "build_hooks.CustomBuildPy"
+
 [tool.pytest.ini_options]
 testpaths = ["tests", "skills"]
 addopts = "--ignore=examples"
