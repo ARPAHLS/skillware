@@ -36,6 +36,7 @@ After installation, the `skillware` command is available directly:
     skillware
     skillware list
     skillware doctor
+    skillware doctor --install
     skillware config show
     skillware context show
     skillware chain list
@@ -72,17 +73,21 @@ system PATH, or use the `py` launcher:
     py -3 -m pip install skillware
     py -3 -m skillware list
 
-## Version advisory
+## Version and install advisories
 
 On CLI startup, Skillware checks the installed package version **once per process**.
-If you are on an **unsupported** release (below `0.3.5`, for example `0.3.4` or `0.2.9`), a single
-dim message is printed to stderr suggesting an upgrade to `>= 0.4.7`. Installs in the
-`0.3.5`–`0.4.6` band stay silent (no security backports, but no startup spam). Current
-supported installs (`0.4.7` and above) stay silent.
+If you are on an **unsupported** release (below `0.4.6`), a single dim message is
+printed to stderr suggesting an upgrade to `>= 0.5.5`. Releases from `0.4.6`
+upward stay silent unless their installation metadata is corrupt.
+
+Skillware also emits one dim advisory when it detects duplicate, orphan, or
+editable-plus-wheel package metadata. Run `skillware doctor --install` for the
+full report and copy-paste repair commands. `skillware config show` includes a
+short install-health block with the installed version and this same pointer.
 
 Library use (`import skillware`, `SkillLoader`) never prints this message.
 
-To disable the check in CI or automation:
+To disable both startup advisories in CI or automation:
 
     export SKILLWARE_NO_VERSION_CHECK=1
 
@@ -286,6 +291,11 @@ Check whether skills can load in the current environment — manifest **requirem
     skillware doctor --category compliance
     skillware doctor --skills-root /path/to/my/skills
 
+Check the **install health** of the `skillware` package itself (duplicate,
+orphan, or editable-plus-wheel conflicts) with copy-paste fix commands:
+
+    skillware doctor --install
+
 #### Arguments and flags
 
 | Input | Description |
@@ -294,6 +304,7 @@ Check whether skills can load in the current environment — manifest **requirem
 | `<category>/<skill_name>` | Diagnose one skill |
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
+| `--install` | Diagnose the local `skillware` install state and print fix commands (exit 0 = healthy, 1 = conflicts) |
 
 **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 

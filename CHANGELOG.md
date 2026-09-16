@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **CLI:** `skillware doctor --install` and `skillware config show` report package install health for duplicate, orphan, or editable-plus-wheel metadata, with opt-out-aware startup advice and repair scripts (#333).
+
 - **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
 - **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).
 - **Core:** `SkillContext(secret_provider=...)` resolves credentials on each `execute()` and passes them via `config` (supports ephemeral tokens from custom providers) (#39).

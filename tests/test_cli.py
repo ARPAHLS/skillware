@@ -16,6 +16,7 @@ from skillware.cli import (
     cmd_help,
     cmd_paths,
     cmd_paths_submenu,
+    cmd_config_show,
     cmd_doctor,
     cmd_theme_picker,
     cmd_theme,
@@ -483,6 +484,39 @@ def test_version_flag(capsys):
 
     captured = capsys.readouterr()
     assert "skillware" in captured.out.lower()
+
+
+def test_package_version_str_never_none_or_empty(monkeypatch):
+    import importlib.metadata as metadata_module
+
+    from skillware.cli import _package_version_str
+
+    monkeypatch.setattr(
+        "skillware.cli.get_installed_version",
+        lambda: None,
+    )
+
+    monkeypatch.setattr(
+        metadata_module,
+        "version",
+        lambda _name: "None",
+    )
+    # metadata.version("skillware") returns "None" -> coerced to dev
+    assert _package_version_str() == "dev"
+
+    monkeypatch.setattr(
+        metadata_module,
+        "version",
+        lambda _name: "0.5.4",
+    )
+    assert _package_version_str() == "0.5.4"
+
+    monkeypatch.setattr(
+        metadata_module,
+        "version",
+        lambda _name: (_ for _ in ()).throw(metadata_module.PackageNotFoundError()),
+    )
+    assert _package_version_str() == "dev"
 
 
 def _make_bundle(tmp_path, category, name, with_test=True):
@@ -1106,6 +1140,152 @@ def test_cmd_doctor_reports_missing_deps(tmp_path, monkeypatch):
     output = buf.getvalue()
     assert "fail" in output
     assert "demo/needs_pkg" in output
+
+
+def test_cmd_doctor_install_reports_ok(monkeypatch):
+    import io
+    from packaging.version import Version
+    from rich.console import Console
+
+    monkeypatch.setattr(
+        "skillware.cli.detect_install_conflicts",
+        lambda: [],
+    )
+    monkeypatch.setattr(
+        "skillware.cli.get_installed_version",
+        lambda: Version("0.5.4"),
+    )
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_doctor(install=True, console=console) == 0
+
+    output = buf.getvalue()
+    assert "0.5.4" in output
+    assert "ok" in output.lower()
+
+
+def test_cmd_doctor_install_reports_conflicts(monkeypatch):
+    import io
+    from packaging.version import Version
+    from rich.console import Console
+
+    from skillware.version_policy import InstallConflict
+
+    monkeypatch.setattr(
+        "skillware.cli.detect_install_conflicts",
+        lambda: [
+            InstallConflict(
+                code="duplicate",
+                summary="2 skillware distributions are registered.",
+                fix_unix="python -m pip uninstall skillware -y\n"
+                "python -m pip install -U skillware",
+                fix_windows="py -m pip uninstall skillware -y\n"
+                "py -m pip install -U skillware",
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "skillware.cli.get_installed_version",
+        lambda: Version("0.5.4"),
+    )
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    assert cmd_doctor(install=True, console=console) == 1
+
+    output = buf.getvalue()
+    assert "conflict" in output.lower()
+    assert "duplicate" in output
+    assert "pip uninstall skillware" in output
+
+
+def test_emit_install_conflict_advisory_silent_when_clean(monkeypatch, capsys):
+    from skillware.cli import emit_install_conflict_advisory
+
+    monkeypatch.setattr(
+        "skillware.cli.detect_install_conflicts",
+        lambda: [],
+    )
+    emit_install_conflict_advisory()
+    assert capsys.readouterr().err == ""
+
+
+def test_emit_install_conflict_advisory_warns_on_conflict(monkeypatch, capsys):
+    from skillware.cli import emit_install_conflict_advisory
+    from skillware.version_policy import InstallConflict
+
+    monkeypatch.setattr(
+        "skillware.cli.detect_install_conflicts",
+        lambda: [
+            InstallConflict(
+                code="duplicate",
+                summary="2 skillware distributions are registered.",
+                fix_unix="python -m pip uninstall skillware -y",
+                fix_windows="py -m pip uninstall skillware -y",
+            )
+        ],
+    )
+    emit_install_conflict_advisory()
+    err = capsys.readouterr().err
+    assert "install conflict" in err.lower()
+    assert "doctor --install" in err
+
+
+def test_emit_install_conflict_advisory_respects_opt_out(monkeypatch, capsys):
+    """The shared advisory opt-out suppresses install-conflict output too."""
+    from skillware.cli import emit_install_conflict_advisory
+    from skillware.version_policy import InstallConflict
+
+    monkeypatch.setenv("SKILLWARE_NO_VERSION_CHECK", "1")
+    monkeypatch.setattr(
+        "skillware.cli.detect_install_conflicts",
+        lambda: [
+            InstallConflict(
+                code="duplicate",
+                summary="2 skillware distributions are registered.",
+                fix_unix="python -m pip uninstall skillware -y",
+                fix_windows="py -m pip uninstall skillware -y",
+            )
+        ],
+    )
+    emit_install_conflict_advisory()
+    assert capsys.readouterr().err == ""
+
+
+def test_main_calls_install_conflict_advisory_once(monkeypatch):
+    """CLI startup invokes the install conflict check once per process."""
+    import sys
+    from skillware import cli as cli_module
+
+    calls = []
+    monkeypatch.setattr(cli_module, "emit_upgrade_advisory", lambda: None)
+    monkeypatch.setattr(
+        cli_module, "emit_install_conflict_advisory", lambda: calls.append(True)
+    )
+    monkeypatch.setattr(cli_module, "cmd_list", lambda **kwargs: None)
+    monkeypatch.setattr(sys, "argv", ["skillware", "list"])
+
+    cli_module.main()
+    assert calls == [True]
+
+
+def test_cmd_config_show_reports_install_health(isolated_theme_environment, monkeypatch):
+    """Config show presents the install-health summary without config files."""
+    import io
+    from packaging.version import Version
+    from rich.console import Console
+
+    monkeypatch.setattr("skillware.cli.detect_install_conflicts", lambda: [])
+    monkeypatch.setattr("skillware.cli.get_installed_version", lambda: Version("0.5.5"))
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+
+    assert cmd_config_show(console=console) == 0
+    output = buf.getvalue()
+    assert "install health" in output.lower()
+    assert "0.5.5" in output
+    assert "status: ok" in output.lower()
 
 
 def test_main_doctor_subcommand(monkeypatch):

@@ -51,7 +51,12 @@ from skillware.core.discovery import (
     list_registry_skill_ids,
     resolution_order_summary,
 )
-from skillware.version_policy import emit_upgrade_advisory, get_installed_version
+from skillware.version_policy import (
+    detect_install_conflicts,
+    emit_upgrade_advisory,
+    get_installed_version,
+    is_version_check_disabled,
+)
 
 
 def _active_theme() -> ThemePalette:
@@ -116,6 +121,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware test --category <n>", "test all skills in a category"),
             ("skillware doctor [id]", "check deps and skill.py import"),
             ("skillware doctor --category <n>", "diagnose a category"),
+            ("skillware doctor --install", "diagnose package install health"),
         ],
         _DOCS_CLI_LIST,
     ),
@@ -1176,6 +1182,11 @@ def cmd_config_show(console=None) -> int:
     console.print(f"  theme: {config.presentation.theme}", style=MENU_STYLE)
     console.print()
 
+    # Surface the package state alongside configuration before an invalid
+    # version reaches the rest of the CLI.
+    _print_install_health_summary(console)
+    console.print()
+
     if not config.has_config_files:
         console.print(
             "No config files found — using legacy resolution "
@@ -1244,6 +1255,23 @@ def cmd_config_show(console=None) -> int:
         style="dim",
     )
     return 0
+
+
+def _print_install_health_summary(console: Console) -> None:
+    """Print the installed version and a concise install-health summary."""
+    installed = get_installed_version()
+    conflicts = detect_install_conflicts()
+    version = str(installed) if installed is not None else "unknown"
+
+    console.print(Text("install health", style=TABLE_STYLE))
+    console.print(f"  version: {version}", style=MENU_STYLE)
+    if conflicts:
+        console.print(
+            f"  status: {len(conflicts)} conflict(s) — run skillware doctor --install",
+            style=ERROR_STYLE,
+        )
+    else:
+        console.print("  status: ok", style=ID_STYLE)
 
 
 def _parse_host_vars(pairs: Optional[List[str]]) -> Dict[str, Any]:
@@ -1594,12 +1622,20 @@ def cmd_doctor(
     skills_root_override: Optional[Path] = None,
     skill_id: Optional[str] = None,
     category: Optional[str] = None,
+    install: bool = False,
     console=None,
 ) -> int:
-    """Check manifest deps and skill.py import without running execute()."""
+    """Check manifest deps and skill.py import without running execute().
+
+    With ``install=True``, diagnose the local install state instead and print
+    fix commands (exit 0 = healthy, 1 = conflicts).
+    """
     _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
+
+    if install:
+        return _cmd_doctor_install(console)
 
     skill_ids, error = _resolve_doctor_skill_ids(
         skills_root_override=skills_root_override,
@@ -1673,6 +1709,40 @@ def cmd_doctor(
         style="dim",
     )
     return 1 if failures else 0
+
+
+def _cmd_doctor_install(console: Console) -> int:
+    """Diagnose the local install state and print a copy-paste fix report."""
+    conflicts = detect_install_conflicts()
+    installed = get_installed_version()
+
+    console.print(
+        Text(
+            f"Skillware install version: "
+            f"{installed if installed is not None else 'unknown'}",
+        )
+    )
+
+    if not conflicts:
+        console.print("Install health: ok", style=ID_STYLE)
+        return 0
+
+    console.print(f"Install health: {len(conflicts)} conflict(s)", style=ERROR_STYLE)
+    console.print()
+    for idx, conflict in enumerate(conflicts, start=1):
+        console.print(
+            f"{idx}. [{conflict.code}] {conflict.summary}",
+            markup=False,
+        )
+        console.print("   Fix (Windows):", style="dim")
+        for line in conflict.fix_windows.splitlines():
+            console.print(f"     {line}", style="dim")
+        console.print("   Fix (Unix):", style="dim")
+        for line in conflict.fix_unix.splitlines():
+            console.print(f"     {line}", style="dim")
+        console.print()
+
+    return 1
 
 
 def _prompt_examples_skill_id(
@@ -1783,9 +1853,32 @@ def _package_version_str() -> str:
     if installed is not None:
         return str(installed)
     try:
-        return importlib.metadata.version("skillware")
+        raw = importlib.metadata.version("skillware")
     except importlib.metadata.PackageNotFoundError:
         return "dev"
+    if not raw or raw in ("dev", "None"):
+        return "dev"
+    return raw
+
+
+def emit_install_conflict_advisory() -> None:
+    """Print one dim stderr line when install conflicts are detected; else silent."""
+    # Match the established advisory opt-out for CI and scripted invocation.
+    if is_version_check_disabled():
+        return
+    conflicts = detect_install_conflicts()
+    if not conflicts:
+        return
+    message = (
+        "skillware install conflict detected; run 'skillware doctor --install' "
+        "for details and fix commands."
+    )
+    try:
+        from rich.console import Console
+
+        Console(stderr=True).print(message, style="dim")
+    except ImportError:
+        print(message, file=sys.stderr)
 
 
 def cmd_interactive(console=None, parser=None) -> None:
@@ -1908,6 +2001,7 @@ def cmd_interactive(console=None, parser=None) -> None:
 def main() -> None:
     """CLI entry point."""
     emit_upgrade_advisory()
+    emit_install_conflict_advisory()
 
     parser = argparse.ArgumentParser(prog="skillware", add_help=False)
 
@@ -2026,6 +2120,11 @@ def main() -> None:
         "--category",
         default=None,
         help="Diagnose all skills in a category.",
+    )
+    doctor_parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Diagnose the local skillware install and print fix commands.",
     )
 
     config_parser = subparsers.add_parser(
@@ -2296,6 +2395,7 @@ def main() -> None:
                 skills_root_override=args.skills_root,
                 skill_id=args.skill_id,
                 category=args.category,
+                install=getattr(args, "install", False),
             )
         )
     elif args.command == "config":
