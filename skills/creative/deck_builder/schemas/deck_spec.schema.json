@@ -1,9 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ARPAHLS/skillware/main/skills/creative/deck_builder/schemas/deck_spec.schema.json",
   "title": "DeckSpec",
-  "description": "Structured presentation specification for creative/deck_builder.",
+  "description": "Structured presentation specification for creative/deck_builder v0.2.",
   "type": "object",
   "properties": {
+    "version": {
+      "type": "string",
+      "description": "Deck specification version format (e.g. '1.0' or '1.1')."
+    },
     "title": {
       "type": "string",
       "description": "Overall presentation title."
@@ -15,17 +20,24 @@
     },
     "theme": {
       "type": "object",
-      "description": "Theme token overrides.",
+      "description": "Theme tokens and typography overrides.",
       "properties": {
         "accent_color": { "type": "string" },
         "font_heading": { "type": "string" },
         "font_body": { "type": "string" }
       },
-      "additionalProperties": false
+      "additionalProperties": true
     },
     "metadata": {
       "type": "object",
-      "description": "Document metadata."
+      "description": "Document metadata, governance classifications, and audit info.",
+      "properties": {
+        "classification": { "type": "string", "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"] },
+        "author": { "type": "string" },
+        "company": { "type": "string" },
+        "subject": { "type": "string" },
+        "legal_footer": { "type": "string" }
+      }
     },
     "slides": {
       "type": "array",
@@ -47,6 +59,9 @@
               "quote",
               "table",
               "chart",
+              "timeline",
+              "metrics",
+              "comparison",
               "blank"
             ]
           },
@@ -60,13 +75,27 @@
           "left": {
             "oneOf": [
               { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
+              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "items": { "type": "array", "items": { "type": "string" } }
+                }
+              }
             ]
           },
           "right": {
             "oneOf": [
               { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
+              { "type": "array", "items": { "type": "string" } },
+              {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "items": { "type": "array", "items": { "type": "string" } }
+                }
+              }
             ]
           },
           "image": {
@@ -74,7 +103,11 @@
             "properties": {
               "path": { "type": "string" },
               "base64": { "type": "string" },
-              "mime_type": { "type": "string" }
+              "mime_type": { "type": "string" },
+              "placeholder_id": { "type": "string", "enum": ["hero", "logo", "icon", "chart_backdrop", "headshot"] },
+              "placeholder_prompt": { "type": "string" },
+              "fit": { "type": "string", "enum": ["contain", "cover", "crop_center", "stretch", "native"] },
+              "alt": { "type": "string" }
             }
           },
           "caption": { "type": "string" },
@@ -116,6 +149,35 @@
                     }
                   }
                 }
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "description": "Milestones for timeline slide.",
+            "items": {
+              "type": "object",
+              "required": ["date", "title"],
+              "properties": {
+                "date": { "type": "string" },
+                "title": { "type": "string" },
+                "description": { "type": "string" },
+                "status": { "type": "string", "enum": ["completed", "in_progress", "planned"] }
+              }
+            }
+          },
+          "metrics": {
+            "type": "array",
+            "description": "Metrics array for KPI big numbers slide.",
+            "items": {
+              "type": "object",
+              "required": ["value", "label"],
+              "properties": {
+                "value": { "type": "string" },
+                "label": { "type": "string" },
+                "delta": { "type": "string" },
+                "trend": { "type": "string", "enum": ["up", "down", "neutral"] },
+                "unit": { "type": "string" }
               }
             }
           }

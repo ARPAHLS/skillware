@@ -18,6 +18,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Core:** `SkillLoader.to_bedrock_tool()` for AWS Bedrock Converse tool-use API — maps manifest parameters to `toolSpec` / `inputSchema.json` (#262).
 - **Docs:** Enterprise cloud usage guides — [enterprise_cloud.md](docs/usage/enterprise_cloud.md) (hosting + adapter routing), [bedrock.md](docs/usage/bedrock.md), [azure_openai.md](docs/usage/azure_openai.md), [vertex.md](docs/usage/vertex.md) (#262).
 - **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
+- **Skill (`creative/deck_builder` v0.2.0):** Enterprise presentation platform baseline — procedural Pillow placeholders, image fit policies, layouts (`timeline`, `metrics`, `comparison`), `lint_deck` quality gates, `suggest_outline` archetypes, governance ribbons/footers, and [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) (#336, #337).
+- **Examples:** [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) — `suggest_outline` → `bg_remover` → `lint_deck` → `render` via `SkillContext` (#337).
 
 ### Changed
 
