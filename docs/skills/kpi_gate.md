@@ -4,7 +4,7 @@
 **Skill ID:** `monitoring/kpi_gate`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 29 Aug 2026
+**Version**: `0.1.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[monitoring_kpi_gate]"`. See [Install extras](../usage/install_extras.md).
 

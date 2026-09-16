@@ -3,7 +3,7 @@
 **ID**: `office/gmail_handler`  
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 19 Aug 2026
+**Version**: `0.2.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[office_gmail_handler]"`. See [Install extras](../usage/install_extras.md).

@@ -536,10 +536,15 @@ the CLI to see the newly selected splash gradient.
 
 ## short_description field
 
-Skill manifests can include a `short_description` field (max 80 chars) for
-a concise one-line summary shown in `skillware list`:
+Skill manifests can include a `short_description`: a one-line, routing-oriented
+summary (target <= 120 characters; hard cap 160 after the `SkillContext`
+brief-line truncation). It appears in `skillware list` (column truncated to 80
+characters) and in `SkillContext(mode="brief")` registry lines that help
+multi-skill hosts route between tools:
 
-    short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
+    short_description: "Use when asked if an Ethereum address is safe or AML-relevant; screens against OFAC and mixers."
 
-If `short_description` is absent, the CLI falls back to the first sentence
-of `description`, truncated to 80 characters.
+If `short_description` is absent, `skillware list` falls back to the first
+sentence of `description` (truncated to 80 characters), and brief lines fall back
+to `description` truncated to 160 characters. See [Skill chaining](skill_chaining.md)
+for how brief lines differ from full Directives.

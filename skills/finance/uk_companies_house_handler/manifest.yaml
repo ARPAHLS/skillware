@@ -1,5 +1,5 @@
 name: finance/uk_companies_house_handler
-version: 1.2.1
+version: 1.2.2
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing, filing
@@ -7,7 +7,7 @@ description: |
   terminology translation. Returns status-based responses (ready, partial,
   needs_input, error) with disambiguation support. The agent owns natural-language
   dialogue; the skill returns structured candidates and records.
-short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
+short_description: "Use for UK Companies House lookups: company search, officers, PSC, and filings (structured actions)."
 issuer:
   name: Areen Agrawal
   email: agrawalareen09@gmail.com

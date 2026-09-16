@@ -3,7 +3,7 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.0.1` — 23 Jul 2026
+**Version**: `1.0.2` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[finance_wallet_screening]"`. See [Install extras](../usage/install_extras.md).

@@ -20,6 +20,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
 - **Skill (`creative/deck_builder` v0.2.0):** Enterprise presentation platform baseline — procedural Pillow placeholders, image fit policies, layouts (`timeline`, `metrics`, `comparison`), `lint_deck` quality gates, `suggest_outline` archetypes, governance ribbons/footers, and [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) (#336, #337).
 - **Examples:** [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) — `suggest_outline` → `bg_remover` → `lint_deck` → `render` via `SkillContext` (#337).
+- **Tests:** `tests/test_short_descriptions.py` — guard that every bundled `manifest.yaml` declares a presence-checked, single-line `short_description` within the 160-char brief-line cap (#355).
 
 ### Changed
 
@@ -27,6 +28,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
 - **Skills:** Bundled skills with `env_vars` now use `self.credential()` for config-first secret resolution (#39).
+- **Skills:** Rewrite bundled `manifest.yaml` `short_description` lines as agent-routing hints — state what the skill does (verb + object) and when to use it, disambiguate sibling skills, and drop implementation noise; patch version bumps across all 20 bundled skills (#355).
+- **Docs:** Expand `short_description` guidance in `CONTRIBUTING.md` and the agent workflow checklist with the brief-line routing spec and the 160-char `SkillContext` truncation cap (#355).
 
 ## [0.5.5] - 2026-09-14
 
