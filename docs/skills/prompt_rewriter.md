@@ -14,7 +14,7 @@ A powerful middleware skill that acts as a deterministic compression logic gate 
 
 This is critical for complex agents facing strict token constraints or high LLM API costs.
 
-Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.md) in a chain when text is safe — see [Skill chaining](../usage/skill_chaining.md).
+Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.md) in a chain when text is safe — see [Skill chaining](../usage/skill_chaining.md). For large documents, run [`optimization/context_optimizer`](context_optimizer.md) first to select relevant spans extractively, then optionally compress with this skill.
 
 ## Bundle layout
 

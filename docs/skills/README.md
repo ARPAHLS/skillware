@@ -41,6 +41,7 @@ Middleware skills that operate on text or state to increase performance, securit
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[Prompt Token Rewriter](prompt_rewriter.md)** | `optimization/prompt_rewriter` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Aggressively compresses massive prompts or context histories while retaining semantic meaning to save tokens. |
+| **[Context Window Optimizer](context_optimizer.md)** | `optimization/context_optimizer` | `0.1.0` (16 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Query-aware extractive selection — local embeddings score document chunks against agent_goal and return only relevant spans. |
 
 ## Data Engineering
 Skills tailored for generating, parsing, and orchestrating large datasets for machine learning or analytics workflows.

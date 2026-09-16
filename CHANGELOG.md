@@ -20,8 +20,12 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
 - **Skill (`creative/deck_builder` v0.2.0):** Enterprise presentation platform baseline — procedural Pillow placeholders, image fit policies, layouts (`timeline`, `metrics`, `comparison`), `lint_deck` quality gates, `suggest_outline` archetypes, governance ribbons/footers, and [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) (#336, #337).
 - **Examples:** [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) — `suggest_outline` → `bg_remover` → `lint_deck` → `render` via `SkillContext` (#337).
+- **Skill (`optimization/context_optimizer` v0.1.0):** Query-aware extractive context selection — local `fastembed` chunk scoring against `agent_goal`, traceable `chunks_selected`, fail-closed `empty_result`, and constitution-bound extractive-only output (#44).
+- **Examples:** [`context_optimizer_demo.py`](examples/context_optimizer_demo.py), [`context_optimizer_chain_demo.py`](examples/context_optimizer_chain_demo.py) (firewall → optimizer), optional [`context_optimizer_gemini_loop.py`](examples/context_optimizer_gemini_loop.py), [`context_optimizer_claude_loop.py`](examples/context_optimizer_claude_loop.py) (#44).
 
 ### Changed
+
+- **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
 
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).

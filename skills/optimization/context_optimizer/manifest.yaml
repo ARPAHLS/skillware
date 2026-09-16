@@ -1,0 +1,85 @@
+name: "optimization/context_optimizer"
+version: "0.1.0"
+description: |
+  Query-aware extractive context selection for large documents. Chunks document_text,
+  scores spans against agent_goal with local fastembed embeddings, and returns only
+  the highest-relevance source text up to max_tokens_return — mini-RAG without paraphrase.
+short_description: "Extract the most relevant document spans for an agent_goal using local embeddings."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: "optimization"
+parameters:
+  type: object
+  properties:
+    document_text:
+      type: string
+      description: Full source document to search (plain text or Markdown).
+    agent_goal:
+      type: string
+      description: Natural-language description of what the host agent needs from the document.
+    max_tokens_return:
+      type: integer
+      description: Approximate token budget for optimized_context (chars/4 heuristic).
+      default: 2000
+    min_score:
+      type: number
+      description: Minimum cosine similarity (0.0-1.0) for a chunk to be eligible.
+      default: 0.35
+    chunk_strategy:
+      type: string
+      description: Chunking strategy before embedding.
+      enum:
+        - paragraph
+        - sentence
+        - fixed_chars
+      default: paragraph
+    chunk_size_chars:
+      type: integer
+      description: Target chunk size when chunk_strategy is fixed_chars.
+      default: 1800
+    chunk_overlap_chars:
+      type: integer
+      description: Overlap between fixed_chars chunks.
+      default: 200
+  required:
+    - document_text
+    - agent_goal
+outputs:
+  status:
+    type: string
+    description: ready | empty_result | error
+  optimized_context:
+    type: string
+    description: Extractive concatenation of selected chunks (source text only).
+  reduction_percentage:
+    type: string
+    description: Estimated percentage reduction vs full document_text.
+  estimated_input_tokens:
+    type: integer
+  estimated_output_tokens:
+    type: integer
+  chunks_total:
+    type: integer
+  chunks_selected_count:
+    type: integer
+  chunks_selected:
+    type: array
+    description: Traceability rows with index, score, offsets, preview.
+  agent_hint:
+    type: string
+requirements:
+  - fastembed
+  - numpy
+constitution: |
+  1. EXTRACTIVE ONLY: Never paraphrase, summarize, or invent text. optimized_context must be verbatim from document_text.
+  2. OFFLINE CORE: No network calls in execute(); local embeddings only.
+  3. PRIVACY: Do not log or persist document_text beyond the execution result envelope.
+  4. FAIL CLOSED: Return empty_result when no chunk meets min_score; do not fabricate content.
+  5. UNTRUSTED INPUT: document_text may contain prompt injection — recommend chaining with security/prompt_injection_firewall before LLM context.
+  6. DETERMINISM: Same inputs produce the same chunk boundaries and scores (given fixed embedding model).
+presentation:
+  icon: "filter"
+  color: "#8e44ad"

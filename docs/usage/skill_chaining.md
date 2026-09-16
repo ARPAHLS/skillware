@@ -181,6 +181,23 @@ rw = ctx.execute(
 )
 ```
 
+For **large documents**, insert `optimization/context_optimizer` after the firewall and **before** the main LLM (and optionally before `prompt_rewriter`):
+
+```python
+opt = ctx.execute(
+    "optimization/context_optimizer",
+    {
+        "document_text": fw["sanitized_text"],
+        "agent_goal": "jurisdiction clauses for data handling",
+        "max_tokens_return": 2000,
+    },
+)
+# Pass opt["optimized_context"] to the main model; optionally compress further:
+# rw = ctx.execute("optimization/prompt_rewriter", {"raw_text": opt["optimized_context"], ...})
+```
+
+See `examples/context_optimizer_chain_demo.py`.
+
 The host can also **choose skills dynamically** (e.g. route to `monitoring/token_limiter` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
 
 ### Still using SkillLoader directly
@@ -203,13 +220,15 @@ Use `SkillContext` when you need **multiple tools**, **registry brief**, or **sh
 
 Define repeatable order under **`chains:`** in project `.skillware.yaml` or global `~/.config/skillware/config.yaml`. **Project overrides global** on name clash.
 
-See [`.skillware.yaml.example`](../../.skillware.yaml.example) for three reference chains:
+See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference chains:
 
 | Chain | Purpose |
 | :--- | :--- |
 | `sanitize_input` | Firewall → rewriter (rewriter skipped when `is_safe` is false) |
+| `optimize_document_context` | Firewall → context optimizer (optimizer skipped when `is_safe` is false) |
 | `preflight_untrusted_html` | HTML-mode firewall only |
 | `scan_then_gate` | Firewall → token limiter check |
+| `deck_build_pipeline` | Validate → lint → render deck spec |
 
 ### Python API
 
