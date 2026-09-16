@@ -1,0 +1,20 @@
+{
+  "status": "ready",
+  "optimized_context": "Section 2 — Data Handling and Jurisdiction\nPersonal data is processed in accordance with applicable law.",
+  "reduction_percentage": "72%",
+  "estimated_input_tokens": 420,
+  "estimated_output_tokens": 118,
+  "chunks_total": 5,
+  "chunks_selected_count": 1,
+  "chunks_selected": [
+    {
+      "index": 1,
+      "score": 0.91,
+      "start_offset": 120,
+      "end_offset": 380,
+      "char_count": 260,
+      "preview": "Section 2 — Data Handling and Jurisdiction"
+    }
+  ],
+  "agent_hint": "Pass optimized_context to the main model."
+}

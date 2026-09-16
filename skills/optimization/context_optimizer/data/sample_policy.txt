@@ -1,0 +1,57 @@
+Privacy Policy — Example Corp (Global Operations)
+
+Section 1 — Introduction
+Example Corp provides analytics software to enterprise customers worldwide.
+This document describes how we collect, use, and protect information across products.
+
+Section 2 — Definitions
+"Personal data" means any information relating to an identified or identifiable natural person.
+"Processing" means any operation performed on personal data.
+"Controller" means the entity that determines the purposes and means of processing.
+
+Section 3 — General Terms
+By using our services you agree to the terms in this policy unless a separate enterprise agreement applies.
+We may update this policy with notice on our website.
+
+Section 4 — Product Usage Analytics
+We collect usage metrics to improve reliability and performance of dashboards.
+Aggregated analytics do not identify individual users unless combined with account identifiers.
+
+Section 5 — Billing and Invoicing
+Payment records are retained for seven years for tax and audit purposes.
+Invoices may include company name, billing contact, and subscription tier.
+
+Section 6 — Data Handling and Jurisdiction
+Personal data is processed in accordance with applicable law. For customers in the European Economic Area,
+processing occurs under GDPR Article 6(1)(b) contract necessity. Data handling for APAC tenants may involve
+transfer to Singapore with Standard Contractual Clauses. United States customers: data may be stored in
+us-east-1 (Virginia) or us-west-2 (Oregon). Cross-border transfers require documented legal basis.
+Subprocessors are listed in Annex B. Data subject requests for access, rectification, and erasure are
+handled within thirty (30) calendar days unless extension is permitted by law.
+
+Section 7 — Security Controls
+We maintain encryption in transit (TLS 1.2+) and at rest for primary databases.
+Access to production systems requires multi-factor authentication and role-based access control.
+
+Section 8 — Retention
+Logs are retained for ninety (90) days unless a longer period is required by subpoena.
+Backup snapshots rotate on a fourteen-day schedule.
+
+Section 9 — Marketing
+We may send product newsletters if you opt in during signup.
+Promotional emails include an unsubscribe link in the footer.
+
+Section 10 — Support
+Contact support@example.com for account questions.
+Enterprise customers may use the dedicated support portal listed in their contract.
+
+Section 11 — Third-Party Integrations
+Optional connectors to CRM and ticketing systems share only fields you configure.
+Integration tokens are stored encrypted and can be revoked from the admin console.
+
+Section 12 — Children's Privacy
+Our services are not directed to children under sixteen (16) years of age.
+
+Section 13 — Contact
+Privacy inquiries: privacy@example.com
+Data Protection Officer: dpo@example.com (EEA customers)

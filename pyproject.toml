@@ -112,7 +112,10 @@ office = [
     "pymupdf",
 ]
 
-optimization = []
+optimization = [
+    "fastembed",
+    "numpy",
+]
 
 security = []
 
@@ -169,6 +172,11 @@ office_gmail_handler = []
 office_pdf_form_filler = [
     "pymupdf",
     "anthropic",
+]
+
+optimization_context_optimizer = [
+    "fastembed",
+    "numpy",
 ]
 
 optimization_prompt_rewriter = []
