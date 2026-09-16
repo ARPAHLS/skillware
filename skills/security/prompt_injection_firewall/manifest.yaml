@@ -1,10 +1,10 @@
 name: security/prompt_injection_firewall
-version: 0.1.0
+version: 0.1.1
 description: >
   Offline deterministic pre-flight scanner that detects and sanitizes prompt injection,
   hidden HTML payloads, invisible Unicode smuggling, confusable evasion, nested encodings,
   and instruction override attempts before untrusted text reaches an LLM.
-short_description: "Offline prompt-injection firewall with local detectors and sanitization."
+short_description: "Use on untrusted HTML or text before it enters model context; local detectors sanitize."
 issuer:
   name: Masa
   email: masa88keith@gmail.com

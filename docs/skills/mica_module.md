@@ -3,7 +3,7 @@
 **ID**: `compliance/mica_module`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.1` — 9 Sep 2026
+**Version**: `0.1.2` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[compliance_mica_module]"`. See [Install extras](../usage/install_extras.md).

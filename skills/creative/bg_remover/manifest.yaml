@@ -1,7 +1,7 @@
 name: "creative/bg_remover"
-version: "0.2.0"
+version: "0.2.1"
 description: "Remove image backgrounds locally using rembg."
-short_description: "Offline background removal using rembg with transparent PNG output."
+short_description: "Use to remove image backgrounds offline for product photos or logos; returns transparent PNG."
 
 issuer:
   name: Ayush Srivastava

@@ -4,7 +4,7 @@
 **Skill ID:** `monitoring/token_limiter`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.0.0` — 16 Jul 2026
+**Version**: `1.0.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[monitoring_token_limiter]"`. See [Install extras](../usage/install_extras.md).
