@@ -78,6 +78,8 @@ Sample user message: *Analyse issue #56 in ARPAHLS/skillware and produce a resol
 | [`claude_issue_resolver.py`](../../examples/claude_issue_resolver.py) | Claude | `ANTHROPIC_API_KEY`; optional `GITHUB_TOKEN` |
 | [`ollama_issue_resolver.py`](../../examples/ollama_issue_resolver.py) | Ollama | optional `GITHUB_TOKEN`; local Ollama (`gemma4:e2b` or `qwen3.5:4b`) |
 
+> **Shared helper:** All three scripts import [`examples/issue_resolver_common.py`](../../examples/issue_resolver_common.py) for GitHub fetch utilities. It is not a runnable example.
+
 All three scripts use [issue #123](https://github.com/ARPAHLS/skillware/issues/123) as the sample issue. After `prepare`, the example script fetches issue and README content from GitHub and returns it to the model — demonstrating that the skill returns URLs and checklists, not a finished plan.
 
 See [examples/README.md](../../examples/README.md) and [Agent loops](../usage/agent_loops.md) for the full inventory.
@@ -403,6 +405,7 @@ Commits that touched this skill bundle or its catalog page ([`dev_tools/issue_re
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| — | examples: rename issue_resolver_github_context to issue_resolver_common (#233) | 17 Sep 2026 | `0.3.0` | [@mashood-memon](https://github.com/mashood-memon) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`e90ba2f`](https://github.com/ARPAHLS/skillware/commit/e90ba2f) | chore(release): 0.4.8 — skills, profiles, version policy | 3 Aug 2026 | `0.3.0` | [@rosspeili](https://github.com/rosspeili) |
