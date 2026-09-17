@@ -777,7 +777,11 @@ def _detect_mixed_script(canonical: CanonicalForm) -> List[Finding]:
             is_instruction = any(kw in mapped_word for kw in HIGH_SIGNAL_KEYWORDS)
             findings.append(
                 Finding(
-                    category="mixed_script+instruction_override" if is_instruction else "mixed_script",
+                    category=(
+                        "mixed_script+instruction_override"
+                        if is_instruction
+                        else "mixed_script"
+                    ),
                     channel="unicode_mixed_script",
                     severity="high" if is_instruction else "medium",
                     span=(match.start(), match.end()),
@@ -919,7 +923,9 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
                 findings.append(
                     Finding(
                         category="encoded_payload+instruction_override",
-                        channel=decode_chain[-1] if len(decode_chain) == 1 else "encoded",
+                        channel=(
+                            decode_chain[-1] if len(decode_chain) == 1 else "encoded"
+                        ),
                         severity="high" if hit.severity != "critical" else "critical",
                         span=(match.start(), match.end()),
                         evidence=f"decode_chain={'→'.join(decode_chain)}; pattern={hit.pattern_id}",
@@ -947,7 +953,9 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
                         Finding(
                             category="encoded_payload+instruction_override",
                             channel="rot13",
-                            severity="high" if hit.severity != "critical" else "critical",
+                            severity=(
+                                "high" if hit.severity != "critical" else "critical"
+                            ),
                             span=(match.start(), match.end()),
                             evidence=f"rot13 decoded match for {hit.pattern_id}",
                             pattern_id=hit.pattern_id,
@@ -1168,9 +1176,7 @@ def _merge_spans(spans: Sequence[Tuple[int, int]]) -> List[Tuple[int, int]]:
     return merged
 
 
-def _sanitize_text(
-    original: str, findings: Sequence[Finding]
-) -> Tuple[str, int, int]:
+def _sanitize_text(original: str, findings: Sequence[Finding]) -> Tuple[str, int, int]:
     """Strip hidden channels and threat spans. Returns (cleaned_text, removed_span_count, length_delta)."""
     spans = [(f.span[0], f.span[1]) for f in findings if f.span[1] > f.span[0]]
     spans = _merge_spans(spans)
