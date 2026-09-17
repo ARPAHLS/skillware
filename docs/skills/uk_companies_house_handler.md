@@ -604,7 +604,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`310`](https://github.com/ARPAHLS/skillware/issues/310) | feat(uk_companies_house_handler): upgrade to v2c with deterministic matchers and filing helpers (#220) (#310) | 17 Sep 2026 | `1.3.0` | [@Areen-09](https://github.com/Areen-09) |
+| [`769f817`](https://github.com/ARPAHLS/skillware/commit/769f8177195f6160ac93924ac09eda6fd8c8220e) | feat(finance/uk_companies_house_handler): upgrade to v1.3.0 with deterministic matchers, filing helpers, and turn-by-turn orchestration (#220) (#310) (#359) | 17 Sep 2026 | `1.3.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`051b910`](https://github.com/ARPAHLS/skillware/commit/051b910b891608b5481e3a730b0bc88b102c39a3) | Refactor and update uk_companies_house_handler for v1.2.1 (#341) (#346) | 11 Sep 2026 | `1.2.1` | [@Areen-09](https://github.com/Areen-09), [@rosspeili](https://github.com/rosspeili) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.2.0` | [@rosspeili](https://github.com/rosspeili) |

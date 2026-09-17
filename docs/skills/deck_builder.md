@@ -273,7 +273,7 @@ Commits that touched this skill bundle or its catalog page ([`creative/deck_buil
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| _#337_ | feat(creative): deck_builder v0.2.0 baseline — placeholders, quality linting, archetypes, and new layouts (#336) | 16 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar) |
+| [`bddfda7`](https://github.com/ARPAHLS/skillware/commit/bddfda71438afca3e3e7318b5027cf10db7a8283) | feat(creative): deck_builder v0.2.0 baseline — placeholders, quality linting, archetypes, and new layouts (#336) (#337) | 16 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`1903f30`](https://github.com/ARPAHLS/skillware/commit/1903f30f32bd75567270058f3b255452d8bddd97) | feat(creative): add deck_builder skill for deterministic PPTX assembly (#276) (#331) | 4 Sep 2026 | `0.1.0` | [@tusharjamunkar](https://github.com/tusharjamunkar) |
 <!-- skill-history:end -->

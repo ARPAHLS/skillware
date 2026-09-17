@@ -291,11 +291,11 @@ pytest tests/skills/optimization/test_context_optimizer.py
 <!-- skill-history:begin -->
 ## Skill history
 
-Initial release for [issue #44](https://github.com/ARPAHLS/skillware/issues/44).
+Commits that touched this skill bundle or its catalog page ([`optimization/context_optimizer`](https://github.com/ARPAHLS/skillware/tree/main/skills/optimization/context_optimizer)).
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`08e8300`](https://github.com/ARPAHLS/skillware/commit/08e8300ef) | feat: add optimization/context_optimizer — query-aware extractive selection (#44) | 16 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`0ab59cc`](https://github.com/ARPAHLS/skillware/commit/0ab59ccfa5b2fabd438114980aba063367418f0d) | feat(optimization): add context_optimizer for query-aware extractive selection (#44) (#357) | 16 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
