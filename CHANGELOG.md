@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Docs:** [Glossary](docs/glossary.md) and [inclusive language](docs/contributing/inclusive-language.md) — operator / contributor / host agent / end user; skill bundle vs PyPI package; anatomy roles (#252).
 - **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
 - **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).
 - **Core:** `SkillContext(secret_provider=...)` resolves credentials on each `execute()` and passes them via `config` (supports ephemeral tokens from custom providers) (#39).
@@ -26,6 +27,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Terminology pass on current anatomy (Contract / Effect / Directive / Assurance / Presentation) — Skill bundle standard, `calling agent` → **host agent**, trust-model “Most operators”, README domain wording, MiCA example “Available tools”; tests/CI use placeholder names instead of dummy (#252).
 - **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).

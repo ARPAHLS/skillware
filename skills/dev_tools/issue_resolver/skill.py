@@ -130,7 +130,7 @@ class IssueResolverSkill(BaseSkill):
 
     The skill does not call GitHub, run git, or write code. It returns
     deterministic workflow payloads, stage checklists with conditional logic,
-    and commit-message gates for the calling agent to execute in order.
+    and commit-message gates for the host agent to execute in order.
     """
 
     _GITHUB_ISSUE_RE = re.compile(

@@ -16,6 +16,7 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | `[all]` extra covers bundle-test runtime deps | Done |
 | CLI `skillware test` for bundle discovery | Done |
 | Doc-drift guards (`test_registry_docs.py`) | Done |
+| Glossary / retired-anatomy guard (`test_registry_docs.py`, #252) | Done |
 | Registry identity guard (`test_registry_identity.py`) | Done |
 | GitHub label policy test (`test_github_labels.py`) | Done |
 | PyPI wheel packaging smoke test (`scripts/wheel_smoke_test.py`) | Done |

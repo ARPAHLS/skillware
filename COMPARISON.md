@@ -4,7 +4,7 @@ Skillware is a Python framework that decouples **Effect**, **Directive**, and **
 
 This document clarifies how Skillware compares to other common approaches for equipping AI agents with tools, including **Model Context Protocol (MCP)**, **Agent Skills (SKILL.md)**, **LangChain Tools**, **AutoGen**, and others.
 
-**A note on ecosystem convergence**: [Agent Skills](https://agentskills.io) and MCP address adjacent problems—host-level agent guidance and tool transport, respectively. Skillware remains a runtime capability framework built on a typed `manifest.yaml` → `execute()` contract; there is no plan to replace the Skill Package Standard with the SKILL.md format.
+**A note on ecosystem convergence**: [Agent Skills](https://agentskills.io) and MCP address adjacent problems—host-level agent guidance and tool transport, respectively. Skillware remains a runtime capability framework built on a typed `manifest.yaml` → `execute()` contract; there is no plan to replace the [Skill bundle standard](CONTRIBUTING.md#skill-bundle-standard) with the SKILL.md format.
 
 ---
 

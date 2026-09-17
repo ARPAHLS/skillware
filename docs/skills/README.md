@@ -1,6 +1,6 @@
 # Skill Library
 
-Welcome to the official catalog of Skillware capabilities. New here? Start with the [project README](../../README.md). Each skill page describes its bundle layout; shared role vocabulary is in [Skill anatomy](../introduction.md#skill-anatomy).
+Welcome to the official catalog of Skillware capabilities. New here? Start with the [project README](../../README.md). Each skill page describes its bundle layout; shared role vocabulary is in [Skill anatomy](../introduction.md#skill-anatomy) and the [glossary](../glossary.md).
 
 Browse by category below, or run `skillware list` after `pip install skillware` to see locally available skills. When contributing a new skill, see [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md.
 

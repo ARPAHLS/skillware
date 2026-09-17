@@ -89,7 +89,7 @@ def test_skill_execute_mocked(mock_anthropic_cls, tmp_path):
     # Initialize Skill
     skill = PDFFormFillerSkill()
 
-    # Create a dummy PDF with one text field
+    # Create a placeholder PDF with one text field
     doc = fitz.open()
     page = doc.new_page()
     widget = fitz.Widget()

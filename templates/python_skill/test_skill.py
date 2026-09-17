@@ -27,7 +27,7 @@ def test_skill_manifest_consistency(skill, manifest):
 
 def test_skill_execution(skill, manifest):
     """Test the skill execution and validate output schema."""
-    # 1. Prepare dummy input
+    # 1. Prepare placeholder input
     params = {"param1": "test-value"}
 
     # 2. Execute

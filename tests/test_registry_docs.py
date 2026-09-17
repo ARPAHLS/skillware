@@ -271,3 +271,53 @@ def test_skill_library_index_has_version_column():
     ), "Missing manifest versions in docs/skills/README.md:\n" + "\n".join(
         f"  - {item}" for item in missing
     )
+
+
+def test_glossary_exists_with_canonical_terms():
+    """Glossary documents roles and anatomy used across the repo (#252)."""
+    text = (REPO_ROOT / "docs" / "glossary.md").read_text(encoding="utf-8")
+    for term in (
+        "**Operator**",
+        "**Contributor**",
+        "**Host agent**",
+        "**End user**",
+        "**Skill bundle**",
+        "**Directive**",
+        "**Contract**",
+    ):
+        assert term in text, f"glossary missing {term}"
+
+
+def test_core_docs_avoid_retired_anatomy_labels():
+    """Mind/Body/Conscience are not used as skill roles in core docs (#252, #326)."""
+    paths = [
+        REPO_ROOT / "README.md",
+        REPO_ROOT / "CONTRIBUTING.md",
+        REPO_ROOT / "docs" / "introduction.md",
+        REPO_ROOT / "docs" / "contributing" / "ai_native_workflow.md",
+    ]
+    forbidden = (
+        "Mind / Body / Conscience",
+        "Body/Mind/Conscience",
+        "in your Mind",
+    )
+    hits = []
+    for path in paths:
+        text = path.read_text(encoding="utf-8")
+        for phrase in forbidden:
+            if phrase in text:
+                hits.append(f"{path.relative_to(REPO_ROOT)}: {phrase}")
+    assert not hits, "Retired anatomy labels in core docs:\n" + "\n".join(
+        f"  - {item}" for item in hits
+    )
+
+
+def test_mica_examples_avoid_mind_metaphor():
+    """MiCA example system prompts do not use retired Mind wording (#252)."""
+    for name in (
+        "mica_claude_flow.py",
+        "mica_ollama_flow.py",
+        "mica_rag_flow.py",
+    ):
+        text = (REPO_ROOT / "examples" / name).read_text(encoding="utf-8")
+        assert "in your Mind" not in text, name

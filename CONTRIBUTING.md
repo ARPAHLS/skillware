@@ -14,7 +14,7 @@ This document is the single entry point for how to contribute. If you are an **A
 | [Getting started](#getting-started) | Fork, branch, install, open issues |
 | [Universal expectations](#universal-expectations) | Standards that apply to every PR |
 | [Pull request process](#pull-request-process) | From issue to merge |
-| [Skill Package Standard](#skill-package-standard) | Required layout for registry skills |
+| [Skill bundle standard](#skill-bundle-standard) | Required layout for registry skills |
 | [Skill categories](#skill-categories) | Folder taxonomy under `skills/` |
 | [What to avoid](#what-to-avoid) | Anti-patterns |
 | [Safety and security](#safety-and-security) | High-risk skills |
@@ -24,7 +24,7 @@ This document is the single entry point for how to contribute. If you are an **A
 
 ## Ways to contribute
 
-Pick the path that matches your issue. Only the **skill** row requires the full bundle under [Skill Package Standard](#skill-package-standard).
+Pick the path that matches your issue. Only the **skill** row requires the full bundle under [Skill bundle standard](#skill-bundle-standard).
 
 | Type | What you change | Typical issue label | Before coding | Verify locally |
 | :--- | :--- | :--- | :--- | :--- |
@@ -66,6 +66,8 @@ Issue chooser links: [CONTRIBUTING](CONTRIBUTING.md), [good first issues](https:
 **Label taxonomy:** Repo-wide labels describe contribution type or area (`bug`, `cli`, `security`, …). Registry **category** labels use the `cat:` prefix (`cat: office`, `cat: security`, …) so they never collide with repo-wide names — for example `security` is for vulnerabilities and trust-model work, while `cat: security` filters issues about skills under `skills/security/`. All `cat:` labels share one pastel color (`#E6D9F5`). Maintainers may add a `cat:` label when triaging skill issues and PRs.
 
 Wait for maintainer feedback on non-trivial work before investing in a large PR.
+
+Before writing docs, read the [glossary](docs/glossary.md).
 
 ### 2. Fork and clone
 
@@ -115,6 +117,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 - **No emojis** in source code, documentation, commit messages, or PR titles.
 - Use **Black** for formatting (CI runs `black --check`) and **Flake8** for linting (see [TESTING.md](docs/TESTING.md)).
 - Match existing naming, structure, and documentation tone in the files you touch.
+- Use [glossary.md](docs/glossary.md) terms in new prose. Inclusive language: [inclusive-language.md](docs/contributing/inclusive-language.md). Do not global-replace `user` with `operator`.
 
 ### Scope
 
@@ -206,14 +209,14 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 ### Skill-specific steps (in addition to the above)
 
 1. Copy or align with `templates/python_skill/`.
-2. Create `skills/<category>/<skill_name>/` with the full bundle (see [Skill Package Standard](#skill-package-standard)).
+2. Create `skills/<category>/<skill_name>/` with the full bundle (see [Skill bundle standard](#skill-bundle-standard)).
 3. Add `docs/skills/<skill_name>.md` and a row in [docs/skills/README.md](docs/skills/README.md).
 4. When adding or renaming a runnable script under `examples/`, update [examples/README.md](examples/README.md) in the same PR.
 5. Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works or document required packages and environment variables.
 
 ---
 
-## Skill Package Standard
+## Skill bundle standard
 
 Skills you submit are reviewed for origin and quality, not sandboxed at runtime — operators run them in their own process. Understand the [skill trust model](docs/security/skill-trust-model.md) before designing a skill's behavior.
 
@@ -221,7 +224,7 @@ Every registry skill lives in `skills/<category>/<skill_name>/` and **must** inc
 
 ### Skill anatomy (vocabulary)
 
-Checklists below use **file names**; each file implements a **role**. The [README Mission](README.md#mission) summarizes the core roles; full reference: [docs/introduction.md — Skill anatomy](docs/introduction.md#skill-anatomy).
+Checklists below use **file names**; each file implements a **role**. The [README Mission](README.md#mission) summarizes the core roles; full reference: [docs/introduction.md — Skill anatomy](docs/introduction.md#skill-anatomy). Terms: [glossary.md](docs/glossary.md).
 
 | Role | v0 file(s) | Required |
 | :--- | :--- | :---: |
@@ -441,6 +444,8 @@ When a new top-level category lands under `skills/`, update this table and the c
 | :--- | :--- |
 | [API keys for skills](docs/usage/api_keys.md) | Configuring credentials for skills that call external services |
 | [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md) | Workflow written for contributing agents; operators supervise |
+| [Glossary](docs/glossary.md) | Canonical terms (operator, host agent, skill bundle, anatomy roles) |
+| [Inclusive language](docs/contributing/inclusive-language.md) | Khronos-aligned wording; exceptions |
 | [TESTING.md](docs/TESTING.md) | Black, Flake8, Pytest, local CI parity |
 | [Agent Code of Conduct](CODE_OF_CONDUCT.md) | Behavioral expectations for humans and agents |
 | [docs/introduction.md](docs/introduction.md) | Skill anatomy: Contract / Effect / Directive (+ Assurance, Corpus, Interface) |
