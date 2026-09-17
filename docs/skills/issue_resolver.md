@@ -10,7 +10,7 @@
 **Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../usage/install_extras.md).
 [Skill Library](README.md) · [Testing](../TESTING.md)
 
-A developer-tools skill that accepts any **GitHub issue URL** and guides the calling agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written. Callers may also supply a repository's fetched `ISSUE_RESOLVER.md` Markdown for generic parsing into provenance-labelled, context-only profile data.
+A developer-tools skill that accepts any **GitHub issue URL** and guides the host agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written. Callers may also supply a repository's fetched `ISSUE_RESOLVER.md` Markdown for generic parsing into provenance-labelled, context-only profile data.
 
 The skill is designed to work with **any public or authenticated GitHub repository**. It imposes no project-specific assumptions; the agent reads the target repository's README, CONTRIBUTING guide, and directory structure at runtime to ground analysis in actual conventions. Project-specific context can be injected via the optional `extra_instructions` parameter.
 

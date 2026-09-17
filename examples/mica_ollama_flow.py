@@ -33,7 +33,7 @@ def main():
     tool_text = SkillLoader.to_ollama_prompt(bundle)
     system_instruction = f"""{bundle.get('instructions', '')}
 
-**Available Tools in your Mind:**
+**Available tools:**
 {tool_text}
 
 **Protocol:**

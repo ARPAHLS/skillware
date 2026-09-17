@@ -12,7 +12,7 @@ Do not duplicate the full API keys guide on skill pages. For authoring `instruct
 
 ## Bundle layout (catalog section)
 
-Optional but recommended on catalog pages. Link [Introduction — Skill anatomy](../introduction.md#skill-anatomy).
+Optional but recommended on catalog pages. Link [Introduction — Skill anatomy](../introduction.md#skill-anatomy) and the [glossary](../glossary.md).
 
 ```markdown
 ## Bundle layout

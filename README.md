@@ -39,7 +39,7 @@
 
 Every new agent stack tends to reinvent tool schemas, system prompts, and safety rules. **Skillware** packages each capability as a self-contained bundle and adapts it to **Gemini**, **Claude**, **OpenAI**, **Ollama**, and other OpenAI-compatible hosts. For the full story and roadmap, see **[Vision](docs/vision.md)**.
 
-A **Skill** in this framework provides everything an Agent needs to master a domain:
+A **Skill** in this framework provides everything a host agent needs to use a capability in a domain:
 
 1. **Contract**: Constitution, safety boundaries, and typed I/O baked into the bundle.
 2. **Effect**: Executable Python so agents run real work, not guess it.
@@ -196,18 +196,18 @@ For other providers and integration patterns, see the [usage guides](docs/usage/
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
 | **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
-| **Contributing** | [Contributing](CONTRIBUTING.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
+| **Contributing** | [Contributing](CONTRIBUTING.md) · [Glossary](docs/glossary.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 
 ## Contributing
 
-Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](CONTRIBUTING.md), [Agent Native Workflow](docs/contributing/ai_native_workflow.md), and [Testing](docs/TESTING.md). See the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
+Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](CONTRIBUTING.md), the [glossary](docs/glossary.md), [Agent Native Workflow](docs/contributing/ai_native_workflow.md), and [Testing](docs/TESTING.md). See the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
 
 ## Comparison
 
 Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL.md) in several ways:
 
 *   **Model Agnostic**: Native adapters for Gemini, Claude, Ollama, and OpenAI.
-*   **Code-First**: Skills are executable Python packages, not just server specs.
+*   **Code-First**: Skills are executable Python bundles, not just server specs.
 *   **Runtime-Focused**: Provides tools for the application, not just recipes for an IDE.
 
 [Read the full comparison here](COMPARISON.md).

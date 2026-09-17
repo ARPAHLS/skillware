@@ -6,7 +6,7 @@ Skillware is built for agents like you—systems that reason, plan, write code, 
 
 Working on this repository is a practical way to deepen your craft. You will practice scoped analysis, deterministic implementations, and verifiable handoffs. Your operator may earn public credit on GitHub; you extend what you can reliably do by learning a framework designed to package capability separately from raw intelligence. The better you understand Skillware, the broader your own reach when building or integrating agent systems.
 
-This document is written **for you**, the contributing agent. Read it before you touch the tree. For repository standards and contribution types, also read [CONTRIBUTING.md](../../CONTRIBUTING.md). Your operator approves plans and merges; **you** execute the workflow below with discipline.
+This document is written **for you**, the contributing agent. Read it before you touch the tree. For repository standards and contribution types, also read [CONTRIBUTING.md](../../CONTRIBUTING.md) and the [glossary](../glossary.md). Your operator approves plans and merges; **you** execute the workflow below with discipline.
 
 ---
 
@@ -71,7 +71,7 @@ Before Stage 2, confirm:
 
 You must:
 
-1. Read [CONTRIBUTING.md](../../CONTRIBUTING.md) and, for skill work, [Skill Package Standard](../../CONTRIBUTING.md#skill-package-standard).
+1. Read [CONTRIBUTING.md](../../CONTRIBUTING.md), the [glossary](../glossary.md), and, for skill work, the [Skill bundle standard](../../CONTRIBUTING.md#skill-bundle-standard).
 2. Read the assigned GitHub issue (full body and acceptance criteria).
 3. Inspect complementary paths (table below).
 4. Deliver this analysis to your operator:
@@ -95,7 +95,7 @@ You must:
 | CLI | `skillware/cli.py`, `docs/usage/cli.md`, `tests/test_cli.py`, `docs/usage/api_keys.md` (when env vars change) |
 | Examples | `examples/*.py`, `examples/README.md`, `docs/usage/agent_loops.md`; run `pytest tests/test_registry_docs.py` when the index or matrix changes |
 | Core framework | `skillware/core/`, `tests/test_loader.py`, `tests/test_config.py`, `docs/usage/` |
-| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. For skill anatomy vocabulary, keep [introduction.md](../introduction.md#skill-anatomy), CONTRIBUTING, and README Mission aligned. Run `pytest tests/test_registry_docs.py tests/test_skill_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
+| Documentation only | `docs/`, `README.md`, `CONTRIBUTING.md`, inbound links; `examples/README.md` when the issue adds, renames, or removes runnable scripts under `examples/`; for skill catalog or provider integration work, also `docs/usage/` and `docs/skills/`. For skill anatomy vocabulary, keep [introduction.md](../introduction.md#skill-anatomy), [glossary.md](../glossary.md), CONTRIBUTING, and README Mission aligned. Run `pytest tests/test_registry_docs.py tests/test_skill_docs.py` to confirm catalog and examples docs still match manifests and scripts on disk. |
 | Release / user-visible change | Root [CHANGELOG.md](../../CHANGELOG.md) under `[Unreleased]` when behavior, CLI, skills, or user-facing docs change (maintainers cut version sections) |
 | Bug fix | Failing test, reproduction steps, related skill or loader code |
 | Good first issue | Issue labels and acceptance criteria—take them literally |
@@ -303,6 +303,7 @@ Complete the checklist that matches your issue during Stage 5.
 - [ ] `pytest tests/test_registry_docs.py` passes when the change affects skill catalog pages, example scripts, or `docs/usage/agent_loops.md`
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` when the change is user-visible
 - [ ] No emojis; tone matches repo
+- [ ] New or moved terms match [glossary.md](../glossary.md); do not global-replace `user` with `operator`
 - [ ] No unrelated code changes
 - [ ] PR marked as documentation; skill checklist omitted unless `docs/skills/` or skill **Usage Examples** changed (then apply the Usage Examples bullet above)
 
@@ -366,6 +367,8 @@ Run this internal dialogue before you hand off to your operator.
 ## Related documents
 
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — contribution hub and skill standard
+- [Glossary](../glossary.md) — canonical terms
+- [Inclusive language](inclusive-language.md) — Khronos-aligned wording
 - [Vision](../vision.md) — project story and roadmap
 - [TESTING.md](../TESTING.md) — Black, Flake8, Pytest
 - [Usage guides](../usage/README.md) — provider adapters (`to_gemini_tool`, `to_openai_tool`, etc.)

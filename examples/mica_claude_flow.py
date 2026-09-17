@@ -26,7 +26,7 @@ def main():
 
     system_instruction = f"""{skill_bundle.get('instructions', '')}
 
-**Available Tools in your Mind:**
+**Available tools:**
 {tool_text}
 
 **Protocol:**

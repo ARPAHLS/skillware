@@ -4,7 +4,7 @@
 
 ## Skill anatomy
 
-Every registry skill is a folder of **roles** implemented by fixed filenames. The [README Mission](../README.md#mission) summarizes the core roles; the full reference is below. Filenames stay unchanged.
+Every registry skill is a folder of **roles** implemented by fixed filenames. The [README Mission](../README.md#mission) summarizes the core roles; the full reference is below. Filenames stay unchanged. Vocabulary: [glossary.md](glossary.md).
 
 ### Grouping
 

@@ -11,7 +11,7 @@ from .skill import UkCompaniesHouseHandlerSkill
 
 @pytest.fixture
 def skill():
-    """Initialize skill with a dummy API key."""
+    """Initialize skill with a placeholder API key."""
     return UkCompaniesHouseHandlerSkill(
         config={"COMPANIES_HOUSE_API_KEY": "test_key_123"}
     )
