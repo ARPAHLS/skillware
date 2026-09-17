@@ -1,32 +1,32 @@
 """
-Interactive Gemini agent loop for finance/uk_companies_house_handler (v1.2.1).
+Interactive Gemini agent loop for finance/uk_companies_house_handler (v1.3.0).
 
 Demonstrates an interactive flow with turn-by-turn pipeline orchestration and composites:
-  - map_intent / run_pipeline for multi-intent queries
-  - resolve_and_get_officers / resolve_and_get_filings for single-intent shortcuts
+  - run_pipeline with direct step construction for multi-intent queries
+  - resolve_and_get_officers / resolve_and_get_filings / resolve_company_officer shortcuts
+  - deterministic officer role/name matching and filing helpers (latest_only)
   - needs_input disambiguation resume via lean context or follow-up user message
-  - record truncation limits (10-item default) with full record rendering
+  - record truncation limits with full record rendering
 
 The agent must pass clean query strings and optional role_hint — the skill does
 not parse conversational prefixes. When the skill returns needs_input, show
 candidates to the user and continue the chat with a company number or name.
 
 Environment (live mode):
-  GOOGLE_API_KEY
-  COMPANIES_HOUSE_API_KEY
+  GOOGLE_API_KEY              Google AI Studio API key (required)
+  COMPANIES_HOUSE_API_KEY     Companies House REST API key (required)
+  GEMINI_MODEL                Optional model override (default: gemini-3.5-flash-lite)
 
 Usage:
   python examples/gemini_uk_companies_house_handler.py
 """
-
-from __future__ import annotations
 
 import json
 import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from uk_companies_house_handler_common import (  # noqa: E402
     SKILL_ID,
@@ -65,7 +65,7 @@ def main() -> None:
     expected_tool_name = SkillLoader._sanitize_gemini_tool_name(
         bundle["manifest"]["name"]
     )
-    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+    model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
     system_instruction = bundle["instructions"]
 
@@ -75,10 +75,8 @@ def main() -> None:
     print("This agent can look up UK companies, officers, PSCs, and filings.")
     print("Try asking:")
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
-    print("  - 'Show me officers and filings for Tesco' (map_intent + run_pipeline)")
-    print(
-        "  - 'Get me the CEO of Tesco and its 10-K' (intent translation + run_pipeline)"
-    )
+    print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
+    print("  - 'Get me the CEO of Tesco and its 10-K' (run_pipeline)")
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)

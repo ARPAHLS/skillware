@@ -43,7 +43,7 @@ BP_PLC = "00102498"
 TESCO_PLC = "00445790"
 BARCLAYS_BANK = "01026167"
 MONZO_BANK = "09446231"
-HSBC_HOLDINGS = "00061707"
+HSBC_HOLDINGS = "00617987"
 ARM_LTD = "02557590"
 
 SCENARIOS: List[Dict[str, Any]] = [
@@ -55,6 +55,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "company_number": BP_PLC,
         "expect_actions": {
+            "resolve_company_officer",
             "resolve_and_get_officers",
             "get_officers",
             "run_pipeline",
@@ -71,7 +72,6 @@ SCENARIOS: List[Dict[str, Any]] = [
             "resolve_and_get_filings",
             "get_filing_history",
             "run_pipeline",
-            "map_intent",
         },
         "expect_answer_any": ["202", "filing", "august", "filed", "accounts"],
         "expect_tool_fields_any": ["filings", "filing_history"],
@@ -84,7 +84,11 @@ SCENARIOS: List[Dict[str, Any]] = [
             "Search the officer list and say yes or no."
         ],
         "company_number": BARCLAYS_BANK,
-        "expect_actions": {"resolve_and_get_officers", "get_officers"},
+        "expect_actions": {
+            "resolve_company_officer",
+            "resolve_and_get_officers",
+            "get_officers",
+        },
         "expect_answer_any": ["no", "not", "perkins", "officer", "director"],
         "expect_tool_fields_any": ["officers"],
         "officer_must_not_contain": "PERKINS",
@@ -98,11 +102,11 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "company_number": HSBC_HOLDINGS,
         "expect_actions": {
-            "map_intent",
             "run_pipeline",
             "get_officers",
             "get_filing_history",
             "resolve_and_get_officers",
+            "resolve_company_officer",
         },
         "expect_answer_any": ["director", "officer", "filing", "account", "hsbc"],
         "expect_tool_fields_any": ["officers", "filings"],
@@ -112,7 +116,11 @@ SCENARIOS: List[Dict[str, Any]] = [
         "query": "Can you tell me who runs Monzo Bank Ltd please?",
         "follow_ups": [f"Monzo Bank Ltd, company number {MONZO_BANK}."],
         "company_number": MONZO_BANK,
-        "expect_actions": {"resolve_and_get_officers", "get_officers"},
+        "expect_actions": {
+            "resolve_company_officer",
+            "resolve_and_get_officers",
+            "get_officers",
+        },
         "expect_answer_any": ["director", "monzo", "officer", "chief", "executive"],
         "expect_tool_fields_any": ["officers"],
     },
@@ -136,6 +144,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "resolve_company",
             "get_company_profile",
             "resolve_and_get_officers",
+            "resolve_company_officer",
         },
         "expect_answer_any": ["barclays", "bank", "company", "active", "london"],
         "expect_tool_fields_any": ["company_name", "company_status", "candidates"],
@@ -145,7 +154,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "query": "Who are the persons with significant control for ARM Limited?",
         "follow_ups": [f"ARM Limited, company number {ARM_LTD}. List the PSCs."],
         "company_number": ARM_LTD,
-        "expect_actions": {"get_pscs", "resolve_company", "run_pipeline", "map_intent"},
+        "expect_actions": {"get_pscs", "resolve_company", "run_pipeline"},
         "expect_answer_any": ["control", "psc", "significant", "arm", "holder"],
         "expect_tool_fields_any": ["pscs", "items"],
     },
@@ -161,8 +170,8 @@ SCENARIOS: List[Dict[str, Any]] = [
             "get_officers",
             "get_filing_history",
             "run_pipeline",
-            "map_intent",
             "resolve_and_get_officers",
+            "resolve_company_officer",
         },
         "expect_answer_any": ["director", "filing", "bp", "202"],
         "expect_tool_fields_any": ["officers", "filings"],
@@ -172,7 +181,11 @@ SCENARIOS: List[Dict[str, Any]] = [
         "query": "Who is the chairman of Tesco PLC?",
         "follow_ups": [f"Tesco PLC, company number {TESCO_PLC}."],
         "company_number": TESCO_PLC,
-        "expect_actions": {"resolve_and_get_officers", "get_officers"},
+        "expect_actions": {
+            "resolve_company_officer",
+            "resolve_and_get_officers",
+            "get_officers",
+        },
         "expect_answer_any": ["chair", "director", "tesco", "officer"],
         "expect_tool_fields_any": ["officers"],
     },
@@ -413,8 +426,9 @@ def host_disambiguate(
             execute_and_trace(
                 skill,
                 {
-                    "action": "get_officers",
+                    "action": "resolve_company_officer",
                     "company_number": cn,
+                    "officer_role": "director",
                     "role_hint": "ceo" if "ceo" in sid or "monzo" in sid else "chair",
                     "limit": 20,
                 },
@@ -424,7 +438,11 @@ def host_disambiguate(
         traces.append(
             execute_and_trace(
                 skill,
-                {"action": "get_filing_history", "company_number": cn, "limit": 5},
+                {
+                    "action": "get_filing_history",
+                    "company_number": cn,
+                    "latest_only": True,
+                },
             )
         )
     elif sid == "officer_name_barclays":
@@ -434,7 +452,8 @@ def host_disambiguate(
                 {
                     "action": "get_officers",
                     "company_number": cn,
-                    "officer_filter": "John Perkins",
+                    "officer_name": "John Perkins",
+                    "officer_role": "director",
                     "limit": 100,
                 },
             )
@@ -459,7 +478,12 @@ def host_disambiguate(
         traces.append(
             execute_and_trace(
                 skill,
-                {"action": "get_officers", "company_number": cn, "limit": 10},
+                {
+                    "action": "get_officers",
+                    "company_number": cn,
+                    "officer_role": "director",
+                    "limit": 10,
+                },
             )
         )
         traces.append(
@@ -469,7 +493,7 @@ def host_disambiguate(
                     "action": "get_filing_history",
                     "company_number": cn,
                     "category": "accounts",
-                    "limit": 5,
+                    "latest_only": True,
                 },
             )
         )
@@ -477,13 +501,23 @@ def host_disambiguate(
         traces.append(
             execute_and_trace(
                 skill,
-                {"action": "get_officers", "company_number": cn, "limit": 15},
+                {
+                    "action": "get_officers",
+                    "company_number": cn,
+                    "officer_role": "director",
+                    "active_only": True,
+                    "limit": 15,
+                },
             )
         )
         traces.append(
             execute_and_trace(
                 skill,
-                {"action": "get_filing_history", "company_number": cn, "limit": 3},
+                {
+                    "action": "get_filing_history",
+                    "company_number": cn,
+                    "latest_only": True,
+                },
             )
         )
     elif last.get("candidates") and cn:
@@ -505,8 +539,9 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
             execute_and_trace(
                 skill,
                 {
-                    "action": "get_officers",
+                    "action": "resolve_company_officer",
                     "company_number": BP_PLC,
+                    "officer_role": "director",
                     "role_hint": "ceo",
                 },
             )
@@ -518,7 +553,7 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
                 {
                     "action": "get_filing_history",
                     "company_number": TESCO_PLC,
-                    "limit": 5,
+                    "latest_only": True,
                 },
             )
         )
@@ -528,6 +563,8 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
             {
                 "action": "get_officers",
                 "company_number": BARCLAYS_BANK,
+                "officer_name": "John Perkins",
+                "officer_role": "director",
                 "limit": 100,
             },
         )
@@ -542,6 +579,7 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
                 {
                     "action": "get_officers",
                     "company_number": HSBC_HOLDINGS,
+                    "officer_role": "director",
                     "limit": 10,
                 },
             )
@@ -553,7 +591,7 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
                     "action": "get_filing_history",
                     "company_number": HSBC_HOLDINGS,
                     "category": "accounts",
-                    "limit": 5,
+                    "latest_only": True,
                 },
             )
         )
@@ -562,8 +600,9 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
             execute_and_trace(
                 skill,
                 {
-                    "action": "get_officers",
+                    "action": "resolve_company_officer",
                     "company_number": MONZO_BANK,
+                    "officer_role": "director",
                     "role_hint": "ceo",
                 },
             )
@@ -587,13 +626,24 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
     elif sid == "complex_natural":
         traces.append(
             execute_and_trace(
-                skill, {"action": "get_officers", "company_number": BP_PLC, "limit": 15}
+                skill,
+                {
+                    "action": "get_officers",
+                    "company_number": BP_PLC,
+                    "officer_role": "director",
+                    "active_only": True,
+                    "limit": 15,
+                },
             )
         )
         traces.append(
             execute_and_trace(
                 skill,
-                {"action": "get_filing_history", "company_number": BP_PLC, "limit": 3},
+                {
+                    "action": "get_filing_history",
+                    "company_number": BP_PLC,
+                    "latest_only": True,
+                },
             )
         )
     elif sid == "role_hint_chair":
@@ -601,8 +651,9 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
             execute_and_trace(
                 skill,
                 {
-                    "action": "get_officers",
+                    "action": "resolve_company_officer",
                     "company_number": TESCO_PLC,
+                    "officer_role": "director",
                     "role_hint": "chair",
                 },
             )
