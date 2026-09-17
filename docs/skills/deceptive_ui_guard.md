@@ -66,7 +66,7 @@ No required environment variables. Optional `url` fetch uses network; supply `ht
 
 ## Bundle layout
 
-The skill lives in `skills/security/deceptive_ui_guard/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/security/deceptive_ui_guard/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Example Usage (Direct)
 

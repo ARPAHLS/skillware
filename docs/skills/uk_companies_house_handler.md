@@ -26,7 +26,7 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 
 ## Bundle layout
 
-The skill is self-contained in `skills/finance/uk_companies_house_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is self-contained in `skills/finance/uk_companies_house_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 Skill-context instructions (registry ID opener, not a persona). The host agent:

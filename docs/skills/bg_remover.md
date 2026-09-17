@@ -118,7 +118,7 @@ Example execute payload after download:
 
 ## Bundle layout
 
-The skill lives in `skills/creative/bg_remover/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill lives in `skills/creative/bg_remover/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 

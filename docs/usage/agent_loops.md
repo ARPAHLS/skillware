@@ -1,6 +1,6 @@
 # Agent loops with Skillware
 
-Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
+Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md). Vocabulary: [glossary](../glossary.md).
 
 **Multiple skills:** use [`SkillContext`](skill_chaining.md#skillcontext--discovery-filters) for registry brief + tools, or [skill chaining](skill_chaining.md) for deterministic middleware chains. Single-skill loops below are unchanged.
 

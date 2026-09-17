@@ -309,7 +309,7 @@ org_domains:
 
 ## Bundle layout
 
-The skill lives in `skills/office/gmail_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py` and helpers. **Corpus** — `data/` (address book, config templates). **Assurance** — `test_skill.py`.
+The skill lives in `skills/office/gmail_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py` and helpers. **Corpus** — `data/` (address book, config templates). **Assurance** — `test_skill.py`.
 
 ## Usage Examples
 

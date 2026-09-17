@@ -22,7 +22,7 @@ High-precision, local PII (Personally Identifiable Information) detection and re
 
 ## Bundle layout
 
-The skill lives in `skills/compliance/pii_masker/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/compliance/pii_masker/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## How It Works
 
