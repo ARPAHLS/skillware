@@ -248,7 +248,7 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 - `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Enforced in CI via `tests/test_registry_identity.py` — mismatched or duplicate `manifest.name` blocks merge (#280).
 - `version`, `description`
 - `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
-- `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
+- `short_description` — one-line summary (≤ 160 chars, recommended ~80–120 chars) shown in `skillware list` and used by `SkillContext(mode="brief")` for agent routing. It should be concise, readable, and explicitly state what the skill does and when to use it (see [Skill chaining](docs/usage/skill_chaining.md)).
 - `parameters` — valid JSON Schema for LLM tool calling
 - `constitution` — safety boundaries enforced at the prompt level
 - `requirements` — when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version — `SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
