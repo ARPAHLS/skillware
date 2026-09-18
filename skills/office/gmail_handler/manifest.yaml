@@ -1,5 +1,5 @@
 name: office/gmail_handler
-version: 0.2.0
+version: 0.2.1
 description: |
   Deterministic Gmail IMAP/SMTP handler for agent mail workflows. Provides
   structured actions for recipient resolution, inbox search, read, preview/send,
@@ -7,7 +7,7 @@ description: |
   with confirmation gates. The agent owns natural-language drafting and user
   dialogue; the skill owns transport, validation, address book lookup, scan
   cursors, and structured response envelopes.
-short_description: "Gmail send, search, read, reply, and attachments via IMAP/SMTP."
+short_description: "Use for agent mail workflows on dedicated Gmail accounts: send, search, read, reply, and handle attachments."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
