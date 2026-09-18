@@ -1,12 +1,12 @@
 name: security/deceptive_ui_guard
-version: 0.2.0
+version: 0.2.1
 description: >
   Offline deterministic scanner for deceptive web UI surfaces and anti-agent tricks.
   Analyzes HTML (or optional public URL fetch) with dual DOM vs visible-surface extraction,
   optional Playwright-rendered computed style diffing, DOM zone classification, allowlists,
   structural and lexical heuristics, corroboration gates, trust scoring, and agent guidance
   for pre-click and pre-context guardrails. Does not click, submit forms, or call LLMs.
-short_description: "Deceptive UI guard with render diff, DOM zone weighting, allowlists, and trust score."
+short_description: "Use before clicking or checking out on untrusted web pages: detect deceptive UI, dark patterns, and phishing elements."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
