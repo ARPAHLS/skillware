@@ -21,12 +21,24 @@
                 "label": "Risk Level"
             },
             {
+                "key": "policy_action",
+                "label": "Policy Action"
+            },
+            {
                 "key": "detected_threat",
                 "label": "Primary Threat"
             },
             {
                 "key": "sanitized_text",
                 "label": "Sanitized Text"
+            },
+            {
+                "key": "removed_span_count",
+                "label": "Removed Spans"
+            },
+            {
+                "key": "sanitized_length_delta",
+                "label": "Length Delta"
             },
             {
                 "key": "offline",
