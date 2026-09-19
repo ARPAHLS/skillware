@@ -10,7 +10,7 @@ body:
 
         Also in scope when the change touches merged YAML config: `skillware/core/config.py` (`.skillware.yaml`, global `config.yaml` under `SKILLWARE_CONFIG_DIR` / `%APPDATA%\\skillware` on Windows).
 
-        Splash menu (v0.5.1): `1=list`, `2=examples`, `3=test`, `4=paths`, `5=doctor`, `6=help`, `7=mail`.
+        Splash menu: `1=list`, `2=examples`, `3=test`, `4=paths`, `5=doctor`, `6=help`, `7=mail`, `8=theme`.
 
         For loader/path **resolution logic** in `skillware/core/loader.py` (not CLI UX), use **Framework Feature** or **Bug Report** (Core Framework).
 
@@ -35,11 +35,16 @@ body:
         - skillware test
         - skillware examples
         - skillware doctor
-        - skillware config show
         - skillware paths (read-only)
         - skillware (menu 4 / paths) — interactive paths submenu
-        - skillware mail
+        - skillware config (show / open)
+        - skillware addressbook (list / add / edit / set-wallet / open)
+        - skillware mail (addressbook / signature)
         - skillware (menu 7 / mail) — interactive mail submenu
+        - skillware context (brief registry context)
+        - skillware chain (list / show / validate / run / dry-run)
+        - skillware theme (interactive / direct)
+        - skillware (menu 8 / theme) — interactive theme submenu
         - skillware (menu 6 / help) — tiered help
         - skillware --help / --version
         - python -m skillware
