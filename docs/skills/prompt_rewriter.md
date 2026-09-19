@@ -18,7 +18,7 @@ Often follows [`security/prompt_injection_firewall`](prompt_injection_firewall.m
 
 ## Bundle layout
 
-The skill lives in `skills/optimization/prompt_rewriter/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/optimization/prompt_rewriter/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Manifest Details
 

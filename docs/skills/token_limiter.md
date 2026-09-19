@@ -28,7 +28,7 @@ This skill does **not** kill processes, cancel provider sessions, or call billin
 
 ## Bundle layout
 
-The skill lives in `skills/monitoring/token_limiter/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill lives in `skills/monitoring/token_limiter/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Effect (`skill.py` + `budget.py`)
 

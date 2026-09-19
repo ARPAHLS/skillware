@@ -118,7 +118,7 @@ The SSRF guard rejects non-http(s) schemes and any host that resolves to a priva
 
 ## Bundle layout
 
-The skill lives in `skills/data_engineering/semantic_web_proxy/`. Roles: [Skill anatomy](../introduction.md#skill-anatomy). **Contract** - see Arguments and Output above. **Assurance** - `test_skill.py` in the bundle.
+The skill lives in `skills/data_engineering/semantic_web_proxy/`. Roles: [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** - see Arguments and Output above. **Assurance** - `test_skill.py` in the bundle.
 
 ### Effect (`skill.py`)
 

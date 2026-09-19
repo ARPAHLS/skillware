@@ -20,7 +20,7 @@ A specialized data engineering capability that combats "model collapse" by gener
 
 ## Bundle layout
 
-The skill is located in `skills/data_engineering/synthetic_generator/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is located in `skills/data_engineering/synthetic_generator/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 The system instructions emphasize boundary-pushing data generation. It prohibits standard AI tropes and enforces schema obedience.

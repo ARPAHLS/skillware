@@ -12,7 +12,7 @@ Every new agent project used to mean rewriting tool definitions, system prompts,
 
 We wanted something closer to how operating systems ship software. `apt-get` installs packages. `pip` installs libraries. **Skillware installs capability.** One bundle works across Gemini, Claude, OpenAI, DeepSeek, and Ollama because the loader adapts manifests at runtime instead of locking you to one vendor.
 
-That decoupling matters in practice. Teams can swap models without rewriting tools. Open source contributors can ship a skill once and have it run everywhere the loader supports. Operators keep governance and attribution in the bundle instead of scattered across prompts.
+That decoupling matters in practice. Teams can swap models without rewriting tools. Open source contributors can ship a skill once and have it run everywhere the loader supports. Operators keep governance and attribution in the bundle instead of scattered across prompts. Role names follow the [glossary](glossary.md).
 
 For a longer argument against markdown-only skill files, see the essay [*skills.md is Dead: Why Your Agents Need Skillware*](https://dev.to/arpa/skillsmd-is-dead-why-your-agents-need-skillware-2g59) (extended reading).
 

@@ -23,7 +23,7 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
 
 ## Bundle layout
 
-The skill is self-contained in `skills/finance/wallet_screening/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is self-contained in `skills/finance/wallet_screening/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 

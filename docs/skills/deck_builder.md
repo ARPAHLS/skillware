@@ -13,6 +13,11 @@
 
 Deterministic, offline assembly of Microsoft PowerPoint (`.pptx`) presentations from structured JSON deck specifications. Supports 13 slide layouts (title, section, bullets, two-column, image, image with caption, quote, table, chart, timeline, metrics, comparison, blank), smart image placeholders, `fit` policies, presentation quality linting (`lint_deck`), archetype outline generation (`suggest_outline`), custom theme token overrides, speaker notes, and pre-flight validation.
 
+
+## Bundle layout
+
+The skill lives in `skills/creative/deck_builder/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details below. **Assurance** — `test_skill.py` in the bundle.
+
 ## Capabilities
 
 - **Deterministic Assembly**: Generates standard editable `.pptx` documents without remote network calls or image generation APIs.

@@ -20,7 +20,7 @@ A productivity skill that fills AcroForm-based PDFs by mapping natural language 
 
 ## Bundle layout
 
-The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 The system prompt teaches the internal mapping engine to:

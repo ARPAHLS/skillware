@@ -27,7 +27,7 @@ Often composed in host chains — for example **`sanitize_input`**. See [Skill c
 
 ## Bundle layout
 
-The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/security/prompt_injection_firewall/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Manifest Details
 
