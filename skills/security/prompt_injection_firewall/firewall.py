@@ -1,4 +1,4 @@
-"""Deterministic prompt-injection firewall — local-only, no network, no LLM.
+"""Deterministic prompt-injection firewall - local-only, no network, no LLM.
 
 OWASP LLM01 Layer-1 trust-boundary input scanner and sanitizer.
 """
@@ -928,7 +928,7 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
                         ),
                         severity="high" if hit.severity != "critical" else "critical",
                         span=(match.start(), match.end()),
-                        evidence=f"decode_chain={'→'.join(decode_chain)}; pattern={hit.pattern_id}",
+                        evidence=f"decode_chain={'->'.join(decode_chain)}; pattern={hit.pattern_id}",
                         pattern_id=hit.pattern_id,
                         decoded_layers=layers,
                         decode_chain=decode_chain,
