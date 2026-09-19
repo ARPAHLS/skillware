@@ -33,6 +33,7 @@ pip install -e ".[dev,all,agents]"
 | Script | Skill ID | Provider | Required extra | Required env vars | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `mental_coach_demo.py` | `wellness/mental_coach` | Local execute | `[wellness_mental_coach]` | None | Demonstrates coaching, crisis escalation, and blocked clinical paths locally. |
+| `korean_slang_demo.py` | `linguistics/korean_slang` | Local execute | `[linguistics_korean_slang]` | None | Offline Korean Gen-Z slang interpret, suggest, lookup, unmatched, and blocked-term filter. |
 | `build_dataset_demo.py` | `data_engineering/synthetic_generator` | Local execute (Gemini backend) | `[data_engineering_synthetic_generator]`, `[gemini]` | `GOOGLE_API_KEY` | Generates a JSONL synthetic dataset with the synthetic generator skill. |
 | `claude_pdf_form_filler.py` | `office/pdf_form_filler` | Claude | `[office_pdf_form_filler]`, `[claude]` | `ANTHROPIC_API_KEY` | Uses Claude with the PDF form filler skill to map instructions to fields. |
 | `claude_tos_evaluator.py` | `compliance/tos_evaluator` | Claude | `[compliance_tos_evaluator]`, `[claude]` | `ANTHROPIC_API_KEY` | Runs a Claude tool loop for website automation policy review. |

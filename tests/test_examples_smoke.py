@@ -43,6 +43,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ["wellness/mental_coach", "Coaching", "Crisis escalation", "policy_status:"],
     ),
     (
+        "korean_slang_demo.py",
+        [
+            "linguistics/korean_slang",
+            "issue #34",
+            "aljaldakkkalsen",
+            "Demo complete.",
+        ],
+    ),
+    (
         "prompt_injection_firewall_demo.py",
         ["security/prompt_injection_firewall", "Hidden HTML override", "is_safe:"],
     ),

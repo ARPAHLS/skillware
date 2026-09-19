@@ -1,0 +1,86 @@
+name: linguistics/korean_slang
+version: 0.1.0
+description: >
+  Deterministic offline Korean Gen-Z slang lexicon. Interprets modern internet
+  Korean (줄임말, Konglish, jamo abbreviations), returns translation plus
+  socio-linguistic nuance, and suggests peer-register lines from curated
+  templates. Toxic and appearance-policing terms are filtered. No network and
+  no model calls inside execute().
+short_description: "Offline Korean Gen-Z slang interpreter and peer-register generator."
+issuer:
+  name: Blade Dancer
+  email: bladedancerc3@gmail.com
+  github: bd-c3
+category: linguistics
+parameters:
+  type: object
+  properties:
+    text:
+      type: string
+      description: >
+        Korean, Konglish, or English to interpret, look up, or (for suggest)
+        classify into an intent. Required for interpret and lookup.
+    context:
+      type: string
+      description: Optional situational note (platform, relationship, thread).
+    action:
+      type: string
+      enum: [interpret, suggest, lookup]
+      description: interpret (default) glosses slang; suggest writes peer Korean; lookup is exact.
+    intent:
+      type: string
+      description: >
+        Optional generation intent for suggest (praise, food, work, tired,
+        annoyed, agree, greeting, bye, thanks, workout, weekend, dating,
+        fandom, competence). Inferred from text when omitted.
+    audience:
+      type: string
+      enum: [peers, mixed, work, elders]
+      description: Register gate. Default peers. elders suppresses slang.
+    include_romanization:
+      type: boolean
+      description: When true, attach Revised Romanization on hits and suggestions.
+    max_hits:
+      type: integer
+      description: Maximum slang hits to return (1-50, default 12).
+    vulgar_ok:
+      type: boolean
+      description: When true, suggest() may use vulgar-marked lexical items. Default false.
+  required: []
+outputs:
+  status:
+    type: string
+    description: ok for a completed call; error for a contract violation.
+  action:
+    type: string
+    description: Echo of interpret, suggest, or lookup.
+  translation:
+    type: string
+    description: English gloss (interpret/lookup) or generated Korean (suggest).
+  slang_breakdown:
+    type: object
+    description: Map of matched slang surface to a short explanation.
+  nuance:
+    type: string
+    description: Socio-linguistic note for host-agent wording.
+  formality:
+    type: string
+    description: Informal / Slang, Informal / Vulgar, Polite, Work-safe, unknown, or blocked.
+  hit_count:
+    type: integer
+    description: Number of lexicon hits or generated suggestions.
+requirements: []
+constitution: |
+  1. Deterministic and offline — execute() never calls a model or the network.
+  2. Curated pack only — never invent slang, never guess unseen 줄임말.
+  3. Filter toxic internet terms — slurs, appearance-policing, and gendered
+     hate are omitted from glosses and never generated.
+  4. Honorifics over vibes — audience=elders (and cautious work) must not
+     dump 반말 slang onto the end user.
+  5. Vulgar is opt-in — 존나-class items are interpreted but not suggested
+     unless vulgar_ok is true.
+  6. Host agent, not the skill, speaks — return JSON; the host phrases the
+     end-user reply.
+presentation:
+  icon: languages
+  color: "#c45c26"
