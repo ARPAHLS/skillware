@@ -1,0 +1,17 @@
+{
+  "blocked_substrings": [
+    "테무인간",
+    "밤티",
+    "얼평",
+    "몸평",
+    "한남충",
+    "메갈년",
+    "일베충",
+    "틀딱충",
+    "급식충"
+  ],
+  "blocked_notes": [
+    "Appearance-policing slurs and gendered/political hate terms are never glossed in detail and never generated.",
+    "한남/메갈 as political slurs are blocked even when they appear as substrings of longer abuse."
+  ]
+}

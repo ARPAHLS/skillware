@@ -10,6 +10,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`linguistics/korean_slang` v0.1.0):** New `linguistics/` category and offline Korean Gen-Z slang pack — interpret / suggest / lookup over a September 2026 curated KB, honorific audience gates, and constitution filters for slurs (#34).
+- **GitHub:** `cat: linguistics` in [`.github/labels.json`](.github/labels.json) and the New Skill Proposal category dropdown; GitHub UI labels sync on merge to `main` (#34).
+- **Examples:** [`korean_slang_demo.py`](examples/korean_slang_demo.py) — offline interpret, suggest, lookup, unmatched, and blocked-term paths (#34).
+- **Scripts:** [`korean_slang_stress_sim.py`](scripts/korean_slang_stress_sim.py) — offline interpret/suggest stress harness (#34).
 - **Docs:** [Glossary](docs/glossary.md) and [inclusive language](docs/contributing/inclusive-language.md) — operator / contributor / host agent / end user; skill bundle vs PyPI package; anatomy roles (#252).
 - **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
 - **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).

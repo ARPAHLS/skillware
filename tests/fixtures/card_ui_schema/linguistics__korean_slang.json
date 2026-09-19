@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "action": "interpret",
+  "translation": "They are absolutely killing it right now / Their form is crazy these days",
+  "slang_breakdown": {
+    "폼 미쳤다": "Slang directly translating to 'form is crazy', used to praise someone doing exceptionally well or looking great."
+  },
+  "nuance": "Highly positive, trendy internet-friendly colloquial expression used primarily by Gen-Z and Millennials. Context noted: A comment on a YouTube video about a popular singer.",
+  "formality": "Informal / Slang",
+  "hit_count": 1,
+  "hits": [
+    {
+      "id": "pom_michyeotda",
+      "surface": "폼 미쳤다",
+      "matched": "폼 미쳤다",
+      "translation": "They are absolutely killing it right now / Their form is crazy these days",
+      "caution": false,
+      "vulgar": false
+    }
+  ],
+  "unmatched": false,
+  "warnings": [],
+  "blocked_omitted": [],
+  "pack_snapshot": "2026-09",
+  "pack_id": "korean_slang_s26_small",
+  "entry_count": 118
+}

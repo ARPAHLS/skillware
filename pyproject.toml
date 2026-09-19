@@ -105,6 +105,8 @@ dev_tools = []
 
 finance = []
 
+linguistics = []
+
 monitoring = []
 
 office = [
@@ -162,6 +164,8 @@ dev_tools_issue_resolver = []
 finance_uk_companies_house_handler = []
 
 finance_wallet_screening = []
+
+linguistics_korean_slang = []
 
 monitoring_kpi_gate = []
 

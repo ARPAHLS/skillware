@@ -91,6 +91,13 @@ Supportive coaching guardrails, crisis triage, and grounded psychoeducation for 
 | :--- | :--- | :--- | :--- | :--- |
 | **[Mental Coach](mental_coach.md)** | `wellness/mental_coach` | `0.1.1` (9 Sep 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic wellness coaching firewall with crisis triage, scope limits, and cited KB retrieval. |
 
+## Linguistics
+Language adapters: curated lexicons so host agents can interpret and produce informal, internet-native language that foundation models routinely miss.
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Korean Slang](korean_slang.md)** | `linguistics/korean_slang` | `0.1.0` (19 Sep 2026) | [@bd-c3](https://github.com/bd-c3) | Offline Korean Gen-Z slang interpreter and peer-register generator (September 2026 pack). |
+
 ---
 
 ## Installing Skills

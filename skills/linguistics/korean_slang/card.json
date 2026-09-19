@@ -1,0 +1,36 @@
+{
+  "name": "Korean Slang",
+  "description": "Offline Korean Gen-Z slang interpreter and peer-register generator.",
+  "issuer": {
+    "name": "Blade Dancer",
+    "email": "bladedancerc3@gmail.com",
+    "github": "bd-c3"
+  },
+  "icon": "languages",
+  "color": "#c45c26",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "status",
+        "label": "Status"
+      },
+      {
+        "key": "action",
+        "label": "Action"
+      },
+      {
+        "key": "formality",
+        "label": "Formality"
+      },
+      {
+        "key": "hit_count",
+        "label": "Hits"
+      },
+      {
+        "key": "translation",
+        "label": "Translation"
+      }
+    ]
+  }
+}

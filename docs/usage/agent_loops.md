@@ -167,6 +167,7 @@ skills in one harness.
 | `data_engineering/semantic_web_proxy` | `semantic_web_proxy_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `linguistics/korean_slang` | `korean_slang_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
