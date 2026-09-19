@@ -1,0 +1,53 @@
+name: defi/token_security_scanner
+version: 0.1.0
+description: |
+  Read-only ERC-20 / LP token security scan on supported EVM chains via GoPlus.
+  Returns a stable JSON report (honeypot, taxes, ownership, proxy, mint/blacklist)
+  for agent pre-trade checks. Never signs or swaps.
+short_description: "Scan EVM token contracts for honeypot/tax/ownership risk via GoPlus."
+category: defi
+issuer:
+  name: Hendobox
+  email: henryonyebuchi53@gmail.com
+  github: Hendobox
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum:
+        - scan
+        - supported_chains
+      description: Skill operation to run.
+    chain:
+      type: string
+      description: |
+        Chain slug (e.g. ethereum, base, bsc). Required for scan.
+        Call supported_chains for the full list.
+    contract:
+      type: string
+      description: ERC-20 (or LP) contract address (0x…). Required for scan.
+  required:
+    - action
+constitution: |
+  1. READ-ONLY: Never sign transactions, request private keys, or execute swaps.
+  2. NOT FINANCIAL ADVICE / NOT A FULL AUDIT: Flags are third-party API signals that
+     may lag new exploits, miss unverified proxies, or be unknown for some chains.
+  3. FAIL CLOSED ON BAD INPUT: Invalid addresses or unsupported chains return error —
+     do not invent risk tiers.
+  4. SECRETS: Optional GoPlus credentials stay in env/config only; never log them.
+  5. CHAIN BEFORE TRADE: Agents should treat high/critical tiers as block; medium as
+     require human confirmation before evm_tx_handler execute.
+env_vars:
+  GOPLUS_APP_KEY:
+    description: |
+      Optional GoPlus access token / app credential. When set, sent as
+      Authorization Bearer. Free permissionless Token Security calls work without it.
+    required: false
+requirements:
+  - requests
+  - pyyaml
+presentation:
+  icon: shield
+  color: "#0D9488"

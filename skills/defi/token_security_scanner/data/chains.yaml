@@ -1,0 +1,32 @@
+# GoPlus Token Security chain_id map.
+# Slugs align with defi/evm_tx_handler where possible.
+ethereum:
+  chain_id: "1"
+  label: Ethereum
+base:
+  chain_id: "8453"
+  label: Base
+bsc:
+  chain_id: "56"
+  label: BNB Smart Chain
+arbitrum:
+  chain_id: "42161"
+  label: Arbitrum One
+polygon:
+  chain_id: "137"
+  label: Polygon
+optimism:
+  chain_id: "10"
+  label: Optimism
+avalanche:
+  chain_id: "43114"
+  label: Avalanche C-Chain
+linea:
+  chain_id: "59144"
+  label: Linea
+scroll:
+  chain_id: "534352"
+  label: Scroll
+zksync:
+  chain_id: "324"
+  label: zkSync Era

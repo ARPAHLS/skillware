@@ -1,0 +1,31 @@
+{
+  "code": 1,
+  "message": "OK",
+  "result": {
+    "0x4ed4e862860bed51a9570b96d89af5e1b0efefed": {
+      "token_name": "Degen",
+      "token_symbol": "DEGEN",
+      "decimals": "18",
+      "total_supply": "37000000000000000000000000000",
+      "owner_address": "0x0000000000000000000000000000000000000000",
+      "creator_address": "0x1111111111111111111111111111111111111111",
+      "is_open_source": "1",
+      "is_proxy": "0",
+      "is_mintable": "0",
+      "is_honeypot": "0",
+      "buy_tax": "0",
+      "sell_tax": "0",
+      "tax_modifiable": "0",
+      "cannot_sell_all": "0",
+      "owner_change_balance": "0",
+      "hidden_owner": "0",
+      "external_call": "0",
+      "transfer_pausable": "0",
+      "trading_cooldown": "0",
+      "is_blacklisted": "0",
+      "is_whitelisted": "0",
+      "is_anti_whale": "0",
+      "holder_count": "100000"
+    }
+  }
+}
