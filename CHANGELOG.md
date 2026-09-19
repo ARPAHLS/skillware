@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill:** `defi/token_security_scanner` — read-only GoPlus Token Security scan (`scan`, `supported_chains`) with normalized `risk_tier` / `signals` JSON for pre-trade agent checks (#365).
 - **Docs:** [Glossary](docs/glossary.md) and [inclusive language](docs/contributing/inclusive-language.md) — operator / contributor / host agent / end user; skill bundle vs PyPI package; anatomy roles (#252).
 - **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
 - **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).

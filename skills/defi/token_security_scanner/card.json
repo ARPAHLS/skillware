@@ -1,0 +1,21 @@
+{
+  "name": "Token Security Scanner",
+  "description": "Read-only GoPlus token security report for EVM contracts.",
+  "issuer": {
+    "name": "Hendobox",
+    "email": "henryonyebuchi53@gmail.com",
+    "github": "Hendobox",
+    "org": "ARPAHLS"
+  },
+  "icon": "shield",
+  "color": "teal",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "chain", "label": "Chain"},
+      {"key": "contract", "label": "Contract"},
+      {"key": "risk_tier", "label": "Risk", "type": "status_badge"},
+      {"key": "signals.is_honeypot", "label": "Honeypot", "type": "status_badge"}
+    ]
+  }
+}
