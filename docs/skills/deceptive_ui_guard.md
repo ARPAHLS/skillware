@@ -4,7 +4,7 @@
 **Skill ID:** `security/deceptive_ui_guard`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 3 Sep 2026
+**Version**: `0.2.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[security_deceptive_ui_guard]"`. See [Install extras](../usage/install_extras.md). For optional headless browser computed-style diffing: `pip install "skillware[security_deceptive_ui_guard_render]"`.
 

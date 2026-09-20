@@ -1,10 +1,10 @@
 name: "optimization/context_optimizer"
-version: "0.1.0"
+version: "0.1.1"
 description: |
   Query-aware extractive context selection for large documents. Chunks document_text,
   scores spans against agent_goal with local fastembed embeddings, and returns only
   the highest-relevance source text up to max_tokens_return — mini-RAG without paraphrase.
-short_description: "Extract the most relevant document spans for an agent_goal using local embeddings."
+short_description: "Use to select verbatim document passages for a specific agent goal with local embeddings."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

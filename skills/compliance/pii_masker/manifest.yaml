@@ -1,7 +1,7 @@
 name: compliance/pii_masker
-version: 0.1.0
+version: 0.1.1
 description: High-precision, local PII detection and redaction using the micro-f1-mask model via Ollama.
-short_description: "Detects and redacts PII locally using the micro-f1-mask model."
+short_description: "Use before sending text to cloud models, logs, or third parties: detect and redact PII locally."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

@@ -8,6 +8,15 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Tests:** Add a guard for bundled skill `short_description` presence, single-line format, and the 160-character brief-line cap (#355).
+
+### Changed
+
+- **Skills:** Rewrite agent-routing `short_description` values and patch-bump all 21 bundled skills (#355).
+- **Docs:** Document the brief-line routing guidance and 160-character `SkillContext` cap (#355).
+
 ## [0.5.6] - 2026-09-20
 
 ### Added

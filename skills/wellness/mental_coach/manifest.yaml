@@ -1,9 +1,9 @@
 name: wellness/mental_coach
-version: 0.1.1
+version: 0.1.2
 description: >
   Deterministic wellness coaching firewall with crisis triage, non-clinical scope
   limits, grounded KB retrieval, and optional scope evaluation for host agents.
-short_description: "Crisis triage and grounded coaching guardrails for wellness support."
+short_description: "Use for wellness support with crisis triage and grounded coaching guardrails."
 issuer:
   name: Masa
   email: masa88keith@gmail.com

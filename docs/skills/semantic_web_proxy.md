@@ -3,7 +3,7 @@
 **ID**: `data_engineering/semantic_web_proxy`  
 **Issuer**: [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0`
+**Version**: `0.1.1`
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[data_engineering_semantic_web_proxy]"`. See [Install extras](../usage/install_extras.md).  

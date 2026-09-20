@@ -4,7 +4,7 @@
 **Skill ID:** `security/prompt_injection_firewall`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 31 Jul 2026
+**Version**: `0.1.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 **Recommended install:** `pip install "skillware[security_prompt_injection_firewall]"`. See [Install extras](../usage/install_extras.md).
 

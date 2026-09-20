@@ -3,7 +3,7 @@
 **ID**: `creative/bg_remover`
 **Issuer**: [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 2 Aug 2026
+**Version**: `0.2.1` — 16 Sep 2026
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[creative_bg_remover]"`. See [Install extras](../usage/install_extras.md).
