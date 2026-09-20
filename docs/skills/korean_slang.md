@@ -2,7 +2,7 @@
 
 **Domain:** `linguistics`
 **Skill ID:** `linguistics/korean_slang`
-**Issuer:** [@bd-c3](https://github.com/bd-c3)
+**Issuer:** [@bd-c3](https://github.com/bd-c3) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 19 Sep 2026
 <!-- skill-doc-meta:end -->
@@ -279,7 +279,7 @@ Commits that touched this skill bundle or its catalog page ([`linguistics/korean
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| *(this PR)* | feat(linguistics): add korean_slang offline Gen-Z pack (#34) | 19 Sep 2026 | `0.1.0` | [@bd-c3](https://github.com/bd-c3) |
+| [`91d8124`](https://github.com/ARPAHLS/skillware/commit/91d812478546b048590c88bc615bb4b0aaec7628) | feat(linguistics): add korean_slang offline Gen-Z pack (#34) (#369) | 19 Sep 2026 | `0.1.0` | [@bd-c3](https://github.com/bd-c3) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer

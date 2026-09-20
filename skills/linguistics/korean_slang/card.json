@@ -4,7 +4,8 @@
   "issuer": {
     "name": "Blade Dancer",
     "email": "bladedancerc3@gmail.com",
-    "github": "bd-c3"
+    "github": "bd-c3",
+    "org": "ARPAHLS"
   },
   "icon": "languages",
   "color": "#c45c26",

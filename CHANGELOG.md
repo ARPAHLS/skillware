@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-09-20
+
 ### Added
 
 - **Skill (`linguistics/korean_slang` v0.1.0):** New `linguistics/` category and offline Korean Gen-Z slang pack — interpret / suggest / lookup over a September 2026 curated KB, honorific audience gates, and constitution filters for slurs (#34).

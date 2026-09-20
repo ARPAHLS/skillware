@@ -87,7 +87,7 @@ body:
     attributes:
       label: Environment
       placeholder: |
-        Windows 11, Python 3.12, skillware 0.5.5
+        Windows 11, Python 3.12, skillware 0.5.6
         Config: ~/.config/skillware/config.yaml and/or .skillware.yaml
     validations:
       required: false

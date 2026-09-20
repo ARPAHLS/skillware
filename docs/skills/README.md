@@ -96,7 +96,7 @@ Language adapters: curated lexicons so host agents can interpret and produce inf
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Korean Slang](korean_slang.md)** | `linguistics/korean_slang` | `0.1.0` (19 Sep 2026) | [@bd-c3](https://github.com/bd-c3) | Offline Korean Gen-Z slang interpreter and peer-register generator (September 2026 pack). |
+| **[Korean Slang](korean_slang.md)** | `linguistics/korean_slang` | `0.1.0` (19 Sep 2026) | [@bd-c3](https://github.com/bd-c3) ([@ARPAHLS](https://github.com/ARPAHLS)) | Offline Korean Gen-Z slang interpreter and peer-register generator (September 2026 pack). |
 
 ---
 
