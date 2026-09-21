@@ -38,6 +38,8 @@ the full playbook:
 
 ### Glossary
 
+Project-wide role and anatomy terms live in the [glossary](../glossary.md). This section is host-orchestration vocabulary only.
+
 - **Directive:** the full `instructions.md` playbook for a skill.
 - **Brief line:** the `manifest.short_description` summary that `merge_system()` adds in `brief` mode.
 - **`SkillContext`:** the host session that discovers skills, exposes provider tools, and prepares or executes selected skills.

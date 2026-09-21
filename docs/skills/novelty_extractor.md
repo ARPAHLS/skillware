@@ -30,7 +30,7 @@ and multi-turn corpus processing.
 
 ## Bundle layout
 
-The skill is located in `skills/data_engineering/novelty_extractor/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is located in `skills/data_engineering/novelty_extractor/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 Explains when to invoke the skill, how to interpret outputs, and how to handle

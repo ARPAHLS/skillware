@@ -26,7 +26,7 @@ Structured EVM operations for a **dedicated agent wallet**: resolve trade intent
 
 ## Bundle layout
 
-The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Reference** — `data/` (chains, tokens, address book YAML). **Assurance** — `test_skill.py`.
+The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — manifest in the bundle. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Reference** — `data/` (chains, tokens, address book YAML). **Assurance** — `test_skill.py`.
 
 ## Environment
 

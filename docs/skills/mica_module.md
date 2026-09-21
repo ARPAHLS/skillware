@@ -21,7 +21,7 @@ A highly specialized, localized RAG (Retrieval-Augmented Generation) and policy 
 
 ## Bundle layout
 
-The skill is self-contained in `skills/compliance/mica_module/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill is self-contained in `skills/compliance/mica_module/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
 The system prompt teaches the main Agent to:

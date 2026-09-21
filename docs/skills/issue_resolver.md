@@ -33,7 +33,7 @@ The skill itself does **not** call GitHub, run git, or write code. It validates 
 
 ## Bundle layout
 
-The skill lives in `skills/dev_tools/issue_resolver/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
+The skill lives in `skills/dev_tools/issue_resolver/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Effect (`skill.py` + `workflow.py`)
 

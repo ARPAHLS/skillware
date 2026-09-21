@@ -288,6 +288,29 @@ def test_glossary_exists_with_canonical_terms():
         assert term in text, f"glossary missing {term}"
 
 
+def test_hub_and_catalog_pages_link_glossary():
+    """Hub pages and skill catalog pages must link docs/glossary.md (#363)."""
+    hubs = [
+        REPO_ROOT / "docs" / "vision.md",
+        REPO_ROOT / "docs" / "usage" / "README.md",
+        REPO_ROOT / "docs" / "usage" / "agent_loops.md",
+        REPO_ROOT / "docs" / "usage" / "skill_chaining.md",
+    ]
+    missing = []
+    for path in hubs:
+        text = path.read_text(encoding="utf-8")
+        if "glossary.md" not in text:
+            missing.append(str(path.relative_to(REPO_ROOT)))
+    catalog = REPO_ROOT / "docs" / "skills"
+    for path in sorted(catalog.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        if "glossary.md" not in text:
+            missing.append(str(path.relative_to(REPO_ROOT)))
+    assert not missing, "Pages missing glossary.md link:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )
+
+
 def test_core_docs_avoid_retired_anatomy_labels():
     """Mind/Body/Conscience are not used as skill roles in core docs (#252, #326)."""
     paths = [

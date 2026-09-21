@@ -33,6 +33,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** Glossary cross-links on hub and catalog pages (#363).
 - **Docs:** Terminology pass on current anatomy (Contract / Effect / Directive / Assurance / Presentation) — Skill bundle standard, `calling agent` → **host agent**, trust-model “Most operators”, README domain wording, MiCA example “Available tools”; tests/CI use placeholder names instead of dummy (#252).
 - **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.

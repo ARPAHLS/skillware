@@ -28,7 +28,7 @@ For untrusted documents, chain [`security/prompt_injection_firewall`](prompt_inj
 
 ## Bundle layout
 
-The skill lives in `skills/optimization/context_optimizer/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/optimization/context_optimizer/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Manifest Details
 

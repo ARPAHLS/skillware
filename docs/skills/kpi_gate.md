@@ -37,7 +37,7 @@ Where [`monitoring/token_limiter`](token_limiter.md) covers resource-side monito
 
 ## Bundle layout
 
-The skill lives in `skills/monitoring/kpi_gate/`. [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — see Manifest Details below. **Assurance** — `test_skill.py` in the bundle.
+The skill lives in `skills/monitoring/kpi_gate/`. [Skill anatomy](../introduction.md#skill-anatomy). Vocabulary: [glossary](../glossary.md). **Contract** — see Manifest Details below. **Assurance** — `test_skill.py` in the bundle.
 
 ### Effect (`skill.py`)
 
