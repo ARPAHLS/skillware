@@ -172,7 +172,7 @@ response = client.messages.create(
 for block in response.content:
     if block.type == "tool_use":
         result = skill.execute(dict(block.input))
-        print(result["verdict"])
+        print(result["is_safe"])
 ```
 
 ### OpenAI
@@ -201,7 +201,7 @@ message = response.choices[0].message
 if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
-    print(result["verdict"])
+    print(result["is_safe"])
 ```
 ### DeepSeek
 
@@ -232,7 +232,7 @@ message = response.choices[0].message
 if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
-    print(result["verdict"])
+    print(result["is_safe"])
 ```
 ### Ollama (prompt mode)
 
