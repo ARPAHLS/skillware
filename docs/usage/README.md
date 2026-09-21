@@ -39,7 +39,7 @@ To list locally available skills, inspect path resolution, show config, check lo
 | Shared address book | Cross-skill contacts (`addressbook.yaml`, `public_0x`, mail + defi name resolution) | [addressbook_operator_config.md](addressbook_operator_config.md) | Optional; `skillware addressbook init` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
-Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).
+Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md) under `docs/skills/<category>/<skill_name>.md`. Category landing pages: `docs/skills/<category>/README.md`. Crawl map: [sitemap](../sitemap.md).
 
 Shared patterns (load bundle, run `execute`, return tool results):
 [agent_loops.md](agent_loops.md). For multiple skills, first [choose the host context](skill_chaining.md#choose-host-context-directive-vs-brief), then use [skill chaining](skill_chaining.md) (`SkillContext`, named `chains:`). [Skill anatomy](../introduction.md#skill-anatomy) (Contract, Effect, Directive, Assurance, Interface). Vocabulary: [glossary](../glossary.md). After `load_skill`, prefer `bundle["class"]()` to instantiate the skill; explicit `bundle["module"].ClassName()` also works. Runnable script inventory:

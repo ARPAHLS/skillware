@@ -29,6 +29,22 @@ def get_cataloged_skills(readme: Path) -> set[str]:
     return set(SKILL_PATTERN.findall(readme.read_text(encoding="utf-8")))
 
 
+def catalog_page_for(skill_id: str) -> Path:
+    """Catalog page lives at docs/skills/<category>/<skill_name>.md (#370)."""
+    category, name = skill_id.split("/", 1)
+    return REPO_ROOT / "docs" / "skills" / category / f"{name}.md"
+
+
+def iter_catalog_pages() -> list[Path]:
+    """Skill pages only — skip the library index and category hub READMEs."""
+    docs_root = REPO_ROOT / "docs" / "skills"
+    return sorted(path for path in docs_root.rglob("*.md") if path.name != "README.md")
+
+
+def iter_category_hubs() -> list[Path]:
+    return sorted((REPO_ROOT / "docs" / "skills").glob("*/README.md"))
+
+
 @pytest.fixture(scope="session")
 def manifested_skills() -> set[str]:
     return get_manifested_skills(REPO_ROOT / "skills")
@@ -90,18 +106,27 @@ def test_readme_matches_manifests(
 def test_manifested_skills_have_catalog_pages(
     manifested_skills: set[str],
 ):
-    """Every manifested skill has a catalog page."""
-
-    docs_root = REPO_ROOT / "docs" / "skills"
+    """Every manifested skill has a catalog page under its category hub."""
 
     missing = [
         skill
         for skill in sorted(manifested_skills)
-        if not (docs_root / f"{Path(skill).name}.md").exists()
+        if not catalog_page_for(skill).exists()
     ]
 
     assert not missing, "Missing catalog pages:\n" + "\n".join(
-        f"  - docs/skills/{Path(skill).name}.md ({skill})" for skill in missing
+        f"  - docs/skills/{skill}.md" for skill in missing
+    )
+
+
+def test_catalog_pages_are_not_flat():
+    """Skill pages must live in docs/skills/<category>/, not docs/skills/*.md (#370)."""
+    docs_root = REPO_ROOT / "docs" / "skills"
+    flat = sorted(
+        path.name for path in docs_root.glob("*.md") if path.name != "README.md"
+    )
+    assert not flat, "Flat catalog pages must move under category hubs:\n" + "\n".join(
+        f"  - docs/skills/{name}" for name in flat
     )
 
 
@@ -110,16 +135,12 @@ def test_catalog_pages_have_manifests(
 ):
     """Every catalog page corresponds to a manifested skill."""
 
-    docs_root = REPO_ROOT / "docs" / "skills"
-
     expected = {Path(skill).name for skill in manifested_skills}
-
-    actual = {page.stem for page in docs_root.glob("*.md") if page.name != "README.md"}
-
+    actual = {page.stem for page in iter_catalog_pages()}
     orphaned = actual - expected
 
     assert not orphaned, "Catalog pages without a matching manifest:\n" + "\n".join(
-        f"  - docs/skills/{page}.md" for page in sorted(orphaned)
+        f"  - {page}" for page in sorted(orphaned)
     )
 
 
@@ -169,8 +190,6 @@ def test_agent_loops_reference_all_skills(
 
 def test_skill_docs_gemini_anti_patterns():
     """Verify Gemini snippets in skill catalog pages do not use anti-patterns."""
-    docs_root = REPO_ROOT / "docs" / "skills"
-
     anti_patterns = [
         (r'tool_decl\["name"\]\s*=', 'tool_decl["name"] mutation'),
         (r'gemini_decl\["name"\]\s*=', 'gemini_decl["name"] mutation'),
@@ -186,10 +205,7 @@ def test_skill_docs_gemini_anti_patterns():
 
     failures = []
 
-    for md_file in docs_root.glob("*.md"):
-        if md_file.name == "README.md":
-            continue
-
+    for md_file in iter_catalog_pages():
         content = md_file.read_text(encoding="utf-8")
 
         for pattern, name in anti_patterns:
@@ -207,16 +223,16 @@ def test_catalog_pages_have_skill_specific_recommended_install(
     """Every catalog page recommends the per-skill pip extra."""
     from skillware.core.extras import registry_id_to_extra
 
-    docs_root = REPO_ROOT / "docs" / "skills"
     missing = []
 
     for skill_id in sorted(manifested_skills):
-        page = docs_root / f"{Path(skill_id).name}.md"
+        page = catalog_page_for(skill_id)
         content = page.read_text(encoding="utf-8")
         extra = registry_id_to_extra(skill_id)
         needle = f"skillware[{extra}]"
         if needle not in content:
-            missing.append(f"{page.name}: expected Recommended install with {needle!r}")
+            rel = page.relative_to(REPO_ROOT).as_posix()
+            missing.append(f"{rel}: expected Recommended install with {needle!r}")
 
     assert not missing, "Missing skill-specific recommended install:\n" + "\n".join(
         f"  - {item}" for item in missing
@@ -227,23 +243,28 @@ def test_catalog_pages_have_version_and_history_blocks(
     manifested_skills: set[str],
 ):
     """Every catalog page exposes synced version metadata and skill history."""
-    docs_root = REPO_ROOT / "docs" / "skills"
     missing = []
 
     for skill_id in sorted(manifested_skills):
-        page = docs_root / f"{Path(skill_id).name}.md"
+        page = catalog_page_for(skill_id)
         content = page.read_text(encoding="utf-8")
+        rel = page.relative_to(REPO_ROOT).as_posix()
         checks = [
             ("<!-- skill-doc-meta:begin -->", "version metadata begin marker"),
             ("**Version**:", "version header"),
             ("<!-- skill-doc-meta:end -->", "version metadata end marker"),
+            ("<!-- skill-intent:begin -->", "intent begin marker"),
+            ("**Solves:**", "intent problem line"),
+            ("**Works with:**", "intent host-agent line"),
+            ("**Runtime:**", "intent runtime line"),
+            ("<!-- skill-intent:end -->", "intent end marker"),
             ("<!-- skill-history:begin -->", "skill history begin marker"),
             ("## Skill history", "skill history heading"),
             ("<!-- skill-history:end -->", "skill history end marker"),
         ]
         for needle, label in checks:
             if needle not in content:
-                missing.append(f"{page.name}: missing {label}")
+                missing.append(f"{rel}: missing {label}")
 
     assert not missing, "Missing skill version/history blocks:\n" + "\n".join(
         f"  - {item}" for item in missing
@@ -273,6 +294,78 @@ def test_skill_library_index_has_version_column():
     )
 
 
+def test_category_hubs_match_manifests(manifested_skills: set[str]):
+    """Each registry category has a docs hub that lists its skills (#370)."""
+    categories = {skill.split("/", 1)[0] for skill in manifested_skills}
+    hubs = {path.parent.name for path in iter_category_hubs()}
+    missing_hubs = categories - hubs
+    extra_hubs = hubs - categories
+    assert not missing_hubs, "Missing category hubs:\n" + "\n".join(
+        f"  - docs/skills/{cat}/README.md" for cat in sorted(missing_hubs)
+    )
+    assert not extra_hubs, "Category hubs without registry skills:\n" + "\n".join(
+        f"  - docs/skills/{cat}/README.md" for cat in sorted(extra_hubs)
+    )
+
+    missing_rows = []
+    for skill in sorted(manifested_skills):
+        category, name = skill.split("/", 1)
+        hub = (REPO_ROOT / "docs" / "skills" / category / "README.md").read_text(
+            encoding="utf-8"
+        )
+        if "| Skill | ID | Version | Issuer | Description |" not in hub:
+            missing_rows.append(f"{category}: missing catalog table header")
+        if f"`{skill}`" not in hub:
+            missing_rows.append(f"{category}: missing `{skill}`")
+        if f"]({name}.md)" not in hub:
+            missing_rows.append(f"{category}: missing link to {name}.md")
+    assert not missing_rows, "Category hubs missing skill rows:\n" + "\n".join(
+        f"  - {item}" for item in missing_rows
+    )
+
+
+def test_library_index_links_category_hubs(manifested_skills: set[str]):
+    """Skill library points at each category hub (#370)."""
+    readme = (REPO_ROOT / "docs" / "skills" / "README.md").read_text(encoding="utf-8")
+    missing = []
+    for category in sorted({skill.split("/", 1)[0] for skill in manifested_skills}):
+        if f"]({category}/README.md)" not in readme:
+            missing.append(category)
+    assert not missing, "docs/skills/README.md missing hub links:\n" + "\n".join(
+        f"  - {cat}/README.md" for cat in missing
+    )
+
+
+def test_sitemap_lists_hubs_and_catalog_pages(manifested_skills: set[str]):
+    """docs/sitemap.md links the library, every hub, and every catalog page (#370)."""
+    sitemap = (REPO_ROOT / "docs" / "sitemap.md").read_text(encoding="utf-8")
+    missing = []
+    if "skills/README.md" not in sitemap:
+        missing.append("docs/skills/README.md")
+    for skill in sorted(manifested_skills):
+        category, name = skill.split("/", 1)
+        if f"skills/{category}/README.md" not in sitemap:
+            missing.append(f"docs/skills/{category}/README.md")
+        if f"skills/{category}/{name}.md" not in sitemap:
+            missing.append(f"docs/skills/{category}/{name}.md")
+    assert not missing, "Sitemap missing links:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )
+
+
+def test_root_readme_has_category_index(manifested_skills: set[str]):
+    """Root README exposes a keyword-rich category index (#370)."""
+    text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    assert "## Supported Agent Skill Categories" in text
+    missing = []
+    for category in sorted({skill.split("/", 1)[0] for skill in manifested_skills}):
+        if f"docs/skills/{category}/README.md" not in text:
+            missing.append(category)
+    assert not missing, "Root README missing category hub links:\n" + "\n".join(
+        f"  - {cat}" for cat in missing
+    )
+
+
 def test_glossary_exists_with_canonical_terms():
     """Glossary documents roles and anatomy used across the repo (#252)."""
     text = (REPO_ROOT / "docs" / "glossary.md").read_text(encoding="utf-8")
@@ -292,6 +385,7 @@ def test_hub_and_catalog_pages_link_glossary():
     """Hub pages and skill catalog pages must link docs/glossary.md (#363)."""
     hubs = [
         REPO_ROOT / "docs" / "vision.md",
+        REPO_ROOT / "docs" / "sitemap.md",
         REPO_ROOT / "docs" / "usage" / "README.md",
         REPO_ROOT / "docs" / "usage" / "agent_loops.md",
         REPO_ROOT / "docs" / "usage" / "skill_chaining.md",
@@ -302,7 +396,7 @@ def test_hub_and_catalog_pages_link_glossary():
         if "glossary.md" not in text:
             missing.append(str(path.relative_to(REPO_ROOT)))
     catalog = REPO_ROOT / "docs" / "skills"
-    for path in sorted(catalog.glob("*.md")):
+    for path in sorted(catalog.rglob("*.md")):
         text = path.read_text(encoding="utf-8")
         if "glossary.md" not in text:
             missing.append(str(path.relative_to(REPO_ROOT)))

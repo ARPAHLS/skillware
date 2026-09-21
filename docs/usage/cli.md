@@ -360,7 +360,7 @@ malformed, or unknown theme values fall back safely to `pastel`.
 
 ### skillware mail
 
-Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
+Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/office/gmail_handler.md`](../skills/office/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
 
     skillware mail
     skillware mail addressbook init

@@ -463,7 +463,7 @@ def test_missing_wallet_key_structured(skill, monkeypatch):
     result = skill.execute({"action": "wallet_info", "intent": {}})
     assert result["status"] == "missing_config"
     assert "AGENT_WALLET_PRIVATE_KEY" in result["setup"]["env_var"]
-    assert "docs/skills/evm_tx_handler.md" in result["setup"]["docs"]
+    assert "docs/skills/defi/evm_tx_handler.md" in result["setup"]["docs"]
 
 
 @patch.object(EvmTxHandlerSkill, "_get_web3")

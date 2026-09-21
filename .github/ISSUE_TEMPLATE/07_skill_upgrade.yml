@@ -57,7 +57,7 @@ body:
         - label: skill.py logic
         - label: instructions.md
         - label: test_skill.py
-        - label: docs/skills/<name>.md and catalog row
+        - label: docs/skills/<category>/<name>.md, category hub, and catalog row
         - label: examples/*.py or examples/README.md
         - label: data/ bundled files (address book, config templates)
         - label: manifest.yaml env_vars and docs/usage/api_keys.md

@@ -320,7 +320,7 @@ class EvmTxHandlerSkill(BaseSkill):
                 "wallet_policy": (
                     "Use a dedicated agent wallet with limited funds for automated trades only."
                 ),
-                "docs": "docs/skills/evm_tx_handler.md#environment",
+                "docs": "docs/skills/defi/evm_tx_handler.md#environment",
                 "api_keys_guide": "docs/usage/api_keys.md",
             },
         }

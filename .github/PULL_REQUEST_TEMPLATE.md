@@ -48,7 +48,7 @@ Skip unless this PR adds or changes files under `skills/`.
 
 ### Documentation and catalog
 
-- [ ] `docs/skills/<skill_name>.md` and row in `docs/skills/README.md`
+- [ ] `docs/skills/<category>/<skill_name>.md`, category hub row, row in `docs/skills/README.md`, and `docs/sitemap.md`
 - [ ] Usage Examples for Gemini, Claude, OpenAI, DeepSeek, Ollama per [skill usage template](docs/usage/skill_usage_template.md)
 
 ## Constitution and safety (skills only)

@@ -12,3 +12,6 @@ contact_links:
   - name: Skill Library
     url: https://github.com/ARPAHLS/skillware/blob/main/docs/skills/README.md
     about: Browse registry skills and IDs
+  - name: Documentation sitemap
+    url: https://github.com/ARPAHLS/skillware/blob/main/docs/sitemap.md
+    about: Category hubs and every skill catalog page

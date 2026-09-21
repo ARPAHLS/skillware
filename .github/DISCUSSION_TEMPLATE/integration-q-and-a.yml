@@ -1,0 +1,36 @@
+title: "[Integration] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions about wiring a bundled skill into a host agent (LangChain, LangGraph, Claude, Gemini, Bedrock, Ollama, custom loop).
+        Catalog pages and [agent loops](https://github.com/ARPAHLS/skillware/blob/main/docs/usage/agent_loops.md) are the first stop.
+  - type: input
+    id: skill_id
+    attributes:
+      label: Skill ID
+      placeholder: finance/wallet_screening
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host
+      options:
+        - Gemini
+        - Claude
+        - OpenAI / compatible
+        - Bedrock
+        - Ollama
+        - LangChain / LangGraph
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What you already tried, and the error or unexpected envelope if any. Redact keys.
+    validations:
+      required: true

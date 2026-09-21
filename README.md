@@ -19,6 +19,7 @@
   <a href="#mission">Mission</a> •
   <a href="#how-it-works">How it works</a> •
   <a href="#architecture">Architecture</a> •
+  <a href="#supported-agent-skill-categories">Skill categories</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#contributing">Contributing</a> •
@@ -51,7 +52,7 @@ Optional **Corpus** and **Reference** assets extend bundles when needed. Every b
 
 ### Skill library
 
-Browse capabilities by category in the [Skill library](docs/skills/README.md) or on our <a href="https://skillware.site/skills" target="_blank" rel="noopener noreferrer">site&nbsp;↗</a>.
+Browse capabilities by category in [Supported Agent Skill Categories](#supported-agent-skill-categories), the [Skill library](docs/skills/README.md), the [documentation sitemap](docs/sitemap.md), or on our <a href="https://skillware.site/skills" target="_blank" rel="noopener noreferrer">site&nbsp;↗</a>.
 
 ## How it works
 
@@ -71,7 +72,7 @@ documentation. Runnable provider scripts are indexed in
 
 ```text
 Skillware/
-├── docs/                       # Introduction, testing, skill catalog, usage guides (docs/usage/)
+├── docs/                       # Introduction, testing, category hubs (docs/skills/<category>/), usage guides (docs/usage/)
 ├── examples/                   # Provider reference scripts — usage demos, not pytest (see examples/README.md)
 ├── skills/                     # Skill Registry
 │   └── category/               # Domain boundaries (e.g., finance)
@@ -96,6 +97,60 @@ Skillware/
     ├── test_*.py               # Framework tests (loader, CLI, issuer, …)
     └── skills/                 # Optional maintainer skill tests (edge cases)
 ```
+
+## Supported Agent Skill Categories
+
+Category landing pages live under `docs/skills/<category>/README.md`. Per-skill docs sit beside them at `docs/skills/<category>/<skill_name>.md`. Runtime bundles and `SkillLoader.load_skill("<category>/<skill_name>")` IDs stay under `skills/` — this index does not rename the registry.
+
+Full library tables: [Skill library](docs/skills/README.md). Crawl map: [documentation sitemap](docs/sitemap.md).
+
+### Security
+
+Prompt injection firewall, instruction-override detection, encoding smuggling, and deceptive HTML UI guards for untrusted input before it reaches a host agent. Hub: [security](docs/skills/security/README.md).
+
+### Finance
+
+OFAC / FBI wallet screening, mixer and scam-contract checks, and UK Companies House company, officer, PSC, and filing pipelines. Hub: [finance](docs/skills/finance/README.md).
+
+### DeFi
+
+Uniswap V2 quote, preview, and execute plus native transfers from structured intent on Ethereum and Base agent wallets. Hub: [defi](docs/skills/defi/README.md).
+
+### Compliance
+
+Local PII redaction, MiCA crypto-asset policy RAG, and robots.txt / terms-of-service evaluation before automated fetches. Hub: [compliance](docs/skills/compliance/README.md).
+
+### Office
+
+AcroForm PDF filling from natural-language instructions and Gmail send / search / read / reply with attachments. Hub: [office](docs/skills/office/README.md).
+
+### Creative
+
+Local background removal (transparent PNG) and offline PPTX assembly from JSON deck specs. Hub: [creative](docs/skills/creative/README.md).
+
+### Optimization
+
+Prompt token rewriting and query-aware context-window selection with local embeddings. Hub: [optimization](docs/skills/optimization/README.md).
+
+### Data Engineering
+
+Synthetic JSONL generation, semantic novelty filtering, and a token-efficient web-to-Markdown proxy with an SSRF guard. Hub: [data_engineering](docs/skills/data_engineering/README.md).
+
+### Dev Tools
+
+GitHub issue URL prep and a staged, gated issue-resolver workflow for host agents. Hub: [dev_tools](docs/skills/dev_tools/README.md).
+
+### Monitoring
+
+Deterministic token-budget gates and fail-closed business KPI evaluation for long-running agent loops. Hub: [monitoring](docs/skills/monitoring/README.md).
+
+### Wellness
+
+Crisis triage and scoped wellness coaching guardrails so host agents do not improvise clinical advice. Hub: [wellness](docs/skills/wellness/README.md).
+
+### Linguistics
+
+Offline Korean Gen-Z slang interpretation and peer-register generation for internet-native Korean. Hub: [linguistics](docs/skills/linguistics/README.md).
 
 ## Quick Start
 
@@ -194,7 +249,7 @@ More providers and patterns: [usage guides](docs/usage/README.md).
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Category hubs](#supported-agent-skill-categories) · [Sitemap](docs/sitemap.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Operator config** | [EVM operator config](docs/usage/evm_operator_config.md) · [Address book operator config](docs/usage/addressbook_operator_config.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Glossary](docs/glossary.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
