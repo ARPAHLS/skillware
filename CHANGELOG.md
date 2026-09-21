@@ -8,8 +8,13 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
+
 ### Changed
 
+- **Card UI (`security/prompt_injection_firewall`):** Expose `policy_action`, `removed_span_count`, and `sanitized_length_delta` in `card.json` and sync sample fixture (#273, #361).
 - **Docs:** Glossary cross-links on hub and catalog pages (#363).
 
 ## [0.5.6] - 2026-09-20
@@ -34,11 +39,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Skill (`optimization/context_optimizer` v0.1.0):** Query-aware extractive context selection — local `fastembed` chunk scoring against `agent_goal`, traceable `chunks_selected`, fail-closed `empty_result`, and constitution-bound extractive-only output (#44).
 - **Examples:** [`context_optimizer_demo.py`](examples/context_optimizer_demo.py), [`context_optimizer_chain_demo.py`](examples/context_optimizer_chain_demo.py) (firewall → optimizer), optional [`context_optimizer_gemini_loop.py`](examples/context_optimizer_gemini_loop.py), [`context_optimizer_claude_loop.py`](examples/context_optimizer_claude_loop.py) (#44).
 - **Skill (`finance/uk_companies_house_handler` v1.3.0):** Phase v2c upgrade with deterministic matchers, filing helpers, and pagination controls — pure deterministic officer role matchers (`officer_role`) supporting 3 canonical categories (`directors`, `secretaries`, `corporate`) and 29 official Companies House statutory roles in `terminology_map.yaml` without NLU in Python; case-insensitive officer name substring matching (`officer_name` / `officer_filter`); multi-page officer scanning up to 10 pages (1,000 records max) in 100-item chunks for filtered queries; deterministic filing history sorting descending by date; filing helpers `latest_only: true` (single most recent filing) and `latest_per_category: true` (latest filing per category); direct host agent `run_pipeline` orchestration with `<from_resolve>` parameter substitution for multi-intent queries, removing redundant `map_intent` from manifest actions and agent directives; new decoupled composite action `resolve_company_officer` (resolve company -> halt on `needs_input` if ambiguous -> filter matching officer(s) by role and/or name in one turn); active vs. resigned transparency and disclaimers in envelopes (`active_only`, `matched_count`, `terminology_note`); strict context isolation preventing sticky filter contamination across turns (#310, #220).
-- **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
 
 ### Changed
 
-- **Card UI (`security/prompt_injection_firewall`):** Expose `policy_action`, `removed_span_count`, and `sanitized_length_delta` in `card.json` and sync sample fixture (#273, #361).
 - **Docs:** Terminology pass on current anatomy (Contract / Effect / Directive / Assurance / Presentation) — Skill bundle standard, `calling agent` → **host agent**, trust-model “Most operators”, README domain wording, MiCA example “Available tools”; tests/CI use placeholder names instead of dummy (#252).
 - **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
