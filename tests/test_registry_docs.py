@@ -321,3 +321,30 @@ def test_mica_examples_avoid_mind_metaphor():
     ):
         text = (REPO_ROOT / "examples" / name).read_text(encoding="utf-8")
         assert "in your Mind" not in text, name
+
+
+def test_manifests_have_valid_short_descriptions(manifested_skills: set[str]):
+    """Every manifested skill has a short_description meeting length constraints (<= 160 chars)."""
+    skills_root = REPO_ROOT / "skills"
+    missing = []
+    too_long = []
+
+    for skill in sorted(manifested_skills):
+        manifest_path = skills_root / skill / "manifest.yaml"
+        data = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        short_desc = data.get("short_description")
+        if not short_desc or not str(short_desc).strip():
+            missing.append(skill)
+        elif len(str(short_desc).strip()) > 160:
+            too_long.append(f"{skill} ({len(str(short_desc).strip())} chars)")
+
+    assert (
+        not missing
+    ), "Skills missing short_description in manifest.yaml:\n" + "\n".join(
+        f"  - {s}" for s in missing
+    )
+    assert (
+        not too_long
+    ), "Skills with short_description exceeding 160 chars:\n" + "\n".join(
+        f"  - {s}" for s in too_long
+    )
