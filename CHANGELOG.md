@@ -8,8 +8,13 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
+
 ### Changed
 
+- **Card UI (`security/prompt_injection_firewall`):** Expose `policy_action`, `removed_span_count`, and `sanitized_length_delta` in `card.json` and sync sample fixture (#273, #361).
 - **Docs:** Glossary cross-links on hub and catalog pages (#363).
 
 ## [0.5.6] - 2026-09-20
