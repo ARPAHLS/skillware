@@ -44,6 +44,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Docs:** Terminology pass on current anatomy (Contract / Effect / Directive / Assurance / Presentation) — Skill bundle standard, `calling agent` → **host agent**, trust-model “Most operators”, README domain wording, MiCA example “Available tools”; tests/CI use placeholder names instead of dummy (#252).
 - **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
+- **Examples:** Renamed `examples/issue_resolver_github_context.py` to `examples/issue_resolver_common.py` to match the `*_common.py` helper module convention; updated imports in `claude_issue_resolver.py`, `gemini_issue_resolver.py`, and `ollama_issue_resolver.py`; removed `GRANDFATHERED_EXAMPLES` workaround from `tests/test_registry_docs.py` (#233).
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
