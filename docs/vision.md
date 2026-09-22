@@ -36,7 +36,7 @@ Consider screening an Ethereum wallet for sanctions exposure and risky counterpa
 
 The [`finance/wallet_screening`](../skills/finance/wallet_screening/) skill packages all of that. Bundled JSON datasets sit beside the Python runner. Optional Etherscan access enriches live chain data. The agent receives a tool schema plus `instructions.md` that teach it how to interpret the JSON verdict.
 
-Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
+Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/finance/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
 
 ---
 

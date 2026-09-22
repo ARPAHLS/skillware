@@ -196,7 +196,7 @@ export GMAIL_ADDRESS="agent-mailbox@example.com"
 export GMAIL_APP_PASSWORD="your-16-char-app-password"
 ```
 
-Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware addressbook`](cli.md#skillware-addressbook), [Address book operator config](addressbook_operator_config.md), and [Gmail Handler](../skills/gmail_handler.md#fresh-install-checklist). Minimal Gemini loop: [`examples/gemini_gmail_minimal.py`](../../examples/gemini_gmail_minimal.py).
+Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware addressbook`](cli.md#skillware-addressbook), [Address book operator config](addressbook_operator_config.md), and [Gmail Handler](../skills/office/gmail_handler.md#fresh-install-checklist). Minimal Gemini loop: [`examples/gemini_gmail_minimal.py`](../../examples/gemini_gmail_minimal.py).
 
 Preview and confirmation gates apply before send/reply; read the skill `instructions.md` before enabling live mail on any host agent.
 

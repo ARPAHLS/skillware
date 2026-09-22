@@ -354,15 +354,25 @@ def test_sitemap_lists_hubs_and_catalog_pages(manifested_skills: set[str]):
 
 
 def test_root_readme_has_category_index(manifested_skills: set[str]):
-    """Root README exposes a keyword-rich category index (#370)."""
+    """Root README uses one category table with hub links and skill counts (#370)."""
     text = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     assert "## Supported Agent Skill Categories" in text
-    missing = []
-    for category in sorted({skill.split("/", 1)[0] for skill in manifested_skills}):
-        if f"docs/skills/{category}/README.md" not in text:
-            missing.append(category)
-    assert not missing, "Root README missing category hub links:\n" + "\n".join(
-        f"  - {cat}" for cat in missing
+    assert "| Category | Skills | Description |" in text
+    expected: dict[str, int] = {}
+    for skill in manifested_skills:
+        category = skill.split("/", 1)[0]
+        expected[category] = expected.get(category, 0) + 1
+    found = {
+        match.group(1): int(match.group(2))
+        for match in re.finditer(
+            r"\]\(docs/skills/([a-z_]+)/README\.md\) \| (\d+) \|",
+            text,
+        )
+    }
+    assert found == expected, (
+        "Root README category table out of sync with manifests:\n"
+        f"  expected={dict(sorted(expected.items()))}\n"
+        f"  found={dict(sorted(found.items()))}"
     )
 
 

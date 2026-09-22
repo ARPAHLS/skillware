@@ -363,7 +363,7 @@ Do **not** add `skills/<category>/README.md` inside the runtime registry. Catego
 
 - Add or update the skill table in `docs/skills/<category>/README.md` **and** [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
 - Add the catalog page and hub to [docs/sitemap.md](docs/sitemap.md).
-- New top-level category: also add a root README blurb under **Supported Agent Skill Categories** and a hub at `docs/skills/<category>/README.md`.
+- New top-level category: also add a row to the root README category table and a hub at `docs/skills/<category>/README.md`.
 
 ### Issuer attribution
 
@@ -419,7 +419,7 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
-When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Add `docs/skills/<category>/README.md`, a root README category blurb, and a [sitemap](docs/sitemap.md) section. Labels sync via CI on merge to `main`. Do not add a `README.md` under `skills/<category>/`.
+When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Add `docs/skills/<category>/README.md`, a root README category table row, and a [sitemap](docs/sitemap.md) section. Labels sync via CI on merge to `main`. Do not add a `README.md` under `skills/<category>/`.
 
 ---
 
@@ -461,7 +461,6 @@ When a new top-level category lands under `skills/`, update this table and the c
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |
-| [Discussion templates](.github/DISCUSSION_TEMPLATE/) | Skill request / show-and-tell / integration forms (enable Discussions in repo settings) |
 | [`.github/labels.json`](.github/labels.json) | Repo-wide and `cat: <category>` label taxonomy (synced via CI) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history; contributors add under `[Unreleased]` |
 | [CITATION.cff](CITATION.cff) | Preferred software citation (Zenodo concept DOI `10.5281/zenodo.21552745`) |

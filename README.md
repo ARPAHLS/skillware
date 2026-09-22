@@ -100,57 +100,22 @@ Skillware/
 
 ## Supported Agent Skill Categories
 
-Category landing pages live under `docs/skills/<category>/README.md`. Per-skill docs sit beside them at `docs/skills/<category>/<skill_name>.md`. Runtime bundles and `SkillLoader.load_skill("<category>/<skill_name>")` IDs stay under `skills/` — this index does not rename the registry.
+Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library](docs/skills/README.md). Crawl map: [documentation sitemap](docs/sitemap.md).
 
-Full library tables: [Skill library](docs/skills/README.md). Crawl map: [documentation sitemap](docs/sitemap.md).
-
-### Security
-
-Prompt injection firewall, instruction-override detection, encoding smuggling, and deceptive HTML UI guards for untrusted input before it reaches a host agent. Hub: [security](docs/skills/security/README.md).
-
-### Finance
-
-OFAC / FBI wallet screening, mixer and scam-contract checks, and UK Companies House company, officer, PSC, and filing pipelines. Hub: [finance](docs/skills/finance/README.md).
-
-### DeFi
-
-Uniswap V2 quote, preview, and execute plus native transfers from structured intent on Ethereum and Base agent wallets. Hub: [defi](docs/skills/defi/README.md).
-
-### Compliance
-
-Local PII redaction, MiCA crypto-asset policy RAG, and robots.txt / terms-of-service evaluation before automated fetches. Hub: [compliance](docs/skills/compliance/README.md).
-
-### Office
-
-AcroForm PDF filling from natural-language instructions and Gmail send / search / read / reply with attachments. Hub: [office](docs/skills/office/README.md).
-
-### Creative
-
-Local background removal (transparent PNG) and offline PPTX assembly from JSON deck specs. Hub: [creative](docs/skills/creative/README.md).
-
-### Optimization
-
-Prompt token rewriting and query-aware context-window selection with local embeddings. Hub: [optimization](docs/skills/optimization/README.md).
-
-### Data Engineering
-
-Synthetic JSONL generation, semantic novelty filtering, and a token-efficient web-to-Markdown proxy with an SSRF guard. Hub: [data_engineering](docs/skills/data_engineering/README.md).
-
-### Dev Tools
-
-GitHub issue URL prep and a staged, gated issue-resolver workflow for host agents. Hub: [dev_tools](docs/skills/dev_tools/README.md).
-
-### Monitoring
-
-Deterministic token-budget gates and fail-closed business KPI evaluation for long-running agent loops. Hub: [monitoring](docs/skills/monitoring/README.md).
-
-### Wellness
-
-Crisis triage and scoped wellness coaching guardrails so host agents do not improvise clinical advice. Hub: [wellness](docs/skills/wellness/README.md).
-
-### Linguistics
-
-Offline Korean Gen-Z slang interpretation and peer-register generation for internet-native Korean. Hub: [linguistics](docs/skills/linguistics/README.md).
+| Category | Skills | Description |
+| :--- | :---: | :--- |
+| [Office](docs/skills/office/README.md) | 2 | Documents, email, and productivity automation |
+| [Creative](docs/skills/creative/README.md) | 2 | Image processing and presentation assembly |
+| [Finance](docs/skills/finance/README.md) | 2 | Wallet risk, sanctions, and company-registry diligence |
+| [DeFi](docs/skills/defi/README.md) | 1 | On-chain quotes, previews, and agent-wallet execution |
+| [Optimization](docs/skills/optimization/README.md) | 2 | Prompt compression and context-window selection |
+| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Synthetic data, novelty filtering, and web-to-Markdown |
+| [Compliance](docs/skills/compliance/README.md) | 3 | Local PII, MiCA policy, and site-terms evaluation |
+| [Security](docs/skills/security/README.md) | 2 | Prompt injection and deceptive UI defenses for untrusted input |
+| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | GitHub issue resolution and repo workflows |
+| [Monitoring](docs/skills/monitoring/README.md) | 2 | Token budgets and fail-closed KPI gates for agent loops |
+| [Wellness](docs/skills/wellness/README.md) | 1 | Crisis triage and scoped coaching guardrails |
+| [Linguistics](docs/skills/linguistics/README.md) | 1 | Informal and internet-register language adapters |
 
 ## Quick Start
 
