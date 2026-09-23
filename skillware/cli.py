@@ -40,7 +40,9 @@ from skillware.core.config import (
     save_project_config,
 )
 from skillware.core.mail_config import format_mail_config_lines
+from skillware.core.evm_config import format_evm_config_lines
 from skillware.cli_mail import cmd_mail, cmd_mail_submenu
+from skillware.cli_evm import cmd_evm, cmd_evm_dispatch, cmd_evm_submenu
 from skillware.cli_theme import THEMES, ThemePalette, active_theme
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
@@ -102,6 +104,7 @@ _DOCS_CLI_CONTEXT = f"{_DOCS_CLI}#skillware-context"
 _DOCS_CLI_CHAIN = f"{_DOCS_CLI}#skillware-chain"
 _DOCS_CLI_THEME = f"{_DOCS_CLI}#color-themes"
 _DOCS_CLI_MAIL = f"{_DOCS_CLI}#skillware-mail"
+_DOCS_CLI_EVM = f"{_DOCS_CLI}#skillware-evm"
 
 HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
     (
@@ -195,6 +198,20 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware (menu 7 / mail)", "interactive mail submenu"),
         ],
         _DOCS_CLI_MAIL,
+    ),
+    (
+        "EVM",
+        [
+            ("skillware evm", "resolved evm.yaml path and enabled chains"),
+            ("skillware evm init", "create user evm.yaml from bundled defaults"),
+            ("skillware evm chains list", "table of chains and RPC readiness"),
+            ("skillware evm chain add", "interactive custom chain wizard"),
+            ("skillware evm rpc enable <chain>", "enable a chain in evm.yaml"),
+            ("skillware evm validate", "schema and checksum validation"),
+            ("skillware evm open [--dir]", "open evm.yaml in OS file manager"),
+            ("skillware (menu 9 / evm)", "interactive evm submenu"),
+        ],
+        _DOCS_CLI_EVM,
     ),
     (
         "General",
@@ -1193,6 +1210,10 @@ def cmd_config_show(console=None) -> int:
         console.print(Text("mail (resolved defaults)", style=f"bold {TABLE_STYLE}"))
         for line in format_mail_config_lines(config.mail):
             console.print(line, style=MENU_STYLE)
+        console.print()
+        console.print(Text("evm (resolved defaults)", style=f"bold {TABLE_STYLE}"))
+        for line in format_evm_config_lines(config.evm):
+            console.print(line, style=MENU_STYLE)
         return 0
 
     console.print(Text("paths (active)", style=TABLE_STYLE))
@@ -1215,6 +1236,11 @@ def cmd_config_show(console=None) -> int:
 
     console.print(Text("mail (active)", style=f"bold {TABLE_STYLE}"))
     for line in format_mail_config_lines(config.mail):
+        console.print(line, style=MENU_STYLE)
+    console.print()
+
+    console.print(Text("evm (active)", style=f"bold {TABLE_STYLE}"))
+    for line in format_evm_config_lines(config.evm):
         console.print(line, style=MENU_STYLE)
     console.print()
 
@@ -1821,6 +1847,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("6", "help", "grouped help topics and doc links"),
         ("7", "mail", "address book and signature for office/gmail_handler"),
         ("8", "theme", "choose and save the CLI color theme"),
+        ("9", "evm", "EVM chains and RPC config for defi skills"),
     ]
 
     commands = {
@@ -1840,6 +1867,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         "mail": "mail",
         "8": "theme",
         "theme": "theme",
+        "9": "evm",
+        "evm": "evm",
     }
 
     _print_menu(console, menu)
@@ -1896,6 +1925,11 @@ def cmd_interactive(console=None, parser=None) -> None:
         elif command == "theme":
             theme_nav = cmd_theme_picker(console=console, show_back=True)
             if theme_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
+        elif command == "evm":
+            evm_nav = cmd_evm_submenu(console=console)
+            if evm_nav == _NAV_EXIT:
                 console.print("  Bye.", style="dim")
                 return
         else:
@@ -2263,6 +2297,56 @@ def main() -> None:
         help="Print resolved steps as JSON.",
     )
 
+    evm_parser = subparsers.add_parser(
+        "evm",
+        help="EVM chain and RPC settings for defi skills.",
+    )
+    evm_sub = evm_parser.add_subparsers(dest="evm_area")
+    evm_sub.add_parser("show", help="Show resolved evm.yaml path and sources.")
+    evm_init = evm_sub.add_parser("init", help="Create user evm.yaml from defaults.")
+    evm_init.add_argument(
+        "--path",
+        type=Path,
+        default=None,
+        help="Target file path (default: resolved global evm.yaml).",
+    )
+    evm_init.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing file.",
+    )
+    evm_init.add_argument(
+        "--yes",
+        action="store_true",
+        help="Non-interactive init (enable all bundled chains).",
+    )
+    evm_chains = evm_sub.add_parser("chains", help="Chain registry commands.")
+    evm_chains_sub = evm_chains.add_subparsers(dest="evm_action")
+    evm_chains_list = evm_chains_sub.add_parser("list", help="List configured chains.")
+    evm_chains_list.add_argument(
+        "--json",
+        action="store_true",
+        help="Output JSON.",
+    )
+    evm_chain = evm_sub.add_parser("chain", help="Manage individual chains.")
+    evm_chain_sub = evm_chain.add_subparsers(dest="evm_action")
+    evm_chain_add = evm_chain_sub.add_parser("add", help="Add a custom chain.")
+    evm_chain_add.add_argument("--name", dest="chain_name", default=None)
+    evm_chain_add.add_argument("--chain-id", dest="chain_id", type=int, default=None)
+    evm_chain_add.add_argument("--rpc-env", default=None)
+    evm_chain_add.add_argument("--rpc-url", default=None)
+    evm_rpc = evm_sub.add_parser("rpc", help="RPC enablement helpers.")
+    evm_rpc_sub = evm_rpc.add_subparsers(dest="evm_action")
+    evm_rpc_enable = evm_rpc_sub.add_parser("enable", help="Enable a chain.")
+    evm_rpc_enable.add_argument("chain_name", help="Chain key in evm.yaml.")
+    evm_sub.add_parser("validate", help="Validate merged EVM config.")
+    evm_open = evm_sub.add_parser("open", help="Open evm.yaml in the file manager.")
+    evm_open.add_argument(
+        "--dir",
+        action="store_true",
+        help="Open the containing directory instead of the file.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -2375,6 +2459,62 @@ def main() -> None:
                 )
             )
         chain_parser.print_help()
+        raise SystemExit(2)
+    elif args.command == "evm":
+        area = getattr(args, "evm_area", None)
+        action = getattr(args, "evm_action", None)
+        if area is None:
+            raise SystemExit(cmd_evm())
+        if area == "show":
+            raise SystemExit(cmd_evm_dispatch("show", "show"))
+        if area == "init":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "init",
+                    "init",
+                    path=getattr(args, "path", None),
+                    force=getattr(args, "force", False),
+                    non_interactive=getattr(args, "yes", False),
+                )
+            )
+        if area == "chains" and action == "list":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "chains",
+                    "list",
+                    json_output=getattr(args, "json", False),
+                )
+            )
+        if area == "chain" and action == "add":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "chain",
+                    "add",
+                    chain_name=getattr(args, "chain_name", None),
+                    chain_id=getattr(args, "chain_id", None),
+                    rpc_env=getattr(args, "rpc_env", None),
+                    rpc_url=getattr(args, "rpc_url", None),
+                )
+            )
+        if area == "rpc" and action == "enable":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "rpc",
+                    "enable",
+                    chain_name=getattr(args, "chain_name", None),
+                )
+            )
+        if area == "validate":
+            raise SystemExit(cmd_evm_dispatch("validate", "validate"))
+        if area == "open":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "open",
+                    "open",
+                    open_dir=getattr(args, "dir", False),
+                )
+            )
+        evm_parser.print_help()
         raise SystemExit(2)
     else:
         cmd_interactive(parser=parser)

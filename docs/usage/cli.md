@@ -41,6 +41,7 @@ After installation, the `skillware` command is available directly:
     skillware chain list
     skillware theme ocean
     skillware mail addressbook show
+    skillware evm chains list
     skillware test
     skillware examples
     skillware --version
@@ -406,6 +407,24 @@ Test signature in your inbox (requires `.env` credentials):
     python examples/gmail_signature_test_send.py --to you@example.com
 
 Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
+
+### skillware evm
+
+Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full operator guide:** [EVM operator config](evm_operator_config.md) (checklist, precedence, custom chains, tokens vs address book). This is **not** [`skillware chain`](#skillware-chain) (orchestration pipelines).
+
+    skillware evm
+    skillware evm init
+    skillware evm init --yes
+    skillware evm init --force
+    skillware evm chains list
+    skillware evm chains list --json
+    skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+    skillware evm rpc enable base
+    skillware evm validate
+    skillware evm open
+    skillware evm open --dir
+
+Interactive menu: **`9` / `evm`**. RPC secrets: [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config).
 
 ### skillware context
 

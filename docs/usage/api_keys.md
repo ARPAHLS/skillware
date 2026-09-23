@@ -200,6 +200,23 @@ Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAI
 
 Preview and confirmation gates apply before send/reply; read the skill `instructions.md` before enabling live mail on any host agent.
 
+### EVM RPC and operator config
+
+Defi skills that call JSON-RPC share chain metadata through **`skillware.core.evm_config`** and operator **`evm.yaml`**. **Operator guide:** [EVM operator config](evm_operator_config.md). **CLI commands:** [`skillware evm`](cli.md#skillware-evm). This is separate from orchestration **`chains:`** in `.skillware.yaml`.
+
+| Store here (`.env`) | Store in `evm.yaml` |
+| :--- | :--- |
+| RPC URLs (`ETHEREUM_RPC_URL`, `BASE_RPC_URL`, …) | Chain ids, enabled flags, `rpc_env` names, router/weth metadata |
+| `AGENT_WALLET_PRIVATE_KEY` (signing skills only) | Token registry entries (`evm.tokens`) — not address book contacts |
+
+```bash
+# After: skillware evm init
+export ETHEREUM_RPC_URL="https://mainnet.example.invalid"
+export BASE_RPC_URL="https://base.example.invalid"
+```
+
+Optional: `EVM_CONFIG_PATH` for an alternate config file path. Project inline overrides: top-level **`evm:`** (or read-only **`web3:`** alias) in `.skillware.yaml`.
+
 ### External data API (required key)
 
 A skill that fetches on-chain data may require a provider key before `execute()` returns useful results. Set the name from its manifest (illustrative):
