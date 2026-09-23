@@ -1,6 +1,6 @@
 {
   "name": "EVM Tx Handler",
-  "description": "Quote and transfer from a dedicated agent wallet on Ethereum and Base.",
+  "description": "Quote, swap, and name-based transfer from a dedicated agent wallet on Ethereum and Base (v0.3.0).",
   "issuer": {
     "name": "Hendobox",
     "email": "henryonyebuchi53@gmail.com",
@@ -14,6 +14,7 @@
     "fields": [
       {"key": "preview.you_pay", "label": "You pay"},
       {"key": "preview.you_receive", "label": "You receive"},
+      {"key": "recipient_name", "label": "Recipient"},
       {"key": "tx_hash", "label": "Transaction", "type": "link"}
     ]
   }

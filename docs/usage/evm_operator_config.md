@@ -68,6 +68,7 @@ Full command list: [`skillware evm`](cli.md#skillware-evm). Interactive menu: **
 | `skillware evm init --yes` | Non-interactive init (keep bundled enable flags) |
 | `skillware evm chains list` | Table: chain, id, enabled, RPC source, RPC ready |
 | `skillware evm chain add` | Add a custom network (wizard or flags) |
+| `skillware evm token add` | Register a custom ERC-20 (`--chain`, `--symbol`, `--address`, `--decimals`) |
 | `skillware evm rpc enable <chain>` | Set `enabled: true` on a chain |
 | `skillware evm validate` | Schema, duplicate chain IDs, address format |
 | `skillware evm open` / `open --dir` | Open file or folder in OS file manager |
@@ -89,6 +90,7 @@ skillware evm chain add     # wizard: name, chain_id, rpc_env or rpc_url
 
 ```bash
 skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+skillware evm token add --chain base --symbol degen --address 0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed --decimals 18
 ```
 
 Add matching secret to `.env`:

@@ -252,8 +252,10 @@ class EvmTxHandlerSkill(BaseSkill):
         detail = self._resolve_recipient_detail(recipient)
         if detail.get("status") == "resolved":
             return str(detail["address"])
-        message = detail.get("message") or detail.get("agent_hint") or (
-            f"Recipient {recipient!r} could not be resolved."
+        message = (
+            detail.get("message")
+            or detail.get("agent_hint")
+            or (f"Recipient {recipient!r} could not be resolved.")
         )
         raise ValueError(message)
 
@@ -282,10 +284,24 @@ class EvmTxHandlerSkill(BaseSkill):
             self.user_config.get("private_key_env") or "AGENT_WALLET_PRIVATE_KEY"
         )
 
+    def _wallet_env_names(self) -> List[str]:
+        primary = self._private_key_env()
+        names = [primary]
+        for alias in ("AGENT_WALLET_PRIVATE_KEY", "AGENT_PRIVATE_KEY"):
+            if alias not in names:
+                names.append(alias)
+        return names
+
+    def _resolve_wallet_key(self) -> Tuple[Optional[str], str]:
+        for env_name in self._wallet_env_names():
+            key = self.credential(env_name)
+            if key and str(key).strip():
+                return str(key).strip(), env_name
+        return None, self._private_key_env()
+
     def _wallet_key_configured(self) -> bool:
-        env_name = self._private_key_env()
-        key = self.credential(env_name)
-        return bool(key and str(key).strip())
+        key, _env = self._resolve_wallet_key()
+        return bool(key)
 
     def _missing_wallet_key_response(self) -> Dict[str, Any]:
         env_name = self._private_key_env()
@@ -318,8 +334,9 @@ class EvmTxHandlerSkill(BaseSkill):
         missing = self._require_wallet_key()
         if missing:
             raise ValueError(missing["message"])
-        env_name = self._private_key_env()
-        key = self.credential(env_name)
+        key, _env = self._resolve_wallet_key()
+        if not key:
+            raise ValueError(missing["message"] if missing else "Wallet key missing.")
         if key.startswith("0x"):
             key = key[2:]
         return Account.from_key(key)

@@ -554,6 +554,46 @@ def add_chain_to_config(
     write_evm_config_file(path, data)
 
 
+def add_token_to_config(
+    path: Path,
+    chain_name: str,
+    symbol: str,
+    token_data: Mapping[str, Any],
+) -> None:
+    """Add or update one ERC-20 token entry under ``tokens.<chain>.<symbol>``."""
+    chain_key = str(chain_name).strip().lower()
+    sym = str(symbol).strip().lower()
+    if not chain_key:
+        raise ValueError("chain name is required")
+    if not sym:
+        raise ValueError("token symbol is required")
+
+    entry = copy.deepcopy(dict(token_data))
+    address = entry.get("address")
+    if not address:
+        raise ValueError("token address is required")
+    entry["address"] = normalize_evm_address(str(address))
+    if entry.get("decimals") is None:
+        raise ValueError("token decimals is required")
+    entry["decimals"] = int(entry["decimals"])
+
+    data = _read_yaml(path)
+    if not data:
+        data = {"version": EVM_CONFIG_VERSION, "chains": {}, "tokens": {}}
+    tokens = data.setdefault("tokens", {})
+    if not isinstance(tokens, dict):
+        raise ValueError("evm.yaml tokens section is invalid.")
+    chain_tokens = tokens.setdefault(chain_key, {})
+    if not isinstance(chain_tokens, dict):
+        raise ValueError(f"evm.yaml tokens.{chain_key} is invalid.")
+    chain_tokens[sym] = entry
+
+    errors = validate_evm_config_data(data)
+    if errors:
+        raise ValueError("; ".join(errors))
+    write_evm_config_file(path, data)
+
+
 def format_evm_config_lines(
     evm: Optional[EvmSettings] = None,
     *,

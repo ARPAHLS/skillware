@@ -446,6 +446,7 @@ Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full ope
     skillware evm chains list
     skillware evm chains list --json
     skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+    skillware evm token add --chain base --symbol degen --address 0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed --decimals 18
     skillware evm rpc enable base
     skillware evm validate
     skillware evm open

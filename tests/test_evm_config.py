@@ -256,6 +256,25 @@ def test_init_evm_refuses_existing_without_force(tmp_path):
         init_evm_config_file(target, overwrite=False)
 
 
+def test_add_token_degen_on_base(tmp_path, monkeypatch):
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path))
+    from skillware.core.evm_config import add_token_to_config, default_global_evm_path
+
+    path = default_global_evm_path()
+    init_evm_config_file(path, overwrite=True, enabled_chains=["base"])
+    add_token_to_config(
+        path,
+        "base",
+        "degen",
+        {
+            "address": "0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+            "decimals": 18,
+        },
+    )
+    merged = load_merged_evm_config(refresh=True)
+    assert merged.tokens["base"]["degen"]["decimals"] == 18
+
+
 def test_add_chain_and_enable_roundtrip(tmp_path, monkeypatch):
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path))
     from skillware.core.evm_config import (

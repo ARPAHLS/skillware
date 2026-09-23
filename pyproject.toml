@@ -224,6 +224,9 @@ skills = ["**/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests", "skills"]
 addopts = "--ignore=examples"
+markers = [
+    "integration: live RPC tests (requires BASE_RPC_URL or ETHEREUM_RPC_URL in .env)",
+]
 
 [tool.black]
 line-length = 88

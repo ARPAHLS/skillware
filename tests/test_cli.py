@@ -1374,7 +1374,10 @@ def test_help_includes_addressbook_group():
 
 def test_cmd_addressbook_set_wallet(tmp_path, monkeypatch):
     from skillware.cli_addressbook import cmd_addressbook_set_wallet
-    from skillware.core.mail_config import init_addressbook_file, add_addressbook_contact
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
 
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
     path = tmp_path / "cfg" / "addressbook.yaml"
@@ -1394,7 +1397,10 @@ def test_cmd_addressbook_list_renders_table(tmp_path, monkeypatch):
     from rich.console import Console
 
     from skillware.cli_addressbook import cmd_addressbook_list
-    from skillware.core.mail_config import init_addressbook_file, add_addressbook_contact
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
 
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
     path = tmp_path / "cfg" / "addressbook.yaml"
@@ -1417,8 +1423,26 @@ def test_cmd_addressbook_open_uses_os_helper(tmp_path, monkeypatch):
     from skillware.cli_addressbook import cmd_addressbook_open
 
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
-    monkeypatch.setattr("skillware.cli_addressbook.open_path_in_os", lambda *a, **k: None)
+    monkeypatch.setattr(
+        "skillware.cli_addressbook.open_path_in_os", lambda *a, **k: None
+    )
     assert cmd_addressbook_open() == 0
+
+
+def test_cmd_evm_token_add_degen_on_base(tmp_path, monkeypatch):
+    from skillware.cli_evm import cmd_evm_init, cmd_evm_token_add
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    assert cmd_evm_init(non_interactive=True) == 0
+    assert (
+        cmd_evm_token_add(
+            chain_name="base",
+            symbol="degen",
+            address="0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+            decimals=18,
+        )
+        == 0
+    )
 
 
 def test_main_addressbook_list_subcommand(tmp_path, monkeypatch):

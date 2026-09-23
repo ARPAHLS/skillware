@@ -459,6 +459,7 @@ def test_update_preferences(skill, tmp_path):
 
 def test_missing_wallet_key_structured(skill, monkeypatch):
     monkeypatch.delenv("AGENT_WALLET_PRIVATE_KEY", raising=False)
+    monkeypatch.delenv("AGENT_PRIVATE_KEY", raising=False)
     result = skill.execute({"action": "wallet_info", "intent": {}})
     assert result["status"] == "missing_config"
     assert "AGENT_WALLET_PRIVATE_KEY" in result["setup"]["env_var"]

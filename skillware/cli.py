@@ -227,6 +227,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware evm init", "create user evm.yaml from bundled defaults"),
             ("skillware evm chains list", "table of chains and RPC readiness"),
             ("skillware evm chain add", "interactive custom chain wizard"),
+            ("skillware evm token add", "register a custom ERC-20 token"),
             ("skillware evm rpc enable <chain>", "enable a chain in evm.yaml"),
             ("skillware evm validate", "schema and checksum validation"),
             ("skillware evm open [--dir]", "open evm.yaml in OS file manager"),
@@ -2436,6 +2437,13 @@ def main() -> None:
     evm_chain_add.add_argument("--chain-id", dest="chain_id", type=int, default=None)
     evm_chain_add.add_argument("--rpc-env", default=None)
     evm_chain_add.add_argument("--rpc-url", default=None)
+    evm_token = evm_sub.add_parser("token", help="Token registry commands.")
+    evm_token_sub = evm_token.add_subparsers(dest="evm_action")
+    evm_token_add = evm_token_sub.add_parser("add", help="Add a custom ERC-20 token.")
+    evm_token_add.add_argument("--chain", dest="chain_name", default=None)
+    evm_token_add.add_argument("--symbol", default=None)
+    evm_token_add.add_argument("--address", default=None)
+    evm_token_add.add_argument("--decimals", type=int, default=None)
     evm_rpc = evm_sub.add_parser("rpc", help="RPC enablement helpers.")
     evm_rpc_sub = evm_rpc.add_subparsers(dest="evm_action")
     evm_rpc_enable = evm_rpc_sub.add_parser("enable", help="Enable a chain.")
@@ -2644,6 +2652,17 @@ def main() -> None:
                     chain_id=getattr(args, "chain_id", None),
                     rpc_env=getattr(args, "rpc_env", None),
                     rpc_url=getattr(args, "rpc_url", None),
+                )
+            )
+        if area == "token" and action == "add":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "token",
+                    "add",
+                    chain_name=getattr(args, "chain_name", None),
+                    symbol=getattr(args, "symbol", None),
+                    address=getattr(args, "address", None),
+                    decimals=getattr(args, "decimals", None),
                 )
             )
         if area == "rpc" and action == "enable":

@@ -17,6 +17,7 @@ from skillware.core.config import global_config_dir
 from skillware.core.evm_config import (
     ENV_EVM_CONFIG_PATH,
     add_chain_to_config,
+    add_token_to_config,
     bundled_evm_defaults_path,
     default_global_evm_path,
     enable_chain_in_config,
@@ -44,9 +45,10 @@ _EVM_SUBMENU = [
     ("2", "init", "create user evm.yaml from bundled defaults"),
     ("3", "chains list", "table of chains, RPC source, readiness"),
     ("4", "chain add", "interactive custom chain wizard"),
-    ("5", "rpc enable", "enable a bundled or custom chain"),
-    ("6", "validate", "schema and address checksum checks"),
-    ("7", "open", "open evm.yaml or its directory in the OS file manager"),
+    ("5", "token add", "register a custom ERC-20 token"),
+    ("6", "rpc enable", "enable a bundled or custom chain"),
+    ("7", "validate", "schema and address checksum checks"),
+    ("8", "open", "open evm.yaml or its directory in the OS file manager"),
 ]
 
 ReadLineFn = Optional[Callable[[str], Optional[str]]]
@@ -294,6 +296,74 @@ def cmd_evm_chain_add(
     return 0
 
 
+def cmd_evm_token_add(
+    console: Optional[Console] = None,
+    *,
+    input_fn: ReadLineFn = None,
+    chain_name: Optional[str] = None,
+    symbol: Optional[str] = None,
+    address: Optional[str] = None,
+    decimals: Optional[int] = None,
+) -> int:
+    _apply_active_theme()
+    console = console or Console()
+    path = resolve_evm_config_path()
+    if not path.is_file():
+        console.print(
+            "  evm.yaml missing — run: skillware evm init",
+            style=ERROR_STYLE,
+        )
+        return 1
+
+    chain = chain_name or _read_line("  Chain name (e.g. base): ", input_fn=input_fn)
+    if not chain or not str(chain).strip():
+        console.print("  Chain name is required.", style=ERROR_STYLE)
+        return 1
+    chain = str(chain).strip().lower()
+
+    sym = symbol or _read_line("  Token symbol (e.g. degen): ", input_fn=input_fn)
+    if not sym or not str(sym).strip():
+        console.print("  Token symbol is required.", style=ERROR_STYLE)
+        return 1
+    sym = str(sym).strip().lower()
+
+    token_address = address or _read_line(
+        "  Contract address (0x…): ", input_fn=input_fn
+    )
+    if not token_address or not str(token_address).strip():
+        console.print("  Token address is required.", style=ERROR_STYLE)
+        return 1
+
+    token_decimals = decimals
+    if token_decimals is None:
+        raw_dec = _read_line("  Decimals (e.g. 18): ", input_fn=input_fn)
+        if raw_dec is None or not str(raw_dec).strip():
+            console.print("  Decimals are required.", style=ERROR_STYLE)
+            return 1
+        try:
+            token_decimals = int(str(raw_dec).strip())
+        except ValueError:
+            console.print("  Decimals must be an integer.", style=ERROR_STYLE)
+            return 1
+
+    try:
+        add_token_to_config(
+            path,
+            chain,
+            sym,
+            {"address": str(token_address).strip(), "decimals": token_decimals},
+        )
+    except (ValueError, ImportError) as exc:
+        console.print(f"  {exc}", style=ERROR_STYLE)
+        return 1
+
+    console.print(
+        f"  Added token {sym!r} on chain {chain!r} to {path}",
+        style=MENU_STYLE,
+    )
+    return 0
+
+
 def cmd_evm_rpc_enable(
     chain_name: str,
     console: Optional[Console] = None,
@@ -402,7 +472,9 @@ def cmd_evm_submenu(
             cmd_evm_chains_list(console)
         elif lowered in {"4", "chain add"}:
             cmd_evm_chain_add(console, input_fn=input_fn)
-        elif lowered.startswith("5") or lowered.startswith("rpc enable"):
+        elif lowered in {"5", "token add"}:
+            cmd_evm_token_add(console, input_fn=input_fn)
+        elif lowered.startswith("6") or lowered.startswith("rpc enable"):
             parts = choice.split()
             chain = (
                 parts[-1]
@@ -411,11 +483,11 @@ def cmd_evm_submenu(
             )
             if chain:
                 cmd_evm_rpc_enable(str(chain), console)
-        elif lowered in {"6", "validate"}:
+        elif lowered in {"7", "validate"}:
             rc = cmd_evm_validate(console)
             if rc:
                 console.print(f"  validate exited {rc}", style=ERROR_DIM_STYLE)
-        elif lowered in {"7", "open"}:
+        elif lowered in {"8", "open"}:
             cmd_evm_open(console)
         else:
             console.print(f"  Unknown choice: {choice}", style=ERROR_DIM_STYLE)
@@ -456,6 +528,15 @@ def cmd_evm_dispatch(
             chain_id=kwargs.get("chain_id"),
             rpc_env=kwargs.get("rpc_env"),
             rpc_url=kwargs.get("rpc_url"),
+        )
+
+    if area == "token" and action == "add":
+        return cmd_evm_token_add(
+            console=console,
+            chain_name=kwargs.get("chain_name"),
+            symbol=kwargs.get("symbol"),
+            address=kwargs.get("address"),
+            decimals=kwargs.get("decimals"),
         )
 
     if area == "rpc" and action == "enable":
