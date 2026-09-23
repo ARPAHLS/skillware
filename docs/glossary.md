@@ -53,3 +53,11 @@ Retired: **Mind**, **Body**, **Conscience** as role names. Filenames did not cha
 | user (person running Skillware) | **operator** |
 | dummy (placeholder data) | mock, stub, **placeholder**, sample |
 | master a domain | cover / use a skill in a domain |
+
+## Operator configuration
+
+| Primary | Means | Avoid |
+| :--- | :--- | :--- |
+| **EVM operator config** | Writable `evm.yaml` plus `skillware.core.evm_config` merge helpers for chain IDs, `rpc_env` names, and token registry metadata shared by defi skills — see [EVM operator config](usage/evm_operator_config.md) | putting RPC URLs or private keys in YAML |
+| **Orchestration chain** | Named multi-skill pipeline under top-level `chains:` in `.skillware.yaml` (`skillware chain run`) | EVM blockchain network |
+| **EVM chain (network)** | JSON-RPC network entry (ethereum, base, …) under `evm:` / `evm.yaml` | orchestration **chain** |

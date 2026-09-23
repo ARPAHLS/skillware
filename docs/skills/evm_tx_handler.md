@@ -37,6 +37,10 @@ The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introductio
 | `BASE_RPC_URL` | If using `base` | JSON-RPC |
 | `COINGECKO_API_KEY` | No | USD preview and `max_trade_usd` enforcement |
 
+### RPC setup (shared across defi skills)
+
+Run `skillware evm init`, set `ETHEREUM_RPC_URL` / `BASE_RPC_URL` in `.env`, then `skillware evm chains list` to confirm readiness. Full guide: [EVM operator config](../usage/evm_operator_config.md). This skill still reads bundled `data/chains.yaml` today; [#373](https://github.com/ARPAHLS/skillware/issues/373) will merge operator `evm.yaml` with the bundle.
+
 ### Dedicated agent wallet (required for signing)
 
 1. Create a **new wallet** used only for this agent (limited funds).

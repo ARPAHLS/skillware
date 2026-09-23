@@ -31,6 +31,8 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).
 
+**Operator setup (all defi skills):** Configure shared EVM chains and RPC once — [`skillware evm init`](../usage/cli.md#skillware-evm), RPC URLs in `.env`. Guide: [EVM operator config](../usage/evm_operator_config.md).
+
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.2.0` (16 Jul 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent. |
