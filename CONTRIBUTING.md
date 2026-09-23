@@ -399,17 +399,17 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | Category | Purpose | Examples in registry |
 | :--- | :--- | :--- |
 | `creative` | Image processing, media editing, and creative utilities | `bg_remover`, `deck_builder` |
-| `compliance` | Privacy, policy, regulatory guardrails | `pii_masker`, `mica_module`, `tos_evaluator` |
-| `data_engineering` | Datasets, generation, ETL-style tooling | `synthetic_generator`, `novelty_extractor`, `semantic_web_proxy` |
-| `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
-| `dev_tools` | Developer workflows, issue resolution, repo tooling | `issue_resolver` |
-| `finance` | Blockchain, risk, financial analysis | `wallet_screening`, `uk_companies_house_handler` |
+| `compliance` | Privacy, policy, and regulatory guardrails | `pii_masker`, `mica_module`, `tos_evaluator` |
+| `data_engineering` | Datasets, generation, and ETL-style tooling | `synthetic_generator`, `novelty_extractor`, `semantic_web_proxy` |
+| `defi` | On-chain ops, trading, and agent wallet management | `evm_tx_handler` |
+| `dev_tools` | Developer workflows, repo tooling, and coding | `issue_resolver` |
+| `finance` | Fintech, blockchain, payments, and financial services | `wallet_screening`, `uk_companies_house_handler` |
 | `linguistics` | Language adapters and internet-register lexicons | `korean_slang` |
-| `office` | Documents, productivity, email | `pdf_form_filler`, `gmail_handler` |
-| `optimization` | Middleware, compression, efficiency | `prompt_rewriter`, `context_optimizer` |
-| `monitoring` | Agent loop observability, budget gates, task control | `token_limiter`, `kpi_gate` |
-| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall`, `deceptive_ui_guard` |
-| `wellness` | Coaching guardrails, mental health support | `mental_coach` |
+| `office` | Documents, desktop work, and productivity automation | `pdf_form_filler`, `gmail_handler` |
+| `optimization` | Middleware, efficiency, and token economics | `prompt_rewriter`, `context_optimizer` |
+| `monitoring` | Agent loop observability, budget gates, and task control | `token_limiter`, `kpi_gate` |
+| `security` | Defenses for untrusted input reaching logical systems | `prompt_injection_firewall`, `deceptive_ui_guard` |
+| `wellness` | Coaching guardrails and mental health support | `mental_coach` |
 
 ### Choosing a category
 

@@ -39,9 +39,9 @@ skillware addressbook validate
 skillware config show
 ```
 
-For **mail-only** workflows, `skillware mail addressbook init` is the same file — see [Gmail Handler — address book (mail)](../skills/gmail_handler.md#address-book-mail).
+For **mail-only** workflows, `skillware mail addressbook init` is the same file — see [Gmail Handler — address book (mail)](../skills/office/gmail_handler.md#address-book-mail).
 
-For **defi transfers by name**, contacts need `public_0x` — see [EVM Transaction Handler — transfers by contact name](../skills/evm_tx_handler.md#transfers-by-contact-name).
+For **defi transfers by name**, contacts need `public_0x` — see [EVM Transaction Handler — transfers by contact name](../skills/defi/evm_tx_handler.md#transfers-by-contact-name).
 
 ---
 
@@ -181,8 +181,8 @@ Skills should use these helpers rather than duplicating per-bundle `data/address
 
 | Skill | Doc | Uses |
 | :--- | :--- | :--- |
-| `office/gmail_handler` | [Gmail Handler](../skills/gmail_handler.md) | `emails`, aliases → SMTP recipients |
-| `defi/evm_tx_handler` | [EVM Transaction Handler](../skills/evm_tx_handler.md) | `public_0x`, aliases → transfer recipients |
+| `office/gmail_handler` | [Gmail Handler](../skills/office/gmail_handler.md) | `emails`, aliases → SMTP recipients |
+| `defi/evm_tx_handler` | [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) | `public_0x`, aliases → transfer recipients |
 
 Multi-skill recipe (pay on-chain, email receipt): [`examples/pay_and_notify_demo.py`](../../examples/pay_and_notify_demo.py) — edit `CONTACT_QUERY`, `AMOUNT_ETH`, and related constants; prerequisites listed in the script docstring.
 
@@ -219,8 +219,8 @@ The shared schema is intentionally small and YAML-first so operators can extend 
 - [CLI — skillware addressbook](cli.md#skillware-addressbook)
 - [EVM operator config](evm_operator_config.md) — chains, RPC, token registry
 - [API keys](api_keys.md) — Gmail App Password, EVM RPC, agent wallet key
-- [Gmail Handler](../skills/gmail_handler.md) — mail-specific address book usage
-- [EVM Transaction Handler](../skills/evm_tx_handler.md) — transfers by contact name
+- [Gmail Handler](../skills/office/gmail_handler.md) — mail-specific address book usage
+- [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — transfers by contact name
 - [Skill chaining](skill_chaining.md) — multi-skill host orchestration
 - [Examples index](../../examples/README.md) — `gemini_gmail_minimal.py`, `pay_and_notify_demo.py`
 - [Glossary](../glossary.md#operator-configuration)

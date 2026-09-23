@@ -104,18 +104,18 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 
 | Category | Skills | Description |
 | :--- | :---: | :--- |
-| [Office](docs/skills/office/README.md) | 2 | Documents, email, and productivity automation |
-| [Creative](docs/skills/creative/README.md) | 2 | Image processing and presentation assembly |
-| [Finance](docs/skills/finance/README.md) | 2 | Wallet risk, sanctions, and company-registry diligence |
-| [DeFi](docs/skills/defi/README.md) | 1 | On-chain quotes, previews, and agent-wallet execution |
-| [Optimization](docs/skills/optimization/README.md) | 2 | Prompt compression and context-window selection |
-| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Synthetic data, novelty filtering, and web-to-Markdown |
-| [Compliance](docs/skills/compliance/README.md) | 3 | Local PII, MiCA policy, and site-terms evaluation |
-| [Security](docs/skills/security/README.md) | 2 | Prompt injection and deceptive UI defenses for untrusted input |
-| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | GitHub issue resolution and repo workflows |
-| [Monitoring](docs/skills/monitoring/README.md) | 2 | Token budgets and fail-closed KPI gates for agent loops |
-| [Wellness](docs/skills/wellness/README.md) | 1 | Crisis triage and scoped coaching guardrails |
-| [Linguistics](docs/skills/linguistics/README.md) | 1 | Informal and internet-register language adapters |
+| [Office](docs/skills/office/README.md) | 2 | Documents, desktop work, and productivity automation |
+| [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
+| [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
+| [DeFi](docs/skills/defi/README.md) | 1 | On-chain ops, trading, and agent wallet management |
+| [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
+| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
+| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
+| [Security](docs/skills/security/README.md) | 2 | Defenses for untrusted input reaching logical systems |
+| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
+| [Monitoring](docs/skills/monitoring/README.md) | 2 | Agent loop observability, budget gates, and task control |
+| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
+| [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
 
 ## Quick Start
 
