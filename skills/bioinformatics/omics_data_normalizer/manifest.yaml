@@ -1,0 +1,42 @@
+name: "bioinformatics/omics_data_normalizer"
+version: "0.1.0"
+description: "Normalizes CSV or TSV multi-omics tables into FAIR-oriented metadata and JSON records."
+short_description: "Validate and package multi-omics tables for reliable agent reasoning."
+issuer:
+  name: Miemie Wu
+  email: 18373026967@163.com
+  github: miemie7wu
+category: "bioinformatics"
+parameters:
+  type: object
+  properties:
+    raw_csv_path:
+      type: string
+      description: "Local path to a CSV or TSV genomics or transcriptomics table."
+    target_standard:
+      type: string
+      minLength: 1
+      description: "Metadata standard requested by the caller, for example MIAME."
+  required:
+    - raw_csv_path
+    - target_standard
+outputs:
+  status:
+    type: string
+    description: "normalized or error."
+  fair_compliant_json_path:
+    type: string
+    description: "Path to the generated FAIR-oriented JSON package when successful."
+  missing_metadata_warnings:
+    type: array
+    description: "Expected metadata fields that were not present in the input header."
+requirements:
+  - "pandas>=2.0"
+env_vars: {}
+constitution: |
+  1. Only inspect and restructure local tabular data; do not diagnose disease or infer biological conclusions.
+  2. Do not run alignment, quantification, or other heavy genomic workflows.
+  3. Report missing metadata explicitly instead of inventing values.
+presentation:
+  icon: "database"
+  color: "#2E7D32"

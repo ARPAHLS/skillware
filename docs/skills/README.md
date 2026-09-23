@@ -52,6 +52,13 @@ Skills tailored for generating, parsing, and orchestrating large datasets for ma
 | **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 | **[Semantic Web Proxy](semantic_web_proxy.md)** | `data_engineering/semantic_web_proxy` | `0.1.0` (5 Sep 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Converts a live web page or raw HTML into token-efficient Markdown, text, or JSON, stripping boilerplate behind an SSRF guard and reporting estimated token savings. |
 
+## Bioinformatics
+Deterministic data preparation skills for biological and multi-omics workflows.
+
+| Skill | ID | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **[Multi-Omics FAIR Normalizer](omics_data_normalizer.md)** | `bioinformatics/omics_data_normalizer` | `0.1.0` | @miemie7wu | Validates local CSV or TSV omics tables, normalizes headers, preserves records, and reports missing metadata without making biological inferences. |
+
 ## Compliance
 Enforces privacy, guardrails, and secure handling of sensitive data before it reaches external endpoints.
 
