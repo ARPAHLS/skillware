@@ -2221,7 +2221,9 @@ def main() -> None:
     ab_remove_mail = mail_addressbook_sub.add_parser("remove", help="Delete a contact.")
     ab_remove_mail.add_argument("contact_id")
     ab_remove_mail.add_argument("--yes", action="store_true")
-    ab_open_mail = mail_addressbook_sub.add_parser("open", help="Open addressbook.yaml.")
+    ab_open_mail = mail_addressbook_sub.add_parser(
+        "open", help="Open addressbook.yaml."
+    )
     ab_open_mail.add_argument("--dir", action="store_true")
     ab_set = mail_addressbook_sub.add_parser(
         "set-path",

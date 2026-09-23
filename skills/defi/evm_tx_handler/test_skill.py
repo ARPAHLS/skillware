@@ -529,7 +529,10 @@ def test_wallet_info_no_secrets(skill):
 
 
 def test_transfer_missing_config_without_wallet(skill, tmp_path, monkeypatch):
-    from skillware.core.mail_config import init_addressbook_file, add_addressbook_contact
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
 
     ab_path = tmp_path / "addressbook.yaml"
     init_addressbook_file(ab_path)
@@ -558,7 +561,10 @@ def test_transfer_missing_config_without_wallet(skill, tmp_path, monkeypatch):
 
 
 def test_transfer_resolves_unique_central_contact(skill, tmp_path, monkeypatch):
-    from skillware.core.mail_config import init_addressbook_file, add_addressbook_contact
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
 
     ab_path = tmp_path / "addressbook.yaml"
     init_addressbook_file(ab_path)
@@ -571,12 +577,14 @@ def test_transfer_resolves_unique_central_contact(skill, tmp_path, monkeypatch):
     )
     monkeypatch.setenv("GMAIL_ADDRESSBOOK_PATH", str(ab_path))
 
-    with patch.object(EvmTxHandlerSkill, "_get_web3") as mock_web3, patch.object(
-        EvmTxHandlerSkill, "_sign_and_send", return_value="0xabc"
-    ), patch.object(
-        EvmTxHandlerSkill,
-        "_wait_receipt",
-        return_value={"block_number": 1, "gas_used": 21000, "success": True},
+    with (
+        patch.object(EvmTxHandlerSkill, "_get_web3") as mock_web3,
+        patch.object(EvmTxHandlerSkill, "_sign_and_send", return_value="0xabc"),
+        patch.object(
+            EvmTxHandlerSkill,
+            "_wait_receipt",
+            return_value={"block_number": 1, "gas_used": 21000, "success": True},
+        ),
     ):
         w3 = MagicMock()
         w3.eth.gas_price = 10**9
@@ -613,7 +621,10 @@ def test_transfer_resolves_unique_central_contact(skill, tmp_path, monkeypatch):
 
 
 def test_transfer_ambiguous_two_wallets(skill, tmp_path, monkeypatch):
-    from skillware.core.mail_config import init_addressbook_file, add_addressbook_contact
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
 
     ab_path = tmp_path / "addressbook.yaml"
     init_addressbook_file(ab_path)
