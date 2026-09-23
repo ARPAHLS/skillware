@@ -16,22 +16,26 @@ from skillware.core.mail_config import (
     DEFAULT_SIGNATURE_HTML,
     DEFAULT_SIGNATURE_PLAIN,
     ENV_ADDRESSBOOK_PATH,
+    ENV_EVM_ADDRESSBOOK_PATH,
     ENV_SIGNATURE_PLAIN,
     MailSettings,
     SKILLWARE_GITHUB_URL,
     SKILLWARE_SITE_URL,
     add_addressbook_contact,
+    delete_addressbook_contact,
     init_signature_bundle,
     init_addressbook_file,
     load_project_mail_settings,
     merge_mail_settings,
     parse_mail_block,
     resolve_addressbook_path,
+    resolve_recipient_query,
     resolve_signature_html,
     resolve_signature_plain,
     resolve_signature_profile,
     save_global_mail_settings,
     save_project_mail_settings,
+    set_addressbook_wallet,
     set_active_signature_profile,
     upsert_signature_profile,
     slugify_contact_id,
@@ -239,6 +243,109 @@ def test_signature_profiles_resolve(tmp_path):
     assert text == "<p>B</p>"
     assert source == "profile_html_path:formal"
     assert resolve_signature_profile(mail=mail) == "formal"
+
+
+def test_validate_crypto_native_contact_only():
+    data = {
+        "contacts": {
+            "chad": {
+                "display_name": "Chad",
+                "public_0x": "0x1234567890123456789012345678901234567890",
+            }
+        },
+        "org_domains": {},
+    }
+    assert not validate_addressbook_data(data)
+
+
+def test_validate_contact_with_email_and_wallet():
+    data = {
+        "contacts": {
+            "john": {
+                "display_name": "John",
+                "emails": ["john@example.com"],
+                "public_0x": "0x1234567890123456789012345678901234567890",
+            }
+        },
+        "org_domains": {},
+    }
+    assert not validate_addressbook_data(data)
+
+
+def test_reject_invalid_public_0x():
+    errors = validate_addressbook_data(
+        {
+            "contacts": {
+                "bad": {
+                    "display_name": "Bad",
+                    "public_0x": "0x123",
+                }
+            },
+            "org_domains": {},
+        }
+    )
+    assert any("public_0x" in item for item in errors)
+
+
+def test_resolve_recipient_query_disambiguation():
+    data = {
+        "contacts": {
+            "john_doe": {
+                "display_name": "John Doe",
+                "aliases": ["john"],
+                "public_0x": "0x1111111111111111111111111111111111111111",
+            },
+            "john_smith": {
+                "display_name": "John Smith",
+                "aliases": ["john"],
+                "public_0x": "0x2222222222222222222222222222222222222222",
+            },
+        },
+        "org_domains": {},
+    }
+    result = resolve_recipient_query(data, "John Doe")
+    assert result["status"] == "resolved"
+    assert result["recipient_source"] == "addressbook:john_doe"
+
+    by_id = resolve_recipient_query(data, "john_doe")
+    assert by_id["status"] == "resolved"
+
+    multi = resolve_recipient_query(data, "john")
+    assert multi["status"] == "needs_input"
+    assert len(multi["ambiguous_recipient"]["candidates"]) == 2
+
+
+def test_set_addressbook_wallet(tmp_path):
+    path = tmp_path / "addressbook.yaml"
+    init_addressbook_file(path)
+    add_addressbook_contact(
+        path,
+        display_name="Jane",
+        email="jane@example.com",
+    )
+    set_addressbook_wallet(
+        path,
+        "jane",
+        "0x1234567890123456789012345678901234567890",
+    )
+    data = path.read_text(encoding="utf-8")
+    assert "public_0x" in data
+
+
+def test_delete_addressbook_contact(tmp_path):
+    path = tmp_path / "addressbook.yaml"
+    init_addressbook_file(path)
+    add_addressbook_contact(path, display_name="Jane", email="jane@example.com")
+    delete_addressbook_contact(path, "jane")
+    assert "jane" not in path.read_text(encoding="utf-8")
+
+
+def test_evm_addressbook_path_env_override(tmp_path, monkeypatch):
+    env_path = tmp_path / "env_ab.yaml"
+    env_path.write_text("contacts: {}\norg_domains: {}\n", encoding="utf-8")
+    monkeypatch.setenv(ENV_EVM_ADDRESSBOOK_PATH, str(env_path))
+    resolved = resolve_addressbook_path(mail=MailSettings())
+    assert resolved == env_path.resolve()
 
 
 def test_upsert_and_set_signature_profile(tmp_path, monkeypatch):

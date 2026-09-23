@@ -3,7 +3,7 @@
 **ID**: `defi/evm_tx_handler`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 16 Jul 2026
+**Version**: `0.3.0`
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[defi_evm_tx_handler]"`. See [Install extras](../usage/install_extras.md).
@@ -39,7 +39,11 @@ The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introductio
 
 ### RPC setup (shared across defi skills)
 
-Run `skillware evm init`, set `ETHEREUM_RPC_URL` / `BASE_RPC_URL` in `.env`, then `skillware evm chains list` to confirm readiness. Full guide: [EVM operator config](../usage/evm_operator_config.md). This skill still reads bundled `data/chains.yaml` today; [#373](https://github.com/ARPAHLS/skillware/issues/373) will merge operator `evm.yaml` with the bundle.
+Run `skillware evm init`, set `ETHEREUM_RPC_URL` / `BASE_RPC_URL` in `.env`, then `skillware evm chains list` to confirm readiness. Full guide: [EVM operator config](../usage/evm_operator_config.md). Custom chains and tokens from operator `evm.yaml` merge with bundled registries at runtime.
+
+### Transfers by contact name
+
+Configure recipients in the shared address book — `skillware addressbook init`, then `skillware addressbook set-wallet <contact_id> <0x…>`. The skill resolves `recipient` against contact id, display name, and aliases; multiple wallet matches return `status: needs_input` with `ambiguous_recipient.candidates`. CLI guide: [`skillware addressbook`](../usage/cli.md#skillware-addressbook).
 
 ### Dedicated agent wallet (required for signing)
 
@@ -61,9 +65,9 @@ Copy `skills/defi/evm_tx_handler/config.yaml.example` to `config.yaml` in the sa
 
 ## Registry data
 
-- `data/chains.yaml` — chain IDs, RPC env keys, explorers, Uni V2 routers  
+- Bundled `data/chains.yaml` + operator **`evm.yaml`** (via `skillware.core.evm_config`) — chain IDs, RPC env keys, explorers, Uni V2 routers  
 - `data/tokens.yaml` — symbol → contract per chain  
-- `data/addressbook.yaml` — label → address (replace placeholders before mainnet use)
+- Central **`addressbook.yaml`** (`public_0x` on contacts) via `skillware addressbook` — legacy bundled `data/addressbook.yaml` labels still work as fallback
 
 ## Usage Examples
 

@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
@@ -13,6 +11,7 @@ from rich.table import Table
 from rich.text import Text
 from rich import box
 
+from skillware.cli_os import open_path_in_os
 from skillware.cli_theme import THEMES, active_theme
 from skillware.core.config import global_config_dir
 from skillware.core.evm_config import (
@@ -84,18 +83,6 @@ def _parse_nav(raw: Optional[str]) -> Tuple[str, Optional[str]]:
     if lowered in {"b", "back"}:
         return "", _NAV_BACK
     return text, None
-
-
-def open_path_in_os(path: Path, *, open_parent: bool = False) -> None:
-    """Open a file or its parent directory in the native file manager."""
-    target = path.parent if open_parent else path
-    if sys.platform == "win32":
-        os.startfile(str(target))  # type: ignore[attr-defined]
-        return
-    if sys.platform == "darwin":
-        subprocess.run(["open", str(target)], check=False)
-        return
-    subprocess.run(["xdg-open", str(target)], check=False)
 
 
 def cmd_evm_show(console: Optional[Console] = None) -> int:

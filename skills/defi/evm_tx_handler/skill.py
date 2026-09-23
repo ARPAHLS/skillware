@@ -11,6 +11,7 @@ import re
 import sys
 import time
 from decimal import Decimal, ROUND_DOWN
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -65,9 +66,9 @@ class EvmTxHandlerSkill(BaseSkill):
         super().__init__(config or {})
         self._skill_dir = os.path.dirname(os.path.abspath(__file__))
         self._data_dir = os.path.join(self._skill_dir, "data")
-        self.chains = self._load_yaml("chains.yaml")
-        self.tokens = self._load_yaml("tokens.yaml")
-        self.addressbook = self._load_yaml("addressbook.yaml")
+        self._legacy_addressbook = self._load_yaml("addressbook.yaml")
+        self.chains = self._build_chain_registry()
+        self.tokens = self._build_token_registry()
         self.user_config = self._load_user_config()
         self._web3_cache: Dict[str, Web3] = {}
 
@@ -117,6 +118,44 @@ class EvmTxHandlerSkill(BaseSkill):
         with open(path, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         return data if isinstance(data, dict) else {}
+
+    def _build_chain_registry(self) -> Dict[str, Any]:
+        bundle = self._load_yaml("chains.yaml")
+        try:
+            from skillware.core.evm_config import load_merged_evm_config
+
+            merged = load_merged_evm_config()
+            result = copy.deepcopy(bundle)
+            for name, cfg in merged.chains.items():
+                if not isinstance(cfg, dict):
+                    continue
+                if cfg.get("enabled") is False:
+                    result.pop(name, None)
+                    continue
+                overlay = {k: v for k, v in cfg.items() if k != "enabled"}
+                if name in result:
+                    result[name].update(overlay)
+                else:
+                    result[name] = overlay
+            return result
+        except Exception:
+            return bundle
+
+    def _build_token_registry(self) -> Dict[str, Any]:
+        bundle = self._load_yaml("tokens.yaml")
+        try:
+            from skillware.core.evm_config import load_merged_evm_config
+
+            merged = load_merged_evm_config()
+            result = copy.deepcopy(bundle)
+            for chain, chain_tokens in merged.tokens.items():
+                if not isinstance(chain_tokens, dict):
+                    continue
+                result.setdefault(chain, {})
+                result[chain].update(chain_tokens)
+            return result
+        except Exception:
+            return bundle
 
     def _load_user_config(self) -> Dict[str, Any]:
         defaults = {
@@ -178,26 +217,60 @@ class EvmTxHandlerSkill(BaseSkill):
             meta["address"] = Web3.to_checksum_address(meta["address"])
         return meta
 
-    def _resolve_recipient(self, recipient: str) -> str:
+    def _resolve_recipient_detail(self, recipient: str) -> Dict[str, Any]:
         raw = recipient.strip()
         if _ETH_ADDRESS_RE.match(raw):
-            return Web3.to_checksum_address(raw)
+            return {
+                "status": "resolved",
+                "address": Web3.to_checksum_address(raw),
+                "recipient_source": "explicit",
+            }
+
         label = raw.lower()
-        if label in self.addressbook:
-            return Web3.to_checksum_address(str(self.addressbook[label]))
-        raise ValueError(
-            f"Recipient {recipient!r} is not a valid address or addressbook label."
+        legacy = self._legacy_addressbook.get(label)
+        if legacy:
+            return {
+                "status": "resolved",
+                "address": Web3.to_checksum_address(str(legacy)),
+                "recipient_source": f"legacy:{label}",
+            }
+
+        from skillware.core.mail_config import (
+            load_addressbook_yaml,
+            resolve_addressbook_path,
+            resolve_recipient_query,
         )
 
+        path = resolve_addressbook_path(skill_data_dir=Path(self._data_dir))
+        data = load_addressbook_yaml(path)
+        result = resolve_recipient_query(data, raw)
+        if result.get("status") == "resolved":
+            return result
+        return result
+
+    def _resolve_recipient(self, recipient: str) -> str:
+        detail = self._resolve_recipient_detail(recipient)
+        if detail.get("status") == "resolved":
+            return str(detail["address"])
+        message = detail.get("message") or detail.get("agent_hint") or (
+            f"Recipient {recipient!r} could not be resolved."
+        )
+        raise ValueError(message)
+
     def _rpc_url(self, chain: str) -> str:
-        chain_cfg = self.chains[chain]
-        env_key = chain_cfg.get("rpc_env")
-        if not env_key:
-            raise ValueError(f"chains.yaml missing rpc_env for {chain!r}.")
-        url = self.credential(env_key)
-        if not url:
-            raise ValueError(f"Missing RPC: set environment variable {env_key}.")
-        return url
+        try:
+            from skillware.core.evm_config import resolve_rpc_url
+
+            return resolve_rpc_url(chain, credential_fn=self.credential)
+        except Exception:
+            chain_cfg = self.chains[chain]
+            env_key = chain_cfg.get("rpc_env")
+            if not env_key:
+                raise ValueError(f"chains.yaml missing rpc_env for {chain!r}.")
+            url = self.credential(env_key)
+            if not url:
+                raise ValueError(f"Missing RPC: set environment variable {env_key}.")
+            return url
 
     def _get_web3(self, chain: str) -> Web3:
         if chain not in self._web3_cache:
@@ -934,7 +1007,17 @@ class EvmTxHandlerSkill(BaseSkill):
         if not resolved.get("recipient"):
             return self._error("recipient is required for transfer.")
 
-        recipient = self._resolve_recipient(str(resolved["recipient"]))
+        recipient_detail = self._resolve_recipient_detail(str(resolved["recipient"]))
+        if recipient_detail.get("status") != "resolved":
+            response = dict(recipient_detail)
+            response["action"] = "transfer"
+            if response.get("status") == "error":
+                response["message"] = response.get("message") or response.get(
+                    "agent_hint"
+                )
+            return response
+
+        recipient = str(recipient_detail["address"])
         token = self._resolve_token_meta(chain, str(resolved["target_asset"]))
         w3 = self._get_web3(chain)
         amount_wei = self._to_wei(float(resolved["amount"]), token["decimals"])
@@ -997,6 +1080,8 @@ class EvmTxHandlerSkill(BaseSkill):
             "tx_hash": tx_hash,
             "explorer_url": self._explorer_url(chain, tx_hash),
             "recipient_resolved": recipient,
+            "recipient_source": recipient_detail.get("recipient_source"),
+            "recipient_name": recipient_detail.get("recipient_name"),
             "receipt": receipt,
         }
 
