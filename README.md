@@ -194,7 +194,8 @@ More providers and patterns: [usage guides](docs/usage/README.md).
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Operator config** | [EVM operator config](docs/usage/evm_operator_config.md) · [Address book operator config](docs/usage/addressbook_operator_config.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Glossary](docs/glossary.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
 
