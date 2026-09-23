@@ -18,7 +18,7 @@ scanner for ERC-20 / LP token contracts on supported EVM chains (GoPlus Token Se
 
 | Action | Use when |
 |--------|----------|
-| `supported_chains` | List slugs and GoPlus chain IDs |
+| `supported_chains` | List enabled slugs from operator EVM config |
 | `scan` | Vet a contract before quoting/buying |
 
 ### `scan` parameters
@@ -26,6 +26,8 @@ scanner for ERC-20 / LP token contracts on supported EVM chains (GoPlus Token Se
 ```json
 {"action": "scan", "chain": "base", "contract": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed"}
 ```
+
+Chain slugs come from shared `skillware.core.evm_config` (bundled defaults: `ethereum`, `base`). Add more GoPlus-capable networks with `skillware evm chain add` — do not expect a per-skill `chains.yaml`.
 
 ### How to read the report
 
@@ -36,6 +38,8 @@ scanner for ERC-20 / LP token contracts on supported EVM chains (GoPlus Token Se
    via `finance/wallet_screening`, then preview buy with `defi/evm_tx_handler`.
 5. Treat `null` signal fields as **unknown** (especially when source is not open, or proxy).
 6. Always mention `sources[].provider` and that coverage varies by chain (`warnings`).
+
+Suggested host pre-trade path: optional `security/drainer_pattern_guard` (when available) → this skill → `defi/evm_tx_handler` preview/execute. Token metadata belongs in operator `evm.tokens`, not the address book.
 
 ## Constitution reminders
 

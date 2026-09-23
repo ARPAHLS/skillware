@@ -5,10 +5,15 @@
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 19 Sep 2026
 <!-- skill-doc-meta:end -->
+<!-- skill-intent:begin -->
+**Solves:** Vet an ERC-20 / LP contract for honeypot, tax, ownership, and related risk before an agent trades.
+**Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
+**Runtime:** Optional `GOPLUS_APP_KEY`; chain slugs from shared EVM operator config (no RPC required for GoPlus scan).
+<!-- skill-intent:end -->
 
-**Recommended install:** `pip install "skillware[defi_token_security_scanner]"`. See [Install extras](../usage/install_extras.md).
+**Recommended install:** `pip install "skillware[defi_token_security_scanner]"`. See [Install extras](../../usage/install_extras.md).
 
-[Skill Library](README.md) · [Testing](../TESTING.md)
+[Skill Library](../README.md) · [DeFi hub](README.md) · [Glossary](../../glossary.md) · [Testing](../../TESTING.md)
 
 Read-only **ERC-20 / LP token** safety report for agents. Calls the [GoPlus Token Security API](https://docs.gopluslabs.io/), normalizes honeypot/tax/ownership/proxy/mint signals into a stable JSON envelope, and never signs or swaps. Use **before** `defi/evm_tx_handler` preview/execute.
 
@@ -17,7 +22,7 @@ Read-only **ERC-20 / LP token** safety report for agents. Calls the [GoPlus Toke
 | Action | Description |
 |--------|-------------|
 | `scan` | Fetch GoPlus signals for `{chain, contract}` → `risk_tier` + `signals` |
-| `supported_chains` | List bundled chain slugs and GoPlus chain IDs |
+| `supported_chains` | List enabled chain slugs from operator EVM config (+ GoPlus `chain_id`) |
 
 ## Environment
 
@@ -25,18 +30,19 @@ Read-only **ERC-20 / LP token** safety report for agents. Calls the [GoPlus Toke
 | :--- | :--- | :--- |
 | `GOPLUS_APP_KEY` | No | Optional Bearer token for higher limits / authenticated GoPlus access. Free permissionless Token Security calls work without it. |
 
-No private keys. No wallet address required. See [API keys for skills](../usage/api_keys.md).
+No private keys. No wallet address required. See [API keys for skills](../../usage/api_keys.md).
 
 ## Agent notes
 
 - **`risk_tier`**: `critical` / `high` → refuse trade; `medium` → human confirm; `low` → still not financial advice; `unknown` → missing signals.
 - **`null` signals** mean unknown (common for closed-source or proxy contracts) — do not treat as safe.
 - **Chain coverage** varies; always surface `warnings`.
-- **Chaining (host-side):** `scan` → optional `finance/wallet_screening` on large holders → `defi/evm_tx_handler` preview. Holder screening is out of scope for v0.1.
+- **Chaining (host-side):** suggested pre-trade path — optional `security/drainer_pattern_guard` (when shipped) → `scan` → `defi/evm_tx_handler` preview/execute. Optional holder EOAs → `finance/wallet_screening`. Tokens stay in operator `evm.tokens`, not the address book.
+- **Chains:** enabled slugs from operator EVM config (`skillware evm`); add further GoPlus-supported networks via `skillware evm chain add` (see [EVM operator config](../../usage/evm_operator_config.md)).
 
 ## Bundle layout
 
-The skill lives in `skills/defi/token_security_scanner/`. Roles: [Skill anatomy](../introduction.md#skill-anatomy). **Contract** — `manifest.yaml`. **Assurance** — `test_skill.py` in the bundle.
+The skill lives in `skills/defi/token_security_scanner/`. Roles: [Skill anatomy](../../introduction.md#skill-anatomy). **Contract** — `manifest.yaml`. **Assurance** — `test_skill.py` in the bundle.
 
 ### Effect (`skill.py`)
 
@@ -48,12 +54,12 @@ When to call `scan`, how to interpret tiers, constitution reminders.
 
 ### Corpus
 
-- `data/chains.yaml` — slug → GoPlus `chain_id`
+- Chain slugs / `chain_id` from shared [`skillware.core.evm_config`](../../usage/evm_operator_config.md) (no per-bundle `chains.yaml`)
 - `fixtures/` — recorded GoPlus JSON for CI (no live network)
 
 ## Usage Examples
 
-Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.md) · [API keys](../usage/api_keys.md).
+Guides: [Usage index](../../usage/README.md) · [Agent loops](../../usage/agent_loops.md) · [API keys](../../usage/api_keys.md).
 
 Use `bundle["class"]()` in the snippets below; explicit `bundle["module"].ClassName()` also works.
 
@@ -254,6 +260,7 @@ pytest skills/defi/token_security_scanner/test_skill.py -q
 
 - EVM Token Security only (no Solana / NFT collections / MEV simulation).
 - Single provider (GoPlus); no DexScreener market chrome.
+- Chain coverage follows operator EVM config (bundled defaults: `ethereum`, `base`); not a Solana skill.
 - Does not replace a professional audit or live Chainalysis/TRM feeds.
 
 <!-- skill-history:begin -->

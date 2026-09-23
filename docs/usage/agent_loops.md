@@ -148,6 +148,12 @@ All [skill catalog pages](../skills/README.md) include compact **Usage Examples*
 agent loop. It either calls `skill.execute(...)` directly or loads multiple
 skills in one harness.
 
+**Suggested DeFi pre-trade host path:** optional `security/drainer_pattern_guard`
+(when shipped) → `defi/token_security_scanner` → `defi/evm_tx_handler`
+preview/execute. Optional large-holder EOAs → `finance/wallet_screening`.
+Use shared EVM operator config for chains (#379); tokens in `evm.tokens`, not
+the address book.
+
 | Skill | Local execute / mixed | Gemini | Claude | OpenAI | DeepSeek | Ollama |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |

@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import requests
 import yaml
 from skillware.core.base_skill import BaseSkill
+from skillware.core.evm_config import list_configured_chains, resolve_chain
 
 _SKILL_DIR = os.path.dirname(os.path.abspath(__file__))
 _GOPLUS_BASE = "https://api.gopluslabs.io/api/v1/token_security"
@@ -26,7 +27,6 @@ class TokenSecurityScannerSkill(BaseSkill):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
-        self.chains = self._load_chains()
         self._session = requests.Session()
 
     @property
@@ -58,14 +58,18 @@ class TokenSecurityScannerSkill(BaseSkill):
     # --- Actions ---
 
     def _supported_chains(self) -> Dict[str, Any]:
-        chains = [
-            {
-                "slug": slug,
-                "chain_id": meta["chain_id"],
-                "label": meta.get("label", slug),
-            }
-            for slug, meta in sorted(self.chains.items(), key=lambda item: item[0])
-        ]
+        chains = []
+        for slug, meta in list_configured_chains(enabled_only=True):
+            chain_id = meta.get("chain_id")
+            if chain_id is None:
+                continue
+            chains.append(
+                {
+                    "slug": slug,
+                    "chain_id": str(chain_id),
+                    "label": meta.get("label") or slug,
+                }
+            )
         return {
             "status": "ok",
             "chains": chains,
@@ -81,12 +85,19 @@ class TokenSecurityScannerSkill(BaseSkill):
                 "missing_chain",
                 "Action 'scan' requires 'chain' " "(call supported_chains for slugs).",
             )
-        if chain not in self.chains:
+        try:
+            chain_cfg = resolve_chain(chain)
+        except ValueError as exc:
+            return self._error("unsupported_chain", str(exc))
+
+        chain_id_raw = chain_cfg.get("chain_id")
+        if chain_id_raw is None:
             return self._error(
                 "unsupported_chain",
-                f"Chain '{chain}' is not supported. "
-                "Call supported_chains for the list.",
+                f"Chain '{chain}' has no chain_id in EVM config.",
             )
+        chain_id = str(chain_id_raw)
+
         if not contract_raw:
             return self._error(
                 "missing_contract",
@@ -98,7 +109,6 @@ class TokenSecurityScannerSkill(BaseSkill):
             return self._error("invalid_contract", contract_or_err)
 
         contract = contract_or_err
-        chain_id = str(self.chains[chain]["chain_id"])
         warnings: List[str] = [
             "API coverage varies by chain",
             "Not a substitute for a professional audit",
@@ -351,16 +361,18 @@ class TokenSecurityScannerSkill(BaseSkill):
 
     # --- Helpers ---
 
-    def _load_chains(self) -> Dict[str, Dict[str, Any]]:
-        path = os.path.join(_SKILL_DIR, "data", "chains.yaml")
-        with open(path, "r", encoding="utf-8") as handle:
-            data = yaml.safe_load(handle) or {}
-        if not isinstance(data, dict):
-            return {}
-        return {str(k).lower(): v for k, v in data.items() if isinstance(v, dict)}
-
     @staticmethod
     def _normalize_address(value: str) -> Tuple[bool, str]:
+        """Validate hex address; checksum when web3 is present, else lowercase."""
+        try:
+            from skillware.core.evm_config import normalize_evm_address
+
+            return True, normalize_evm_address(value).lower()
+        except ImportError:
+            pass
+        except ValueError as exc:
+            return False, str(exc)
+
         if not _ADDRESS_RE.match(value):
             return False, (
                 f"Invalid contract address '{value}'. "
