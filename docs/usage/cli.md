@@ -40,8 +40,9 @@ After installation, the `skillware` command is available directly:
     skillware context show
     skillware chain list
     skillware theme ocean
-    skillware mail addressbook show
+    skillware addressbook list
     skillware evm chains list
+    skillware evm tokens list
     skillware test
     skillware examples
     skillware --version
@@ -408,6 +409,33 @@ Test signature in your inbox (requires `.env` credentials):
 
 Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
 
+### skillware addressbook
+
+Shared operator **identity directory** for mail and defi skills (`public_0x` EVM wallets on contacts). **`skillware mail addressbook …`** remains a backward-compatible alias.
+
+    skillware addressbook
+    skillware addressbook list
+    skillware addressbook list --with-wallet
+    skillware addressbook list --search john
+    skillware addressbook list --json
+    skillware addressbook init
+    skillware addressbook add
+    skillware addressbook edit john_doe
+    skillware addressbook set-wallet john_doe 0x71C7656EC7ab08859a784ab83b021a667C1D9f9
+    skillware addressbook remove john_doe --yes
+    skillware addressbook validate
+    skillware addressbook open
+    skillware addressbook open --dir
+
+Interactive menu: **`10` / `addressbook`**. Full operator guide: [Address book operator config](addressbook_operator_config.md). See also [EVM operator config](evm_operator_config.md) (tokens vs people).
+
+### skillware config open
+
+Open global or project config in the OS file manager:
+
+    skillware config open
+    skillware config open --dir
+
 ### skillware evm
 
 Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full operator guide:** [EVM operator config](evm_operator_config.md) (checklist, precedence, custom chains, tokens vs address book). This is **not** [`skillware chain`](#skillware-chain) (orchestration pipelines).
@@ -419,6 +447,9 @@ Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full ope
     skillware evm chains list
     skillware evm chains list --json
     skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+    skillware evm tokens list
+    skillware evm tokens list --json
+    skillware evm token add --chain base --symbol degen --address 0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed --decimals 18
     skillware evm rpc enable base
     skillware evm validate
     skillware evm open

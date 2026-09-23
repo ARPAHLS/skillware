@@ -59,5 +59,7 @@ Retired: **Mind**, **Body**, **Conscience** as role names. Filenames did not cha
 | Primary | Means | Avoid |
 | :--- | :--- | :--- |
 | **EVM operator config** | Writable `evm.yaml` plus `skillware.core.evm_config` merge helpers for chain IDs, `rpc_env` names, and token registry metadata shared by defi skills — see [EVM operator config](usage/evm_operator_config.md) | putting RPC URLs or private keys in YAML |
+| **Shared address book** (operator address book) | Writable `addressbook.yaml` under user config — cross-skill contact identity (mail recipients and defi transfer EOAs) via `skillware.core.mail_config` — see [Address book operator config](usage/addressbook_operator_config.md) | ERC-20 token contracts; orchestration **`chains:`** |
+| **`public_0x`** | Optional EVM wallet field on an address-book contact — counterparty **EOA** for defi skills such as `defi/evm_tx_handler` | token/router/pool contract addresses (those belong in `evm.yaml` → `tokens:`) |
 | **Orchestration chain** | Named multi-skill pipeline under top-level `chains:` in `.skillware.yaml` (`skillware chain run`) | EVM blockchain network |
 | **EVM chain (network)** | JSON-RPC network entry (ethereum, base, …) under `evm:` / `evm.yaml` | orchestration **chain** |

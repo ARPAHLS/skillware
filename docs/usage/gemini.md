@@ -145,6 +145,7 @@ response = client.models.generate_content(
 
 ## Related documents
 
+- [Gmail Handler](../skills/gmail_handler.md) — dedicated agent mailbox; interactive minimal loop: [`examples/gemini_gmail_minimal.py`](../../examples/gemini_gmail_minimal.py) (README quick start)
 - [Vertex AI (Gemini)](vertex.md) (same `to_gemini_tool()` adapter)
 - [Enterprise cloud overview](enterprise_cloud.md)
 - [Agent loops](agent_loops.md)

@@ -3,7 +3,7 @@
 **ID**: `defi/evm_tx_handler`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 16 Jul 2026
+**Version**: `0.3.0`
 <!-- skill-doc-meta:end -->
 
 **Recommended install:** `pip install "skillware[defi_evm_tx_handler]"`. See [Install extras](../usage/install_extras.md).
@@ -39,7 +39,11 @@ The skill lives in `skills/defi/evm_tx_handler/`. [Skill anatomy](../introductio
 
 ### RPC setup (shared across defi skills)
 
-Run `skillware evm init`, set `ETHEREUM_RPC_URL` / `BASE_RPC_URL` in `.env`, then `skillware evm chains list` to confirm readiness. Full guide: [EVM operator config](../usage/evm_operator_config.md). This skill still reads bundled `data/chains.yaml` today; [#373](https://github.com/ARPAHLS/skillware/issues/373) will merge operator `evm.yaml` with the bundle.
+Run `skillware evm init`, set `ETHEREUM_RPC_URL` / `BASE_RPC_URL` in `.env`, then `skillware evm chains list` to confirm readiness. Full guide: [EVM operator config](../usage/evm_operator_config.md). Custom chains and tokens from operator `evm.yaml` merge with bundled registries at runtime.
+
+### Transfers by contact name
+
+Configure recipients in the shared address book — `skillware addressbook init`, then `skillware addressbook set-wallet <contact_id> <0x…>`. The skill resolves `recipient` against contact id, display name, and aliases; multiple wallet matches return `status: needs_input` with `ambiguous_recipient.candidates`. Operator guide: [Address book operator config](../usage/addressbook_operator_config.md) · CLI: [`skillware addressbook`](../usage/cli.md#skillware-addressbook).
 
 ### Dedicated agent wallet (required for signing)
 
@@ -61,9 +65,9 @@ Copy `skills/defi/evm_tx_handler/config.yaml.example` to `config.yaml` in the sa
 
 ## Registry data
 
-- `data/chains.yaml` — chain IDs, RPC env keys, explorers, Uni V2 routers  
+- Bundled `data/chains.yaml` + operator **`evm.yaml`** (via `skillware.core.evm_config`) — chain IDs, RPC env keys, explorers, Uni V2 routers  
 - `data/tokens.yaml` — symbol → contract per chain  
-- `data/addressbook.yaml` — label → address (replace placeholders before mainnet use)
+- Central **`addressbook.yaml`** (`public_0x` on contacts) via `skillware addressbook` — legacy bundled `data/addressbook.yaml` labels still work as fallback
 
 ## Usage Examples
 
@@ -72,7 +76,10 @@ Guides: [Usage index](../usage/README.md) · [Agent loops](../usage/agent_loops.
 
 Use `bundle["class"]()` in the snippets below; explicit `bundle["module"].ClassName()` also works.
 
-Sample user message: *“Buy 10 DEGEN on Base with USDC”* → `resolve` → `quote` → `preview` → user confirms → `execute` with `confirmed: true`.
+Sample flows:
+
+1. **Swap quote:** *“Buy 10 DEGEN on Base with USDC”* → `resolve` → `quote` → `preview` → user confirms → `execute` with `confirmed: true`.
+2. **Transfer by contact name:** *“Send 1 USDC to Alice on Base”* → `transfer` with `recipient: "alice"` (address book alias → `public_0x`) → preview → `confirmed: true`. Requires `skillware addressbook set-wallet alice <0x…>` beforehand.
 
 ### Runnable examples
 
@@ -122,6 +129,21 @@ for part in response.candidates[0].content.parts:
         result = skill.execute(dict(part.function_call.args))
         print(result["status"])
 # After preview + user approval: skill.execute({"action": "execute", "intent": intent, "confirmed": True})
+
+# Transfer by contact name (addressbook alias → public_0x):
+transfer = skill.execute(
+    {
+        "action": "transfer",
+        "intent": {
+            "chain": "base",
+            "target_asset": "usdc",
+            "amount": 1,
+            "recipient": "alice",
+        },
+    }
+)
+print(transfer["status"])  # preview | needs_input | missing_config
+# skill.execute({**transfer_payload, "confirmed": True}) after operator approval
 ```
 
 ### Claude
@@ -156,6 +178,20 @@ for block in response.content:
     if block.type == "tool_use":
         result = skill.execute(dict(block.input))
         print(result["status"])
+
+# Transfer by contact name:
+transfer = skill.execute(
+    {
+        "action": "transfer",
+        "intent": {
+            "chain": "base",
+            "target_asset": "usdc",
+            "amount": 1,
+            "recipient": "alice",
+        },
+    }
+)
+print(transfer["status"])
 ```
 
 ### OpenAI
@@ -185,6 +221,19 @@ if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
     print(result["status"])
+
+transfer = skill.execute(
+    {
+        "action": "transfer",
+        "intent": {
+            "chain": "base",
+            "target_asset": "usdc",
+            "amount": 1,
+            "recipient": "alice",
+        },
+    }
+)
+print(transfer["status"])
 ```
 
 ### DeepSeek
@@ -217,6 +266,19 @@ if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
     print(result["status"])
+
+transfer = skill.execute(
+    {
+        "action": "transfer",
+        "intent": {
+            "chain": "base",
+            "target_asset": "usdc",
+            "amount": 1,
+            "recipient": "alice",
+        },
+    }
+)
+print(transfer["status"])
 ```
 
 ### Ollama (prompt mode)
@@ -244,6 +306,19 @@ prompt = (
 print(prompt)
 result = skill.execute({"action": "quote", "intent": intent})
 print(json.dumps(result, indent=2))
+
+transfer = skill.execute(
+    {
+        "action": "transfer",
+        "intent": {
+            "chain": "base",
+            "target_asset": "usdc",
+            "amount": 1,
+            "recipient": "alice",
+        },
+    }
+)
+print(json.dumps(transfer, indent=2))
 ```
 
 ## Limitations

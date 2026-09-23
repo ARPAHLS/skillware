@@ -36,6 +36,7 @@ To list locally available skills, inspect path resolution, show config, check lo
 | Ollama (prompt mode) | `to_ollama_prompt()` | [ollama.md](ollama.md) | (local; no cloud key) |
 | CLI | `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, `skillware examples`, `skillware context`, `skillware chain`, `skillware evm` | [cli.md](cli.md) | pytest in `[dev]` for `test` |
 | EVM operator config | Shared chain/RPC registry for defi skills (`evm.yaml`, `skillware evm init`) | [evm_operator_config.md](evm_operator_config.md) | RPC URLs in `.env` |
+| Shared address book | Cross-skill contacts (`addressbook.yaml`, `public_0x`, mail + defi name resolution) | [addressbook_operator_config.md](addressbook_operator_config.md) | Optional; `skillware addressbook init` |
 | Install extras | Category, skill, SDK, and meta `pip install` targets | [install_extras.md](install_extras.md) | See guide for `[all]`, `[agents]`, per-skill extras |
 
 Skill-specific **Usage Examples** (sample prompts and execute payloads) live on each [skill catalog page](../skills/README.md).

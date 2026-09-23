@@ -68,6 +68,8 @@ Full command list: [`skillware evm`](cli.md#skillware-evm). Interactive menu: **
 | `skillware evm init --yes` | Non-interactive init (keep bundled enable flags) |
 | `skillware evm chains list` | Table: chain, id, enabled, RPC source, RPC ready |
 | `skillware evm chain add` | Add a custom network (wizard or flags) |
+| `skillware evm tokens list` | Table: chain, symbol, contract address, decimals |
+| `skillware evm token add` | Register a custom ERC-20 (`--chain`, `--symbol`, `--address`, `--decimals`) |
 | `skillware evm rpc enable <chain>` | Set `enabled: true` on a chain |
 | `skillware evm validate` | Schema, duplicate chain IDs, address format |
 | `skillware evm open` / `open --dir` | Open file or folder in OS file manager |
@@ -89,6 +91,7 @@ skillware evm chain add     # wizard: name, chain_id, rpc_env or rpc_url
 
 ```bash
 skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+skillware evm token add --chain base --symbol degen --address 0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed --decimals 18
 ```
 
 Add matching secret to `.env`:
@@ -120,7 +123,7 @@ Inline `rpc_url` is intended for **local devnets**. Production chains should use
 | Registry | Holds | Example |
 | :--- | :--- | :--- |
 | **`evm.yaml` → `tokens:`** | ERC-20 contract metadata per chain | USDC, DEGEN addresses + decimals |
-| **`addressbook.yaml`** | People and counterparty **EOA** wallets | Contact `public_0x` (see [#373](https://github.com/ARPAHLS/skillware/issues/373)) |
+| **`addressbook.yaml`** | People and counterparty **EOA** wallets | Contact `public_0x` — [Address book operator config](addressbook_operator_config.md) |
 
 Never put token or router contracts in the address book — name collisions can cause fund loss (see issue #373 design notes).
 
@@ -142,7 +145,7 @@ url = resolve_rpc_url("base")
 # w3 = get_web3("base")  # when web3 is installed
 ```
 
-Skills should import these helpers rather than duplicating `data/chains.yaml` per bundle ([#379](https://github.com/ARPAHLS/skillware/issues/379)). `defi/evm_tx_handler` still reads bundle-local YAML today; [#373](https://github.com/ARPAHLS/skillware/issues/373) will wire the merge path.
+Skills should import these helpers rather than duplicating `data/chains.yaml` per bundle ([#379](https://github.com/ARPAHLS/skillware/issues/379)). `defi/evm_tx_handler` merges operator `evm.yaml` at runtime ([#373](https://github.com/ARPAHLS/skillware/issues/373)).
 
 ---
 
@@ -162,6 +165,7 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 
 - [CLI — skillware evm](cli.md#skillware-evm)
 - [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config)
+- [Address book operator config](addressbook_operator_config.md) — people and `public_0x` (not tokens)
 - [EVM Transaction Handler](../skills/evm_tx_handler.md) — signing skill env vars
 - [DeFi skills](../skills/README.md#defi) — catalog index
 - [Glossary](../glossary.md#operator-configuration)

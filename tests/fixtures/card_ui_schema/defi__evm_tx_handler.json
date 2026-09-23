@@ -13,6 +13,8 @@
       "status": "confirmed",
       "tx_hash": "0xabc123def456",
       "explorer_url": "https://etherscan.io/tx/0xabc123def456",
+      "recipient_name": "Alice",
+      "recipient_resolved": "0x3333333333333333333333333333333333333333",
       "receipt": {"success": true},
       "quote": {}
     }

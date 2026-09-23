@@ -35,7 +35,7 @@ On-chain execution and trading for dedicated agent wallets (structured intent, p
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.2.0` (16 Jul 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and transfer on Ethereum/Base from structured intent. |
+| **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.3.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and name-based transfer on Ethereum/Base via central address book. |
 
 ## Optimization
 Middleware skills that operate on text or state to increase performance, security, or efficiency.

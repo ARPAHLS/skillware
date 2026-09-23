@@ -1361,5 +1361,134 @@ def test_cmd_evm_open_uses_os_helper(tmp_path, monkeypatch):
 
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
     assert cmd_evm_init(non_interactive=True) == 0
-    monkeypatch.setattr("skillware.cli_evm.open_path_in_os", lambda *a, **k: None)
+    monkeypatch.setattr("skillware.cli_os.open_path_in_os", lambda *a, **k: None)
     assert cmd_evm_open() == 0
+
+
+def test_help_includes_addressbook_group():
+    from skillware.cli import HELP_GROUPS
+
+    titles = [title for title, _commands, _doc in HELP_GROUPS]
+    assert "Addressbook" in titles
+
+
+def test_cmd_addressbook_set_wallet(tmp_path, monkeypatch):
+    from skillware.cli_addressbook import cmd_addressbook_set_wallet
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    path = tmp_path / "cfg" / "addressbook.yaml"
+    init_addressbook_file(path)
+    add_addressbook_contact(path, display_name="Jane", email="jane@example.com")
+    assert (
+        cmd_addressbook_set_wallet(
+            "jane",
+            "0x1234567890123456789012345678901234567890",
+        )
+        == 0
+    )
+
+
+def test_cmd_addressbook_list_renders_table(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    from skillware.cli_addressbook import cmd_addressbook_list
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    path = tmp_path / "cfg" / "addressbook.yaml"
+    init_addressbook_file(path)
+    add_addressbook_contact(
+        path,
+        display_name="Jane",
+        email="jane@example.com",
+        public_0x="0x1234567890123456789012345678901234567890",
+    )
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=140)
+    assert cmd_addressbook_list(console=console) == 0
+    output = buf.getvalue()
+    assert "jane" in output.lower()
+    assert "public" in output.lower() or "0x" in output.lower()
+
+
+def test_cmd_addressbook_open_uses_os_helper(tmp_path, monkeypatch):
+    from skillware.cli_addressbook import cmd_addressbook_open
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    monkeypatch.setattr(
+        "skillware.cli_addressbook.open_path_in_os", lambda *a, **k: None
+    )
+    assert cmd_addressbook_open() == 0
+
+
+def test_cmd_evm_token_add_degen_on_base(tmp_path, monkeypatch):
+    from skillware.cli_evm import cmd_evm_init, cmd_evm_token_add
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    assert cmd_evm_init(non_interactive=True) == 0
+    assert (
+        cmd_evm_token_add(
+            chain_name="base",
+            symbol="degen",
+            address="0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+            decimals=18,
+        )
+        == 0
+    )
+
+
+def test_cmd_evm_tokens_list_shows_merged_registry(tmp_path, monkeypatch):
+    import io
+
+    from rich.console import Console
+
+    from skillware.cli_evm import cmd_evm_init, cmd_evm_tokens_list
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    assert cmd_evm_init(non_interactive=True) == 0
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=140)
+    assert cmd_evm_tokens_list(console=console) == 0
+    output = buf.getvalue()
+    assert "EVM tokens" in output
+    assert "degen" in output.lower()
+    assert "usdc" in output.lower()
+
+
+def test_main_evm_tokens_list_subcommand(tmp_path, monkeypatch):
+    import sys
+
+    from skillware.cli import main
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    argv = sys.argv
+    sys.argv = ["skillware", "evm", "tokens", "list"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+
+def test_main_addressbook_list_subcommand(tmp_path, monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    argv = sys.argv
+    sys.argv = ["skillware", "addressbook", "list"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv

@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 import yaml
 
 ENV_ADDRESSBOOK_PATH = "GMAIL_ADDRESSBOOK_PATH"
+ENV_EVM_ADDRESSBOOK_PATH = "EVM_ADDRESSBOOK_PATH"
 ENV_SIGNATURE_PLAIN = "GMAIL_SIGNATURE_PLAIN"
 ENV_SIGNATURE_PATH = "GMAIL_SIGNATURE_PATH"
 ENV_SIGNATURE_HTML_PATH = "GMAIL_SIGNATURE_HTML_PATH"
@@ -38,8 +39,8 @@ DEFAULT_SIGNATURE_HTML_FILENAME = "mail_signature.html"
 DEFAULT_LOGO_FILENAME = "skillware_logo.png"
 
 ADDRESSBOOK_INIT_TEMPLATE = """\
-# Address book for office/gmail_handler.
-# Managed via skillware mail addressbook init / set-path.
+# Shared operator address book (mail, defi transfers, future skills).
+# Managed via skillware addressbook init / skillware mail addressbook init.
 
 contacts: {}
 
@@ -241,9 +242,10 @@ def resolve_addressbook_path(
     skill_data_dir: Optional[Path] = None,
     bundled_addressbook: Optional[Path] = None,
 ) -> Path:
-    env_override = os.environ.get(ENV_ADDRESSBOOK_PATH, "").strip()
-    if env_override:
-        return _expand_path(env_override)
+    for env_name in (ENV_EVM_ADDRESSBOOK_PATH, ENV_ADDRESSBOOK_PATH):
+        env_override = os.environ.get(env_name, "").strip()
+        if env_override:
+            return _expand_path(env_override)
 
     settings = mail if mail is not None else load_merged_mail_settings()
     if settings.addressbook_path:
@@ -474,21 +476,33 @@ def write_addressbook_yaml(path: Path, data: Dict[str, Any]) -> None:
     )
 
 
+def normalize_contact_public_0x(raw: str) -> str:
+    """Validate and normalize ``public_0x`` (EIP-55 when web3 is available)."""
+    from skillware.core.evm_config import normalize_evm_address
+
+    return normalize_evm_address(raw)
+
+
 def add_addressbook_contact(
     path: Path,
     *,
     display_name: str,
-    email: str,
+    email: Optional[str] = None,
+    public_0x: Optional[str] = None,
     aliases: Optional[List[str]] = None,
     org: Optional[str] = None,
+    notes: Optional[str] = None,
     contact_id: Optional[str] = None,
 ) -> str:
     """Add or upsert one contact; return contact_id."""
     display_name = (display_name or "").strip()
     email = (email or "").strip()
+    wallet = (public_0x or "").strip()
     if not display_name:
         raise ValueError("display_name is required")
-    if not email or not _EMAIL_RE.match(email):
+    if not email and not wallet:
+        raise ValueError("a valid email or public_0x is required")
+    if email and not _EMAIL_RE.match(email):
         raise ValueError("a valid email is required")
 
     data = load_addressbook_yaml(path)
@@ -502,21 +516,30 @@ def add_addressbook_contact(
     cid = (contact_id or slugify_contact_id(display_name)).strip()
     base = cid
     suffix = 2
-    while cid in contacts and contacts[cid].get("emails") != [email]:
+    while cid in contacts:
         existing = contacts.get(cid)
-        if isinstance(existing, dict) and email in (existing.get("emails") or []):
+        if not isinstance(existing, dict):
+            break
+        same_email = email and email in (existing.get("emails") or [])
+        same_wallet = (
+            wallet and str(existing.get("public_0x") or "").lower() == wallet.lower()
+        )
+        if same_email or same_wallet:
             break
         cid = f"{base}_{suffix}"
         suffix += 1
 
-    entry: Dict[str, Any] = {
-        "display_name": display_name,
-        "emails": [email],
-    }
+    entry: Dict[str, Any] = {"display_name": display_name}
+    if email:
+        entry["emails"] = [email]
+    if wallet:
+        entry["public_0x"] = normalize_contact_public_0x(wallet)
     if aliases:
         entry["aliases"] = [a.strip() for a in aliases if a and a.strip()]
     if org and org.strip():
         entry["org"] = org.strip()
+    if notes and notes.strip():
+        entry["notes"] = notes.strip()
 
     contacts[cid] = entry
     errors = validate_addressbook_data(data)
@@ -524,6 +547,228 @@ def add_addressbook_contact(
         raise ValueError("; ".join(errors))
     write_addressbook_yaml(path, data)
     return cid
+
+
+def update_addressbook_contact(
+    path: Path,
+    contact_id: str,
+    updates: Mapping[str, Any],
+) -> None:
+    """Merge ``updates`` into an existing contact and save."""
+    cid = (contact_id or "").strip()
+    if not cid:
+        raise ValueError("contact_id is required")
+
+    data = load_addressbook_yaml(path)
+    contacts = data.get("contacts")
+    if not isinstance(contacts, dict) or cid not in contacts:
+        raise ValueError(f"contact {cid!r} not found")
+    contact = dict(contacts[cid])
+
+    if "display_name" in updates and updates["display_name"] is not None:
+        contact["display_name"] = str(updates["display_name"]).strip()
+    if "emails" in updates:
+        emails = updates["emails"]
+        if isinstance(emails, str):
+            emails = [part.strip() for part in emails.split(",") if part.strip()]
+        if emails is not None:
+            contact["emails"] = list(emails)
+    if "aliases" in updates:
+        aliases = updates["aliases"]
+        if isinstance(aliases, str):
+            aliases = [part.strip() for part in aliases.split(",") if part.strip()]
+        if aliases is not None:
+            contact["aliases"] = list(aliases)
+    if "org" in updates:
+        org = updates["org"]
+        contact["org"] = str(org).strip() if org else None
+        if not contact["org"]:
+            contact.pop("org", None)
+    if "notes" in updates:
+        notes = updates["notes"]
+        contact["notes"] = str(notes).strip() if notes else None
+        if not contact["notes"]:
+            contact.pop("notes", None)
+    if "public_0x" in updates:
+        wallet = updates["public_0x"]
+        if wallet:
+            contact["public_0x"] = normalize_contact_public_0x(str(wallet))
+        else:
+            contact.pop("public_0x", None)
+
+    contacts[cid] = contact
+    errors = validate_addressbook_data(data)
+    if errors:
+        raise ValueError("; ".join(errors))
+    write_addressbook_yaml(path, data)
+
+
+def set_addressbook_wallet(path: Path, contact_id: str, wallet_0x: str) -> None:
+    """Attach or update ``public_0x`` on a contact."""
+    update_addressbook_contact(path, contact_id, {"public_0x": wallet_0x})
+
+
+def delete_addressbook_contact(path: Path, contact_id: str) -> None:
+    """Remove one contact from the address book."""
+    cid = (contact_id or "").strip()
+    if not cid:
+        raise ValueError("contact_id is required")
+    data = load_addressbook_yaml(path)
+    contacts = data.get("contacts")
+    if not isinstance(contacts, dict) or cid not in contacts:
+        raise ValueError(f"contact {cid!r} not found")
+    del contacts[cid]
+    write_addressbook_yaml(path, data)
+
+
+def _normalize_contact_query(query: str) -> str:
+    return (query or "").strip().casefold()
+
+
+def contact_matches_query(
+    contact_id: str, contact: Mapping[str, Any], query: str
+) -> bool:
+    q = _normalize_contact_query(query)
+    if not q:
+        return False
+    if contact_id.casefold() == q:
+        return True
+    display = str(contact.get("display_name") or "").casefold()
+    if display == q:
+        return True
+    for alias in contact.get("aliases") or []:
+        if str(alias).casefold() == q:
+            return True
+    return False
+
+
+def find_contacts_by_query(
+    data: Mapping[str, Any], query: str
+) -> List[Tuple[str, Dict[str, Any]]]:
+    contacts = data.get("contacts")
+    if not isinstance(contacts, dict):
+        return []
+    matches: List[Tuple[str, Dict[str, Any]]] = []
+    for contact_id, contact in contacts.items():
+        if isinstance(contact, dict) and contact_matches_query(
+            str(contact_id), contact, query
+        ):
+            matches.append((str(contact_id), dict(contact)))
+    return matches
+
+
+def filter_contacts(
+    data: Mapping[str, Any],
+    *,
+    with_wallet: bool = False,
+    search: Optional[str] = None,
+) -> List[Tuple[str, Dict[str, Any]]]:
+    contacts = data.get("contacts")
+    if not isinstance(contacts, dict):
+        return []
+    rows: List[Tuple[str, Dict[str, Any]]] = []
+    needle = _normalize_contact_query(search) if search else ""
+    for contact_id, contact in sorted(contacts.items()):
+        if not isinstance(contact, dict):
+            continue
+        if with_wallet and not contact.get("public_0x"):
+            continue
+        if needle:
+            haystacks = [
+                str(contact_id).casefold(),
+                str(contact.get("display_name") or "").casefold(),
+                str(contact.get("org") or "").casefold(),
+            ]
+            haystacks.extend(str(a).casefold() for a in (contact.get("aliases") or []))
+            haystacks.extend(str(e).casefold() for e in (contact.get("emails") or []))
+            if not any(needle in text for text in haystacks if text):
+                continue
+        rows.append((str(contact_id), dict(contact)))
+    return rows
+
+
+def contact_recipient_candidate(
+    contact_id: str, contact: Mapping[str, Any]
+) -> Dict[str, Any]:
+    emails = contact.get("emails") or []
+    primary_email = emails[0] if emails else None
+    return {
+        "contact_id": contact_id,
+        "display_name": contact.get("display_name"),
+        "public_0x": contact.get("public_0x"),
+        "email": primary_email,
+        "org": contact.get("org"),
+        "notes": contact.get("notes"),
+    }
+
+
+def resolve_recipient_query(data: Mapping[str, Any], query: str) -> Dict[str, Any]:
+    """
+    Resolve a human recipient label to an EVM address via the central address book.
+
+    Returns dict with ``status`` one of: ``resolved``, ``missing_config``,
+    ``needs_input``, or ``error``.
+    """
+    raw = (query or "").strip()
+    if not raw:
+        return {
+            "status": "error",
+            "code": "RECIPIENT_NOT_FOUND",
+            "message": "Recipient query is empty.",
+            "agent_hint": "Provide a 0x address or address book contact name.",
+        }
+
+    matches = find_contacts_by_query(data, raw)
+    if not matches:
+        return {
+            "status": "error",
+            "code": "RECIPIENT_NOT_FOUND",
+            "message": f"No contact matching {raw!r} found in addressbook.",
+            "agent_hint": (
+                f"No contact matching {raw!r} found in addressbook. "
+                "Specify an explicit 0x address or add the contact via CLI."
+            ),
+        }
+
+    with_wallet = [
+        (cid, contact) for cid, contact in matches if contact.get("public_0x")
+    ]
+    if not with_wallet:
+        first_id, first = matches[0]
+        name = first.get("display_name") or first_id
+        return {
+            "status": "missing_config",
+            "code": "NO_EVM_WALLET_CONFIGURED",
+            "message": f"Contact {name!r} has no public_0x EVM wallet configured.",
+            "agent_hint": (
+                f"Found contact {name!r}, but no public_0x EVM wallet is configured. "
+                "Add a wallet with: skillware addressbook set-wallet <contact_id> <0x...>"
+            ),
+            "contact": contact_recipient_candidate(first_id, first),
+        }
+
+    if len(with_wallet) == 1:
+        cid, contact = with_wallet[0]
+        address = normalize_contact_public_0x(str(contact["public_0x"]))
+        return {
+            "status": "resolved",
+            "address": address,
+            "recipient_name": contact.get("display_name"),
+            "recipient_source": f"addressbook:{cid}",
+        }
+
+    candidates = [
+        contact_recipient_candidate(cid, contact) for cid, contact in with_wallet
+    ]
+    return {
+        "status": "needs_input",
+        "missing_fields": ["recipient_disambiguation"],
+        "ambiguous_recipient": {"query": raw, "candidates": candidates},
+        "agent_hint": (
+            f"Multiple contacts matching {raw!r} have EVM wallets. Ask the operator "
+            "which contact to use or request an explicit 0x address."
+        ),
+    }
 
 
 def resolve_scan_state_path(
@@ -597,22 +842,37 @@ def validate_addressbook_data(data: Mapping[str, Any]) -> List[str]:
         if not isinstance(contact, dict):
             errors.append(f"contacts.{contact_id} must be a mapping")
             continue
+
         emails = contact.get("emails")
-        if not isinstance(emails, list) or not emails:
-            errors.append(f"contacts.{contact_id} requires at least one email")
+        wallet = contact.get("public_0x")
+        has_email = isinstance(emails, list) and bool(emails)
+        has_wallet = bool(wallet)
+
+        if not has_email and not has_wallet:
+            errors.append(
+                f"contacts.{contact_id} requires at least one email or public_0x"
+            )
             continue
-        valid = False
-        for entry in emails:
-            if not isinstance(entry, str) or not _EMAIL_RE.match(entry.strip()):
-                errors.append(f"contacts.{contact_id} has invalid email {entry!r}")
-                continue
-            key = entry.strip().casefold()
-            if key in seen_emails:
-                errors.append(f"duplicate email across contacts: {entry}")
-            seen_emails.add(key)
-            valid = True
-        if not valid:
-            errors.append(f"contacts.{contact_id} has no valid emails")
+
+        if has_email:
+            valid_email = False
+            for entry in emails:
+                if not isinstance(entry, str) or not _EMAIL_RE.match(entry.strip()):
+                    errors.append(f"contacts.{contact_id} has invalid email {entry!r}")
+                    continue
+                key = entry.strip().casefold()
+                if key in seen_emails:
+                    errors.append(f"duplicate email across contacts: {entry}")
+                seen_emails.add(key)
+                valid_email = True
+            if not valid_email and not has_wallet:
+                errors.append(f"contacts.{contact_id} has no valid emails")
+
+        if has_wallet:
+            try:
+                normalize_contact_public_0x(str(wallet))
+            except (ValueError, ImportError) as exc:
+                errors.append(f"contacts.{contact_id} has invalid public_0x: {exc}")
 
     return errors
 

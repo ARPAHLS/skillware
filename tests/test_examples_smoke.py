@@ -108,6 +108,16 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
     ),
     (
+        "pay_and_notify_demo.py",
+        [
+            "PAY_NOTIFY_DEMO=1",
+            "Step 1: resolve recipient",
+            "Step 2: transfer",
+            "Step 3: email receipt",
+            "Demo complete.",
+        ],
+    ),
+    (
         "bg_remover_demo.py",
         [
             "Loading Background Remover...",
@@ -159,6 +169,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "evm_tx_handler_common.py": "Shared helper module, not a standalone demo script.",
     "gemini_evm_tx_handler.py": "Requires GOOGLE_API_KEY for Gemini tool loop.",
     "gemini_gmail_handler.py": "Requires GOOGLE_API_KEY and live Gmail credentials.",
+    "gemini_gmail_minimal.py": "Requires GOOGLE_API_KEY, GMAIL_ADDRESS, GMAIL_APP_PASSWORD.",
     "gemini_issue_resolver.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
     "gemini_novelty_extractor.py": "Requires GOOGLE_API_KEY for Gemini function calling.",
     "gemini_pdf_form_filler.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
@@ -168,6 +179,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "gemini_wallet_check.py": "Requires GOOGLE_API_KEY and ETHERSCAN_API_KEY.",
     "skill_context_gemini_loop.py": "Phase 1 is offline; Phase 2 needs GOOGLE_API_KEY and SKILL_CONTEXT_GEMINI_LIVE=1.",
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
+    "pay_and_notify_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
     "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",
     "mica_claude_flow.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
@@ -203,6 +215,8 @@ def test_local_execute_example_smoke(script_name: str, expected_markers: List[st
     env["PYTHONPATH"] = str(REPO_ROOT)
     # Ensure offline test isolation
     env.setdefault("SKILLWARE_CONFIG_DIR", str(REPO_ROOT / "tests" / "fixtures"))
+    if script_name == "pay_and_notify_demo.py":
+        env["PAY_NOTIFY_DEMO"] = "1"
 
     proc = subprocess.run(
         [sys.executable, str(script_path)],

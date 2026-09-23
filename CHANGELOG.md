@@ -12,12 +12,17 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Core / CLI:** EVM operator config layer — bundled `skillware/data/evm_defaults.yaml`, writable user `evm.yaml`, `skillware.core.evm_config` merge helpers (`load_merged_evm_config`, `resolve_chain`, `resolve_rpc_url`, `normalize_evm_address`), and `skillware evm` commands (`init`, `chains list`, `chain add`, `rpc enable`, `validate`, `open`). Project/global YAML uses top-level **`evm:`** (or read-only **`web3:`** alias) — distinct from orchestration **`chains:`** (#379).
 - **Docs:** [EVM operator config](docs/usage/evm_operator_config.md) — shared defi RPC setup guide; cross-links from CLI, API keys, DeFi catalog, and `evm_tx_handler` (#379).
+- **Core / CLI:** Shared address book **`public_0x`** field, relaxed contact validation (email or wallet), top-level **`skillware addressbook`** commands (`list`, `edit`, `set-wallet`, `remove`, `open`), **`skillware config open`**, **`skillware evm token add`**, and **`skillware evm tokens list`** for operator token registry (#373, #374).
+- **Docs:** [Address book operator config](docs/usage/addressbook_operator_config.md) — shared contact identity guide (mail + defi, schema, CLI, cross-links); glossary **`public_0x`** / shared address book terms; transfer-by-name usage examples on `evm_tx_handler` (#373, #374).
+- **Examples:** [`gemini_gmail_minimal.py`](examples/gemini_gmail_minimal.py) — README quick-start interactive Gemini + Gmail loop; [`pay_and_notify_demo.py`](examples/pay_and_notify_demo.py) — reproducible `SkillContext` pay + notify recipe with documented prerequisites.
+- **Skill (`defi/evm_tx_handler` v0.3.0):** Central address book recipient resolution with `needs_input` disambiguation; merges operator EVM chain/token config from `skillware.core.evm_config` (#373).
 - **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
 
 ### Changed
 
 - **Card UI (`security/prompt_injection_firewall`):** Expose `policy_action`, `removed_span_count`, and `sanitized_length_delta` in `card.json` and sync sample fixture (#273, #361).
 - **Docs:** Glossary cross-links on hub and catalog pages (#363).
+- **README:** Quick-start usage example is Gemini + `office/gmail_handler` ([`gemini_gmail_minimal.py`](examples/gemini_gmail_minimal.py)) instead of the prompt-injection firewall snippet.
 
 ## [0.5.6] - 2026-09-20
 

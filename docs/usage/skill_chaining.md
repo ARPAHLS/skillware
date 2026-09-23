@@ -16,7 +16,7 @@ Skills **never call each other**. The host (your agent loop, script, or `run_cha
 | **SkillContext — model routing** | Model (from exposed tools) | Model | Open-ended agents; progressive disclosure |
 | **SkillContext — manual chain** | You | Your Python code | Branching, custom error handling, ad hoc pipelines |
 | **Named chains (`chains:`)** | You (pick chain name) | YAML steps | Repeatable middleware → domain; CI/scripts |
-| **Examples** | Copy from `examples/` | Varies | Provider-specific starter loops |
+| **Examples** | Copy from `examples/` | Varies | Provider-specific starter loops ([`pay_and_notify_demo.py`](../../examples/pay_and_notify_demo.py) — manual `ctx.execute` pay + email) |
 
 Use **chain / chains / chaining** for cross-skill host orchestration. Do **not** use framework **`run_pipeline`** (reserved for in-skill actions such as `finance/uk_companies_house_handler`).
 

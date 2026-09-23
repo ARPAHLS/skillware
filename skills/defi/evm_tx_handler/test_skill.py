@@ -459,6 +459,7 @@ def test_update_preferences(skill, tmp_path):
 
 def test_missing_wallet_key_structured(skill, monkeypatch):
     monkeypatch.delenv("AGENT_WALLET_PRIVATE_KEY", raising=False)
+    monkeypatch.delenv("AGENT_PRIVATE_KEY", raising=False)
     result = skill.execute({"action": "wallet_info", "intent": {}})
     assert result["status"] == "missing_config"
     assert "AGENT_WALLET_PRIVATE_KEY" in result["setup"]["env_var"]
@@ -525,6 +526,138 @@ def test_wallet_info_no_secrets(skill):
     body = str(result)
     assert TEST_KEY not in body
     assert TEST_KEY[2:] not in body
+
+
+def test_transfer_missing_config_without_wallet(skill, tmp_path, monkeypatch):
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
+
+    ab_path = tmp_path / "addressbook.yaml"
+    init_addressbook_file(ab_path)
+    add_addressbook_contact(
+        ab_path,
+        display_name="John Doe",
+        contact_id="john_doe",
+        email="john@example.com",
+    )
+    monkeypatch.setenv("GMAIL_ADDRESSBOOK_PATH", str(ab_path))
+
+    result = skill.execute(
+        {
+            "action": "transfer",
+            "confirmed": True,
+            "intent": {
+                "chain": "base",
+                "target_asset": "usdc",
+                "amount": 1,
+                "recipient": "john_doe",
+            },
+        }
+    )
+    assert result["status"] == "missing_config"
+    assert result["code"] == "NO_EVM_WALLET_CONFIGURED"
+
+
+def test_transfer_resolves_unique_central_contact(skill, tmp_path, monkeypatch):
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
+
+    ab_path = tmp_path / "addressbook.yaml"
+    init_addressbook_file(ab_path)
+    add_addressbook_contact(
+        ab_path,
+        display_name="Alice",
+        contact_id="alice",
+        aliases=["ali"],
+        public_0x="0x3333333333333333333333333333333333333333",
+    )
+    monkeypatch.setenv("GMAIL_ADDRESSBOOK_PATH", str(ab_path))
+
+    with (
+        patch.object(EvmTxHandlerSkill, "_get_web3") as mock_web3,
+        patch.object(EvmTxHandlerSkill, "_sign_and_send", return_value="0xabc"),
+        patch.object(
+            EvmTxHandlerSkill,
+            "_wait_receipt",
+            return_value={"block_number": 1, "gas_used": 21000, "success": True},
+        ),
+    ):
+        w3 = MagicMock()
+        w3.eth.gas_price = 10**9
+        w3.eth.get_transaction_count.return_value = 0
+        w3.to_wei.side_effect = lambda val, unit: (
+            int(val * 10**9) if unit == "gwei" else val
+        )
+        mock_web3.return_value = w3
+        contract = MagicMock()
+        contract.functions.balanceOf.side_effect = lambda _a: MagicMock(
+            call=MagicMock(return_value=10**18)
+        )
+        contract.functions.transfer.return_value.build_transaction.return_value = {
+            "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "gas": 100000,
+        }
+        w3.eth.contract.return_value = contract
+        w3.eth.get_balance = MagicMock(return_value=10**18)
+
+        result = skill.execute(
+            {
+                "action": "transfer",
+                "confirmed": True,
+                "intent": {
+                    "chain": "base",
+                    "target_asset": "usdc",
+                    "amount": 1,
+                    "recipient": "ali",
+                },
+            }
+        )
+    assert result["status"] == "confirmed"
+    assert result["recipient_source"] == "addressbook:alice"
+
+
+def test_transfer_ambiguous_two_wallets(skill, tmp_path, monkeypatch):
+    from skillware.core.mail_config import (
+        init_addressbook_file,
+        add_addressbook_contact,
+    )
+
+    ab_path = tmp_path / "addressbook.yaml"
+    init_addressbook_file(ab_path)
+    add_addressbook_contact(
+        ab_path,
+        display_name="John Doe",
+        contact_id="john_doe",
+        aliases=["john"],
+        public_0x="0x1111111111111111111111111111111111111111",
+    )
+    add_addressbook_contact(
+        ab_path,
+        display_name="John Smith",
+        contact_id="john_smith",
+        aliases=["john"],
+        public_0x="0x2222222222222222222222222222222222222222",
+    )
+    monkeypatch.setenv("GMAIL_ADDRESSBOOK_PATH", str(ab_path))
+
+    result = skill.execute(
+        {
+            "action": "transfer",
+            "confirmed": True,
+            "intent": {
+                "chain": "base",
+                "target_asset": "usdc",
+                "amount": 1,
+                "recipient": "john",
+            },
+        }
+    )
+    assert result["status"] == "needs_input"
+    assert len(result["ambiguous_recipient"]["candidates"]) == 2
 
 
 @patch.object(EvmTxHandlerSkill, "_get_web3")

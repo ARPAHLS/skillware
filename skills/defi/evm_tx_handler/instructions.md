@@ -38,7 +38,7 @@ Native ETH spends skip ERC20 approve but still consume ETH for gas.
 | `quote` | Buy/sell intent is complete — get amounts, path, optional USD |
 | `preview` | Same as quote but preview-focused response |
 | `execute` | User confirmed — broadcast Uni V2 swap (fresh on-chain quote) |
-| `transfer` | Send native ETH or ERC20 to `0x…` or addressbook label |
+| `transfer` | Send native ETH or ERC20 to `0x…` or central address book contact |
 | `balances` | List wallet balances on a chain |
 | `wallet_info` | Agent address, chains, preferences (no secrets) |
 | `update_preferences` | User explicitly asks to change defaults in `config.yaml` |
@@ -53,9 +53,21 @@ Native ETH spends skip ERC20 approve but still consume ETH for gas.
 
 ## Transfer flow
 
-1. Build intent: `chain`, `target_asset`, `amount`, `recipient` (label or address).
+1. Build intent: `chain`, `target_asset`, `amount`, `recipient` (contact name/alias or `0x` address).
 2. `transfer` without `confirmed` first if `confirm_before_send` — skill returns `needs_confirmation`.
 3. After user approves, `transfer` with `confirmed: true`.
+
+### Recipient resolution (central address book)
+
+Recipients resolve through the operator **`addressbook.yaml`** (`public_0x` on contacts), not token registries.
+
+| Response | Meaning | Agent action |
+|----------|---------|--------------|
+| `needs_input` + `ambiguous_recipient` | Multiple contacts with wallets match the name | Ask the operator which contact (show `candidates`) or request explicit `0x` |
+| `missing_config` | Contact found but no `public_0x` | Ask operator to run `skillware addressbook set-wallet <id> <0x…>` |
+| `error` / `RECIPIENT_NOT_FOUND` | No matching contact | Ask for explicit address or add contact via CLI |
+
+On success, responses include `recipient_resolved`, `recipient_source`, and optional `recipient_name`.
 
 ## Pre-flight balances
 

@@ -1,9 +1,11 @@
 name: defi/evm_tx_handler
-version: 0.2.0
+version: 0.3.0
 description: |
   Operates a dedicated EVM agent wallet for structured buy/sell on Ethereum and Base:
   resolve, Uni V2 quote/preview/execute, transfer, balances, and wallet info.
-short_description: "EVM agent wallet — quote, swap, and transfer from structured intent."
+  Resolves transfer recipients via the central address book (public_0x) with
+  needs_input disambiguation; merges operator EVM chain/token config from skillware evm.
+short_description: "EVM agent wallet — quote, swap, and name-based transfer from structured intent."
 category: defi
 issuer:
   name: Hendobox

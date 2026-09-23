@@ -68,7 +68,7 @@ load_env_file()
 
 **Never** paste App Passwords into chat or tool arguments. Revoke the App Password when you decommission the agent.
 
-> **Address book vs mailbox:** `GMAIL_ADDRESS` is who the agent **sends as**. Contacts in `addressbook.yaml` are people the agent can **send to** or **search for** (for example names like "John" → `john@example.com`). Keep those separate.
+> **Address book vs mailbox:** `GMAIL_ADDRESS` is who the agent **sends as**. Contacts in the shared `addressbook.yaml` are people the agent can **send to** or **search for** (for example names like "John" → `john@example.com`). Full operator guide: [Address book operator config](../usage/addressbook_operator_config.md). Keep mailbox identity and contacts separate.
 
 ## Fresh install checklist
 
@@ -79,8 +79,8 @@ After `pip install "skillware[office_gmail_handler]"` (or dev checkout + `pip in
 | Skill bundled in wheel | Automatic | `office/gmail_handler` actions, empty read-only `data/addressbook.yaml`, no signature |
 | Agent Gmail + App Password in `.env` | **Yes** (live mail) | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` — dedicated agent mailbox only |
 | `skillware mail signature init` | **Recommended** | User-writable plain + HTML signatures, logo copy, paths in global `config.yaml` |
-| `skillware mail addressbook init` | **Recommended** (if using names/aliases) | Writable `addressbook.yaml` under user config |
-| `skillware mail addressbook add` | Optional | Contacts via CLI wizard (or edit YAML / skill `update_addressbook`) |
+| `skillware addressbook init` | **Recommended** (if using names/aliases) | Writable `addressbook.yaml` under user config |
+| `skillware addressbook add` | Optional | Contacts via CLI wizard (or edit YAML / skill `update_addressbook`) |
 | Project `.skillware.yaml` | Optional | Override paths per repo; see [`.skillware.yaml.example`](../../.skillware.yaml.example) |
 
 **Out of the box (no init):** skill loads and can send to raw email addresses. **No signature** is appended. Address book reads bundled empty template; **writes fail or target read-only wheel paths** until you `init`.
@@ -94,8 +94,8 @@ After `pip install "skillware[office_gmail_handler]"` (or dev checkout + `pip in
 
 # 2) Signatures + address book (persists across skillware upgrades)
 skillware mail signature init
-skillware mail addressbook init
-skillware mail addressbook add
+skillware addressbook init
+skillware addressbook add
 
 # 3) Inspect merged settings
 skillware config show
@@ -123,44 +123,24 @@ Interactive menu: `skillware` → **`7` / `mail`**.
 
 Plain vs HTML signature: **HTML** (`mail_signature.html`) is what Gmail shows (logo + `—` separator + links). **Plain** (`mail_signature.txt`) is the `text/plain` MIME part for plain-only clients — not duplicated in the HTML view.
 
-## Address book setup
+## Address book (mail)
 
-**Fresh install:** No signature or writable address book exists until you run `init` (or configure paths manually). The skill can **read** the empty bundled template inside the installed wheel, but **writes** (CLI add, `update_addressbook`) need a user-writable file.
+The shared address book is documented in [Address book operator config](../usage/addressbook_operator_config.md). This section covers **mail-only** behavior.
 
-**Where data lives (persists across `pip install --upgrade skillware`):**
+**Fresh install:** No writable address book until `skillware addressbook init` (or `skillware mail addressbook init` — same file). The skill can **read** the bundled empty template, but **writes** need a user-writable path.
 
-| File | Default location |
-| :--- | :--- |
-| Address book | `~/.config/skillware/addressbook.yaml` (after `init`) |
-| Plain signature | `~/.config/skillware/mail_signature.txt` |
-| HTML signature | `~/.config/skillware/mail_signature.html` |
-| Logo copy | `~/.config/skillware/skillware_logo.png` |
-| Global config | `~/.config/skillware/config.yaml` |
-| Scan cursor (optional) | `~/.config/skillware/gmail_scan_state.json` |
-| Send ledger (optional) | `~/.config/skillware/gmail_send_ledger.json` |
-
-CLI reference: [`docs/usage/cli.md`](../usage/cli.md#skillware-mail).
-
-On Windows, `~/.config/skillware/` is `%APPDATA%/skillware/`. These paths are **outside** the Python wheel — uninstalling or upgrading skillware does **not** delete them unless you remove the folder or run destructive CLI commands.
-
-**Precedence:** `GMAIL_ADDRESSBOOK_PATH` → project/global `mail.addressbook_path` → bundled skill template (read-only) → global default path above.
-
-### Operator setup (recommended)
+For Gmail sends, contacts need at least one **`emails`** entry. Optional `public_0x` is ignored by mail actions but useful if you also use defi skills — see the shared guide.
 
 ```bash
-skillware mail addressbook init          # creates ~/.config/skillware/addressbook.yaml
-skillware mail addressbook add           # wizard: name, email, aliases, org
-skillware mail addressbook show
-skillware mail addressbook validate
+skillware addressbook init
+skillware addressbook add --name "John Taller" --email john@example.com --aliases "John,Jon"
+skillware addressbook list
+skillware addressbook validate
 ```
 
-Non-interactive add:
+**Path override:** `GMAIL_ADDRESSBOOK_PATH` or `mail.addressbook_path` in YAML — same precedence as the shared guide.
 
-```bash
-skillware mail addressbook add --name "John Taller" --email john@example.com --aliases "John,Jon" --org Skillware
-```
-
-Or edit YAML manually / use skill `update_addressbook`. The agent should call `resolve_recipients` when the user mentions a name rather than an email.
+When the user mentions a name instead of an email, the agent should call **`resolve_recipients`** (not guess addresses). For wallet fields, CLI commands, defi transfer resolution, and schema details, see [Address book operator config](../usage/addressbook_operator_config.md).
 
 ## Email signatures
 
@@ -323,7 +303,8 @@ See [examples/README.md](../../examples/README.md).
 | :--- | :--- |
 | `gmail_handler_demo.py` | Mocked IMAP/SMTP demo (no credentials) |
 | `gmail_signature_test_send.py` | Preview or send one test message to verify signature (see [Fresh install checklist](#fresh-install-checklist)) |
-| `gemini_gmail_handler.py` | Interactive Gemini tool loop (live Gmail + `GOOGLE_API_KEY`) |
+| `gemini_gmail_minimal.py` | Minimal interactive Gemini + Gmail loop (README quick start) |
+| `gemini_gmail_handler.py` | Full interactive Gemini tool loop (live Gmail + `GOOGLE_API_KEY`) |
 
 ### Direct execute (resolve recipients)
 
@@ -343,7 +324,7 @@ print(result)
 
 ### Gemini
 
-See `examples/gemini_gmail_handler.py` for an interactive REPL. Requires a **dedicated agent** `GMAIL_ADDRESS` + `GMAIL_APP_PASSWORD` and `GOOGLE_API_KEY`.
+See `examples/gemini_gmail_minimal.py` (minimal) or `examples/gemini_gmail_handler.py` (full REPL). Requires a **dedicated agent** `GMAIL_ADDRESS` + `GMAIL_APP_PASSWORD` and `GOOGLE_API_KEY`.
 
 ```python
 import google.genai as genai
