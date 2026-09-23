@@ -19,6 +19,7 @@
   <a href="#mission">Mission</a> •
   <a href="#how-it-works">How it works</a> •
   <a href="#architecture">Architecture</a> •
+  <a href="#supported-agent-skill-categories">Skill categories</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#contributing">Contributing</a> •
@@ -51,7 +52,7 @@ Optional **Corpus** and **Reference** assets extend bundles when needed. Every b
 
 ### Skill library
 
-Browse capabilities by category in the [Skill library](docs/skills/README.md) or on our <a href="https://skillware.site/skills" target="_blank" rel="noopener noreferrer">site&nbsp;↗</a>.
+Browse capabilities by category in [Supported Agent Skill Categories](#supported-agent-skill-categories), the [Skill library](docs/skills/README.md), the [documentation sitemap](docs/sitemap.md), or on our <a href="https://skillware.site/skills" target="_blank" rel="noopener noreferrer">site&nbsp;↗</a>.
 
 ## How it works
 
@@ -71,7 +72,7 @@ documentation. Runnable provider scripts are indexed in
 
 ```text
 Skillware/
-├── docs/                       # Introduction, testing, skill catalog, usage guides (docs/usage/)
+├── docs/                       # Introduction, testing, category hubs (docs/skills/<category>/), usage guides (docs/usage/)
 ├── examples/                   # Provider reference scripts — usage demos, not pytest (see examples/README.md)
 ├── skills/                     # Skill Registry
 │   └── category/               # Domain boundaries (e.g., finance)
@@ -96,6 +97,25 @@ Skillware/
     ├── test_*.py               # Framework tests (loader, CLI, issuer, …)
     └── skills/                 # Optional maintainer skill tests (edge cases)
 ```
+
+## Supported Agent Skill Categories
+
+Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library](docs/skills/README.md). Crawl map: [documentation sitemap](docs/sitemap.md).
+
+| Category | Skills | Description |
+| :--- | :---: | :--- |
+| [Office](docs/skills/office/README.md) | 2 | Documents, desktop work, and productivity automation |
+| [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
+| [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
+| [DeFi](docs/skills/defi/README.md) | 1 | On-chain ops, trading, and agent wallet management |
+| [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
+| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
+| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
+| [Security](docs/skills/security/README.md) | 2 | Defenses for untrusted input reaching logical systems |
+| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
+| [Monitoring](docs/skills/monitoring/README.md) | 2 | Agent loop observability, budget gates, and task control |
+| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
+| [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
 
 ## Quick Start
 
@@ -194,7 +214,7 @@ More providers and patterns: [usage guides](docs/usage/README.md).
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Category hubs](#supported-agent-skill-categories) · [Sitemap](docs/sitemap.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Operator config** | [EVM operator config](docs/usage/evm_operator_config.md) · [Address book operator config](docs/usage/addressbook_operator_config.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Glossary](docs/glossary.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |

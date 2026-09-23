@@ -210,7 +210,7 @@ Agents must follow [Agent Contribution Workflow](docs/contributing/ai_native_wor
 
 1. Copy or align with `templates/python_skill/`.
 2. Create `skills/<category>/<skill_name>/` with the full bundle (see [Skill bundle standard](#skill-bundle-standard)).
-3. Add `docs/skills/<skill_name>.md` and a row in [docs/skills/README.md](docs/skills/README.md).
+3. Add `docs/skills/<category>/<skill_name>.md`, a row in `docs/skills/<category>/README.md`, a row in [docs/skills/README.md](docs/skills/README.md), and a link in [docs/sitemap.md](docs/sitemap.md).
 4. When adding or renaming a runnable script under `examples/`, update [examples/README.md](examples/README.md) in the same PR.
 5. Confirm `SkillLoader.load_skill("<category>/<skill_name>")` works or document required packages and environment variables.
 
@@ -248,7 +248,7 @@ Defines the tool interface, safety constitution, dependencies, and issuer attrib
 - `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Enforced in CI via `tests/test_registry_identity.py` — mismatched or duplicate `manifest.name` blocks merge (#280).
 - `version`, `description`
 - `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
-- `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present
+- `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present. Keep it accurate and searchable (the problem the skill solves); do not keyword-stuff.
 - `parameters` — valid JSON Schema for LLM tool calling
 - `constitution` — safety boundaries enforced at the prompt level
 - `requirements` — when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version — `SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
@@ -347,18 +347,23 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 - Hand-maintained extras (`dev`, `gemini`, `claude`, `openai`, `bedrock`, `agents`) stay above the generated block in `pyproject.toml`.
 - Contributors and CI install skill runtime deps with `pip install -e ".[dev,all]"`; add `[agents]` when running SDK examples locally.
 
-### 6. `docs/skills/<skill_name>.md` (catalog page)
+### 6. `docs/skills/<category>/<skill_name>.md` (catalog page)
 
-- Human-readable documentation linked from the [Skill Library](docs/skills/README.md).
+- Human-readable documentation linked from the [Skill Library](docs/skills/README.md) and the category hub `docs/skills/<category>/README.md`.
 - Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include the **intent** block (`<!-- skill-intent:begin -->`) with **Solves**, **Works with**, and **Runtime** lines so search and GitHub can match operator queries. Keep wording accurate; do not stuff keywords.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
 - Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR.
 
+Do **not** add `skills/<category>/README.md` inside the runtime registry. Category landing pages belong under `docs/skills/<category>/README.md` so `SkillLoader.load_skill()` IDs stay stable.
+
 ### 7. Registry index row
 
-- Add or update the skill table in [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
+- Add or update the skill table in `docs/skills/<category>/README.md` **and** [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
+- Add the catalog page and hub to [docs/sitemap.md](docs/sitemap.md).
+- New top-level category: also add a row to the root README category table and a hub at `docs/skills/<category>/README.md`.
 
 ### Issuer attribution
 
@@ -393,18 +398,18 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 
 | Category | Purpose | Examples in registry |
 | :--- | :--- | :--- |
-| `creative` | Image processing, media editing, and creative utilities | `bg_remover` |
-| `compliance` | Privacy, policy, regulatory guardrails | `pii_masker`, `mica_module`, `tos_evaluator` |
-| `data_engineering` | Datasets, generation, ETL-style tooling | `synthetic_generator`, `novelty_extractor` |
-| `defi` | On-chain trading and agent wallet execution | `evm_tx_handler` |
-| `dev_tools` | Developer workflows, issue resolution, repo tooling | `issue_resolver` |
-| `finance` | Blockchain, risk, financial analysis | `wallet_screening`, `uk_companies_house_handler` |
+| `creative` | Image processing, media editing, and creative utilities | `bg_remover`, `deck_builder` |
+| `compliance` | Privacy, policy, and regulatory guardrails | `pii_masker`, `mica_module`, `tos_evaluator` |
+| `data_engineering` | Datasets, generation, and ETL-style tooling | `synthetic_generator`, `novelty_extractor`, `semantic_web_proxy` |
+| `defi` | On-chain ops, trading, and agent wallet management | `evm_tx_handler` |
+| `dev_tools` | Developer workflows, repo tooling, and coding | `issue_resolver` |
+| `finance` | Fintech, blockchain, payments, and financial services | `wallet_screening`, `uk_companies_house_handler` |
 | `linguistics` | Language adapters and internet-register lexicons | `korean_slang` |
-| `office` | Documents, productivity, email | `pdf_form_filler`, `gmail_handler` |
-| `optimization` | Middleware, compression, efficiency | `prompt_rewriter` |
-| `monitoring` | Agent loop observability, budget gates, task control | `token_limiter` |
-| `security` | Offline, local-first defenses for untrusted input reaching agents | `prompt_injection_firewall`, `deceptive_ui_guard` |
-| `wellness` | Coaching guardrails, mental health support | `mental_coach` |
+| `office` | Documents, desktop work, and productivity automation | `pdf_form_filler`, `gmail_handler` |
+| `optimization` | Middleware, efficiency, and token economics | `prompt_rewriter`, `context_optimizer` |
+| `monitoring` | Agent loop observability, budget gates, and task control | `token_limiter`, `kpi_gate` |
+| `security` | Defenses for untrusted input reaching logical systems | `prompt_injection_firewall`, `deceptive_ui_guard` |
+| `wellness` | Coaching guardrails and mental health support | `mental_coach` |
 
 ### Choosing a category
 
@@ -414,7 +419,7 @@ Registry IDs are always `category/skill_name` from the folder path and must matc
 
 **New top-level category?** Open an issue and discuss with maintainers **before** adding a folder — do not create `skills/<new_category>/` in a pull request without that agreement.
 
-When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Labels sync via CI on merge to `main`.
+When a new top-level category lands under `skills/`, update this table and the category dropdown in [`.github/ISSUE_TEMPLATE/01_skill_proposal.yml`](.github/ISSUE_TEMPLATE/01_skill_proposal.yml) in the same PR. Add a matching `cat: <category>` entry to [`.github/labels.json`](.github/labels.json) (same pastel color as other `cat:` labels; never use the bare folder name as a repo-wide label). Update `REGISTRY_CATEGORIES` in [`tests/test_github_labels.py`](tests/test_github_labels.py) in the same PR. Add `docs/skills/<category>/README.md`, a root README category table row, and a [sitemap](docs/sitemap.md) section. Labels sync via CI on merge to `main`. Do not add a `README.md` under `skills/<category>/`.
 
 ---
 
@@ -451,7 +456,8 @@ When a new top-level category lands under `skills/`, update this table and the c
 | [Agent Code of Conduct](CODE_OF_CONDUCT.md) | Behavioral expectations for humans and agents |
 | [docs/introduction.md](docs/introduction.md) | Skill anatomy: Contract / Effect / Directive (+ Assurance, Corpus, Interface) |
 | [docs/vision.md](docs/vision.md) | Project story, roadmap, and agent discoverability |
-| [docs/skills/README.md](docs/skills/README.md) | Published skill catalog |
+| [docs/skills/README.md](docs/skills/README.md) | Published skill catalog (library index) |
+| [docs/sitemap.md](docs/sitemap.md) | Crawl map of category hubs and catalog pages |
 | [templates/python_skill/](templates/python_skill/) | Boilerplate for new skills |
 | [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist |
 | [Issue templates](.github/ISSUE_TEMPLATE/) | Bug, docs, skills, CLI, examples, RFC chooser |

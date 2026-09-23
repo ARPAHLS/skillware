@@ -35,7 +35,7 @@ skillware evm chains list
 skillware evm validate
 ```
 
-For signing skills (`defi/evm_tx_handler`), also set `AGENT_WALLET_PRIVATE_KEY` in `.env` — see [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config) and [EVM Transaction Handler](../skills/evm_tx_handler.md#environment).
+For signing skills (`defi/evm_tx_handler`), also set `AGENT_WALLET_PRIVATE_KEY` in `.env` — see [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config) and [EVM Transaction Handler](../skills/defi/evm_tx_handler.md#environment).
 
 ---
 
@@ -166,6 +166,6 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 - [CLI — skillware evm](cli.md#skillware-evm)
 - [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config)
 - [Address book operator config](addressbook_operator_config.md) — people and `public_0x` (not tokens)
-- [EVM Transaction Handler](../skills/evm_tx_handler.md) — signing skill env vars
+- [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — signing skill env vars
 - [DeFi skills](../skills/README.md#defi) — catalog index
 - [Glossary](../glossary.md#operator-configuration)

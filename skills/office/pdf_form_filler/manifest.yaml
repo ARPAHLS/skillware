@@ -1,7 +1,7 @@
 name: office/pdf_form_filler
 version: 0.1.0
 description: Fills PDF forms based on natural language instructions.
-short_description: "Fills PDF forms from natural language instructions using Claude."
+short_description: "Fills AcroForm PDFs by mapping natural-language instructions to detected fields."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
