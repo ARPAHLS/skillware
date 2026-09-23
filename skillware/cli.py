@@ -227,6 +227,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware evm init", "create user evm.yaml from bundled defaults"),
             ("skillware evm chains list", "table of chains and RPC readiness"),
             ("skillware evm chain add", "interactive custom chain wizard"),
+            ("skillware evm tokens list", "table of ERC-20 symbols per chain"),
             ("skillware evm token add", "register a custom ERC-20 token"),
             ("skillware evm rpc enable <chain>", "enable a chain in evm.yaml"),
             ("skillware evm validate", "schema and checksum validation"),
@@ -2439,6 +2440,16 @@ def main() -> None:
     evm_chain_add.add_argument("--chain-id", dest="chain_id", type=int, default=None)
     evm_chain_add.add_argument("--rpc-env", default=None)
     evm_chain_add.add_argument("--rpc-url", default=None)
+    evm_tokens = evm_sub.add_parser("tokens", help="Token registry listing.")
+    evm_tokens_sub = evm_tokens.add_subparsers(dest="evm_action")
+    evm_tokens_list = evm_tokens_sub.add_parser(
+        "list", help="List configured ERC-20 tokens."
+    )
+    evm_tokens_list.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON.",
+    )
     evm_token = evm_sub.add_parser("token", help="Token registry commands.")
     evm_token_sub = evm_token.add_subparsers(dest="evm_action")
     evm_token_add = evm_token_sub.add_parser("add", help="Add a custom ERC-20 token.")
@@ -2641,6 +2652,14 @@ def main() -> None:
             raise SystemExit(
                 cmd_evm_dispatch(
                     "chains",
+                    "list",
+                    json_output=getattr(args, "json", False),
+                )
+            )
+        if area == "tokens" and action == "list":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "tokens",
                     "list",
                     json_output=getattr(args, "json", False),
                 )

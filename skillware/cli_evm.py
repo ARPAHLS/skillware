@@ -24,6 +24,7 @@ from skillware.core.evm_config import (
     init_evm_config_file,
     is_rpc_configured,
     list_configured_chains,
+    list_configured_tokens,
     load_merged_evm_config,
     resolve_evm_config_path,
     validate_evm_config_data,
@@ -45,10 +46,11 @@ _EVM_SUBMENU = [
     ("2", "init", "create user evm.yaml from bundled defaults"),
     ("3", "chains list", "table of chains, RPC source, readiness"),
     ("4", "chain add", "interactive custom chain wizard"),
-    ("5", "token add", "register a custom ERC-20 token"),
-    ("6", "rpc enable", "enable a bundled or custom chain"),
-    ("7", "validate", "schema and address checksum checks"),
-    ("8", "open", "open evm.yaml or its directory in the OS file manager"),
+    ("5", "tokens list", "table of ERC-20 symbols per chain"),
+    ("6", "token add", "register a custom ERC-20 token"),
+    ("7", "rpc enable", "enable a bundled or custom chain"),
+    ("8", "validate", "schema and address checksum checks"),
+    ("9", "open", "open evm.yaml or its directory in the OS file manager"),
 ]
 
 ReadLineFn = Optional[Callable[[str], Optional[str]]]
@@ -229,6 +231,66 @@ def cmd_evm_chains_list(
         )
 
     console.print(table)
+    return 0
+
+
+def _short_address(value: object) -> str:
+    text = str(value).strip() if value is not None else ""
+    if not text:
+        return "—"
+    if len(text) < 12:
+        return text
+    return f"{text[:6]}...{text[-4:]}"
+
+
+def cmd_evm_tokens_list(
+    console: Optional[Console] = None,
+    *,
+    json_output: bool = False,
+) -> int:
+    _apply_active_theme()
+    console = console or Console()
+    merged = load_merged_evm_config(refresh=True)
+    entries = list_configured_tokens(merged)
+
+    if json_output:
+        import json
+
+        payload = []
+        for chain_name, symbol, meta in entries:
+            payload.append(
+                {
+                    "chain": chain_name,
+                    "symbol": symbol,
+                    "address": meta.get("address"),
+                    "decimals": meta.get("decimals"),
+                }
+            )
+        console.print(json.dumps(payload, indent=2))
+        return 0
+
+    table = Table(
+        title="EVM tokens",
+        box=box.SIMPLE_HEAVY,
+        expand=True,
+        show_header=True,
+        header_style=TABLE_STYLE,
+    )
+    table.add_column("CHAIN", style=ID_STYLE, no_wrap=True, ratio=2)
+    table.add_column("SYMBOL", no_wrap=True, ratio=2)
+    table.add_column("ADDRESS", ratio=4)
+    table.add_column("DECIMALS", no_wrap=True, ratio=1)
+
+    for chain_name, symbol, meta in entries:
+        table.add_row(
+            chain_name,
+            symbol,
+            _short_address(meta.get("address")),
+            str(meta.get("decimals", "—")),
+        )
+
+    console.print(table)
+    console.print(f"  shown: {len(entries)} token(s)", style="dim")
     return 0
 
 
@@ -472,9 +534,11 @@ def cmd_evm_submenu(
             cmd_evm_chains_list(console)
         elif lowered in {"4", "chain add"}:
             cmd_evm_chain_add(console, input_fn=input_fn)
-        elif lowered in {"5", "token add"}:
+        elif lowered in {"5", "tokens list", "tokens"}:
+            cmd_evm_tokens_list(console)
+        elif lowered in {"6", "token add"}:
             cmd_evm_token_add(console, input_fn=input_fn)
-        elif lowered.startswith("6") or lowered.startswith("rpc enable"):
+        elif lowered.startswith("7") or lowered.startswith("rpc enable"):
             parts = choice.split()
             chain = (
                 parts[-1]
@@ -483,11 +547,11 @@ def cmd_evm_submenu(
             )
             if chain:
                 cmd_evm_rpc_enable(str(chain), console)
-        elif lowered in {"7", "validate"}:
+        elif lowered in {"8", "validate"}:
             rc = cmd_evm_validate(console)
             if rc:
                 console.print(f"  validate exited {rc}", style=ERROR_DIM_STYLE)
-        elif lowered in {"8", "open"}:
+        elif lowered in {"9", "open"}:
             cmd_evm_open(console)
         else:
             console.print(f"  Unknown choice: {choice}", style=ERROR_DIM_STYLE)
@@ -517,6 +581,12 @@ def cmd_evm_dispatch(
 
     if area == "chains" and action == "list":
         return cmd_evm_chains_list(
+            console=console,
+            json_output=kwargs.get("json_output", False),
+        )
+
+    if area == "tokens" and action == "list":
+        return cmd_evm_tokens_list(
             console=console,
             json_output=kwargs.get("json_output", False),
         )

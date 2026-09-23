@@ -1445,6 +1445,40 @@ def test_cmd_evm_token_add_degen_on_base(tmp_path, monkeypatch):
     )
 
 
+def test_cmd_evm_tokens_list_shows_merged_registry(tmp_path, monkeypatch):
+    import io
+
+    from rich.console import Console
+
+    from skillware.cli_evm import cmd_evm_init, cmd_evm_tokens_list
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    assert cmd_evm_init(non_interactive=True) == 0
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=140)
+    assert cmd_evm_tokens_list(console=console) == 0
+    output = buf.getvalue()
+    assert "EVM tokens" in output
+    assert "degen" in output.lower()
+    assert "usdc" in output.lower()
+
+
+def test_main_evm_tokens_list_subcommand(tmp_path, monkeypatch):
+    import sys
+
+    from skillware.cli import main
+
+    monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
+    argv = sys.argv
+    sys.argv = ["skillware", "evm", "tokens", "list"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+
 def test_main_addressbook_list_subcommand(tmp_path, monkeypatch):
     import sys
     from skillware.cli import main

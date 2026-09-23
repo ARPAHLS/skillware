@@ -280,6 +280,23 @@ def list_configured_chains(
     return entries
 
 
+def list_configured_tokens(
+    config: Optional[MergedEvmConfig] = None,
+) -> List[Tuple[str, str, Dict[str, Any]]]:
+    """Return ``(chain, symbol, metadata)`` for merged ERC-20 registry entries."""
+    merged = config or load_merged_evm_config()
+    entries: List[Tuple[str, str, Dict[str, Any]]] = []
+    for chain_name in sorted(merged.tokens):
+        chain_tokens = merged.tokens[chain_name]
+        if not isinstance(chain_tokens, dict):
+            continue
+        for symbol in sorted(chain_tokens):
+            meta = chain_tokens[symbol]
+            if isinstance(meta, dict):
+                entries.append((chain_name, symbol, dict(meta)))
+    return entries
+
+
 def resolve_chain(
     chain_name: str,
     config: Optional[MergedEvmConfig] = None,
