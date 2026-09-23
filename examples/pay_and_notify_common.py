@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Iterator, List
 from unittest.mock import MagicMock, patch
 
 from skillware.core.evm_config import is_rpc_configured, resolve_evm_config_path

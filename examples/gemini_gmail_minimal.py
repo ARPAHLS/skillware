@@ -51,7 +51,6 @@ def main() -> None:
 
     bundle = SkillLoader.load_skill(SKILL_ID)
     skill = bundle["class"]()
-    tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
     client = genai.Client()
     chat = client.chats.create(
         model=os.environ.get("GEMINI_MODEL", "gemini-3.5-flash"),
