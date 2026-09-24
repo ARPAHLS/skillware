@@ -6,7 +6,7 @@ description: >
   socio-linguistic nuance, and suggests peer-register lines from curated
   templates. Toxic and appearance-policing terms are filtered. No network and
   no model calls inside execute().
-short_description: "Offline Korean Gen-Z slang interpreter and peer-register generator."
+short_description: "Translate, interpret, and generate Korean Gen-Z slang and peer-register text."
 issuer:
   name: Blade Dancer
   email: bladedancerc3@gmail.com

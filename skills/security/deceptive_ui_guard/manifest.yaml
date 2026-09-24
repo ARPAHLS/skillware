@@ -6,7 +6,7 @@ description: >
   optional Playwright-rendered computed style diffing, DOM zone classification, allowlists,
   structural and lexical heuristics, corroboration gates, trust scoring, and agent guidance
   for pre-click and pre-context guardrails. Does not click, submit forms, or call LLMs.
-short_description: "Deceptive UI guard with render diff, DOM zone weighting, allowlists, and trust score."
+short_description: "Detect deceptive UI patterns and anti-agent traps using DOM & visual diffing."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

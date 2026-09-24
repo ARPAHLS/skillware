@@ -7,7 +7,7 @@ description: |
   pipeline orchestration. Returns status-based responses (ready, partial,
   needs_input, error) with disambiguation support. The agent owns natural-language
   dialogue; the skill returns structured candidates and records.
-short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
+short_description: "Search UK Companies House for officers, PSCs, filings, and corporate data."
 issuer:
   name: Areen Agrawal
   email: agrawalareen09@gmail.com

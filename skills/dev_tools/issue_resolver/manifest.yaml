@@ -1,7 +1,7 @@
 name: "dev_tools/issue_resolver"
 version: "0.3.0"
 description: "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, parses caller-fetched ISSUE_RESOLVER.md profiles into provenance-labelled context, and provides sequential stage checklists with conditional verify, commit, and pull request gates."
-short_description: "GitHub issue resolver with staged checklists and repository profile context."
+short_description: "Guide agents through solving GitHub issues with staged checklists and context."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

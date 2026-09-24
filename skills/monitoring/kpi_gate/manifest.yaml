@@ -8,7 +8,7 @@ description: >
   all three inputs, a closed rule set, and fail-closed contract errors from a
   closed registry. Pure evaluation only: no network calls, no data fetching,
   no side effects; identical input always returns identical output.
-short_description: "Deterministic KPI gate: metrics snapshot vs policy charter, fail-closed findings."
+short_description: "Evaluate metrics snapshots against policy charters with fail-closed verdicts."
 issuer:
   name: Masa
   email: masa88keith@gmail.com

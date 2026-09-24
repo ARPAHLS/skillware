@@ -21,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Manifests:** Standardized and improved `short_description` across all 22 skill manifests to be action-oriented, trigger-friendly for agent routing, under 80 characters, and fixed broken encoding characters (#355).
 - **Docs:** Catalog pages include a standardized intent header (problem solved, host agents, runtime / key requirements) for search matching without stuffing (#370).
 - **Docs / CI:** Doc-drift guards follow nested catalog paths; CONTRIBUTING, PR/issue templates, and the skill template point at category hubs and the sitemap (#370).
 - **Skill (`defi/evm_tx_handler`):** Setup envelope docs URL now points at `docs/skills/defi/evm_tx_handler.md` (#370).

@@ -4,7 +4,7 @@ description: |
   Query-aware extractive context selection for large documents. Chunks document_text,
   scores spans against agent_goal with local fastembed embeddings, and returns only
   the highest-relevance source text up to max_tokens_return — mini-RAG without paraphrase.
-short_description: "Extract the most relevant document spans for an agent_goal using local embeddings."
+short_description: "Extract relevant document text spans for an agent goal using local embeddings."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

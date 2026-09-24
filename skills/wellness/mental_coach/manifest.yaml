@@ -3,7 +3,7 @@ version: 0.1.1
 description: >
   Deterministic wellness coaching firewall with crisis triage, non-clinical scope
   limits, grounded KB retrieval, and optional scope evaluation for host agents.
-short_description: "Crisis triage and grounded coaching guardrails for wellness support."
+short_description: "Triage mental health crises and provide grounded wellness coaching guardrails."
 issuer:
   name: Masa
   email: masa88keith@gmail.com

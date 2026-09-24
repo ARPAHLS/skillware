@@ -1,7 +1,7 @@
 name: "monitoring/token_limiter"
 version: "1.0.0"
 description: "Deterministic token budget gate for autonomous agent loops. Returns CONTINUE, WARN, or FORCE_TERMINATE so the host loop can stop runaway tasks before they exhaust context or budget."
-short_description: "Token budget gate: CONTINUE, WARN, or FORCE_TERMINATE for agent loops."
+short_description: "Track token budgets and emit CONTINUE, WARN, or FORCE_TERMINATE gate signals."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
