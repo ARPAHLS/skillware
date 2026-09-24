@@ -76,7 +76,7 @@ system PATH, or use the `py` launcher:
 
 ## Version advisory
 
-On CLI startup, Skillware checks the installed package version **once per process**.
+On CLI startup, Skillware checks the installed package version **once per process** and warns on **duplicate or orphan install metadata** (editable + PyPI overlap — see [#333](https://github.com/ARPAHLS/skillware/issues/333)).
 If you are on an **unsupported** release (below `0.3.5`, for example `0.3.4` or `0.2.9`), a single
 dim message is printed to stderr suggesting an upgrade to `>= 0.4.7`. Installs in the
 `0.3.5`–`0.4.6` band stay silent (no security backports, but no startup spam). Current
@@ -287,6 +287,7 @@ Check whether skills can load in the current environment — manifest **requirem
     skillware doctor finance/wallet_screening
     skillware doctor --category compliance
     skillware doctor --skills-root /path/to/my/skills
+    skillware doctor --install
 
 #### Arguments and flags
 
@@ -296,10 +297,13 @@ Check whether skills can load in the current environment — manifest **requirem
 | `<category>/<skill_name>` | Diagnose one skill |
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
+| `--install` | Check Python package install health (editable vs PyPI conflicts); ignores skill args |
 
 **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
 Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
+
+**`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
 
 Interactive menu: **`5` / `doctor`**.
 

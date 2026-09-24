@@ -35,6 +35,7 @@ body:
         - skillware test
         - skillware examples
         - skillware doctor
+        - skillware doctor --install
         - skillware paths (read-only)
         - skillware (menu 4 / paths) — interactive paths submenu
         - skillware config (show / open)
