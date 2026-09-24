@@ -98,6 +98,59 @@ For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill o
 
 See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
+#### Editable vs PyPI on the same Python
+
+Use **one install mode per Python interpreter**. Mixing an editable install (`pip install -e .` from a clone) with a PyPI wheel (`pip install skillware`) on the **same** Python can leave orphaned `dist-info` directories. This corrupts package metadata: `skillware --version` may print `None`, `pip show` may crash, and `pip uninstall` may fail with `uninstall-no-record-file` (see [#333](https://github.com/ARPAHLS/skillware/issues/333)).
+
+**For clone development (recommended):**
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Unix:    source .venv/bin/activate
+pip install -e ".[dev,all]"
+```
+
+**For end-user testing from PyPI:**
+
+```bash
+python -m venv .venv-pypi
+# Activate this separate venv
+pip install skillware
+```
+
+**Switching modes on the same Python:**
+
+Always uninstall before switching:
+
+```bash
+pip uninstall skillware -y
+# Then install in the desired mode
+pip install -e ".[dev,all]"   # editable clone
+# OR
+pip install skillware          # PyPI wheel
+```
+
+**If `pip uninstall` fails (`uninstall-no-record-file`):**
+
+Manually remove the orphan artifacts, then force-reinstall:
+
+```bash
+# Windows (adjust Python version path as needed):
+rmdir /s /q "%LOCALAPPDATA%\Programs\Python\Python313\Lib\site-packages\skillware"
+rmdir /s /q "%LOCALAPPDATA%\Programs\Python\Python313\Lib\site-packages\skillware-*.dist-info"
+
+# Unix:
+rm -rf "$(python -c 'import site; print(site.getsitepackages()[0])')"/skillware*
+
+# Then reinstall cleanly:
+pip install --force-reinstall skillware
+# OR for editable:
+pip install -e ".[dev,all]"
+```
+
+**Rule of thumb:** always use a **dedicated virtual environment** for clone development. This avoids all dist-info collision issues.
+
 ### 5. Implement and verify
 
 Follow the table in [Ways to contribute](#ways-to-contribute), then [Pull request process](#pull-request-process).
