@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
+import os
 from typing import Any, Dict, Optional
-import yaml
-
 from skillware.core.base_skill import BaseSkill
 
 
@@ -27,16 +25,8 @@ class MyAwesomeSkill(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        """Loads metadata dynamically from co-located manifest.yaml."""
-        manifest_path = Path(__file__).resolve().parent / "manifest.yaml"
-        if manifest_path.is_file():
-            with open(manifest_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        return {
-            "name": "category/my_awesome_skill",
-            "version": "0.1.0",
-            "description": "A short description of what this skill does.",
-        }
+        """Load manifest.yaml from the skill bundle directory."""
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     def execute(
         self,

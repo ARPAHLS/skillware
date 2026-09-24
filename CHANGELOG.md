@@ -23,6 +23,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Fixed
 
+- **Skills:** Load co-located `manifest.yaml` in stub skills (`compliance/mica_module`, `compliance/pii_masker`, `data_engineering/novelty_extractor`, `optimization/prompt_rewriter`) via shared `BaseSkill.load_manifest_from_dir()` helper instead of hardcoded metadata dicts (#203).
 - **Skill (`office/pdf_form_filler` v0.1.1):** Load the bundle helpers once at import time (relative, package, then `importlib` under a unique module name, matching `defi/evm_reader`) instead of appending the skill directory to `sys.path` on every `execute()` and importing a top-level `utils` module, which grew `sys.path` in long-running hosts and clashed with a host application's own `utils` module in both directions (#398).
 
 ## [0.5.7] - 2026-09-29
