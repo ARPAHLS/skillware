@@ -1,9 +1,11 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 import jsonschema
 from jsonschema import ValidationError
+import yaml
 
 
 class SkillwareParamValidationError(ValueError):
@@ -36,6 +38,22 @@ class BaseSkill(ABC):
             return None
         text = str(env_val).strip()
         return text or None
+
+    @staticmethod
+    def load_manifest_from_dir(bundle_dir: Union[str, Path]) -> Dict[str, Any]:
+        """
+        Read and parse ``manifest.yaml`` from a bundle directory or direct file path.
+
+        Returns an empty dictionary when the file does not exist or does not contain
+        a valid YAML mapping.
+        """
+        path = Path(bundle_dir).resolve()
+        manifest_file = path / "manifest.yaml" if path.is_dir() else path
+        if manifest_file.is_file():
+            with open(manifest_file, "r", encoding="utf-8") as f:
+                loaded = yaml.safe_load(f)
+            return loaded if isinstance(loaded, dict) else {}
+        return {}
 
     @property
     @abstractmethod

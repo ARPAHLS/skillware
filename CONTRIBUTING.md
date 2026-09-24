@@ -301,6 +301,7 @@ requirements:
 
 - Define **exactly one** concrete subclass of `BaseSkill` per skill file. `SkillLoader.load_skill()` discovers it automatically as `bundle["class"]` (see `SkillLoader.get_skill_class()`).
 - Implement deterministic Python logic; inherit from `BaseSkill`.
+- Expose the bundle manifest via `@property def manifest(self) -> Dict[str, Any]: return self.load_manifest_from_dir(os.path.dirname(__file__))` (template: `templates/python_skill/skill.py`).
 - Accept a dictionary of inputs; return a JSON-serializable dictionary.
 - Catch internal errors and return a structured error report; do not crash the host agent.
 - Do **not** print to stdout or stderr for normal operation.

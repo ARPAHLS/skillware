@@ -32,6 +32,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Docs:** Glossary cross-links on hub and catalog pages (#363).
 - **README:** Quick-start usage example is Gemini + `office/gmail_handler` ([`gemini_gmail_minimal.py`](examples/gemini_gmail_minimal.py)) instead of the prompt-injection firewall snippet.
 
+### Fixed
+
+- **Skills:** Load co-located `manifest.yaml` in stub skills (`compliance/mica_module`, `compliance/pii_masker`, `data_engineering/novelty_extractor`, `optimization/prompt_rewriter`) via shared `BaseSkill.load_manifest_from_dir()` helper instead of hardcoded metadata dicts (#203).
+
 ## [0.5.6] - 2026-09-20
 
 ### Added
