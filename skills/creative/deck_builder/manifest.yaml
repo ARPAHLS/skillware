@@ -1,7 +1,7 @@
 name: "creative/deck_builder"
 version: "0.2.0"
 description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
-short_description: "Assemble editable PPTX presentations from structured JSON deck specs."
+short_description: "Build editable PowerPoint (.pptx) presentations from structured JSON specs."
 
 issuer:
   name: "Tushar Jamunkar"

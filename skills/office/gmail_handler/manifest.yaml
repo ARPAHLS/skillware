@@ -7,7 +7,7 @@ description: |
   with confirmation gates. The agent owns natural-language drafting and user
   dialogue; the skill owns transport, validation, address book lookup, scan
   cursors, and structured response envelopes.
-short_description: "Gmail send, search, read, reply, and attachments via IMAP/SMTP."
+short_description: "Send, search, read, and reply to Gmail messages and attachments via IMAP/SMTP."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

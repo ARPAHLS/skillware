@@ -4,7 +4,7 @@ description: >
   Offline deterministic pre-flight scanner that detects and sanitizes prompt injection,
   hidden HTML payloads, invisible Unicode smuggling, confusable evasion, leetspeak, ROT13,
   typoglycemia, nested encodings, and instruction override attempts before untrusted text reaches an LLM.
-short_description: "Offline prompt-injection firewall with local detectors and sanitization."
+short_description: "Detect and neutralize prompt injection attempts offline before execution."
 issuer:
   name: Masa
   email: masa88keith@gmail.com

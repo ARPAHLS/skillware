@@ -7,7 +7,7 @@ description: >
   returns concentrated Markdown, plain text, or JSON plus an estimated token saving.
   Fetch-only: it does not execute JavaScript, and warns when a page appears to need
   a browser render.
-short_description: "Strips web pages to token-efficient Markdown or JSON with savings estimates."
+short_description: "Clean web pages into token-efficient Markdown or JSON with savings metrics."
 issuer:
   name: Martin Rizzo Lozano
   email: rizzolozanomartin@gmail.com

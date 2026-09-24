@@ -1,7 +1,7 @@
 name: "data_engineering/synthetic_generator"
 version: "0.1.1"
 description: "Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse."
-short_description: "Generates high-entropy synthetic JSONL data for model fine-tuning."
+short_description: "Generate high-entropy synthetic JSONL training data for model fine-tuning."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com

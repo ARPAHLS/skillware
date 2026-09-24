@@ -5,7 +5,7 @@ description: |
   resolve, Uni V2 quote/preview/execute, transfer, balances, and wallet info.
   Resolves transfer recipients via the central address book (public_0x) with
   needs_input disambiguation; merges operator EVM chain/token config from skillware evm.
-short_description: "EVM agent wallet — quote, swap, and name-based transfer from structured intent."
+short_description: "Quote, swap tokens, and transfer assets on EVM chains using structured intent."
 category: defi
 issuer:
   name: Hendobox
