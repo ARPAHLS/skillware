@@ -77,7 +77,7 @@ def test_apply_edits_checkbox():
 
 
 @patch("skills.office.pdf_form_filler.skill.anthropic.Anthropic")
-def test_skill_execute_mocked(mock_anthropic_cls, tmp_path):
+def test_skill_execute_mocked(mock_anthropic_cls, tmp_path, monkeypatch):
     """Test the full execution flow with mocked LLM."""
     # Setup Mock
     mock_client = mock_anthropic_cls.return_value
@@ -85,6 +85,7 @@ def test_skill_execute_mocked(mock_anthropic_cls, tmp_path):
     # Mock Claude returning a JSON mapping
     mock_message.content = [MagicMock(text='{"page0_test_field": "Hello World"}')]
     mock_client.messages.create.return_value = mock_message
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
 
     # Initialize Skill
     skill = PDFFormFillerSkill()
