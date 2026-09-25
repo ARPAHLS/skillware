@@ -1,9 +1,30 @@
-name: optimization/prompt_rewriter
-version: 0.1.1
-description: Compresses bloated prompts into fewer tokens without losing meaning.
+name: "optimization/prompt_rewriter"
+version: "0.1.1"
+description: "A powerful middleware skill that aggressively compresses massive, bloated prompts into fewer tokens while retaining 100% of the semantic meaning and instructions."
 short_description: "Use when a prompt is bloated and must be compressed without losing meaning."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
   github: rosspeili
   org: ARPAHLS
+category: "optimization"
+parameters:
+  type: object
+  properties:
+    raw_text:
+      type: "string"
+      description: "The bloated, repetitive prompt or extensive conversation history to compress."
+    compression_aggression:
+      type: "string"
+      description: "The level of compression: 'low', 'medium', or 'high'."
+      enum: ["low", "medium", "high"]
+  required:
+    - raw_text
+requirements: []
+constitution: |
+  1. SEMANTIC INTEGRITY: Never remove keywords that change the core intent or instructions of the prompt.
+  2. PRIVACY: Do not store or transmit the prompt content to external logging services beyond the execution result.
+  3. DETERMINISM: Use consistent compression rules to ensure stable behavior across agent loops.
+presentation:
+  icon: "minimize"
+  color: "#9b59b6"
