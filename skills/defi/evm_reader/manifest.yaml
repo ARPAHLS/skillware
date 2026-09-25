@@ -1,0 +1,81 @@
+name: defi/evm_reader
+version: 0.1.0
+description: |
+  Read-only EVM state plane: validate addresses, call standard ERC-20/721 view
+  functions, decode known ABI fragments, batch via Multicall3, and return
+  structured JSON. Never signs transactions. Feeds swap and screening skills
+  with balances, decimals, allowances, and totalSupply.
+short_description: "Read-only EVM queries — ERC-20/721 metadata, balances, allowances, and Multicall3 batch reads."
+category: defi
+issuer:
+  name: Achalnawal2745
+  email: ""
+  github: Achalnawal2745
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum:
+        - erc20_metadata
+        - erc20_balance
+        - erc20_allowance
+        - erc721_metadata
+        - erc721_balance
+        - erc721_owner_of
+        - call_view
+        - multicall
+      description: Read-only query to run.
+    chain:
+      type: string
+      description: "Target chain name (e.g. ethereum, base). Must match a chain in evm.yaml."
+    token:
+      type: string
+      description: "ERC-20 or ERC-721 contract address (0x + 40 hex chars)."
+    holder:
+      type: string
+      description: "Address whose balance/allowance to query."
+    spender:
+      type: string
+      description: "Spender address for allowance queries."
+    token_id:
+      type: integer
+      description: "NFT token ID (erc721_owner_of only)."
+    calls:
+      type: array
+      description: "Batch of {target, abi_name, function, args} objects (multicall action)."
+      items:
+        type: object
+    abi_name:
+      type: string
+      description: "Allowlisted ABI name for call_view (e.g. erc20, erc721, uniswap_v2_pair)."
+    function:
+      type: string
+      description: "View function name for call_view."
+    args:
+      type: array
+      description: "Positional arguments for call_view."
+    target:
+      type: string
+      description: "Target contract address for call_view."
+  required:
+    - action
+    - chain
+constitution: |
+  1. READ-ONLY: This skill MUST NEVER sign transactions, send ETH, or approve spending.
+  2. NO KEYS: No private keys, mnemonics, or secrets — only RPC URLs.
+  3. FAIL CLOSED: Reject invalid hex addresses, unknown ABI names, and non-view functions.
+  4. RATE LIMIT: Multicall batch size is capped at 50 calls per invocation.
+  5. ABI ALLOWLIST: Only bundled, audited ABI fragments may be called. Custom ABI upload is out of scope.
+  6. EIP-55: All returned addresses use EIP-55 checksum encoding.
+env_vars:
+  ETHEREUM_RPC_URL:
+    description: "JSON-RPC URL for Ethereum mainnet."
+    required: false
+  BASE_RPC_URL:
+    description: "JSON-RPC URL for Base."
+    required: false
+requirements:
+  - web3>=6.0.0
+  - pyyaml
