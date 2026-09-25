@@ -32,7 +32,7 @@ Chain slugs come from shared `skillware.core.evm_config` (bundled defaults: `eth
 ### How to read the report
 
 1. If `status` is not `ok` — fix input / retry; do not trade.
-2. If `risk_tier` is **`critical`** or **`high`** — refuse swap/transfer; explain signals.
+2. If `risk_tier` is **`critical`**, **`high`**, or **`unknown`** — refuse swap/transfer; explain signals.
 3. If **`medium`** — surface warnings; require human confirmation before `evm_tx_handler`.
 4. If **`low`** — still not financial advice; optional next step: screen large holders
    via `finance/wallet_screening`, then preview buy with `defi/evm_tx_handler`.

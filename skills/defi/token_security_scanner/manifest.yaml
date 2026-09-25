@@ -30,6 +30,40 @@ parameters:
       description: ERC-20 (or LP) contract address (0x…). Required for scan.
   required:
     - action
+outputs:
+  status:
+    type: string
+    description: "ok on success; error on validation/API failures."
+  chain:
+    type: string
+    description: "Chain slug used for the scan (scan only)."
+  contract:
+    type: string
+    description: "Normalized contract address (scan only)."
+  risk_tier:
+    type: string
+    description: "critical | high | medium | low | unknown (scan only)."
+  signals:
+    type: object
+    description: "Normalized GoPlus flags (honeypot, taxes, ownership, etc.)."
+  token:
+    type: object
+    description: "Optional token metadata from GoPlus (name, symbol, decimals)."
+  sources:
+    type: array
+    description: "Provider provenance including fetched_at timestamps."
+  warnings:
+    type: array
+    description: "Soft coverage notes (proxy, closed source, API limits)."
+  contract_errors:
+    type: array
+    description: "Deterministic risk factor codes that drove risk_tier."
+  error_code:
+    type: string
+    description: "Present when status is error (e.g. unsupported_chain, rate_limited)."
+  message:
+    type: string
+    description: "Human-readable error message when status is error."
 constitution: |
   1. READ-ONLY: Never sign transactions, request private keys, or execute swaps.
   2. NOT FINANCIAL ADVICE / NOT A FULL AUDIT: Flags are third-party API signals that
@@ -37,8 +71,9 @@ constitution: |
   3. FAIL CLOSED ON BAD INPUT: Invalid addresses or unsupported chains return error —
      do not invent risk tiers.
   4. SECRETS: Optional GoPlus credentials stay in env/config only; never log them.
-  5. CHAIN BEFORE TRADE: Agents should treat high/critical tiers as block; medium as
-     require human confirmation before evm_tx_handler execute.
+  5. CHAIN BEFORE TRADE: Hosts should treat critical/high/unknown tiers (and
+     status != ok) as block; medium as require human confirmation before
+     evm_tx_handler execute.
 env_vars:
   GOPLUS_APP_KEY:
     description: |

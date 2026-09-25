@@ -65,6 +65,59 @@ Use `bundle["class"]()` in the snippets below; explicit `bundle["module"].ClassN
 
 Sample user message: *“Is this Base token safe to buy?”* → `scan` with chain + contract → explain `risk_tier` / `signals`.
 
+### Host-side pre-trade gate (chain into `evm_tx_handler`)
+
+Skills stay atomic — the **host** owns `scan → gate → quote/preview`. Fail closed on
+`critical` / `high` / `unknown`, or when `status` is not `ok`. Do not treat a missing
+honeypot signal as “low risk.”
+
+```python
+from skillware.core.env import load_env_file
+from skillware.core.loader import SkillLoader
+
+load_env_file()
+scanner = SkillLoader.load_skill("defi/token_security_scanner")["class"]()
+evm = SkillLoader.load_skill("defi/evm_tx_handler")["class"]()
+
+token_contract = "0x4ed4e862860bed51a9570b96d89af5e1b0efefed"
+report = scanner.execute(
+    {"action": "scan", "chain": "base", "contract": token_contract}
+)
+
+blocked = report.get("status") != "ok" or report.get("risk_tier") in (
+    "critical",
+    "high",
+    "unknown",
+)
+if blocked:
+    print(
+        "Blocked pre-trade:",
+        report.get("risk_tier"),
+        report.get("contract_errors"),
+        report.get("warnings"),
+    )
+else:
+    # Host proceeds only after a clean scan — quote/preview, then HITL confirm.
+    preview = evm.execute(
+        {
+            "action": "preview",
+            "intent": {
+                "side": "buy",
+                "chain": "base",
+                "target_asset": "degen",
+                "spend_asset": "eth",
+                "amount": 0.05,
+                "amount_kind": "spend_in",
+            },
+        }
+    )
+    print(preview.get("status"), preview.get("preview"))
+```
+
+Optional: after a clean scan, screen large holder EOAs with `finance/wallet_screening`
+before preview. Do not bind `confirmed: true` across a changed chain/token/amount —
+re-preview if the intent drifts.
+
 ### Direct execute
 
 ```python
@@ -266,7 +319,10 @@ pytest skills/defi/token_security_scanner/test_skill.py -q
 <!-- skill-history:begin -->
 ## Skill history
 
-| Version | Date | Notes |
-| :--- | :--- | :--- |
-| `0.1.0` | 19 Sep 2026 | Initial release — GoPlus `scan` / `supported_chains`, fixture-backed tests (#365). |
+Commits that touched this skill bundle or its catalog page ([`defi/token_security_scanner`](https://github.com/ARPAHLS/skillware/tree/main/skills/defi/token_security_scanner)).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`cfd0579`](https://github.com/ARPAHLS/skillware/commit/cfd057914ee273bc83e3a8fcbd0bc578f78bd9dd) | merge main and align token_security_scanner with evm_config (#379) | 23 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`92663fd`](https://github.com/ARPAHLS/skillware/commit/92663fdfeb66a52f90915fa65a547db40ee83d09) | feat(defi): add token_security_scanner (GoPlus read-only scan) (#368) | 19 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->
