@@ -16,8 +16,6 @@ from rich.text import Text
 from rich.status import Status
 from rich import box
 
-import importlib.metadata
-
 from skillware.core.loader import SkillLoader
 from skillware.context import SkillContext
 from skillware.chains import (
@@ -59,7 +57,13 @@ from skillware.core.discovery import (
     list_registry_skill_ids,
     resolution_order_summary,
 )
-from skillware.version_policy import emit_upgrade_advisory, get_installed_version
+from skillware.version_policy import (
+    assess_install_health,
+    emit_install_conflict_advisory,
+    emit_upgrade_advisory,
+    format_install_health_report,
+    get_package_version_display,
+)
 
 
 def _active_theme() -> ThemePalette:
@@ -126,6 +130,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware test --category <n>", "test all skills in a category"),
             ("skillware doctor [id]", "check deps and skill.py import"),
             ("skillware doctor --category <n>", "diagnose a category"),
+            ("skillware doctor --install", "check editable vs PyPI install health"),
         ],
         _DOCS_CLI_LIST,
     ),
@@ -1206,6 +1211,21 @@ def cmd_config_show(console=None) -> int:
     console.print(Text("Skillware config", style=TABLE_STYLE))
     console.print()
 
+    install_report = assess_install_health()
+    console.print(Text("install (this Python)", style=TABLE_STYLE))
+    install_style = MENU_STYLE if install_report.ok else ERROR_STYLE
+    console.print(
+        f"  skillware {install_report.display_version} — "
+        f"{'OK' if install_report.ok else 'install conflict detected'}",
+        style=install_style,
+    )
+    if not install_report.ok:
+        console.print(
+            "  Run: skillware doctor --install",
+            style="dim",
+        )
+    console.print()
+
     console.print(Text("Config files", style=TABLE_STYLE))
     console.print(f"  Global (default): {global_config_path()}", style="dim")
     for line in format_config_sources(config):
@@ -1724,6 +1744,17 @@ def cmd_doctor(
     return 1 if failures else 0
 
 
+def cmd_doctor_install(console=None) -> int:
+    """Report Python package install health (editable vs PyPI overlap)."""
+    _apply_active_theme()
+    if console is None:
+        console = Console(stderr=True)
+
+    report = assess_install_health()
+    console.print(format_install_health_report(report))
+    return 0 if report.ok else 1
+
+
 def _prompt_examples_skill_id(
     console, input_fn=None
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -1828,13 +1859,7 @@ def _gradient_splash_text(logo_lines: Tuple[str, ...]) -> Text:
 
 
 def _package_version_str() -> str:
-    installed = get_installed_version()
-    if installed is not None:
-        return str(installed)
-    try:
-        return importlib.metadata.version("skillware")
-    except importlib.metadata.PackageNotFoundError:
-        return "dev"
+    return get_package_version_display()
 
 
 def cmd_interactive(console=None, parser=None) -> None:
@@ -1970,6 +1995,7 @@ def cmd_interactive(console=None, parser=None) -> None:
 def main() -> None:
     """CLI entry point."""
     emit_upgrade_advisory()
+    emit_install_conflict_advisory()
 
     parser = argparse.ArgumentParser(prog="skillware", add_help=False)
 
@@ -2088,6 +2114,11 @@ def main() -> None:
         "--category",
         default=None,
         help="Diagnose all skills in a category.",
+    )
+    doctor_parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Check skillware package install health (editable vs PyPI conflicts).",
     )
 
     config_parser = subparsers.add_parser(
@@ -2497,6 +2528,14 @@ def main() -> None:
     elif args.command == "paths":
         raise SystemExit(cmd_paths(skills_root_override=args.skills_root))
     elif args.command == "doctor":
+        if getattr(args, "install", False):
+            if args.skill_id or args.category or args.skills_root:
+                print(
+                    "doctor --install checks package metadata only; "
+                    "skill/category flags are ignored.",
+                    file=sys.stderr,
+                )
+            raise SystemExit(cmd_doctor_install())
         raise SystemExit(
             cmd_doctor(
                 skills_root_override=args.skills_root,

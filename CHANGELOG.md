@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **CLI / packaging:** Harden version display when editable and PyPI installs overlap — `get_package_version_display()` never prints `None`; `detect_install_conflicts()` via `assess_install_health()`; startup stderr hint; **`skillware doctor --install`** with recovery commands; install summary in **`skillware config show`** ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
+- **Scripts:** [`scripts/dev_install.sh`](scripts/dev_install.sh) and [`scripts/dev_install.ps1`](scripts/dev_install.ps1) — uninstall overlapping installs and reinstall editable dev deps.
 - **Core / CLI:** EVM operator config layer — bundled `skillware/data/evm_defaults.yaml`, writable user `evm.yaml`, `skillware.core.evm_config` merge helpers (`load_merged_evm_config`, `resolve_chain`, `resolve_rpc_url`, `normalize_evm_address`), and `skillware evm` commands (`init`, `chains list`, `chain add`, `rpc enable`, `validate`, `open`). Project/global YAML uses top-level **`evm:`** (or read-only **`web3:`** alias) — distinct from orchestration **`chains:`** (#379).
 - **Docs:** [EVM operator config](docs/usage/evm_operator_config.md) — shared defi RPC setup guide; cross-links from CLI, API keys, DeFi catalog, and `evm_tx_handler` (#379).
 - **Core / CLI:** Shared address book **`public_0x`** field, relaxed contact validation (email or wallet), top-level **`skillware addressbook`** commands (`list`, `edit`, `set-wallet`, `remove`, `open`), **`skillware config open`**, **`skillware evm token add`**, and **`skillware evm tokens list`** for operator token registry (#373, #374).
@@ -21,6 +23,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** CONTRIBUTING.md — editable vs PyPI on the same Python; CLI docs for `doctor --install` ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
 - **Docs:** Catalog pages include a standardized intent header (problem solved, host agents, runtime / key requirements) for search matching without stuffing (#370).
 - **Docs / CI:** Doc-drift guards follow nested catalog paths; CONTRIBUTING, PR/issue templates, and the skill template point at category hubs and the sitemap (#370).
 - **Skill (`defi/evm_tx_handler`):** Setup envelope docs URL now points at `docs/skills/defi/evm_tx_handler.md` (#370).
