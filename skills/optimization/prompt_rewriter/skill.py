@@ -1,3 +1,4 @@
+import os
 import re
 from typing import Any, Dict
 from skillware.core.base_skill import BaseSkill
@@ -11,10 +12,7 @@ class PromptRewriter(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {
-            "name": "optimization/prompt_rewriter",
-            "version": "0.1.0",
-        }
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     def _estimate_tokens(self, text: str) -> int:
         """Naive estimation since we want to avoid strict pip dependencies inside the skill."""

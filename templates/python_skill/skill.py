@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict
 from skillware.core.base_skill import BaseSkill
 
@@ -5,15 +6,8 @@ from skillware.core.base_skill import BaseSkill
 class MyAwesomeSkill(BaseSkill):
     @property
     def manifest(self) -> Dict[str, Any]:
-        """
-        Returns the skill's manifest. In a production skill,
-        you can load this from manifest.yaml using SkillLoader.
-        """
-        return {
-            "name": "my-awesome-skill",
-            "version": "0.1.0",
-            "description": "A short description of what this skill does.",
-        }
+        """Load manifest.yaml from the skill bundle directory."""
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """

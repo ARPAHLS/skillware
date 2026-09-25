@@ -12,7 +12,7 @@ class MiCAModuleSkill(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {"name": "compliance/mica_module", "version": "0.1.1"}
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     _corpus_cache: List[Dict[str, Any]] = None
 
