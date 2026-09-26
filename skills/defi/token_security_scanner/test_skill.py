@@ -213,6 +213,46 @@ def test_goplus_app_key_sent_as_bearer(mock_get, skill):
     assert headers["Authorization"] == "Bearer test-token"
 
 
+@patch("skills.defi.token_security_scanner.skill.requests.Session.get")
+def test_scan_closed_source_unknown_honeypot_high(mock_get, skill):
+    fixture = _load_fixture("goplus_closed_source_unknown.json")
+    response = MagicMock()
+    response.status_code = 200
+    response.json.return_value = fixture
+    mock_get.return_value = response
+
+    result = skill.execute(
+        {
+            "action": "scan",
+            "chain": "base",
+            "contract": "0x1111111111111111111111111111111111111111",
+        }
+    )
+    assert result["status"] == "ok"
+    assert result["risk_tier"] == "high"
+    assert "closed_source_unknown_honeypot" in result["contract_errors"]
+    assert result["signals"]["is_honeypot"] is None
+
+
+@patch("skills.defi.token_security_scanner.skill.requests.Session.get")
+def test_scan_empty_goplus_result_unknown(mock_get, skill):
+    response = MagicMock()
+    response.status_code = 200
+    response.json.return_value = {"code": 1, "message": "OK", "result": {}}
+    mock_get.return_value = response
+
+    result = skill.execute(
+        {
+            "action": "scan",
+            "chain": "base",
+            "contract": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
+        }
+    )
+    assert result["status"] == "ok"
+    assert result["risk_tier"] == "unknown"
+    assert "goplus_empty_result" in result["contract_errors"]
+
+
 def test_as_bool_and_pct_helpers():
     assert TokenSecurityScannerSkill._as_bool("1") is True
     assert TokenSecurityScannerSkill._as_bool("0") is False

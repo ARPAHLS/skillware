@@ -3,7 +3,7 @@
 **ID**: `defi/token_security_scanner`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 19 Sep 2026
+**Version**: `0.1.0`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Vet an ERC-20 / LP contract for honeypot, tax, ownership, and related risk before an agent trades.
