@@ -323,6 +323,5 @@ Commits that touched this skill bundle or its catalog page ([`defi/token_securit
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`cfd0579`](https://github.com/ARPAHLS/skillware/commit/cfd057914ee273bc83e3a8fcbd0bc578f78bd9dd) | merge main and align token_security_scanner with evm_config (#379) | 23 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
-| [`92663fd`](https://github.com/ARPAHLS/skillware/commit/92663fdfeb66a52f90915fa65a547db40ee83d09) | feat(defi): add token_security_scanner (GoPlus read-only scan) (#368) | 19 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`e90bbce`](https://github.com/ARPAHLS/skillware/commit/e90bbceadb360772cbe1f6cff16a9ec96c90a225) | feat(defi): token_security_scanner v0.1 (GoPlus read-only) (#368) | 26 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->

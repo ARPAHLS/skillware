@@ -167,5 +167,6 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 - [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config)
 - [Address book operator config](addressbook_operator_config.md) — people and `public_0x` (not tokens)
 - [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — signing skill env vars
+- [Token Security Scanner](../skills/defi/token_security_scanner.md) — read-only GoPlus pre-trade scan (chains from this config; no RPC required)
 - [DeFi skills](../skills/README.md#defi) — catalog index
 - [Glossary](../glossary.md#operator-configuration)

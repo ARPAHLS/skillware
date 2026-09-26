@@ -217,6 +217,16 @@ export BASE_RPC_URL="https://base.example.invalid"
 
 Optional: `EVM_CONFIG_PATH` for an alternate config file path. Project inline overrides: top-level **`evm:`** (or read-only **`web3:`** alias) in `.skillware.yaml`.
 
+### GoPlus Token Security (optional)
+
+[`defi/token_security_scanner`](../skills/defi/token_security_scanner.md) calls the GoPlus Token Security API. Permissionless calls work without a key; set this for higher rate limits or authenticated access:
+
+```bash
+export GOPLUS_APP_KEY="your_goplus_access_token_here"
+```
+
+See [GoPlus docs](https://docs.gopluslabs.io/) and `.env.example`.
+
 ### External data API (required key)
 
 A skill that fetches on-chain data may require a provider key before `execute()` returns useful results. Set the name from its manifest (illustrative):
