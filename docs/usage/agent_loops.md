@@ -148,6 +148,12 @@ All [skill catalog pages](../skills/README.md) include compact **Usage Examples*
 agent loop. It either calls `skill.execute(...)` directly or loads multiple
 skills in one harness.
 
+**Suggested DeFi pre-trade host path:** optional `security/drainer_pattern_guard`
+(when shipped) → `defi/token_security_scanner` → `defi/evm_tx_handler`
+preview/execute. Optional large-holder EOAs → `finance/wallet_screening`.
+Use shared EVM operator config for chains (#379); tokens in `evm.tokens`, not
+the address book.
+
 | Skill | Local execute / mixed | Gemini | Claude | OpenAI | DeepSeek | Ollama |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
@@ -169,6 +175,7 @@ skills in one harness.
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `linguistics/korean_slang` | `korean_slang_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
+| `defi/token_security_scanner` | - | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |

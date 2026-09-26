@@ -20,6 +20,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Skill (`defi/evm_tx_handler` v0.3.0):** Central address book recipient resolution with `needs_input` disambiguation; merges operator EVM chain/token config from `skillware.core.evm_config` (#373).
 - **Docs:** Structured hub architecture for catalog discovery — compact root README category table, [docs/sitemap.md](docs/sitemap.md), and landing pages at `docs/skills/<category>/README.md` with catalog pages beside them (`docs/skills/<category>/<skill_name>.md`). Runtime `skills/<category>/<skill_name>` IDs and `SkillLoader.load_skill()` are unchanged (#370).
 - **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
+- **Skill:** `defi/token_security_scanner` — read-only GoPlus Token Security scan (`scan`, `supported_chains`) with normalized `risk_tier` / `signals` JSON for pre-trade agent checks; chain resolution via `skillware.core.evm_config` (#365, #379).
 
 ### Changed
 
