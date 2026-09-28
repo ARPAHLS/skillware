@@ -1,0 +1,17 @@
+{
+  "code": 1,
+  "message": "OK",
+  "result": {
+    "0x1111111111111111111111111111111111111111": {
+      "token_name": "Opaque",
+      "token_symbol": "OPAQ",
+      "decimals": "18",
+      "is_open_source": "0",
+      "is_proxy": "0",
+      "is_mintable": "0",
+      "buy_tax": "0",
+      "sell_tax": "0",
+      "holder_count": "10"
+    }
+  }
+}

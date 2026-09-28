@@ -50,7 +50,11 @@ legacy:
 #   send_ledger_path: ~/.config/skillware/gmail_send_ledger.json
 #
 # Precedence: env (GMAIL_*) > project YAML > global YAML > skill bundled defaults.
-# CLI: skillware mail addressbook init | skillware mail signature set
+# CLI: skillware addressbook init | skillware mail signature set
+#
+# Pay-and-notify flows (defi transfer + mail receipt) are host-orchestrated — see
+# examples/pay_and_notify_demo.py (async SkillContext chain). YAML chains below
+# suit deterministic middleware; dynamic tx-hash → email bodies stay in host code.
 
 # Named skill chains (Skillware 0.6+). CLI: skillware chain list | show | validate | run
 # chains:

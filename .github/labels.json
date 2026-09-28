@@ -115,6 +115,11 @@
         "description": "Registry skill category — finance (`skills/finance/`)."
     },
     {
+        "name": "cat: linguistics",
+        "color": "E6D9F5",
+        "description": "Registry skill category — linguistics (`skills/linguistics/`)."
+    },
+    {
         "name": "cat: monitoring",
         "color": "E6D9F5",
         "description": "Registry skill category — monitoring (`skills/monitoring/`)."

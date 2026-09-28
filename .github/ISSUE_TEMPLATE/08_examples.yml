@@ -57,5 +57,5 @@ body:
       options:
         - label: examples/README.md index row
         - label: docs/usage/agent_loops.md reference matrix
-        - label: docs/skills/<name>.md Usage Examples
+        - label: docs/skills/<category>/<name>.md Usage Examples
         - label: CHANGELOG [Unreleased]

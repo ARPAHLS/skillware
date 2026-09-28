@@ -25,7 +25,7 @@ class PromptInjectionFirewallSkill(BaseSkill):
         if os.path.exists(manifest_path):
             with open(manifest_path, "r", encoding="utf-8") as handle:
                 return yaml.safe_load(handle)
-        return {"name": "security/prompt_injection_firewall", "version": "0.1.0"}
+        return {"name": "security/prompt_injection_firewall", "version": "0.2.0"}
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         source_text = params.get("source_text", "")
@@ -49,6 +49,9 @@ class PromptInjectionFirewallSkill(BaseSkill):
             "sanitized_text": result.sanitized_text,
             "offline": result.offline,
             "sensitivity": result.sensitivity,
+            "policy_action": result.policy_action,
+            "removed_span_count": result.removed_span_count,
+            "sanitized_length_delta": result.sanitized_length_delta,
         }
 
     def _normalize_sensitivity(self, value: Any) -> SensitivityLevel:

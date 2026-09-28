@@ -71,9 +71,10 @@ Union of non-core `requirements` from every skill in the category.
 | `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
 | `creative` | `creative/bg_remover`, `creative/deck_builder` | `onnxruntime`, `pillow`, `python-pptx>=1.0.0`, `rembg>=2.0.0` |
 | `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
-| `defi` | `defi/evm_tx_handler` | `web3>=6.0.0` |
+| `defi` | `defi/evm_tx_handler`, `defi/token_security_scanner` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
+| `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
 | `office` | `office/gmail_handler`, `office/pdf_form_filler` | `anthropic`, `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
@@ -102,9 +103,11 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `data_engineering_semantic_web_proxy_tokenizer` | `data_engineering/semantic_web_proxy` | `tiktoken` | Optional exact `cl100k_base` token counts; without it the skill falls back to its offline heuristic |
 | `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
+| `defi_token_security_scanner` | `defi/token_security_scanner` | *(none today)* | Use this extra in docs and installs |
 | `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
 | `finance_uk_companies_house_handler` | `finance/uk_companies_house_handler` | *(none today)* | Use this extra in docs and installs |
 | `finance_wallet_screening` | `finance/wallet_screening` | *(none today)* | Use this extra in docs and installs |
+| `linguistics_korean_slang` | `linguistics/korean_slang` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |

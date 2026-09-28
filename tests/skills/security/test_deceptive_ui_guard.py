@@ -8,7 +8,7 @@ FIXTURES_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "deceptive_ui"
 def test_deceptive_ui_guard_manifest():
     bundle = SkillLoader.load_skill("security/deceptive_ui_guard")
     assert bundle["manifest"]["name"] == "security/deceptive_ui_guard"
-    assert bundle["manifest"]["version"] == "0.2.0"
+    assert bundle["manifest"]["version"] == "0.2.1"
     assert (
         bundle["manifest"]["parameters"]["properties"]["sensitivity"]["default"]
         == "balanced"

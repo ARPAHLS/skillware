@@ -13,8 +13,8 @@ Roles: [Skill anatomy](../../docs/introduction.md#skill-anatomy) — **Contract*
 5. **`instructions.md` (Directive)**: Tell the host when and how to use the tool (skill context, not host persona).
 6. **`card.json` (Presentation)**: Mirror `issuer` from the manifest; customize UI fields.
 7. **`test_skill.py` (Assurance)**: Bundle test (required; enforced by `tests/test_skill_issuer.py`); offline, mock external services, including HTTP clients, LLM APIs, embedding/model loaders, and any first-run model downloads; run `pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>`. See [TESTING.md](../../docs/TESTING.md).
-8. **`docs/skills/<skill_name>.md`**: Catalog page with **ID**, **Issuer**, **Version**, **Recommended install** (`pip install "skillware[<category>_<skill>]"`), optional **Bundle layout**, **Usage Examples** (all providers; see `docs/usage/skill_usage_template.md`), and **Skill history** (linked GitHub contributors).
-9. **`docs/skills/README.md`**: Add a row (Skill, ID, **Version**, Issuer, Description).
+8. **`docs/skills/<category>/<skill_name>.md`**: Catalog page with **ID**, **Issuer**, **Version**, **Recommended install** (`pip install "skillware[<category>_<skill>]"`), intent block (**Solves** / **Works with** / **Runtime**), optional **Bundle layout**, **Usage Examples** (all providers; see `docs/usage/skill_usage_template.md`), and **Skill history** (linked GitHub contributors).
+9. **`docs/skills/<category>/README.md`** and **`docs/skills/README.md`**: Add a row (Skill, ID, **Version**, Issuer, Description). Add the page to `docs/sitemap.md`. Do not add `skills/<category>/README.md`.
 
 Do not commit template placeholders (`Your Name`, `you@example.com`, `YOUR ORG`, etc.) under `skills/`—only real issuer details belong in the registry.
 

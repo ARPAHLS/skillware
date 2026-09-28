@@ -3,8 +3,11 @@
     {
       "is_safe": false,
       "risk_level": "high",
+      "policy_action": "block",
       "detected_threat": "Hidden prompt override mechanism detected.",
       "sanitized_text": "Buy the stock. ",
+      "removed_span_count": 1,
+      "sanitized_length_delta": 86,
       "offline": true,
       "sensitivity": "balanced"
     }

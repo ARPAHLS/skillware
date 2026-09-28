@@ -4,7 +4,13 @@ import json
 import re
 from pathlib import Path
 
-LABELS_PATH = Path(__file__).resolve().parent.parent / ".github" / "labels.json"
+import yaml
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+LABELS_PATH = REPO_ROOT / ".github" / "labels.json"
+PROPOSAL_TEMPLATE = REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "01_skill_proposal.yml"
+SKILLS_ROOT = REPO_ROOT / "skills"
+PROPOSE_NEW_CATEGORY = "Propose new category (describe below)"
 HEX_COLOR = re.compile(r"^[0-9A-Fa-f]{6}$")
 GITHUB_LABEL_DESCRIPTION_MAX = 100
 
@@ -16,6 +22,7 @@ REGISTRY_CATEGORIES = (
     "defi",
     "dev_tools",
     "finance",
+    "linguistics",
     "monitoring",
     "office",
     "optimization",
@@ -130,3 +137,30 @@ def test_category_labels_do_not_collide_with_repo_labels():
     )
     assert "security" in names
     assert f"{CATEGORY_LABEL_PREFIX}security" in names
+
+
+def test_skill_proposal_dropdown_matches_registry_categories():
+    """New Skill Proposal category options stay aligned with REGISTRY_CATEGORIES."""
+    data = yaml.safe_load(PROPOSAL_TEMPLATE.read_text(encoding="utf-8"))
+    options = None
+    for field in data.get("body") or []:
+        if field.get("id") == "category":
+            options = list(field.get("attributes", {}).get("options") or [])
+            break
+    assert options, "01_skill_proposal.yml is missing the category dropdown"
+    assert options[-1] == PROPOSE_NEW_CATEGORY
+    assert tuple(options[:-1]) == REGISTRY_CATEGORIES
+
+
+def test_registry_categories_match_skills_folders():
+    """REGISTRY_CATEGORIES is the live set of skills/<category>/ directories."""
+    folders = tuple(
+        sorted(
+            path.name
+            for path in SKILLS_ROOT.iterdir()
+            if path.is_dir() and not path.name.startswith("__")
+        )
+    )
+    assert folders == tuple(sorted(REGISTRY_CATEGORIES))
+    assert "linguistics" in folders
+    assert f"{CATEGORY_LABEL_PREFIX}linguistics" in _label_map()

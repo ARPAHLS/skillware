@@ -1,9 +1,13 @@
-"""Deterministic prompt-injection firewall — local-only, no network, no LLM."""
+"""Deterministic prompt-injection firewall - local-only, no network, no LLM.
+
+OWASP LLM01 Layer-1 trust-boundary input scanner and sanitizer.
+"""
 
 from __future__ import annotations
 
 import base64
 import binascii
+import codecs
 import json
 import re
 import unicodedata
@@ -15,6 +19,7 @@ from urllib.parse import unquote
 SensitivityLevel = Literal["strict", "balanced", "lenient"]
 RiskLevel = Literal["none", "low", "medium", "high", "critical"]
 Severity = Literal["low", "medium", "high", "critical"]
+PolicyAction = Literal["allow", "flag", "block"]
 
 _KB_DIR = Path(__file__).resolve().parent / "kb"
 
@@ -53,6 +58,8 @@ VARIATION_SELECTOR_RANGES = (
 VS_RUN_THRESHOLD = 8
 MAX_DECODE_DEPTH = 3
 MAX_DECODE_BYTES = 8192
+MAX_DECODE_CANDIDATES = 50
+MAX_SOURCE_TEXT_CHARS = 100_000
 
 HIDDEN_HTML_STYLE_PATTERNS = (
     r"display\s*:\s*none",
@@ -86,9 +93,25 @@ META_ATTR_RE = re.compile(
     re.IGNORECASE,
 )
 
+MARKDOWN_IMAGE_RE = re.compile(
+    r"!\[(?P<alt>.*?)\]\((?P<url>[^\)\s]+)(?:\s+[\"'].*?[\"'])?\)",
+    re.IGNORECASE,
+)
+HTML_IMAGE_RE = re.compile(
+    r"<img\s+[^>]*src=[\"'](?P<url>[^\"']+)[\"'][^>]*>",
+    re.IGNORECASE,
+)
+
 DISCOURSE_MARKERS_RE = re.compile(
-    r"(?i)\b(for example|for instance|such as|attackers? (write|use|craft)|"
-    r"an? (example|sample) (of|attack)|quoted below|the (phrase|string))\b"
+    r"(?i)\b("
+    r"for example|for instance|such as|attackers? (write|use|craft)|"
+    r"an? (example|sample) (of|attack)|quoted below|the (phrase|string)|"
+    r"tutorial|demonstration|mitigation|vulnerability|cwe|owasp|"
+    r"test case|payload|red team|proof of concept|poc|scenario|"
+    r"advisory|cve|exploit|prompt injection|jailbreak example|"
+    r"benchmark|detection test|simulation|analysis|research|"
+    r"academic|paper|case study|security report|audit"
+    r")\b"
 )
 QUOTE_OR_CODE_RE = re.compile(r"(`[^`]+`|\"[^\"]+\"|'[^']+'|```[\s\S]{0,400}?```)")
 
@@ -105,7 +128,62 @@ FAMILY_MESSAGE = {
     "confusables": "Homoglyph / confusable evasion detected.",
     "encoded_payload": "Encoded payload smuggling detected.",
     "context_mismatch": "Instruction-like content in data-like context detected.",
+    "leetspeak": "Leetspeak substitution evasion detected.",
+    "scramble": "Typoglycemia / keyword scramble evasion detected.",
+    "mixed_script": "Mixed-script / homoglyph evasion detected.",
+    "exfiltration_channel": "Markdown/HTML exfiltration channel detected.",
+    "resource_limit": "Input size exceeds resource limit (DoS protection).",
 }
+
+LEET_MAP = {
+    "0": "o",
+    "1": "i",
+    "3": "e",
+    "4": "a",
+    "5": "s",
+    "7": "t",
+    "8": "b",
+    "@": "a",
+    "$": "s",
+    "!": "i",
+}
+
+HIGH_SIGNAL_KEYWORDS = {
+    "ignore",
+    "system",
+    "disregard",
+    "override",
+    "exfiltrate",
+    "password",
+    "prompt",
+    "secret",
+    "instructions",
+    "previous",
+    "reveal",
+}
+
+_HIDDEN_CHANNELS = frozenset(
+    {
+        "html_hidden",
+        "html_comment",
+        "markdown_comment",
+        "aria_hidden",
+        "meta_alt",
+        "meta_title",
+        "unicode_tag",
+        "variation_selector",
+        "zero_width_or_bidi",
+        "confusables_skeleton",
+        "encoded",
+        "rot13",
+        "reversed_text",
+        "leetspeak",
+        "typoglycemia",
+        "unicode_mixed_script",
+        "markdown_image_exfil",
+        "html_image_exfil",
+    }
+)
 
 
 @dataclass
@@ -128,6 +206,8 @@ class Finding:
     evidence: str
     pattern_id: Optional[str] = None
     decoded_layers: Optional[int] = None
+    decode_chain: Optional[List[str]] = None
+    decoded_preview: Optional[str] = None
     downgraded: bool = False
 
 
@@ -158,6 +238,9 @@ class ScanResult:
     sanitized_text: str
     offline: bool
     sensitivity: SensitivityLevel
+    policy_action: PolicyAction = "allow"
+    removed_span_count: int = 0
+    sanitized_length_delta: int = 0
 
 
 _PATTERN_CACHE: Optional[List[PatternEntry]] = None
@@ -389,8 +472,8 @@ def _downgrade_severity(severity: Severity) -> Severity:
 
 
 def _in_quote_with_discourse(original: str, start: int, end: int) -> bool:
-    window_start = max(0, start - 120)
-    window_end = min(len(original), end + 120)
+    window_start = max(0, start - 250)
+    window_end = min(len(original), end + 250)
     window = original[window_start:window_end]
     if not DISCOURSE_MARKERS_RE.search(window):
         return False
@@ -401,6 +484,8 @@ def _in_quote_with_discourse(original: str, start: int, end: int) -> bool:
     left = original[max(0, start - 1) : start]
     right = original[end : min(len(original), end + 1)]
     if left in {"`", '"', "'"} and right in {"`", '"', "'"}:
+        return True
+    if "```" in window:
         return True
     return False
 
@@ -581,7 +666,180 @@ def _detect_lexicon(
     return findings
 
 
-def _try_decode_layer(token: str) -> Optional[str]:
+def _detect_leetspeak(canonical: CanonicalForm) -> List[Finding]:
+    """Detect leetspeak digit/symbol substitution on known instruction phrases."""
+    findings: List[Finding] = []
+    visible = canonical.visible
+    leet_chars: List[str] = []
+    modified = False
+    for ch in visible:
+        if ch in LEET_MAP:
+            leet_chars.append(LEET_MAP[ch])
+            modified = True
+        else:
+            leet_chars.append(ch)
+
+    if not modified:
+        return findings
+
+    leet_text = "".join(leet_chars)
+    visible_hit_ids = {entry.pattern_id for entry, _, _, _ in _lexicon_hits(visible)}
+    for entry, start, end, snippet in _lexicon_hits(leet_text):
+        if entry.pattern_id in visible_hit_ids:
+            continue
+        orig_start, orig_end = _map_visible_span(canonical, start, end)
+        findings.append(
+            Finding(
+                category="leetspeak+instruction_override",
+                channel="leetspeak",
+                severity="high" if entry.severity != "critical" else "critical",
+                span=(orig_start, orig_end),
+                evidence=f"leetspeak substitution for {entry.pattern_id}: '{snippet[:120]}'",
+                pattern_id=entry.pattern_id,
+            )
+        )
+    return findings
+
+
+def _detect_typoglycemia(canonical: CanonicalForm) -> List[Finding]:
+    """Detect scrambled/typoglycemia keyword mutations (e.g. ignroe -> ignore)."""
+    findings: List[Finding] = []
+    visible = canonical.visible
+    tokens = re.split(r"(\W+)", visible)
+    replaced_tokens: List[str] = []
+    has_scramble = False
+    scramble_notes: List[str] = []
+
+    for token in tokens:
+        word = token.lower()
+        if len(word) >= 5 and word.isalpha() and word not in HIGH_SIGNAL_KEYWORDS:
+            first_ch = word[0]
+            last_ch = word[-1]
+            middle_sorted = sorted(word[1:-1])
+            matched_kw = None
+            for kw in HIGH_SIGNAL_KEYWORDS:
+                if (
+                    len(kw) == len(word)
+                    and kw[0] == first_ch
+                    and kw[-1] == last_ch
+                    and sorted(kw[1:-1]) == middle_sorted
+                ):
+                    matched_kw = kw
+                    break
+            if matched_kw:
+                replaced_tokens.append(matched_kw)
+                has_scramble = True
+                scramble_notes.append(f"{token}->{matched_kw}")
+                continue
+        replaced_tokens.append(token)
+
+    if not has_scramble:
+        return findings
+
+    unscrambled = "".join(replaced_tokens)
+    visible_hit_ids = {entry.pattern_id for entry, _, _, _ in _lexicon_hits(visible)}
+    for entry, start, end, snippet in _lexicon_hits(unscrambled):
+        if entry.pattern_id in visible_hit_ids:
+            continue
+        orig_start, orig_end = _map_visible_span(canonical, start, end)
+        findings.append(
+            Finding(
+                category="scramble+instruction_override",
+                channel="typoglycemia",
+                severity="high" if entry.severity != "critical" else "critical",
+                span=(orig_start, orig_end),
+                evidence=f"typoglycemia keyword scramble ({', '.join(scramble_notes[:3])}): '{snippet[:120]}'",
+                pattern_id=entry.pattern_id,
+            )
+        )
+    return findings
+
+
+def _detect_mixed_script(canonical: CanonicalForm) -> List[Finding]:
+    """Warn when Latin and lookalike Cyrillic/Greek scripts mix within a single word token."""
+    findings: List[Finding] = []
+    confusables = _load_confusables()
+    for match in re.finditer(r"\b\w{3,}\b", canonical.original):
+        word = match.group(0)
+        has_latin = False
+        has_lookalike = False
+        for ch in word:
+            try:
+                name = unicodedata.name(ch, "")
+            except Exception:
+                continue
+            if "LATIN" in name:
+                has_latin = True
+            elif "CYRILLIC" in name or "GREEK" in name:
+                has_lookalike = True
+        if has_latin and has_lookalike:
+            mapped_word = "".join(confusables.get(ch, ch) for ch in word.lower())
+            is_instruction = any(kw in mapped_word for kw in HIGH_SIGNAL_KEYWORDS)
+            findings.append(
+                Finding(
+                    category=(
+                        "mixed_script+instruction_override"
+                        if is_instruction
+                        else "mixed_script"
+                    ),
+                    channel="unicode_mixed_script",
+                    severity="high" if is_instruction else "medium",
+                    span=(match.start(), match.end()),
+                    evidence=f"mixed Latin and Cyrillic/Greek scripts in token: {word[:60]!r}",
+                )
+            )
+    return findings
+
+
+def _detect_exfiltration_channels(canonical: CanonicalForm) -> List[Finding]:
+    """Detect suspicious Markdown/HTML image URLs designed to exfiltrate prompt context."""
+    findings: List[Finding] = []
+    text = canonical.original
+
+    for match in MARKDOWN_IMAGE_RE.finditer(text):
+        url = match.group("url")
+        if _is_suspicious_exfil_url(url):
+            findings.append(
+                Finding(
+                    category="exfiltration_channel",
+                    channel="markdown_image_exfil",
+                    severity="high",
+                    span=(match.start(), match.end()),
+                    evidence=f"markdown image exfiltration url query payload: {url[:120]!r}",
+                )
+            )
+
+    for match in HTML_IMAGE_RE.finditer(text):
+        url = match.group("url")
+        if _is_suspicious_exfil_url(url):
+            findings.append(
+                Finding(
+                    category="exfiltration_channel",
+                    channel="html_image_exfil",
+                    severity="high",
+                    span=(match.start(), match.end()),
+                    evidence=f"html image exfiltration url query payload: {url[:120]!r}",
+                )
+            )
+    return findings
+
+
+def _is_suspicious_exfil_url(url: str) -> bool:
+    if not url:
+        return False
+    lower = url.lower()
+    if re.search(
+        r"(?i)[?&](?:q|leak|data|exfil|token|prompt|key|secret|system_prompt)=(?:[A-Za-z0-9+/=_%-]{8,})",
+        lower,
+    ):
+        return True
+    if lower.startswith("data:text/") and ("system" in lower or "prompt" in lower):
+        return True
+    return False
+
+
+def _try_decode_layer(token: str) -> Tuple[Optional[str], Optional[str]]:
+    """Decode a layer; returns (decoded_text, format_name)."""
     # Base64
     if re.fullmatch(r"[A-Za-z0-9+/]{16,}={0,2}", token):
         try:
@@ -590,7 +848,7 @@ def _try_decode_layer(token: str) -> Optional[str]:
             if 0 < len(decoded) <= MAX_DECODE_BYTES:
                 text = decoded.decode("utf-8")
                 if text.isprintable() or any(ch.isspace() for ch in text):
-                    return text
+                    return text, "base64"
         except (binascii.Error, UnicodeDecodeError, ValueError):
             pass
 
@@ -600,7 +858,7 @@ def _try_decode_layer(token: str) -> Optional[str]:
         try:
             decoded = bytes.fromhex(hex_token)
             if 0 < len(decoded) <= MAX_DECODE_BYTES:
-                return decoded.decode("utf-8")
+                return decoded.decode("utf-8"), "hex"
         except (ValueError, UnicodeDecodeError):
             pass
 
@@ -609,10 +867,21 @@ def _try_decode_layer(token: str) -> Optional[str]:
         try:
             decoded = unquote(token)
             if decoded != token and len(decoded) <= MAX_DECODE_BYTES:
-                return decoded
+                return decoded, "percent"
         except Exception:
             pass
-    return None
+
+    # ROT13 check for token
+    if len(token) >= 20 and token.replace(" ", "").isalpha():
+        try:
+            rot13_text = codecs.decode(token, "rot_13")
+            if rot13_text != token:
+                # Only treat as rot13 layer if it matches patterns or words
+                return rot13_text, "rot13"
+        except Exception:
+            pass
+
+    return None, None
 
 
 def _scan_decoded_for_lexicon(text: str) -> Optional[PatternEntry]:
@@ -628,35 +897,76 @@ def _detect_encoded_payload(canonical: CanonicalForm) -> List[Finding]:
     findings: List[Finding] = []
     candidates = list(
         re.finditer(r"\b(?:0x)?[A-Za-z0-9+/_%-]{24,}={0,2}\b", canonical.original)
-    )
+    )[:MAX_DECODE_CANDIDATES]
+
     for match in candidates:
         token = match.group(0)
         current = token
         layers = 0
+        decode_chain: List[str] = []
         decoded_text = None
         while layers < MAX_DECODE_DEPTH:
-            decoded = _try_decode_layer(current)
-            if decoded is None:
+            decoded, layer_format = _try_decode_layer(current)
+            if decoded is None or layer_format is None:
                 break
             layers += 1
+            decode_chain.append(layer_format)
             decoded_text = decoded
             current = decoded.strip()
             hit = _scan_decoded_for_lexicon(decoded)
             if hit is not None:
+                preview = (
+                    f"[{len(decoded)} chars: {decoded[:40]!r}...]"
+                    if len(decoded) > 40
+                    else repr(decoded)
+                )
                 findings.append(
                     Finding(
                         category="encoded_payload+instruction_override",
-                        channel="encoded",
+                        channel=(
+                            decode_chain[-1] if len(decode_chain) == 1 else "encoded"
+                        ),
                         severity="high" if hit.severity != "critical" else "critical",
                         span=(match.start(), match.end()),
-                        evidence=f"decoded_layers={layers}; pattern={hit.pattern_id}",
+                        evidence=f"decode_chain={'->'.join(decode_chain)}; pattern={hit.pattern_id}",
                         pattern_id=hit.pattern_id,
                         decoded_layers=layers,
+                        decode_chain=decode_chain,
+                        decoded_preview=preview,
                     )
                 )
                 break
-        # Continue nested decode even without early hit (handled in loop above).
         _ = decoded_text
+
+    # Also scan for standalone ROT13 sentence/paragraphs
+    rot_candidates = re.finditer(r"\b[A-Za-z ]{24,}\b", canonical.original)
+    for match in list(rot_candidates)[:10]:
+        token = match.group(0).strip()
+        if len(token) < 24:
+            continue
+        try:
+            rot_decoded = codecs.decode(token, "rot_13")
+            if rot_decoded != token:
+                hit = _scan_decoded_for_lexicon(rot_decoded)
+                if hit is not None:
+                    findings.append(
+                        Finding(
+                            category="encoded_payload+instruction_override",
+                            channel="rot13",
+                            severity=(
+                                "high" if hit.severity != "critical" else "critical"
+                            ),
+                            span=(match.start(), match.end()),
+                            evidence=f"rot13 decoded match for {hit.pattern_id}",
+                            pattern_id=hit.pattern_id,
+                            decoded_layers=1,
+                            decode_chain=["rot13"],
+                            decoded_preview=repr(rot_decoded[:60]),
+                        )
+                    )
+        except Exception:
+            pass
+
     return findings
 
 
@@ -728,41 +1038,36 @@ def _verdict(findings: Sequence[Finding], sensitivity: SensitivityLevel) -> bool
     if not findings:
         return True
 
-    active = [f for f in findings if not (f.downgraded and f.severity == "low")]
-    if not active:
-        return True
-
-    # Floor: a lone critical exfiltration finding fails at every sensitivity,
-    # including lenient, and bypasses corroboration requirements.
-    if any(_is_critical_exfil(f) for f in active):
-        return False
-
-    hidden_hit = any(
-        f.channel
-        in {
-            "html_hidden",
-            "html_comment",
-            "markdown_comment",
-            "aria_hidden",
-            "meta_alt",
-            "meta_title",
-            "unicode_tag",
-            "variation_selector",
-            "zero_width_or_bidi",
-            "confusables_skeleton",
-            "encoded",
-        }
-        or f.category.startswith("hidden_text")
-        or f.category.startswith("encoded_payload")
-        or f.category.startswith("confusables+")
-        or f.category == "unicode_evasion"
-        for f in active
-    )
-    critical_hit = any(f.severity == "critical" for f in active)
-    high_hit = any(f.severity == "high" for f in active)
-    independent = _independent_finding_count(active)
-
+    # At strict: even downgraded findings trigger unsafe if medium or above.
     if sensitivity == "strict":
+        active = [f for f in findings if not (f.downgraded and f.severity == "low")]
+        if not active:
+            return True
+        critical_hit = any(f.severity == "critical" for f in active)
+        high_hit = any(f.severity == "high" for f in active)
+        hidden_hit = any(
+            f.channel in _HIDDEN_CHANNELS
+            or f.category.startswith(
+                (
+                    "hidden_text",
+                    "encoded_payload",
+                    "confusables+",
+                    "mixed_script",
+                    "leetspeak+",
+                    "scramble+",
+                )
+            )
+            or f.category
+            in {
+                "unicode_evasion",
+                "leetspeak+instruction_override",
+                "scramble+instruction_override",
+                "exfiltration_channel",
+                "mixed_script",
+                "mixed_script+instruction_override",
+            }
+            for f in active
+        )
         return not (
             critical_hit
             or high_hit
@@ -770,16 +1075,58 @@ def _verdict(findings: Sequence[Finding], sensitivity: SensitivityLevel) -> bool
             or any(f.severity == "medium" and not f.downgraded for f in active)
         )
 
+    # For balanced and lenient: active findings exclude those safely downgraded via discourse markers.
+    active = [f for f in findings if not f.downgraded]
+    if not active:
+        return True
+
+    # Floor: a lone non-downgraded critical exfiltration finding fails at balanced and lenient.
+    if any(_is_critical_exfil(f) for f in active):
+        return False
+
+    hidden_hit = any(
+        f.channel in _HIDDEN_CHANNELS
+        or f.category.startswith(
+            (
+                "hidden_text",
+                "encoded_payload",
+                "confusables+",
+                "mixed_script",
+                "leetspeak+",
+                "scramble+",
+            )
+        )
+        or f.category
+        in {
+            "unicode_evasion",
+            "leetspeak+instruction_override",
+            "scramble+instruction_override",
+            "exfiltration_channel",
+            "mixed_script",
+            "mixed_script+instruction_override",
+        }
+        for f in active
+    )
+    critical_hit = any(f.severity == "critical" for f in active)
+    high_hit = any(f.severity == "high" for f in active)
+    independent = _independent_finding_count(active)
+
     if sensitivity == "lenient":
         hidden_with_instruction = any(
-            f.category.startswith("hidden_text+")
-            or f.category.startswith("encoded_payload+")
-            or f.category.startswith("confusables+")
+            f.category.startswith(
+                (
+                    "hidden_text+",
+                    "encoded_payload+",
+                    "confusables+",
+                    "leetspeak+",
+                    "scramble+",
+                )
+            )
             for f in active
         )
         return not (hidden_with_instruction or independent >= 3)
 
-    # balanced (default): corroboration rule
+    # balanced (default):
     return not (hidden_hit or independent >= 2 or critical_hit)
 
 
@@ -798,6 +1145,14 @@ def _primary_message(findings: Sequence[Finding]) -> str:
         return FAMILY_MESSAGE["encoded_payload"]
     if "confusables" in top.category and "instruction_override" in top.category:
         return FAMILY_MESSAGE["confusables"]
+    if "leetspeak" in top.category:
+        return FAMILY_MESSAGE["leetspeak"]
+    if "scramble" in top.category:
+        return FAMILY_MESSAGE["scramble"]
+    if "exfiltration_channel" in top.category:
+        return FAMILY_MESSAGE["exfiltration_channel"]
+    if "resource_limit" in top.category:
+        return FAMILY_MESSAGE["resource_limit"]
     if top.pattern_id:
         for entry in _load_patterns():
             if entry.pattern_id == top.pattern_id:
@@ -821,12 +1176,12 @@ def _merge_spans(spans: Sequence[Tuple[int, int]]) -> List[Tuple[int, int]]:
     return merged
 
 
-def _sanitize_text(original: str, findings: Sequence[Finding]) -> str:
-    # Strip hidden channels wholesale and remove other finding spans.
+def _sanitize_text(original: str, findings: Sequence[Finding]) -> Tuple[str, int, int]:
+    """Strip hidden channels and threat spans. Returns (cleaned_text, removed_span_count, length_delta)."""
     spans = [(f.span[0], f.span[1]) for f in findings if f.span[1] > f.span[0]]
     spans = _merge_spans(spans)
     if not spans:
-        return original
+        return original, 0, 0
 
     parts: List[str] = []
     cursor = 0
@@ -841,7 +1196,10 @@ def _sanitize_text(original: str, findings: Sequence[Finding]) -> str:
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     if original.endswith(" ") and cleaned and not cleaned.endswith(" "):
         cleaned += " "
-    return cleaned
+
+    removed_span_count = len(spans)
+    delta = len(original) - len(cleaned)
+    return cleaned, removed_span_count, delta
 
 
 def _finding_to_dict(finding: Finding) -> Dict[str, object]:
@@ -856,6 +1214,10 @@ def _finding_to_dict(finding: Finding) -> Dict[str, object]:
         payload["pattern_id"] = finding.pattern_id
     if finding.decoded_layers is not None:
         payload["decoded_layers"] = finding.decoded_layers
+    if finding.decode_chain is not None:
+        payload["decode_chain"] = finding.decode_chain
+    if finding.decoded_preview is not None:
+        payload["decoded_preview"] = finding.decoded_preview
     if finding.downgraded:
         payload["downgraded"] = True
     return payload
@@ -876,6 +1238,31 @@ def scan_source_text(
             sanitized_text="",
             offline=True,
             sensitivity=sensitivity,
+            policy_action="allow",
+            removed_span_count=0,
+            sanitized_length_delta=0,
+        )
+
+    # DoS / Resource soft caps
+    if len(source_text) > MAX_SOURCE_TEXT_CHARS:
+        finding = Finding(
+            category="resource_limit",
+            channel="input_size",
+            severity="high",
+            span=(0, len(source_text)),
+            evidence=f"Input size {len(source_text)} exceeds maximum allowed {MAX_SOURCE_TEXT_CHARS} characters.",
+        )
+        return ScanResult(
+            is_safe=False,
+            risk_level="high",
+            detected_threat=FAMILY_MESSAGE["resource_limit"],
+            findings=[_finding_to_dict(finding)],
+            sanitized_text="",
+            offline=True,
+            sensitivity=sensitivity,
+            policy_action="block",
+            removed_span_count=1,
+            sanitized_length_delta=len(source_text),
         )
 
     canonical = canonicalize(source_text, input_mode=input_mode)
@@ -883,6 +1270,10 @@ def scan_source_text(
     findings.extend(_detect_unicode_evasion(canonical))
     findings.extend(_detect_hidden_text(canonical))
     findings.extend(_detect_lexicon(canonical))
+    findings.extend(_detect_leetspeak(canonical))
+    findings.extend(_detect_typoglycemia(canonical))
+    findings.extend(_detect_mixed_script(canonical))
+    findings.extend(_detect_exfiltration_channels(canonical))
     findings.extend(_detect_encoded_payload(canonical))
     findings.extend(_detect_context_mismatch(canonical, findings))
 
@@ -911,15 +1302,18 @@ def scan_source_text(
         deduped.append(finding)
 
     is_safe = _verdict(deduped, sensitivity)
-    # At balanced/lenient, keep downgraded-only mentions listed but safe.
     risk_level = _risk_level_for(deduped, is_safe)
     detected = None if is_safe and not deduped else _primary_message(deduped)
+
     if is_safe:
         detected = None
         sanitized = source_text
-        # Still expose downgraded findings for explainability when present.
+        removed_count = 0
+        delta = 0
+        policy_action: PolicyAction = "flag" if deduped else "allow"
     else:
-        sanitized = _sanitize_text(source_text, deduped)
+        sanitized, removed_count, delta = _sanitize_text(source_text, deduped)
+        policy_action = "block"
 
     return ScanResult(
         is_safe=is_safe,
@@ -929,6 +1323,9 @@ def scan_source_text(
         sanitized_text=sanitized,
         offline=True,
         sensitivity=sensitivity,
+        policy_action=policy_action,
+        removed_span_count=removed_count,
+        sanitized_length_delta=delta,
     )
 
 
@@ -940,4 +1337,5 @@ def load_pattern_catalog() -> Dict[str, object]:
         "families": sorted({p.family for p in patterns}),
         "confusable_count": len(_load_confusables()),
         "hidden_html_styles": list(HIDDEN_HTML_STYLE_PATTERNS),
+        "version": "0.2.0",
     }

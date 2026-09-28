@@ -40,7 +40,7 @@ Apply every check that matches the change type before requesting review:
 | Area | Location |
 | :--- | :--- |
 | Registry skills | `skills/<category>/<skill_name>/` |
-| Skill catalog | `docs/skills/` |
+| Skill catalog | `docs/skills/<category>/` (hubs + catalog pages) |
 | Contributor guides | `CONTRIBUTING.md`, `docs/contributing/` |
 | Runnable examples | `examples/` |
 | Framework / maintainer tests | `tests/` |
@@ -56,7 +56,7 @@ Apply every check that matches the change type before requesting review:
 | `skills/*/skill.py` output | `card.json`, card UI fixture, catalog output schema, bundle tests |
 | `examples/*.py` | `examples/README.md`, catalog Usage Examples, `agent_loops.md` |
 | `skillware/core/loader.py` | All provider adapter docs under `docs/usage/` |
-| New skill category | `CONTRIBUTING.md` category table, `sync_extras.py` output |
+| New skill category | `CONTRIBUTING.md` category table, `docs/skills/<category>/README.md`, root README category index, `docs/sitemap.md`, `sync_extras.py` output |
 | `ISSUE_RESOLVER.md` | `docs/contributing/issue_resolver_profile.md` if the contract changes |
 
 ## Commit & PR

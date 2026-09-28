@@ -1,0 +1,286 @@
+{
+  "intent_aliases": {
+    "praise": ["praise", "hype", "compliment", "killing it", "amazing", "잘하", "멋", "폼", "레전드", "쩐다"],
+    "food": ["food", "lunch", "dinner", "eat", "맛", "점메추", "야메추", "치킨", "맛집", "메뉴"],
+    "work": ["work", "office", "commute", "출근", "야근", "칼퇴", "내또출", "퇴사", "직장"],
+    "tired": ["tired", "burnout", "현타", "현생", "번아웃", "exhausted", "reality check"],
+    "annoyed": ["annoyed", "angry", "킹받", "빡", "짜증", "에바", "nope"],
+    "agree": ["agree", "real", "true", "ㄹㅇ", "ㅇㅈ", "인정", "same"],
+    "greeting": ["hi", "hello", "hey", "ㅎㅇ", "안녕"],
+    "bye": ["bye", "goodbye", "ㅂㅂ", "잘가", "나중에"],
+    "thanks": ["thanks", "thank", "ㄱㅅ", "고마", "감사"],
+    "workout": ["workout", "gym", "오운완", "운동", "헬스"],
+    "weekend": ["weekend", "friday", "불금", "주말", "주불"],
+    "dating": ["date", "dating", "crush", "썸", "연애", "플러팅"],
+    "fandom": ["fandom", "kpop", "입덕", "최애", "덕질", "직캠", "콘서트"],
+    "competence": ["handle it", "you got this", "알잘딱", "알아서", "competent"]
+  },
+  "particles": {
+    "peers": ["ㄹㅇ", "ㅋㅋ", "ㅇㅈ"],
+    "mixed": ["ㅋㅋ"],
+    "work": [],
+    "elders": []
+  },
+  "templates": {
+    "praise": {
+      "peers": [
+        "요즘 완전 {primary} {particle}",
+        "와 {primary} ㅋㅋ",
+        "{primary} {particle}",
+        "레전드 그잡채 {particle}"
+      ],
+      "mixed": [
+        "요즘 진짜 {primary} ㅋㅋ",
+        "{primary} 인정."
+      ],
+      "work": [
+        "최근 퍼포먼스가 정말 좋습니다.",
+        "이번 건 완성도가 높네요."
+      ],
+      "elders": [
+        "요즘 정말 잘하고 계세요.",
+        "정말 멋있으세요."
+      ]
+    },
+    "food": {
+      "peers": [
+        "{primary} ㄱㄱ",
+        "오늘 {primary} 하실래요 ㅋㅋ",
+        "배고픈데 {primary} {particle}"
+      ],
+      "mixed": [
+        "점심 {primary} 어때요?"
+      ],
+      "work": [
+        "점메추 부탁드려요.",
+        "점심 메뉴 같이 정할까요?"
+      ],
+      "elders": [
+        "점심은 뭐 드실래요?",
+        "저녁 맛있게 드세요."
+      ]
+    },
+    "work": {
+      "peers": [
+        "{primary}이라 현타 옴 ㅋㅋ",
+        "내일 {primary} {particle}",
+        "오늘은 {primary} 가즌가"
+      ],
+      "mixed": [
+        "내일 출근이라 좀 힘드네요."
+      ],
+      "work": [
+        "내일도 출근입니다.",
+        "오늘 칼퇴 가능할 듯요."
+      ],
+      "elders": [
+        "내일 출근이에요.",
+        "오늘도 수고 많으셨어요."
+      ]
+    },
+    "tired": {
+      "peers": [
+        "{primary} 왔다 {particle}",
+        "현생 너무 힘듦 {particle}",
+        "아 {primary} ㅋㅋ"
+      ],
+      "mixed": [
+        "지금 현타 왔어요."
+      ],
+      "work": [
+        "오늘은 에너지가 좀 떨어지네요."
+      ],
+      "elders": [
+        "오늘은 좀 피곤하네요.",
+        "푹 쉬세요."
+      ]
+    },
+    "annoyed": {
+      "peers": [
+        "아 {primary} {particle}",
+        "이거 에바임",
+        "{primary} ㅋㅋ 나 감"
+      ],
+      "mixed": [
+        "이건 좀 에바인 듯요."
+      ],
+      "work": [
+        "이 부분은 재고가 필요해 보입니다."
+      ],
+      "elders": [
+        "조금 불편하네요.",
+        "나중에 다시 이야기해요."
+      ]
+    },
+    "agree": {
+      "peers": [
+        "{primary}",
+        "{primary} {particle}",
+        "그잡채 {particle}"
+      ],
+      "mixed": [
+        "인정합니다 ㅋㅋ"
+      ],
+      "work": [
+        "동의합니다."
+      ],
+      "elders": [
+        "맞아요.",
+        "그렇게 생각해요."
+      ]
+    },
+    "greeting": {
+      "peers": [
+        "{primary}",
+        "{primary} 뭐해",
+        "야 {primary}"
+      ],
+      "mixed": [
+        "안녕하세요 ㅋㅋ"
+      ],
+      "work": [
+        "안녕하세요."
+      ],
+      "elders": [
+        "안녕하세요.",
+        "만나서 반갑습니다."
+      ]
+    },
+    "bye": {
+      "peers": [
+        "{primary}",
+        "{primary} 내일 봐",
+        "난 잔다 {primary}"
+      ],
+      "mixed": [
+        "다음에 봐요."
+      ],
+      "work": [
+        "이만 들어가보겠습니다."
+      ],
+      "elders": [
+        "안녕히 가세요.",
+        "다음에 또 뵈어요."
+      ]
+    },
+    "thanks": {
+      "peers": [
+        "{primary}",
+        "{primary} 진짜",
+        "고마워 {particle}"
+      ],
+      "mixed": [
+        "감사합니다 ㅋㅋ"
+      ],
+      "work": [
+        "감사합니다.",
+        "도움 감사드립니다."
+      ],
+      "elders": [
+        "감사합니다.",
+        "정말 고마워요."
+      ]
+    },
+    "workout": {
+      "peers": [
+        "{primary}",
+        "오늘 {primary} {particle}",
+        "헬스 ㄱㄱ {primary}"
+      ],
+      "mixed": [
+        "오늘 운동 완료."
+      ],
+      "work": [
+        "오늘 운동 했습니다."
+      ],
+      "elders": [
+        "오늘 운동하고 왔어요.",
+        "건강 챙기세요."
+      ]
+    },
+    "weekend": {
+      "peers": [
+        "{primary}이다 {particle}",
+        "주말 {primary} ㄱㄱ",
+        "{primary} 뭐함"
+      ],
+      "mixed": [
+        "주말 잘 보내요."
+      ],
+      "work": [
+        "주말 잘 보내세요."
+      ],
+      "elders": [
+        "주말 잘 보내세요.",
+        "편하게 쉬세요."
+      ]
+    },
+    "dating": {
+      "peers": [
+        "지금 {primary} 중 {particle}",
+        "{primary} 어케 함",
+        "그린라이트냐 {particle}"
+      ],
+      "mixed": [
+        "지금은 썸 단계인 듯요."
+      ],
+      "work": [
+        "개인 일정은 따로 조율할게요."
+      ],
+      "elders": [
+        "요즘 잘 지내요.",
+        "소개는 천천히 할게요."
+      ]
+    },
+    "fandom": {
+      "peers": [
+        "{primary} 했다 {particle}",
+        "최애 {primary} ㅠㅠ",
+        "오늘 입덕각 {particle}"
+      ],
+      "mixed": [
+        "요즘 그 가수 덕질 중이에요."
+      ],
+      "work": [
+        "취미로 공연 챙겨 보는 편입니다."
+      ],
+      "elders": [
+        "요즘 그 가수 좋아해요.",
+        "공연 보러 갔어요."
+      ]
+    },
+    "competence": {
+      "peers": [
+        "{primary}으로 해줘",
+        "넌 {primary}이지 {particle}",
+        "알아서 {primary}"
+      ],
+      "mixed": [
+        "알잘딱 부탁해요."
+      ],
+      "work": [
+        "맥락 보시고 진행 부탁드려요.",
+        "세부 실무는 재량껏 부탁드립니다."
+      ],
+      "elders": [
+        "편하게 진행해 주세요.",
+        "세부는 맡길게요."
+      ]
+    },
+    "generic": {
+      "peers": [
+        "{primary} {particle}",
+        "그잡채"
+      ],
+      "mixed": [
+        "ㅋㅋ 알겠어요."
+      ],
+      "work": [
+        "확인했습니다."
+      ],
+      "elders": [
+        "알겠어요."
+      ]
+    }
+  }
+}

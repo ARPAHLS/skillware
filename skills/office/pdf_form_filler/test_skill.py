@@ -51,11 +51,12 @@ def test_missing_instructions_returns_error(skill, tmp_path):
 
 
 @patch("skills.office.pdf_form_filler.skill.anthropic.Anthropic")
-def test_execute_mocked(mock_anthropic_cls, tmp_path):
+def test_execute_mocked(mock_anthropic_cls, tmp_path, monkeypatch):
     mock_client = mock_anthropic_cls.return_value
     mock_message = MagicMock()
     mock_message.content = [MagicMock(text='{"page0_test_field": "Hello World"}')]
     mock_client.messages.create.return_value = mock_message
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
 
     skill = PDFFormFillerSkill()
 

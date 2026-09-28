@@ -69,18 +69,19 @@ _NAV_BACK = "back"
 
 _MAIL_SUBMENU = [
     ("1", "addressbook show", "resolved path and contact count"),
-    ("2", "addressbook init", "create user config addressbook.yaml"),
-    ("3", "addressbook add", "interactive contact wizard"),
-    ("4", "addressbook validate", "schema check"),
-    ("5", "addressbook set-path", "persist mail.addressbook_path"),
-    ("6", "signature show", "resolved signature (plain + HTML status)"),
-    ("7", "signature init", "default template (plain + HTML + logo copy)"),
-    ("8", "signature set", "paste text or --file"),
-    ("9", "signature validate", "non-empty, length, secret patterns"),
-    ("10", "signature clear", "remove signature from project config"),
-    ("11", "signature profiles", "list named signature profiles"),
-    ("12", "signature set-profile", "set active signature profile"),
-    ("13", "signature add-profile", "register plain/HTML paths for a profile"),
+    ("2", "addressbook list", "formatted contacts table"),
+    ("3", "addressbook init", "create user config addressbook.yaml"),
+    ("4", "addressbook add", "interactive contact wizard"),
+    ("5", "addressbook validate", "schema check"),
+    ("6", "addressbook set-path", "persist mail.addressbook_path"),
+    ("7", "signature show", "resolved signature (plain + HTML status)"),
+    ("8", "signature init", "default template (plain + HTML + logo copy)"),
+    ("9", "signature set", "paste text or --file"),
+    ("10", "signature validate", "non-empty, length, secret patterns"),
+    ("11", "signature clear", "remove signature from project config"),
+    ("12", "signature profiles", "list named signature profiles"),
+    ("13", "signature set-profile", "set active signature profile"),
+    ("14", "signature add-profile", "register plain/HTML paths for a profile"),
 ]
 
 ReadLineFn = Optional[Callable[[str], Optional[str]]]
@@ -207,6 +208,7 @@ def cmd_mail_addressbook_add(
     *,
     display_name: Optional[str] = None,
     email: Optional[str] = None,
+    public_0x: Optional[str] = None,
     aliases: Optional[str] = None,
     org: Optional[str] = None,
     contact_id: Optional[str] = None,
@@ -227,10 +229,32 @@ def cmd_mail_addressbook_add(
     if name is None:
         console.print("  Cancelled.", style="dim")
         return 1
-    mail_addr = email or _prompt_required("Email", input_fn)
-    if mail_addr is None:
-        console.print("  Cancelled.", style="dim")
-        return 1
+
+    mail_addr = email
+    wallet = public_0x
+    if (
+        mail_addr is None
+        and wallet is None
+        and (input_fn is not None or display_name is None)
+    ):
+        mail_raw = _read_line("  Email (optional if public_0x set): ", input_fn)
+        if mail_raw is None:
+            console.print("  Cancelled.", style="dim")
+            return 1
+        mail_addr = mail_raw.strip() or None
+    if wallet is None and (input_fn is not None or display_name is None):
+        wallet_raw = _read_line("  public_0x EVM wallet (optional): ", input_fn)
+        if wallet_raw is None:
+            console.print("  Cancelled.", style="dim")
+            return 1
+        wallet = wallet_raw.strip() or None
+    if not mail_addr and not wallet:
+        if email is None and public_0x is None:
+            console.print(
+                "  At least one of email or public_0x is required.",
+                style=ERROR_STYLE,
+            )
+            return 1
 
     alias_list: List[str] = []
     if aliases:
@@ -264,6 +288,7 @@ def cmd_mail_addressbook_add(
             path,
             display_name=name,
             email=mail_addr,
+            public_0x=wallet,
             aliases=alias_list or None,
             org=org_value,
             contact_id=cid,
@@ -616,32 +641,36 @@ def cmd_mail_submenu(
     if console is None:
         console = Console()
 
+    from skillware.cli_addressbook import cmd_addressbook_list
+
     commands = {
         "1": "addressbook show",
         "addressbook show": "addressbook show",
-        "2": "addressbook init",
+        "2": "addressbook list",
+        "addressbook list": "addressbook list",
+        "3": "addressbook init",
         "addressbook init": "addressbook init",
-        "3": "addressbook add",
+        "4": "addressbook add",
         "addressbook add": "addressbook add",
-        "4": "addressbook validate",
+        "5": "addressbook validate",
         "addressbook validate": "addressbook validate",
-        "5": "addressbook set-path",
+        "6": "addressbook set-path",
         "addressbook set-path": "addressbook set-path",
-        "6": "signature show",
+        "7": "signature show",
         "signature show": "signature show",
-        "7": "signature init",
+        "8": "signature init",
         "signature init": "signature init",
-        "8": "signature set",
+        "9": "signature set",
         "signature set": "signature set",
-        "9": "signature validate",
+        "10": "signature validate",
         "signature validate": "signature validate",
-        "10": "signature clear",
+        "11": "signature clear",
         "signature clear": "signature clear",
-        "11": "signature profiles",
+        "12": "signature profiles",
         "signature profiles": "signature profiles",
-        "12": "signature set-profile",
+        "13": "signature set-profile",
         "signature set-profile": "signature set-profile",
-        "13": "signature add-profile",
+        "14": "signature add-profile",
         "signature add-profile": "signature add-profile",
     }
 
@@ -659,6 +688,8 @@ def cmd_mail_submenu(
         command = commands.get(choice.lower())
         if command == "addressbook show":
             cmd_mail_addressbook_show(console)
+        elif command == "addressbook list":
+            cmd_addressbook_list(console)
         elif command == "addressbook init":
             cmd_mail_addressbook_init(console)
         elif command == "addressbook add":
@@ -708,30 +739,28 @@ def cmd_mail(
     action = (action or "show").lower()
 
     if area == "addressbook":
-        if action == "show":
-            return cmd_mail_addressbook_show(console)
-        if action == "init":
-            return cmd_mail_addressbook_init(
-                console,
-                path=kwargs.get("path"),
-                force=kwargs.get("force", False),
-            )
-        if action == "validate":
-            return cmd_mail_addressbook_validate(console)
-        if action == "add":
-            return cmd_mail_addressbook_add(
-                console,
-                input_fn=kwargs.get("input_fn"),
-                display_name=kwargs.get("display_name"),
-                email=kwargs.get("email"),
-                aliases=kwargs.get("aliases"),
-                org=kwargs.get("org"),
-                contact_id=kwargs.get("contact_id"),
-            )
-        if action == "set-path":
-            return cmd_mail_addressbook_set_path(console, path=kwargs.get("path"))
-        console.print(f"  Unknown addressbook action: {action}", style=ERROR_STYLE)
-        return 1
+        from skillware.cli_addressbook import cmd_addressbook_dispatch
+
+        return cmd_addressbook_dispatch(
+            action,
+            "run",
+            console=console,
+            input_fn=kwargs.get("input_fn"),
+            path=kwargs.get("path"),
+            force=kwargs.get("force", False),
+            display_name=kwargs.get("display_name"),
+            email=kwargs.get("email"),
+            public_0x=kwargs.get("public_0x"),
+            aliases=kwargs.get("aliases"),
+            org=kwargs.get("org"),
+            contact_id=kwargs.get("contact_id"),
+            wallet_0x=kwargs.get("wallet_0x"),
+            with_wallet=kwargs.get("with_wallet", False),
+            search=kwargs.get("search"),
+            json_output=kwargs.get("json_output", False),
+            yes=kwargs.get("yes", False),
+            open_dir=kwargs.get("open_dir", False),
+        )
 
     if area == "signature":
         if action == "show":

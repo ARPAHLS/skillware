@@ -40,7 +40,9 @@ After installation, the `skillware` command is available directly:
     skillware context show
     skillware chain list
     skillware theme ocean
-    skillware mail addressbook show
+    skillware addressbook list
+    skillware evm chains list
+    skillware evm tokens list
     skillware test
     skillware examples
     skillware --version
@@ -74,7 +76,7 @@ system PATH, or use the `py` launcher:
 
 ## Version advisory
 
-On CLI startup, Skillware checks the installed package version **once per process**.
+On CLI startup, Skillware checks the installed package version **once per process** and warns on **duplicate or orphan install metadata** (editable + PyPI overlap — see [#333](https://github.com/ARPAHLS/skillware/issues/333)).
 If you are on an **unsupported** release (below `0.3.5`, for example `0.3.4` or `0.2.9`), a single
 dim message is printed to stderr suggesting an upgrade to `>= 0.4.7`. Installs in the
 `0.3.5`–`0.4.6` band stay silent (no security backports, but no startup spam). Current
@@ -285,6 +287,7 @@ Check whether skills can load in the current environment — manifest **requirem
     skillware doctor finance/wallet_screening
     skillware doctor --category compliance
     skillware doctor --skills-root /path/to/my/skills
+    skillware doctor --install
 
 #### Arguments and flags
 
@@ -294,10 +297,13 @@ Check whether skills can load in the current environment — manifest **requirem
 | `<category>/<skill_name>` | Diagnose one skill |
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
+| `--install` | Check Python package install health (editable vs PyPI conflicts); ignores skill args |
 
 **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
 Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
+
+**`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
 
 Interactive menu: **`5` / `doctor`**.
 
@@ -358,7 +364,7 @@ malformed, or unknown theme values fall back safely to `pastel`.
 
 ### skillware mail
 
-Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/gmail_handler.md`](../skills/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
+Operator UX for **`office/gmail_handler`** address book, email signatures (including multi-profile), and attachment path settings — without editing bundled skill files. **Full operator guide:** [`docs/skills/office/gmail_handler.md`](../skills/office/gmail_handler.md) (fresh install checklist, precedence, plain vs HTML MIME, attachments, persistence).
 
     skillware mail
     skillware mail addressbook init
@@ -406,6 +412,54 @@ Test signature in your inbox (requires `.env` credentials):
     python examples/gmail_signature_test_send.py --to you@example.com
 
 Non-interactive `skillware mail` (no subcommand) prints resolved paths and signature source — similar to the `mail` block in `skillware config show`.
+
+### skillware addressbook
+
+Shared operator **identity directory** for mail and defi skills (`public_0x` EVM wallets on contacts). **`skillware mail addressbook …`** remains a backward-compatible alias.
+
+    skillware addressbook
+    skillware addressbook list
+    skillware addressbook list --with-wallet
+    skillware addressbook list --search john
+    skillware addressbook list --json
+    skillware addressbook init
+    skillware addressbook add
+    skillware addressbook edit john_doe
+    skillware addressbook set-wallet john_doe 0x71C7656EC7ab08859a784ab83b021a667C1D9f9
+    skillware addressbook remove john_doe --yes
+    skillware addressbook validate
+    skillware addressbook open
+    skillware addressbook open --dir
+
+Interactive menu: **`10` / `addressbook`**. Full operator guide: [Address book operator config](addressbook_operator_config.md). See also [EVM operator config](evm_operator_config.md) (tokens vs people).
+
+### skillware config open
+
+Open global or project config in the OS file manager:
+
+    skillware config open
+    skillware config open --dir
+
+### skillware evm
+
+Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full operator guide:** [EVM operator config](evm_operator_config.md) (checklist, precedence, custom chains, tokens vs address book). This is **not** [`skillware chain`](#skillware-chain) (orchestration pipelines).
+
+    skillware evm
+    skillware evm init
+    skillware evm init --yes
+    skillware evm init --force
+    skillware evm chains list
+    skillware evm chains list --json
+    skillware evm chain add --name arbitrum --chain-id 42161 --rpc-env ARBITRUM_RPC_URL
+    skillware evm tokens list
+    skillware evm tokens list --json
+    skillware evm token add --chain base --symbol degen --address 0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed --decimals 18
+    skillware evm rpc enable base
+    skillware evm validate
+    skillware evm open
+    skillware evm open --dir
+
+Interactive menu: **`9` / `evm`**. RPC secrets: [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config).
 
 ### skillware context
 

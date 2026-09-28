@@ -196,9 +196,36 @@ export GMAIL_ADDRESS="agent-mailbox@example.com"
 export GMAIL_APP_PASSWORD="your-16-char-app-password"
 ```
 
-Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware mail`](cli.md#skillware-mail) and [Gmail Handler](../skills/gmail_handler.md#fresh-install-checklist).
+Optional path overrides: `GMAIL_ADDRESSBOOK_PATH`, `GMAIL_SIGNATURE_PATH`, `GMAIL_SIGNATURE_HTML_PATH`, `GMAIL_SIGNATURE_PLAIN`, `GMAIL_SIGNATURE_PROFILE`, `GMAIL_SCAN_STATE_PATH`, `GMAIL_SEND_LEDGER_PATH`. Operator setup (address book, signatures, multi-profile signatures, persistence): [`skillware addressbook`](cli.md#skillware-addressbook), [Address book operator config](addressbook_operator_config.md), and [Gmail Handler](../skills/office/gmail_handler.md#fresh-install-checklist). Minimal Gemini loop: [`examples/gemini_gmail_minimal.py`](../../examples/gemini_gmail_minimal.py).
 
 Preview and confirmation gates apply before send/reply; read the skill `instructions.md` before enabling live mail on any host agent.
+
+### EVM RPC and operator config
+
+Defi skills that call JSON-RPC share chain metadata through **`skillware.core.evm_config`** and operator **`evm.yaml`**. **Operator guide:** [EVM operator config](evm_operator_config.md). **CLI commands:** [`skillware evm`](cli.md#skillware-evm). This is separate from orchestration **`chains:`** in `.skillware.yaml`.
+
+| Store here (`.env`) | Store in `evm.yaml` |
+| :--- | :--- |
+| RPC URLs (`ETHEREUM_RPC_URL`, `BASE_RPC_URL`, …) | Chain ids, enabled flags, `rpc_env` names, router/weth metadata |
+| `AGENT_WALLET_PRIVATE_KEY` (signing skills only) | Token registry entries (`evm.tokens`) — not address book contacts |
+
+```bash
+# After: skillware evm init
+export ETHEREUM_RPC_URL="https://mainnet.example.invalid"
+export BASE_RPC_URL="https://base.example.invalid"
+```
+
+Optional: `EVM_CONFIG_PATH` for an alternate config file path. Project inline overrides: top-level **`evm:`** (or read-only **`web3:`** alias) in `.skillware.yaml`.
+
+### GoPlus Token Security (optional)
+
+[`defi/token_security_scanner`](../skills/defi/token_security_scanner.md) calls the GoPlus Token Security API. Permissionless calls work without a key; set this for higher rate limits or authenticated access:
+
+```bash
+export GOPLUS_APP_KEY="your_goplus_access_token_here"
+```
+
+See [GoPlus docs](https://docs.gopluslabs.io/) and `.env.example`.
 
 ### External data API (required key)
 
