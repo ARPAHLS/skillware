@@ -481,7 +481,7 @@ def test_wheel_includes_skill_manifest(tmp_path):
 
 
 def test_to_ollama_prompt():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "test_ollama_skill",
             "description": "A very useful test skill.",
@@ -495,14 +495,14 @@ def test_to_ollama_prompt():
         }
     }
 
-    prompt = SkillLoader.to_ollama_prompt(dummy_bundle)
+    prompt = SkillLoader.to_ollama_prompt(sample_bundle)
     assert "### Tool: `test_ollama_skill`" in prompt
     assert "**Description:** A very useful test skill." in prompt
     assert "- `arg1` (string): The first arg [Required]" in prompt
 
 
 def test_to_gemini_tool():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "finance/wallet_screening",
             "parameters": {
@@ -511,7 +511,7 @@ def test_to_gemini_tool():
             },
         }
     }
-    tool = SkillLoader.to_gemini_tool(dummy_bundle)
+    tool = SkillLoader.to_gemini_tool(sample_bundle)
     decl = tool.function_declarations[0]
     assert decl.name == "finance_wallet_screening"
     assert type(tool).__name__ == "Tool"
@@ -534,7 +534,7 @@ def test_sanitize_gemini_tool_name():
 
 
 def test_to_claude_tool():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "test_claude_skill",
             "description": "desc",
@@ -544,7 +544,7 @@ def test_to_claude_tool():
             },
         }
     }
-    tool = SkillLoader.to_claude_tool(dummy_bundle)
+    tool = SkillLoader.to_claude_tool(sample_bundle)
     assert tool["name"] == "test_claude_skill"
     assert tool["input_schema"]["type"] == "object"
 
@@ -575,7 +575,7 @@ def test_sanitize_openai_tool_name():
 
 
 def test_to_openai_tool():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "compliance/tos_evaluator",
             "description": "Evaluate site policy.",
@@ -586,7 +586,7 @@ def test_to_openai_tool():
             },
         }
     }
-    tool = SkillLoader.to_openai_tool(dummy_bundle)
+    tool = SkillLoader.to_openai_tool(sample_bundle)
     assert tool["type"] == "function"
     assert tool["function"]["name"] == "compliance_tos_evaluator"
     assert tool["function"]["description"] == "Evaluate site policy."
@@ -602,7 +602,7 @@ def test_sanitize_deepseek_tool_name():
 
 
 def test_to_deepseek_tool():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "compliance/tos_evaluator",
             "description": "Evaluate site policy.",
@@ -613,7 +613,7 @@ def test_to_deepseek_tool():
             },
         }
     }
-    tool = SkillLoader.to_deepseek_tool(dummy_bundle)
+    tool = SkillLoader.to_deepseek_tool(sample_bundle)
     assert tool["type"] == "function"
     assert tool["function"]["name"] == "compliance_tos_evaluator"
 
@@ -627,7 +627,7 @@ def test_sanitize_bedrock_tool_name():
 
 
 def test_to_bedrock_tool():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "compliance/tos_evaluator",
             "description": "Evaluate site policy.",
@@ -638,7 +638,7 @@ def test_to_bedrock_tool():
             },
         }
     }
-    tool = SkillLoader.to_bedrock_tool(dummy_bundle)
+    tool = SkillLoader.to_bedrock_tool(sample_bundle)
     spec = tool["toolSpec"]
     assert spec["name"] == "compliance_tos_evaluator"
     assert spec["description"] == "Evaluate site policy."
@@ -647,13 +647,13 @@ def test_to_bedrock_tool():
 
 
 def test_bedrock_tool_name_matches_openai_sanitization():
-    dummy_bundle = {
+    sample_bundle = {
         "manifest": {
             "name": "finance/wallet_screening",
             "description": "Screen wallets.",
             "parameters": {"type": "object", "properties": {}},
         }
     }
-    openai_name = SkillLoader.to_openai_tool(dummy_bundle)["function"]["name"]
-    bedrock_name = SkillLoader.to_bedrock_tool(dummy_bundle)["toolSpec"]["name"]
+    openai_name = SkillLoader.to_openai_tool(sample_bundle)["function"]["name"]
+    bedrock_name = SkillLoader.to_bedrock_tool(sample_bundle)["toolSpec"]["name"]
     assert bedrock_name == openai_name == "finance_wallet_screening"

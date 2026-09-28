@@ -10,8 +10,38 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
-- **CLI:** `skillware doctor --install` and `skillware config show` report package install health for duplicate, orphan, or editable-plus-wheel metadata, with opt-out-aware startup advice and repair scripts (#333).
+- **CLI / packaging:** Harden version display when editable and PyPI installs overlap — `get_package_version_display()` never prints `None`; `detect_install_conflicts()` via `assess_install_health()`; startup stderr hint; **`skillware doctor --install`** with recovery commands; install summary in **`skillware config show`** ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
+- **Scripts:** [`scripts/dev_install.sh`](scripts/dev_install.sh) and [`scripts/dev_install.ps1`](scripts/dev_install.ps1) — uninstall overlapping installs and reinstall editable dev deps.
+- **Core / CLI:** EVM operator config layer — bundled `skillware/data/evm_defaults.yaml`, writable user `evm.yaml`, `skillware.core.evm_config` merge helpers (`load_merged_evm_config`, `resolve_chain`, `resolve_rpc_url`, `normalize_evm_address`), and `skillware evm` commands (`init`, `chains list`, `chain add`, `rpc enable`, `validate`, `open`). Project/global YAML uses top-level **`evm:`** (or read-only **`web3:`** alias) — distinct from orchestration **`chains:`** (#379).
+- **Docs:** [EVM operator config](docs/usage/evm_operator_config.md) — shared defi RPC setup guide; cross-links from CLI, API keys, DeFi catalog, `evm_tx_handler`, and `token_security_scanner` (#379).
+- **Core / CLI:** Shared address book **`public_0x`** field, relaxed contact validation (email or wallet), top-level **`skillware addressbook`** commands (`list`, `edit`, `set-wallet`, `remove`, `open`), **`skillware config open`**, **`skillware evm token add`**, and **`skillware evm tokens list`** for operator token registry (#373, #374).
+- **Docs:** [Address book operator config](docs/usage/addressbook_operator_config.md) — shared contact identity guide (mail + defi, schema, CLI, cross-links); glossary **`public_0x`** / shared address book terms; transfer-by-name usage examples on `evm_tx_handler` (#373, #374).
+- **Examples:** [`gemini_gmail_minimal.py`](examples/gemini_gmail_minimal.py) — README quick-start interactive Gemini + Gmail loop; [`pay_and_notify_demo.py`](examples/pay_and_notify_demo.py) — reproducible `SkillContext` pay + notify recipe with documented prerequisites.
+- **Skill (`defi/evm_tx_handler` v0.3.0):** Central address book recipient resolution with `needs_input` disambiguation; merges operator EVM chain/token config from `skillware.core.evm_config` (#373).
+- **Docs:** Structured hub architecture for catalog discovery — compact root README category table, [docs/sitemap.md](docs/sitemap.md), and landing pages at `docs/skills/<category>/README.md` with catalog pages beside them (`docs/skills/<category>/<skill_name>.md`). Runtime `skills/<category>/<skill_name>` IDs and `SkillLoader.load_skill()` are unchanged (#370).
+- **Skill (`security/prompt_injection_firewall` v0.2.0):** OWASP LLM01 Layer-1 trust-boundary input defense upgrade — local evasion detection engine (leetspeak deobfuscation, multi-token ROT13 and token-reversal, typoglycemia scrambled keywords, mixed-script homoglyphs, markdown and HTML image exfiltration channels), academic/advisory mention-vs-use false-positive controls, operator policy telemetry (`policy_action`: `allow` | `flag` | `block`, `removed_span_count`, `sanitized_length_delta`), finding enrichments (`decode_chain`, `decoded_preview`), and DoS soft resource caps failing closed safely (#273, #361).
+- **Skill (`defi/token_security_scanner` v0.1.0):** Read-only GoPlus Token Security scan (`scan`, `supported_chains`) with normalized `risk_tier` / `signals` JSON for pre-trade agent checks; chain resolution via `skillware.core.evm_config` (#365, #368).
 
+### Changed
+
+- **Docs:** CONTRIBUTING.md — editable vs PyPI on the same Python; CLI docs for `doctor --install` ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
+- **Docs:** Catalog pages include a standardized intent header (problem solved, host agents, runtime / key requirements) for search matching without stuffing (#370).
+- **Docs / CI:** Doc-drift guards follow nested catalog paths; CONTRIBUTING, PR/issue templates, and the skill template point at category hubs and the sitemap (#370).
+- **Skill (`defi/evm_tx_handler`):** Setup envelope docs URL now points at `docs/skills/defi/evm_tx_handler.md` (#370).
+- **Skill (`office/pdf_form_filler`):** `short_description` no longer implies a Claude-only mapper (#370).
+- **Card UI (`security/prompt_injection_firewall`):** Expose `policy_action`, `removed_span_count`, and `sanitized_length_delta` in `card.json` and sync sample fixture (#273, #361).
+- **Docs:** Glossary cross-links on hub and catalog pages (#363).
+- **README:** Quick-start usage example is Gemini + `office/gmail_handler` ([`gemini_gmail_minimal.py`](examples/gemini_gmail_minimal.py)) instead of the prompt-injection firewall snippet.
+
+## [0.5.6] - 2026-09-20
+
+### Added
+
+- **Skill (`linguistics/korean_slang` v0.1.0):** New `linguistics/` category and offline Korean Gen-Z slang pack — interpret / suggest / lookup over a September 2026 curated KB, honorific audience gates, and constitution filters for slurs (#34).
+- **GitHub:** `cat: linguistics` in [`.github/labels.json`](.github/labels.json) and the New Skill Proposal category dropdown; GitHub UI labels sync on merge to `main` (#34).
+- **Examples:** [`korean_slang_demo.py`](examples/korean_slang_demo.py) — offline interpret, suggest, lookup, unmatched, and blocked-term paths (#34).
+- **Scripts:** [`korean_slang_stress_sim.py`](scripts/korean_slang_stress_sim.py) — offline interpret/suggest stress harness (#34).
+- **Docs:** [Glossary](docs/glossary.md) and [inclusive language](docs/contributing/inclusive-language.md) — operator / contributor / host agent / end user; skill bundle vs PyPI package; anatomy roles (#252).
 - **Core:** Pluggable secret providers — `SecretProvider`, `EnvSecretProvider`, `MappingSecretProvider`, `CallableSecretProvider`, and `SkillLoader.resolve_env_vars()` inject manifest `env_vars` into `BaseSkill(config=...)` without requiring global `os.environ` mutation (#39).
 - **Core:** `BaseSkill.credential()` — config-first credential lookup with `os.environ` fallback for local `.env` workflows (#39).
 - **Core:** `SkillContext(secret_provider=...)` resolves credentials on each `execute()` and passes them via `config` (supports ephemeral tokens from custom providers) (#39).
@@ -22,13 +52,27 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Examples:** [`bedrock_tos_evaluator.py`](examples/bedrock_tos_evaluator.py) — Bedrock Converse loop with `to_bedrock_tool()` (#262).
 - **Skill (`creative/deck_builder` v0.2.0):** Enterprise presentation platform baseline — procedural Pillow placeholders, image fit policies, layouts (`timeline`, `metrics`, `comparison`), `lint_deck` quality gates, `suggest_outline` archetypes, governance ribbons/footers, and [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) (#336, #337).
 - **Examples:** [`deck_builder_chain_demo.py`](examples/deck_builder_chain_demo.py) — `suggest_outline` → `bg_remover` → `lint_deck` → `render` via `SkillContext` (#337).
+- **Skill (`optimization/context_optimizer` v0.1.0):** Query-aware extractive context selection — local `fastembed` chunk scoring against `agent_goal`, traceable `chunks_selected`, fail-closed `empty_result`, and constitution-bound extractive-only output (#44).
+- **Examples:** [`context_optimizer_demo.py`](examples/context_optimizer_demo.py), [`context_optimizer_chain_demo.py`](examples/context_optimizer_chain_demo.py) (firewall → optimizer), optional [`context_optimizer_gemini_loop.py`](examples/context_optimizer_gemini_loop.py), [`context_optimizer_claude_loop.py`](examples/context_optimizer_claude_loop.py) (#44).
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Phase v2c upgrade with deterministic matchers, filing helpers, and pagination controls — pure deterministic officer role matchers (`officer_role`) supporting 3 canonical categories (`directors`, `secretaries`, `corporate`) and 29 official Companies House statutory roles in `terminology_map.yaml` without NLU in Python; case-insensitive officer name substring matching (`officer_name` / `officer_filter`); multi-page officer scanning up to 10 pages (1,000 records max) in 100-item chunks for filtered queries; deterministic filing history sorting descending by date; filing helpers `latest_only: true` (single most recent filing) and `latest_per_category: true` (latest filing per category); direct host agent `run_pipeline` orchestration with `<from_resolve>` parameter substitution for multi-intent queries, removing redundant `map_intent` from manifest actions and agent directives; new decoupled composite action `resolve_company_officer` (resolve company -> halt on `needs_input` if ambiguous -> filter matching officer(s) by role and/or name in one turn); active vs. resigned transparency and disclaimers in envelopes (`active_only`, `matched_count`, `terminology_note`); strict context isolation preventing sticky filter contamination across turns (#310, #220).
 
 ### Changed
 
+- **Docs:** Terminology pass on current anatomy (Contract / Effect / Directive / Assurance / Presentation) — Skill bundle standard, `calling agent` → **host agent**, trust-model “Most operators”, README domain wording, MiCA example “Available tools”; tests/CI use placeholder names instead of dummy (#252).
+- **Docs (`context_optimizer`):** Catalog execute snippets use a tight token budget so copy-paste runs demonstrate selection; card UI fixture aligned to sample policy; `optimize_document_context` named chain in `.skillware.yaml.example` (#44).
 - **Docs:** Revamp [skill trust model](docs/security/skill-trust-model.md) — trust-forward operator guide aligned with secret providers, `SkillContext`, doctor/paths tooling, and untrusted-input chains; soften README and usage index credential callouts.
 - **Docs:** Add host-context guidance for choosing full Directives, brief registry lines, and host-managed progressive loading (#348).
 - **Core:** `SkillContext.tools("bedrock")` exposes Bedrock Converse tool specs for multi-skill hosts (#262).
 - **Skills:** Bundled skills with `env_vars` now use `self.credential()` for config-first secret resolution (#39).
+
+### Removed
+
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Excised redundant `map_intent` action, internal helper methods (`_map_intent`, `_normalize_keyword`, `_lookup_terminology`), and `intent_to_action` from `terminology_map.yaml` in favor of direct host agent `run_pipeline` step composition (#220).
+
+### Fixed
+
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** Officer name filtering (`officer_name`) matches all word parts across candidate name, deterministically resolving natural order (`"Firstname Lastname"`) vs UK registry inverted order (`"SURNAME, Firstname"`) (#220).
+- **Skill (`finance/uk_companies_house_handler` v1.3.0):** `run_pipeline` halts `<from_resolve>` substitution upon encountering subsequent company resolution steps, preventing cross-company parameter corruption in multi-company pipelines; context `company_name` inheritance guarded against mismatched company numbers (#220).
 
 ## [0.5.5] - 2026-09-14
 
@@ -117,7 +161,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Composite actions `resolve_and_get_officers` and `resolve_and_get_filings` to resolve companies and fetch target records in single-turn operations (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Default limit 10 previews with `partial` response status and `agent_hint` metadata for officers and filing history (#220).
 - **Skill (`finance/uk_companies_house_handler` v1.2.0):** Session context carry-forward across sequential turns (`company_number`, `company_name`, `role_hint`, `officer_filter`, `next_actions`) (#220).
-- **Documentation:** [`docs/skills/uk_companies_house_handler.md`](docs/skills/uk_companies_house_handler.md) — updated architecture reference for 9 action handlers, partial response previews, and pipeline orchestration (#220).
+- **Documentation:** [`docs/skills/finance/uk_companies_house_handler.md`](docs/skills/finance/uk_companies_house_handler.md) — updated architecture reference for 9 action handlers, partial response previews, and pipeline orchestration (#220).
 - **Tests:** Expanded unit test suite in `skills/finance/uk_companies_house_handler/test_skill.py` covering pipeline resumption, composite actions, partial previews, map_intent guards, and punctuation-safe queries (#220).
 
 ### Changed
@@ -145,7 +189,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **CLI:** `skillware mail` submenu — address book init/show/validate/set-path/**add**; signature init/show/set/validate/clear; default HTML signature with Skillware logo (40px) and links; interactive menu option `7` / `mail` (#292).
 - **CLI:** `skillware config show` displays merged resolved `mail.*` settings including signature source (#292).
 - **Skill:** `office/gmail_handler` reads signature from merged config when skill-local `default_signature_plain` is unset; ships `data/config.yaml.example` (#292).
-- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — attachments, multi-profile signatures, untrusted attachment disclaimer; [`docs/usage/cli.md`](docs/usage/cli.md) and [`docs/usage/api_keys.md`](docs/usage/api_keys.md) updated (#293).
+- **Documentation:** [`docs/skills/office/gmail_handler.md`](docs/skills/office/gmail_handler.md) — attachments, multi-profile signatures, untrusted attachment disclaimer; [`docs/usage/cli.md`](docs/usage/cli.md) and [`docs/usage/api_keys.md`](docs/usage/api_keys.md) updated (#293).
 - **Packaging:** PyPI metadata — `keywords`, expanded `classifiers` (development status, intended audience, Python 3.10-3.12, AI and library topics), and `Documentation`, `Issues` and `Changelog` entries in `[project.urls]`. Metadata only; wheel contents are unchanged (#299).
 
 ### Changed
@@ -162,7 +206,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Skill:** `office/gmail_handler` — deterministic Gmail IMAP/SMTP handler for agent mail workflows: recipient resolution via editable address book, preview/confirm send and reply, inbox search/read, sent-folder and send-ledger search, scan cursor, and context carry-forward (#208, #291).
 - **Examples:** `examples/gmail_handler_demo.py` — mocked resolve, preview, search, and read flow (no live Gmail credentials); `examples/gemini_gmail_handler.py` — interactive Gemini tool loop (demo mode via `GMAIL_HANDLER_EXAMPLE_DEMO=1`).
-- **Documentation:** [`docs/skills/gmail_handler.md`](docs/skills/gmail_handler.md) — integration guide, env setup, action reference, and address book schema.
+- **Documentation:** [`docs/skills/office/gmail_handler.md`](docs/skills/office/gmail_handler.md) — integration guide, env setup, action reference, and address book schema.
 - **CI:** `tests/test_registry_identity.py` — CI guard asserting every registry-layout skill's `manifest.name` matches its path-derived registry ID and that all manifest names are globally unique (#280, #288).
 
 ### Changed
@@ -311,7 +355,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
-- **Documentation**: `docs/skills/token_limiter.md` — budget disclaimer callout, limitations clarity, and enterprise disclaimer (#23).
+- **Documentation**: `docs/skills/monitoring/token_limiter.md` — budget disclaimer callout, limitations clarity, and enterprise disclaimer (#23).
 - **Documentation**: README Stats section and live PyPI download badges (pepy / PyPI Stats dashboards, header `DLs ↓` total) (#198).
 - **Documentation**: Aligned CLI and examples docs (`docs/usage/cli.md`, `examples/README.md`, `docs/vision.md`, `README.md`) with the `skillware test` / `skillware examples` behavior (#191, #194).
 
@@ -494,7 +538,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
   - Features an optional, provider-configurable low-cost LLM fallback for ambiguous clauses.
 - **Skill Infrastructure:** Added the complete package contents for the TOS Evaluator under `skills/compliance/tos_evaluator/` (including manifest, logic, and instructions).
 - **Testing:** Added central tests (`tests/skills/compliance/test_tos_evaluator.py`) and local skill tests.
-- **Documentation:** Added dedicated skill documentation (`docs/skills/tos_evaluator.md`) and updated the central skill catalog.
+- **Documentation:** Added dedicated skill documentation (`docs/skills/compliance/tos_evaluator.md`) and updated the central skill catalog.
 - **Examples:** Added integration scripts (`examples/gemini_tos_evaluator.py`, `examples/claude_tos_evaluator.py`, `examples/ollama_tos_evaluator.py`).
 - **Dependencies:** Added `beautifulsoup4` (`bs4` in the manifest) to the project for deterministic HTML parsing.
 
@@ -539,7 +583,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Added
 - **Prompt Token Rewriter Skill:** A new middleware skill (`optimization/prompt_rewriter`) that heuristically compresses bloated prompts into fewer tokens, supporting low, medium, and high aggression levels.
 - **Optimization Category:** Established a new domain in the skill registry for architectural and operational efficiency tools.
-- **Skill Reference Card:** Comprehensive documentation for the Rewriter at `docs/skills/prompt_rewriter.md`.
+- **Skill Reference Card:** Comprehensive documentation for the Rewriter at `docs/skills/optimization/prompt_rewriter.md`.
 - **Interactive Demo:** Added `examples/prompt_compression_demo.py` for offline testing of compression logic.
 
 ### Changed

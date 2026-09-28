@@ -208,7 +208,7 @@ def test_result_is_json_serializable(skill):
 
 
 def test_next_step_present(skill):
-    """Ready result must include a next_step hint for the calling agent."""
+    """Ready result must include a next_step hint for the host agent."""
     result = skill.execute({"issue_url": VALID_URL})
     assert "next_step" in result
     assert isinstance(result["next_step"], str)

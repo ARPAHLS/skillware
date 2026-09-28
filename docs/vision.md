@@ -12,7 +12,7 @@ Every new agent project used to mean rewriting tool definitions, system prompts,
 
 We wanted something closer to how operating systems ship software. `apt-get` installs packages. `pip` installs libraries. **Skillware installs capability.** One bundle works across Gemini, Claude, OpenAI, DeepSeek, and Ollama because the loader adapts manifests at runtime instead of locking you to one vendor.
 
-That decoupling matters in practice. Teams can swap models without rewriting tools. Open source contributors can ship a skill once and have it run everywhere the loader supports. Operators keep governance and attribution in the bundle instead of scattered across prompts.
+That decoupling matters in practice. Teams can swap models without rewriting tools. Open source contributors can ship a skill once and have it run everywhere the loader supports. Operators keep governance and attribution in the bundle instead of scattered across prompts. Role names follow the [glossary](glossary.md).
 
 For a longer argument against markdown-only skill files, see the essay [*skills.md is Dead: Why Your Agents Need Skillware*](https://dev.to/arpa/skillsmd-is-dead-why-your-agents-need-skillware-2g59) (extended reading).
 
@@ -36,7 +36,7 @@ Consider screening an Ethereum wallet for sanctions exposure and risky counterpa
 
 The [`finance/wallet_screening`](../skills/finance/wallet_screening/) skill packages all of that. Bundled JSON datasets sit beside the Python runner. Optional Etherscan access enriches live chain data. The agent receives a tool schema plus `instructions.md` that teach it how to interpret the JSON verdict.
 
-Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
+Multi-layer screening runs locally in one `execute()` call. No generated scraper. No ad-hoc script the model wrote five minutes ago. For skill-level detail, see [wallet_screening.md](skills/finance/wallet_screening.md). For how this task compares to prompts, MCP, or enterprise APIs, see the [wallet screening table](../COMPARISON.md#wallet-screening-same-task-different-approaches) in [COMPARISON.md](../COMPARISON.md).
 
 ---
 
@@ -104,7 +104,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 Honest snapshot for **v0** (current v0.4.x line):
 
-- **Registry**: Skills under `skills/` with docs in [docs/skills/](skills/README.md).
+- **Registry**: Skills under `skills/` with category hubs and catalog pages in [docs/skills/](skills/README.md) (`docs/skills/<category>/`).
 - **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats.
 - **CLI**: `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external → project → bundled); with `.skillware.yaml`, default order is project → external → bundled — bundled registry skills are always on, even with no local `skills/` folder. Use `skillware list --examples` and `skillware examples` to browse the runnable script index from the terminal.
 - **Active work**: Contributor docs, registry integrity guards, and good first issues across docs and framework.

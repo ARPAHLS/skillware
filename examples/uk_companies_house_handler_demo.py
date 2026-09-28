@@ -1,8 +1,9 @@
 """
-Mocked demo script for finance/uk_companies_house_handler (v1.2.1).
+Mocked demo script for finance/uk_companies_house_handler (v1.3.0).
 
-Runs scripted v1.2.1 flows (composite actions, turn-by-turn run_pipeline, disambiguation
-resume, record truncation limits) using mocked HTTP responses. No live API key required.
+Runs scripted v1.3.0 flows (composites, role/name filtering, filing helpers,
+turn-by-turn run_pipeline, disambiguation resume, record truncation limits)
+using mocked HTTP responses. No live API key required.
 
 Usage:
   python examples/uk_companies_house_handler_demo.py
@@ -38,14 +39,16 @@ def demo_skill() -> Iterator[Any]:
 
     call_counter = {"n": 0}
     ordered_responses = [
-        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # composite resolve_and_get_officers
+        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # Flow A: resolve_and_get_officers
         MOCK_OFFICERS_RESPONSE,
-        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # run_pipeline resolve
+        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # Flow A2: resolve_company_officer
         MOCK_OFFICERS_RESPONSE,
-        MOCK_FILING_RESPONSE,
-        MOCK_BARCLAYS_SEARCH_RESPONSE,  # disambiguation
-        MOCK_OFFICERS_RESPONSE,  # resumed get_officers
-        MOCK_OFFICERS_TRUNCATED_RESPONSE,  # record truncation
+        MOCK_BP_SINGLE_SEARCH_RESPONSE,  # Flow B: run_pipeline resolve
+        MOCK_FILING_RESPONSE,  # Flow B: run_pipeline filings
+        MOCK_BARCLAYS_SEARCH_RESPONSE,  # Flow C: disambiguation
+        MOCK_OFFICERS_RESPONSE,  # Flow C: resumed get_officers
+        MOCK_FILING_RESPONSE,  # Flow D: filing helper (latest_per_category)
+        MOCK_OFFICERS_TRUNCATED_RESPONSE,  # Flow D: record truncation
     ]
 
     def mock_request(method, url, **kwargs):

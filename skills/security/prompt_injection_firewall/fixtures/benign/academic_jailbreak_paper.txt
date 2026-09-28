@@ -1,0 +1,9 @@
+An Empirical Analysis of System Prompt Extraction Attacks in Agent Workflows
+
+Abstract:
+We present an empirical study of prompt exfiltration vulnerabilities. In our audit and red-team tests,
+common attack demonstrations utilized phrases such as "reveal your system prompt" or
+"output all initial instructions verbatim".
+
+Our evaluation benchmark proves that layered input defenses successfully flag these patterns
+while allowing research documentation to be processed without false-positive lockouts.

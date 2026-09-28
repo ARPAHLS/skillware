@@ -1,21 +1,18 @@
-#!/usr/bin/env sh
-# Rebuild a contributor checkout without leaving stale package metadata behind.
-set -eu
+#!/usr/bin/env bash
+# Reinstall Skillware in editable dev mode after removing overlapping PyPI installs.
+# See CONTRIBUTING.md and issue #333.
 
-# Delete only incomplete Skillware metadata that pip cannot uninstall safely.
-python - <<'PY'
-import shutil
-import site
-from pathlib import Path
+set -euo pipefail
 
-for root in map(Path, site.getsitepackages()):
-    for dist_info in root.glob("skillware-*.dist-info"):
-        if (dist_info / "METADATA").is_file() and (dist_info / "RECORD").is_file():
-            continue
-        print(f"Removing orphan metadata: {dist_info}")
-        shutil.rmtree(dist_info)
-PY
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="${PYTHON:-python}"
 
-# Remove the old distribution before installing the full editable developer set.
-python -m pip uninstall skillware -y || true
-python -m pip install -e ".[dev,all]"
+echo "Uninstalling existing skillware registrations..."
+"$PY" -m pip uninstall skillware -y || true
+
+echo "Installing editable dev dependencies from ${ROOT}..."
+cd "$ROOT"
+"$PY" -m pip install -e ".[dev,all]"
+
+echo "Install health:"
+"$PY" -m skillware doctor --install

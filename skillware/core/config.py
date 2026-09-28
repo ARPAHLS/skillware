@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 import yaml
 
 from skillware.core.chains_config import ChainDefinition, merge_chain_layers
+from skillware.core.evm_config import EvmSettings, merge_evm_settings, parse_evm_block
 from skillware.core.mail_config import (
     MailSettings,
     merge_mail_settings,
@@ -26,7 +27,13 @@ _MAX_PARENT_WALK = 6
 _DEFAULT_RESOLUTION_ORDER: Tuple[str, ...] = ("project", "external", "bundled")
 _VALID_ORDER_TIERS = frozenset({"project", "external", "bundled"})
 _PATH_TOP_LEVEL_KEYS = frozenset({"paths", "resolution", "legacy"})
-_KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {"mail", "presentation", "chains"}
+_KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {
+    "mail",
+    "presentation",
+    "chains",
+    "evm",
+    "web3",
+}
 
 
 @dataclass(frozen=True)
@@ -62,7 +69,7 @@ class SkillwareConfig:
     """
     Merged Skillware configuration.
 
-    ``paths``, ``mail``, ``presentation``, and ``chains`` are active settings.
+    ``paths``, ``mail``, ``presentation``, ``evm``, and ``chains`` are active settings.
     Additional top-level YAML sections are preserved in ``extra`` for forward
     compatibility and shown by ``skillware config show``.
     """
@@ -70,6 +77,7 @@ class SkillwareConfig:
     paths: PathsSettings = field(default_factory=PathsSettings)
     mail: MailSettings = field(default_factory=MailSettings)
     presentation: PresentationSettings = field(default_factory=PresentationSettings)
+    evm: EvmSettings = field(default_factory=EvmSettings)
     chains: Dict[str, ChainDefinition] = field(default_factory=dict)
     extra: Dict[str, Any] = field(default_factory=dict)
     layers: Tuple[ConfigLayer, ...] = ()
@@ -86,6 +94,9 @@ def clear_config_cache() -> None:
     """Reset cached config (tests only)."""
     global _merged_config_cache
     _merged_config_cache = None
+    from skillware.core.evm_config import clear_evm_config_cache
+
+    clear_evm_config_cache()
 
 
 def global_config_dir() -> Path:
@@ -178,6 +189,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
     paths = PathsSettings()
     presentation = PresentationSettings()
     mail_layers: List[MailSettings] = []
+    evm_layers: List[EvmSettings] = []
     extra: Dict[str, Any] = {}
 
     for layer in layers:
@@ -186,6 +198,11 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
         mail_raw = layer.data.get("mail")
         if mail_raw is not None:
             mail_layers.append(parse_mail_block(mail_raw))
+
+        for evm_key in ("evm", "web3"):
+            evm_raw = layer.data.get(evm_key)
+            if evm_raw is not None:
+                evm_layers.append(parse_evm_block(evm_raw))
 
         paths_block = layer.data.get("paths")
         if isinstance(paths_block, dict):
@@ -228,6 +245,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
                 presentation.theme = DEFAULT_PRESENTATION_THEME
 
     mail = merge_mail_settings(mail_layers)
+    evm = merge_evm_settings(evm_layers)
     chains, chains_legacy = merge_chain_layers(layer.data for layer in layers)
     if chains_legacy:
         extra = {**extra, "chains": chains_legacy}
@@ -236,6 +254,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
         paths=paths,
         mail=mail,
         presentation=presentation,
+        evm=evm,
         chains=chains,
         extra=extra,
         layers=tuple(layers),

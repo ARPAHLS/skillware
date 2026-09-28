@@ -180,8 +180,8 @@ MOCK_FILING_RESPONSE = {
 
 
 def run_scripted_flow(skill: Any) -> None:
-    """Deterministic v1.2.1 flows: composite, turn-by-turn pipeline, disambiguation, record truncation."""
-    print("=== uk_companies_house_handler v1.2.1 scripted flows ===\n")
+    """Deterministic v1.3.0 flows: composites, role/name filtering, filing helpers, disambiguation, pagination."""
+    print("=== uk_companies_house_handler v1.3.0 scripted flows ===\n")
 
     print(
         "--- Flow A: composite resolve_and_get_officers (clean query + role_hint) ---"
@@ -197,16 +197,35 @@ def run_scripted_flow(skill: Any) -> None:
     print(json.dumps(composite, indent=2))
     context = composite.get("context", {})
 
-    print("\n--- Flow B: map_intent + run_pipeline (officers and filings) ---")
-    intent = skill.execute(
+    print(
+        "\n--- Flow A2: composite resolve_company_officer with role and name filter ---"
+    )
+    print(
+        'User: "Find director Looney at BP" -> agent passes '
+        'query="BP", officer_role="director", officer_name="Looney"\n'
+    )
+    officer_match = skill.execute(
         {
-            "action": "map_intent",
-            "intent_keywords": "officers, filings",
-            "entities": {"company_query": "BP"},
+            "action": "resolve_company_officer",
+            "query": "BP",
+            "officer_role": "director",
+            "officer_name": "Looney",
         }
     )
-    print(json.dumps(intent, indent=2))
-    steps = list(intent.get("steps", []))
+    print(json.dumps(officer_match, indent=2))
+
+    print("\n--- Flow B: run_pipeline (direct steps: resolve + filings) ---")
+    steps = [
+        {"action": "resolve_company", "params": {"query": "BP"}},
+        {
+            "action": "get_filing_history",
+            "params": {
+                "company_number": "<from_resolve>",
+                "latest_only": True,
+                "category": "accounts",
+            },
+        },
+    ]
     pipeline_state = None
     while steps:
         pipeline = skill.execute(
@@ -235,13 +254,26 @@ def run_scripted_flow(skill: Any) -> None:
         resumed = skill.execute(
             {
                 "action": "get_officers",
-                "role_hint": "ceo",
+                "officer_role": "director",
+                "active_only": False,
                 "context": context,
             }
         )
         print(json.dumps(resumed, indent=2))
 
-    print("\n--- Flow D: truncated officers list (limit 10 of 15, ready status) ---")
+    print(
+        "\n--- Flow D: filing helper (latest_per_category) and truncated officers list ---"
+    )
+    latest_filings = skill.execute(
+        {
+            "action": "get_filing_history",
+            "company_number": context.get("company_number", "00102498"),
+            "latest_per_category": True,
+            "context": context,
+        }
+    )
+    print(json.dumps(latest_filings, indent=2))
+
     truncated = skill.execute(
         {
             "action": "get_officers",

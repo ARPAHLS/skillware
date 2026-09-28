@@ -71,12 +71,13 @@ Union of non-core `requirements` from every skill in the category.
 | `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
 | `creative` | `creative/bg_remover`, `creative/deck_builder` | `onnxruntime`, `pillow`, `python-pptx>=1.0.0`, `rembg>=2.0.0` |
 | `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
-| `defi` | `defi/evm_tx_handler` | `web3>=6.0.0` |
+| `defi` | `defi/evm_tx_handler`, `defi/token_security_scanner` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
+| `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
 | `office` | `office/gmail_handler`, `office/pdf_form_filler` | `anthropic`, `pymupdf` |
-| `optimization` | `optimization/prompt_rewriter` | *(none today)* |
+| `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
 | `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 
@@ -102,13 +103,16 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `data_engineering_semantic_web_proxy_tokenizer` | `data_engineering/semantic_web_proxy` | `tiktoken` | Optional exact `cl100k_base` token counts; without it the skill falls back to its offline heuristic |
 | `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
+| `defi_token_security_scanner` | `defi/token_security_scanner` | *(none today)* | Use this extra in docs and installs |
 | `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
 | `finance_uk_companies_house_handler` | `finance/uk_companies_house_handler` | *(none today)* | Use this extra in docs and installs |
 | `finance_wallet_screening` | `finance/wallet_screening` | *(none today)* | Use this extra in docs and installs |
+| `linguistics_korean_slang` | `linguistics/korean_slang` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
+| `optimization_context_optimizer` | `optimization/context_optimizer` | `fastembed`, `numpy` | Local embedding model (~50 MB on first use) |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
 | `security_deceptive_ui_guard` | `security/deceptive_ui_guard` | *(none today)* | Offline HTML analysis; optional url fetch uses `requests` (core) |
@@ -190,7 +194,7 @@ Clean break in this release:
 | Removed | Replacement |
 | :--- | :--- |
 | `cli` | CLI ships on every install via `[project.scripts]` |
-| `embeddings` | `data_engineering` or `data_engineering_novelty_extractor` |
+| `embeddings` | `data_engineering_novelty_extractor` or `optimization_context_optimizer` (category `data_engineering` / `optimization`) |
 | Old `[all]` (mixed SDK + skills) | `[all]` = skill runtime only; use `[agents]` for SDKs |
 
 ## See also

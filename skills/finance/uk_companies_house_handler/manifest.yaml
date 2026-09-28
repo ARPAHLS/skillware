@@ -1,10 +1,10 @@
 name: finance/uk_companies_house_handler
-version: 1.2.1
+version: 1.3.0
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
-  operations for company search, profile lookup, officer and PSC listing, filing
-  history, pipeline orchestration, and intent-to-operation mapping with UK corporate
-  terminology translation. Returns status-based responses (ready, partial,
+  operations for company search, profile lookup, officer and PSC listing with
+  deterministic role/name filters, filing history with helpers, and turn-by-turn
+  pipeline orchestration. Returns status-based responses (ready, partial,
   needs_input, error) with disambiguation support. The agent owns natural-language
   dialogue; the skill returns structured candidates and records.
 short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
@@ -20,24 +20,24 @@ parameters:
       type: string
       description: >
         The operation to perform. One of: resolve_company, get_company_profile,
-        get_officers, get_pscs, get_filing_history, map_intent, run_pipeline,
-        resolve_and_get_officers, resolve_and_get_filings.
+        get_officers, get_pscs, get_filing_history, run_pipeline,
+        resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer.
       enum:
         - resolve_company
         - get_company_profile
         - get_officers
         - get_pscs
         - get_filing_history
-        - map_intent
         - run_pipeline
         - resolve_and_get_officers
         - resolve_and_get_filings
+        - resolve_company_officer
     query:
       type: string
       description: "Company name or partial name for search (resolve_company)."
     company_query:
       type: string
-      description: "Company name query for composite actions (resolve_and_get_officers, resolve_and_get_filings)."
+      description: "Company name query for composite actions (resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer)."
     company_number:
       type: string
       description: "8-character UK company number (required for profile/officers/pscs/filing)."
@@ -47,27 +47,30 @@ parameters:
     limit:
       type: integer
       description: "Max results to return. Default 5 for resolve_company, 10 for officers and filings."
+    start_index:
+      type: integer
+      description: "Offset index for paginated queries (default 0)."
     category:
       type: string
       description: "Filing category filter (get_filing_history, resolve_and_get_filings)."
+    latest_only:
+      type: boolean
+      description: "Filter filing history to return only the single most recent filing."
+    latest_per_category:
+      type: boolean
+      description: "Filter filing history to return the latest filing for each distinct category."
     officer_name:
       type: string
-      description: "Officer name filter for get_officers or resolve_and_get_officers."
+      description: "Officer name filter for get_officers, resolve_and_get_officers, or resolve_company_officer."
+    officer_role:
+      type: string
+      description: "Filter officers by canonical category (director, secretary, corporate) or exact Companies House statutory role."
     role_hint:
       type: string
       description: "Requested role or title hint (e.g. 'ceo', 'cfo', 'chairman') for officers lookup and UK terminology note."
-    intent_keywords:
-      type: string
-      description: "Comma-separated keywords from user intent for map_intent action."
-    entities:
-      type: object
-      description: "Extracted entities for map_intent (e.g. company_query)."
-    action_params:
-      type: object
-      description: "Optional action-specific parameter overrides for map_intent (e.g. {'get_officers': {'limit': 5, 'active_only': true}})."
     steps:
       type: array
-      description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline)."
+      description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline). For multi-intent queries, construct steps directly with resolve_company first and '<from_resolve>' in subsequent steps."
       items:
         type: object
         properties:
@@ -75,7 +78,7 @@ parameters:
             type: string
           params:
             type: object
-            description: "Step-specific parameters (e.g. query, company_number, role_hint, officer_name, active_only, category, limit)."
+            description: "Step-specific parameters (e.g. query, company_number, role_hint, officer_name, officer_role, active_only, category, latest_only, latest_per_category, limit, start_index)."
         required:
           - action
     stop_on:
@@ -124,10 +127,7 @@ outputs:
     description: "Filing records from get_filing_history or composite actions."
   steps:
     type: array
-    description: "Ordered steps suggested by map_intent."
-  terminology_map:
-    type: object
-    description: "Keyword-to-UK-registry translations from map_intent."
+    description: "Remaining steps to execute when run_pipeline returns status partial."
 constitution: |
   1. Use only publicly available Companies House data.
   2. Require COMPANIES_HOUSE_API_KEY via environment; never hardcode or log the key.

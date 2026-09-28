@@ -1,0 +1,39 @@
+{
+  "name": "Context Optimizer",
+  "description": "Query-aware extractive context selection using local embeddings.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "filter",
+  "color": "purple",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "status",
+        "label": "Status",
+        "type": "status_badge"
+      },
+      {
+        "key": "reduction_percentage",
+        "label": "Reduction"
+      },
+      {
+        "key": "estimated_output_tokens",
+        "label": "Output Tokens (est.)"
+      },
+      {
+        "key": "chunks_selected_count",
+        "label": "Chunks Selected"
+      },
+      {
+        "key": "optimized_context",
+        "label": "Optimized Context",
+        "type": "markdown"
+      }
+    ]
+  }
+}

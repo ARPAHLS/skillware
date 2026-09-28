@@ -1,0 +1,36 @@
+{
+  "samples": [
+    {
+      "status": "ok",
+      "chain": "base",
+      "contract": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
+      "risk_tier": "low",
+      "signals": {
+        "is_honeypot": false,
+        "buy_tax_pct": 0.0,
+        "sell_tax_pct": 0.0,
+        "is_proxy": false,
+        "owner_renounced": true,
+        "can_mint": false,
+        "is_open_source": true
+      },
+      "sources": [{"provider": "goplus", "fetched_at": "2026-09-19T12:00:00Z"}],
+      "warnings": ["API coverage varies by chain"],
+      "contract_errors": []
+    },
+    {
+      "status": "ok",
+      "chain": "ethereum",
+      "contract": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      "risk_tier": "critical",
+      "signals": {
+        "is_honeypot": true,
+        "buy_tax_pct": 12.0,
+        "sell_tax_pct": 25.0
+      },
+      "sources": [{"provider": "goplus"}],
+      "warnings": [],
+      "contract_errors": ["is_honeypot"]
+    }
+  ]
+}

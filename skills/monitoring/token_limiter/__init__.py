@@ -1,1 +1,1 @@
-# Token hard limit skill package.
+# Token hard limit skill bundle.

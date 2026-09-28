@@ -63,7 +63,7 @@ def _has_load_env(code: str) -> bool:
 
 @pytest.fixture(scope="session")
 def catalog_pages() -> list[Path]:
-    return sorted(path for path in DOCS_ROOT.glob("*.md") if path.name != "README.md")
+    return sorted(path for path in DOCS_ROOT.rglob("*.md") if path.name != "README.md")
 
 
 def test_catalog_pages_have_five_provider_sections(catalog_pages: list[Path]):

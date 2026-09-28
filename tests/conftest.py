@@ -38,6 +38,6 @@ def mock_anthropic():
 
 @pytest.fixture
 def mock_skill_loader():
-    """Mocks the SkillLoader to return a dummy skill bundle."""
+    """Mocks the SkillLoader to return a sample skill bundle."""
     # This might not be needed if we import the class directly, but good to have.
     return MagicMock()

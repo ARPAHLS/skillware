@@ -1,1 +1,1 @@
-# Issue Resolver skill package.
+# Issue Resolver skill bundle.

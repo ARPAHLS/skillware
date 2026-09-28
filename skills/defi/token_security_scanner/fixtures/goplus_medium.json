@@ -1,0 +1,23 @@
+{
+  "code": 1,
+  "message": "OK",
+  "result": {
+    "0xcafebabecafebabecafebabecafebabecafebabe": {
+      "token_name": "ProxyMint",
+      "token_symbol": "PMINT",
+      "decimals": "18",
+      "owner_address": "0xcccccccccccccccccccccccccccccccccccccccc",
+      "is_open_source": "1",
+      "is_proxy": "1",
+      "is_mintable": "1",
+      "is_honeypot": "0",
+      "buy_tax": "0.02",
+      "sell_tax": "0.02",
+      "tax_modifiable": "0",
+      "cannot_sell_all": "0",
+      "owner_change_balance": "0",
+      "hidden_owner": "0",
+      "holder_count": "500"
+    }
+  }
+}

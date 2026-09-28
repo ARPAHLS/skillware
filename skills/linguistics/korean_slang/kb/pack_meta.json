@@ -1,0 +1,30 @@
+{
+  "id": "korean_slang_s26_small",
+  "skill_id": "linguistics/korean_slang",
+  "snapshot": "2026-09",
+  "locale": "ko-KR",
+  "register": "gen_z_mz_internet",
+  "notes": "Small curated pack for issue #34. Prefer high-frequency 2024-2026 internet Korean over textbook slang. Not a dictionary of standard Korean.",
+  "sources": [
+    {
+      "title": "Issue #34 example contract (폼 미쳤다)",
+      "url": "https://github.com/ARPAHLS/skillware/issues/34"
+    },
+    {
+      "title": "HURUMOR 2026 신조어 총정리 (갓생러, 현타, 킹받다, 억텐, 뇌절)",
+      "url": "https://hurumor.com/%ec%8b%a0%ec%a1%b0%ec%96%b4-2026/"
+    },
+    {
+      "title": "FRANVIA Gen Z Korean slang and MZ abbreviations (별다줄, 갓생, 내또출, 점메추, 퇴준생, 억텐, 킹받다)",
+      "url": "https://www.franvia.com/2026/04/korean-gen-z-slang-mz-abbreviations.html"
+    },
+    {
+      "title": "90 Day Korean — Korean slang and texting abbreviations",
+      "url": "https://www.90daykorean.com/korean-slang/"
+    },
+    {
+      "title": "StoryLearning — Korean slang including 알잘딱깔센",
+      "url": "https://storylearning.com/learn/korean/korean-tips/korean-slang"
+    }
+  ]
+}

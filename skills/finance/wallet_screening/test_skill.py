@@ -40,7 +40,7 @@ def test_missing_api_key(skill):
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_execute_success(mock_get, skill):
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
 
     mock_eth_balance = MagicMock()
     mock_eth_balance.json.return_value = {
@@ -116,7 +116,7 @@ def _mock_price_and_balance_side_effect():
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_txlist_pagination_merges_pages(mock_get, skill, monkeypatch):
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
     monkeypatch.setattr(skill, "ETHERSCAN_TX_PAGE_OFFSET", 2)
     monkeypatch.setattr(skill, "ETHERSCAN_TX_MAX_PAGES", 5)
 
@@ -151,7 +151,7 @@ def test_txlist_pagination_merges_pages(mock_get, skill, monkeypatch):
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_txlist_truncation_warning(mock_get, skill, monkeypatch):
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
     monkeypatch.setattr(skill, "ETHERSCAN_TX_PAGE_OFFSET", 1)
     monkeypatch.setattr(skill, "ETHERSCAN_TX_MAX_PAGES", 2)
 
@@ -173,7 +173,7 @@ def test_txlist_truncation_warning(mock_get, skill, monkeypatch):
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_txlist_unavailable_warning(mock_get, skill):
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
 
     get_side_effect = _mock_price_and_balance_side_effect()
 
@@ -195,7 +195,7 @@ def test_txlist_unavailable_warning(mock_get, skill):
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_txlist_no_transactions_no_warning(mock_get, skill):
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
 
     get_side_effect = _mock_price_and_balance_side_effect()
 

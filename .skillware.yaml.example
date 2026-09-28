@@ -50,7 +50,11 @@ legacy:
 #   send_ledger_path: ~/.config/skillware/gmail_send_ledger.json
 #
 # Precedence: env (GMAIL_*) > project YAML > global YAML > skill bundled defaults.
-# CLI: skillware mail addressbook init | skillware mail signature set
+# CLI: skillware addressbook init | skillware mail signature set
+#
+# Pay-and-notify flows (defi transfer + mail receipt) are host-orchestrated — see
+# examples/pay_and_notify_demo.py (async SkillContext chain). YAML chains below
+# suit deterministic middleware; dynamic tx-hash → email bodies stay in host code.
 
 # Named skill chains (Skillware 0.6+). CLI: skillware chain list | show | validate | run
 # chains:
@@ -134,3 +138,26 @@ legacy:
 #         input_from:
 #           deck_spec: host.deck_spec
 #           output_path: host.output_path
+#   optimize_document_context:
+#     description: Scan untrusted document; select goal-relevant spans when safe.
+#     when: Large untrusted document before main LLM context.
+#     steps:
+#       - id: scan
+#         skill: security/prompt_injection_firewall
+#         params:
+#           sensitivity: balanced
+#           input_mode: plain
+#         input_from:
+#           source_text: host.source_text
+#         map_out:
+#           sanitized_text: next.document_text
+#       - skill: optimization/context_optimizer
+#         when:
+#           prior_step: scan
+#           field: is_safe
+#           equals: true
+#         params:
+#           max_tokens_return: 250
+#           min_score: 0.45
+#         input_from:
+#           agent_goal: host.agent_goal

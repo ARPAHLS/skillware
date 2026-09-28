@@ -1,1 +1,1 @@
-"""Office Gmail handler skill package."""
+"""Office Gmail handler skill bundle."""

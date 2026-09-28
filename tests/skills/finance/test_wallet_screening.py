@@ -21,7 +21,7 @@ def test_wallet_screening_manifest():
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_wallet_screening_success(mock_get):
     skill = get_skill()
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
 
     # Mock responses
     mock_eth_balance = MagicMock()
@@ -110,7 +110,7 @@ def _mock_etherscan_empty(mock_get):
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_ftm_publickey_eth_sanctions_match(mock_get):
     skill = get_skill()
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
     skill.sanctions_entities = [
         {
             "id": "test-ftm-wallet",
@@ -137,7 +137,7 @@ def test_ftm_publickey_eth_sanctions_match(mock_get):
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_publickey_comma_separated_eth_match(mock_get):
     skill = get_skill()
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
     target = "0xc8fe1c81e927540fcc99ebb3c880a840082293da"
     skill.sanctions_entities = [
         {
@@ -177,7 +177,7 @@ def test_sanctions_index_real_ftm_publickey_vector():
 @patch("skills.finance.wallet_screening.skill.requests.get")
 def test_tx_risk_detects_uniswap_trm_counterparty(mock_get):
     skill = get_skill()
-    skill.etherscan_api_key = "dummy_key"
+    skill.etherscan_api_key = "placeholder_key"
     trm_addr = "0x009988Ff77eEaa00051238ee32C48f10a174933E"
     skill.malicious_contracts = []
     skill.additional_datasets = [

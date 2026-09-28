@@ -1,0 +1,31 @@
+{
+  "code": 1,
+  "message": "OK",
+  "result": {
+    "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef": {
+      "token_name": "ScamToken",
+      "token_symbol": "SCAM",
+      "decimals": "18",
+      "total_supply": "1000000000000000000000000",
+      "owner_address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "creator_address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "is_open_source": "1",
+      "is_proxy": "0",
+      "is_mintable": "1",
+      "is_honeypot": "1",
+      "buy_tax": "0.12",
+      "sell_tax": "0.25",
+      "tax_modifiable": "1",
+      "cannot_sell_all": "1",
+      "owner_change_balance": "1",
+      "hidden_owner": "0",
+      "external_call": "1",
+      "transfer_pausable": "1",
+      "trading_cooldown": "0",
+      "is_blacklisted": "1",
+      "is_whitelisted": "0",
+      "is_anti_whale": "0",
+      "holder_count": "42"
+    }
+  }
+}

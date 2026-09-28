@@ -43,6 +43,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ["wellness/mental_coach", "Coaching", "Crisis escalation", "policy_status:"],
     ),
     (
+        "korean_slang_demo.py",
+        [
+            "linguistics/korean_slang",
+            "issue #34",
+            "aljaldakkkalsen",
+            "Demo complete.",
+        ],
+    ),
+    (
         "prompt_injection_firewall_demo.py",
         ["security/prompt_injection_firewall", "Hidden HTML override", "is_safe:"],
     ),
@@ -90,13 +99,23 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         "uk_companies_house_handler_demo.py",
         [
             "Flow A: composite resolve_and_get_officers",
-            "Flow B: map_intent + run_pipeline",
+            "Flow B: run_pipeline (direct steps: resolve + filings)",
             "=== flow complete ===",
         ],
     ),
     (
         "gmail_handler_demo.py",
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
+    ),
+    (
+        "pay_and_notify_demo.py",
+        [
+            "PAY_NOTIFY_DEMO=1",
+            "Step 1: resolve recipient",
+            "Step 2: transfer",
+            "Step 3: email receipt",
+            "Demo complete.",
+        ],
     ),
     (
         "bg_remover_demo.py",
@@ -150,6 +169,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "evm_tx_handler_common.py": "Shared helper module, not a standalone demo script.",
     "gemini_evm_tx_handler.py": "Requires GOOGLE_API_KEY for Gemini tool loop.",
     "gemini_gmail_handler.py": "Requires GOOGLE_API_KEY and live Gmail credentials.",
+    "gemini_gmail_minimal.py": "Requires GOOGLE_API_KEY, GMAIL_ADDRESS, GMAIL_APP_PASSWORD.",
     "gemini_issue_resolver.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
     "gemini_novelty_extractor.py": "Requires GOOGLE_API_KEY for Gemini function calling.",
     "gemini_pdf_form_filler.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
@@ -159,12 +179,19 @@ LIVE_PROVIDER_SCRIPTS = {
     "gemini_wallet_check.py": "Requires GOOGLE_API_KEY and ETHERSCAN_API_KEY.",
     "skill_context_gemini_loop.py": "Phase 1 is offline; Phase 2 needs GOOGLE_API_KEY and SKILL_CONTEXT_GEMINI_LIVE=1.",
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
+    "pay_and_notify_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
     "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",
     "mica_claude_flow.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
     "mica_ollama_flow.py": "Requires local Ollama server and models installed.",
     "mica_rag_flow.py": "Requires GOOGLE_API_KEY for Gemini RAG.",
     "novelty_extractor_demo.py": "Requires local heavy embedding model download (fastembed).",
+    "context_optimizer_demo.py": "Requires fastembed model download on first run.",
+    "context_optimizer_chain_demo.py": "Requires fastembed model download on first run.",
+    "context_optimizer_gemini_loop.py": "Requires GOOGLE_API_KEY and CONTEXT_OPTIMIZER_GEMINI_LIVE=1 for live phase.",
+    "context_optimizer_claude_loop.py": (
+        "Requires ANTHROPIC_API_KEY and CONTEXT_OPTIMIZER_CLAUDE_LIVE=1 for live phase."
+    ),
     "ollama_issue_resolver.py": "Requires local Ollama server and models installed.",
     "ollama_novelty_extractor.py": "Requires local Ollama server and models installed.",
     "ollama_skills_test.py": "Requires local Ollama server and models installed.",
@@ -188,6 +215,8 @@ def test_local_execute_example_smoke(script_name: str, expected_markers: List[st
     env["PYTHONPATH"] = str(REPO_ROOT)
     # Ensure offline test isolation
     env.setdefault("SKILLWARE_CONFIG_DIR", str(REPO_ROOT / "tests" / "fixtures"))
+    if script_name == "pay_and_notify_demo.py":
+        env["PAY_NOTIFY_DEMO"] = "1"
 
     proc = subprocess.run(
         [sys.executable, str(script_path)],

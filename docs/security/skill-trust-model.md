@@ -2,7 +2,7 @@
 
 How Skillware loads skills, how you run them with confidence, and where to look when something is not the bundled default.
 
-Most users: `pip install skillware`, copy `.env`, run `skillware doctor`, load bundled skills, execute. The sections below add detail when you use project skills, external paths, or multi-skill hosts.
+Most operators: `pip install skillware`, copy `.env`, run `skillware doctor`, load bundled skills, execute. The sections below add detail when you use project skills, external paths, or multi-skill hosts.
 
 ---
 

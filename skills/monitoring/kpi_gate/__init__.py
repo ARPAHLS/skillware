@@ -1,4 +1,4 @@
-# Deterministic business-KPI gate skill package.
+# Deterministic business-KPI gate skill bundle.
 
 from .skill import KpiGateSkill
 

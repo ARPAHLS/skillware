@@ -1,17 +1,23 @@
-# Rebuild a contributor checkout without leaving stale package metadata behind.
-$ErrorActionPreference = 'Stop'
+# Reinstall Skillware in editable dev mode after removing overlapping PyPI installs.
+# See CONTRIBUTING.md and issue #333.
 
-# Locate incomplete metadata that pip cannot uninstall safely and remove only it.
-$sitePackages = py -c "import site; print('\n'.join(site.getsitepackages()))"
-foreach ($root in $sitePackages -split "`n") {
-    Get-ChildItem -Path $root -Filter 'skillware-*.dist-info' -Directory -ErrorAction SilentlyContinue |
-        Where-Object { -not ((Test-Path (Join-Path $_.FullName 'METADATA')) -and (Test-Path (Join-Path $_.FullName 'RECORD'))) } |
-        ForEach-Object {
-            Write-Host "Removing orphan metadata: $($_.FullName)"
-            Remove-Item -Recurse -Force $_.FullName
-        }
+$ErrorActionPreference = "Stop"
+$Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$Py = if ($env:PYTHON) { $env:PYTHON } else { "python" }
+
+Write-Host "Uninstalling existing skillware registrations..."
+& $Py -m pip uninstall skillware -y
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "pip uninstall returned non-zero (orphan metadata may remain)." -ForegroundColor Yellow
 }
 
-# Remove the old distribution before installing the full editable developer set.
-py -m pip uninstall skillware -y
-py -m pip install -e ".[dev,all]"
+Write-Host "Installing editable dev dependencies from $Root..."
+Push-Location $Root
+try {
+    & $Py -m pip install -e ".[dev,all]"
+} finally {
+    Pop-Location
+}
+
+Write-Host "Install health:"
+& $Py -m skillware doctor --install

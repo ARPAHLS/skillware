@@ -38,14 +38,14 @@ jobs:
 
     - name: Skill bundle tests
       env:
-        ANTHROPIC_API_KEY: "dummy_key_for_ci"
-        ETHERSCAN_API_KEY: "dummy_key_for_ci"
+        ANTHROPIC_API_KEY: "placeholder_key_for_ci"
+        ETHERSCAN_API_KEY: "placeholder_key_for_ci"
       run: pytest skills/
 
     - name: Framework and maintainer tests
       env:
-        ANTHROPIC_API_KEY: "dummy_key_for_ci"
-        ETHERSCAN_API_KEY: "dummy_key_for_ci"
+        ANTHROPIC_API_KEY: "placeholder_key_for_ci"
+        ETHERSCAN_API_KEY: "placeholder_key_for_ci"
       run: pytest tests/
 
   wheel-smoke:

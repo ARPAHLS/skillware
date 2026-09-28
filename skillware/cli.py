@@ -16,8 +16,6 @@ from rich.text import Text
 from rich.status import Status
 from rich import box
 
-import importlib.metadata
-
 from skillware.core.loader import SkillLoader
 from skillware.context import SkillContext
 from skillware.chains import (
@@ -40,7 +38,15 @@ from skillware.core.config import (
     save_project_config,
 )
 from skillware.core.mail_config import format_mail_config_lines
+from skillware.core.evm_config import format_evm_config_lines
+from skillware.cli_addressbook import (
+    cmd_addressbook,
+    cmd_addressbook_dispatch,
+    cmd_addressbook_interactive,
+    cmd_config_open,
+)
 from skillware.cli_mail import cmd_mail, cmd_mail_submenu
+from skillware.cli_evm import cmd_evm, cmd_evm_dispatch, cmd_evm_submenu
 from skillware.cli_theme import THEMES, ThemePalette, active_theme
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
@@ -52,10 +58,11 @@ from skillware.core.discovery import (
     resolution_order_summary,
 )
 from skillware.version_policy import (
-    detect_install_conflicts,
+    assess_install_health,
+    emit_install_conflict_advisory,
     emit_upgrade_advisory,
-    get_installed_version,
-    is_version_check_disabled,
+    format_install_health_report,
+    get_package_version_display,
 )
 
 
@@ -107,6 +114,8 @@ _DOCS_CLI_CONTEXT = f"{_DOCS_CLI}#skillware-context"
 _DOCS_CLI_CHAIN = f"{_DOCS_CLI}#skillware-chain"
 _DOCS_CLI_THEME = f"{_DOCS_CLI}#color-themes"
 _DOCS_CLI_MAIL = f"{_DOCS_CLI}#skillware-mail"
+_DOCS_CLI_EVM = f"{_DOCS_CLI}#skillware-evm"
+_DOCS_CLI_ADDRESSBOOK = f"{_DOCS_CLI}#skillware-addressbook"
 
 HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
     (
@@ -121,7 +130,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware test --category <n>", "test all skills in a category"),
             ("skillware doctor [id]", "check deps and skill.py import"),
             ("skillware doctor --category <n>", "diagnose a category"),
-            ("skillware doctor --install", "diagnose package install health"),
+            ("skillware doctor --install", "check editable vs PyPI install health"),
         ],
         _DOCS_CLI_LIST,
     ),
@@ -201,6 +210,36 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware (menu 7 / mail)", "interactive mail submenu"),
         ],
         _DOCS_CLI_MAIL,
+    ),
+    (
+        "Addressbook",
+        [
+            ("skillware addressbook list", "formatted contacts table"),
+            ("skillware addressbook add", "interactive contact wizard"),
+            ("skillware addressbook edit <id>", "update an existing contact"),
+            ("skillware addressbook set-wallet <id> <0x>", "attach EVM wallet"),
+            ("skillware addressbook open [--dir]", "open addressbook.yaml in OS"),
+            ("skillware config open [--dir]", "open config folder in OS"),
+            ("skillware mail addressbook …", "backward-compatible alias"),
+            ("skillware (menu 10 / addressbook)", "interactive addressbook submenu"),
+        ],
+        _DOCS_CLI_ADDRESSBOOK,
+    ),
+    (
+        "EVM",
+        [
+            ("skillware evm", "resolved evm.yaml path and enabled chains"),
+            ("skillware evm init", "create user evm.yaml from bundled defaults"),
+            ("skillware evm chains list", "table of chains and RPC readiness"),
+            ("skillware evm chain add", "interactive custom chain wizard"),
+            ("skillware evm tokens list", "table of ERC-20 symbols per chain"),
+            ("skillware evm token add", "register a custom ERC-20 token"),
+            ("skillware evm rpc enable <chain>", "enable a chain in evm.yaml"),
+            ("skillware evm validate", "schema and checksum validation"),
+            ("skillware evm open [--dir]", "open evm.yaml in OS file manager"),
+            ("skillware (menu 9 / evm)", "interactive evm submenu"),
+        ],
+        _DOCS_CLI_EVM,
     ),
     (
         "General",
@@ -1172,6 +1211,21 @@ def cmd_config_show(console=None) -> int:
     console.print(Text("Skillware config", style=TABLE_STYLE))
     console.print()
 
+    install_report = assess_install_health()
+    console.print(Text("install (this Python)", style=TABLE_STYLE))
+    install_style = MENU_STYLE if install_report.ok else ERROR_STYLE
+    console.print(
+        f"  skillware {install_report.display_version} — "
+        f"{'OK' if install_report.ok else 'install conflict detected'}",
+        style=install_style,
+    )
+    if not install_report.ok:
+        console.print(
+            "  Run: skillware doctor --install",
+            style="dim",
+        )
+    console.print()
+
     console.print(Text("Config files", style=TABLE_STYLE))
     console.print(f"  Global (default): {global_config_path()}", style="dim")
     for line in format_config_sources(config):
@@ -1180,11 +1234,6 @@ def cmd_config_show(console=None) -> int:
 
     console.print(Text("presentation (active)", style=TABLE_STYLE))
     console.print(f"  theme: {config.presentation.theme}", style=MENU_STYLE)
-    console.print()
-
-    # Surface the package state alongside configuration before an invalid
-    # version reaches the rest of the CLI.
-    _print_install_health_summary(console)
     console.print()
 
     if not config.has_config_files:
@@ -1203,6 +1252,10 @@ def cmd_config_show(console=None) -> int:
         console.print()
         console.print(Text("mail (resolved defaults)", style=f"bold {TABLE_STYLE}"))
         for line in format_mail_config_lines(config.mail):
+            console.print(line, style=MENU_STYLE)
+        console.print()
+        console.print(Text("evm (resolved defaults)", style=f"bold {TABLE_STYLE}"))
+        for line in format_evm_config_lines(config.evm):
             console.print(line, style=MENU_STYLE)
         return 0
 
@@ -1226,6 +1279,11 @@ def cmd_config_show(console=None) -> int:
 
     console.print(Text("mail (active)", style=f"bold {TABLE_STYLE}"))
     for line in format_mail_config_lines(config.mail):
+        console.print(line, style=MENU_STYLE)
+    console.print()
+
+    console.print(Text("evm (active)", style=f"bold {TABLE_STYLE}"))
+    for line in format_evm_config_lines(config.evm):
         console.print(line, style=MENU_STYLE)
     console.print()
 
@@ -1255,23 +1313,6 @@ def cmd_config_show(console=None) -> int:
         style="dim",
     )
     return 0
-
-
-def _print_install_health_summary(console: Console) -> None:
-    """Print the installed version and a concise install-health summary."""
-    installed = get_installed_version()
-    conflicts = detect_install_conflicts()
-    version = str(installed) if installed is not None else "unknown"
-
-    console.print(Text("install health", style=TABLE_STYLE))
-    console.print(f"  version: {version}", style=MENU_STYLE)
-    if conflicts:
-        console.print(
-            f"  status: {len(conflicts)} conflict(s) — run skillware doctor --install",
-            style=ERROR_STYLE,
-        )
-    else:
-        console.print("  status: ok", style=ID_STYLE)
 
 
 def _parse_host_vars(pairs: Optional[List[str]]) -> Dict[str, Any]:
@@ -1622,20 +1663,12 @@ def cmd_doctor(
     skills_root_override: Optional[Path] = None,
     skill_id: Optional[str] = None,
     category: Optional[str] = None,
-    install: bool = False,
     console=None,
 ) -> int:
-    """Check manifest deps and skill.py import without running execute().
-
-    With ``install=True``, diagnose the local install state instead and print
-    fix commands (exit 0 = healthy, 1 = conflicts).
-    """
+    """Check manifest deps and skill.py import without running execute()."""
     _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
-
-    if install:
-        return _cmd_doctor_install(console)
 
     skill_ids, error = _resolve_doctor_skill_ids(
         skills_root_override=skills_root_override,
@@ -1711,38 +1744,15 @@ def cmd_doctor(
     return 1 if failures else 0
 
 
-def _cmd_doctor_install(console: Console) -> int:
-    """Diagnose the local install state and print a copy-paste fix report."""
-    conflicts = detect_install_conflicts()
-    installed = get_installed_version()
+def cmd_doctor_install(console=None) -> int:
+    """Report Python package install health (editable vs PyPI overlap)."""
+    _apply_active_theme()
+    if console is None:
+        console = Console(stderr=True)
 
-    console.print(
-        Text(
-            f"Skillware install version: "
-            f"{installed if installed is not None else 'unknown'}",
-        )
-    )
-
-    if not conflicts:
-        console.print("Install health: ok", style=ID_STYLE)
-        return 0
-
-    console.print(f"Install health: {len(conflicts)} conflict(s)", style=ERROR_STYLE)
-    console.print()
-    for idx, conflict in enumerate(conflicts, start=1):
-        console.print(
-            f"{idx}. [{conflict.code}] {conflict.summary}",
-            markup=False,
-        )
-        console.print("   Fix (Windows):", style="dim")
-        for line in conflict.fix_windows.splitlines():
-            console.print(f"     {line}", style="dim")
-        console.print("   Fix (Unix):", style="dim")
-        for line in conflict.fix_unix.splitlines():
-            console.print(f"     {line}", style="dim")
-        console.print()
-
-    return 1
+    report = assess_install_health()
+    console.print(format_install_health_report(report))
+    return 0 if report.ok else 1
 
 
 def _prompt_examples_skill_id(
@@ -1849,36 +1859,7 @@ def _gradient_splash_text(logo_lines: Tuple[str, ...]) -> Text:
 
 
 def _package_version_str() -> str:
-    installed = get_installed_version()
-    if installed is not None:
-        return str(installed)
-    try:
-        raw = importlib.metadata.version("skillware")
-    except importlib.metadata.PackageNotFoundError:
-        return "dev"
-    if not raw or raw in ("dev", "None"):
-        return "dev"
-    return raw
-
-
-def emit_install_conflict_advisory() -> None:
-    """Print one dim stderr line when install conflicts are detected; else silent."""
-    # Match the established advisory opt-out for CI and scripted invocation.
-    if is_version_check_disabled():
-        return
-    conflicts = detect_install_conflicts()
-    if not conflicts:
-        return
-    message = (
-        "skillware install conflict detected; run 'skillware doctor --install' "
-        "for details and fix commands."
-    )
-    try:
-        from rich.console import Console
-
-        Console(stderr=True).print(message, style="dim")
-    except ImportError:
-        print(message, file=sys.stderr)
+    return get_package_version_display()
 
 
 def cmd_interactive(console=None, parser=None) -> None:
@@ -1914,6 +1895,8 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("6", "help", "grouped help topics and doc links"),
         ("7", "mail", "address book and signature for office/gmail_handler"),
         ("8", "theme", "choose and save the CLI color theme"),
+        ("9", "evm", "EVM chains and RPC config for defi skills"),
+        ("10", "addressbook", "shared contacts and EVM wallets"),
     ]
 
     commands = {
@@ -1933,6 +1916,10 @@ def cmd_interactive(console=None, parser=None) -> None:
         "mail": "mail",
         "8": "theme",
         "theme": "theme",
+        "9": "evm",
+        "evm": "evm",
+        "10": "addressbook",
+        "addressbook": "addressbook",
     }
 
     _print_menu(console, menu)
@@ -1991,6 +1978,13 @@ def cmd_interactive(console=None, parser=None) -> None:
             if theme_nav == _NAV_EXIT:
                 console.print("  Bye.", style="dim")
                 return
+        elif command == "evm":
+            evm_nav = cmd_evm_submenu(console=console)
+            if evm_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
+        elif command == "addressbook":
+            cmd_addressbook_interactive(console=console)
         else:
             console.print(f"  Unknown command: '{choice}'", style=ERROR_DIM_STYLE)
 
@@ -2124,7 +2118,7 @@ def main() -> None:
     doctor_parser.add_argument(
         "--install",
         action="store_true",
-        help="Diagnose the local skillware install and print fix commands.",
+        help="Check skillware package install health (editable vs PyPI conflicts).",
     )
 
     config_parser = subparsers.add_parser(
@@ -2135,6 +2129,66 @@ def main() -> None:
     config_subparsers.add_parser(
         "show",
         help="Print merged global and project YAML settings.",
+    )
+    config_open = config_subparsers.add_parser(
+        "open",
+        help="Open global or project config in the OS file manager.",
+    )
+    config_open.add_argument(
+        "--dir",
+        action="store_true",
+        help="Open the containing directory instead of the file.",
+    )
+
+    addressbook_parser = subparsers.add_parser(
+        "addressbook",
+        help="Shared operator address book (mail, defi, identity).",
+    )
+    addressbook_sub = addressbook_parser.add_subparsers(dest="addressbook_action")
+    addressbook_sub.add_parser("show", help="Show resolved path and contact count.")
+    ab_init = addressbook_sub.add_parser("init", help="Create template address book.")
+    ab_init.add_argument("--path", type=Path, default=None)
+    ab_init.add_argument("--force", action="store_true")
+    ab_list = addressbook_sub.add_parser("list", help="List contacts in a table.")
+    ab_list.add_argument(
+        "--with-wallet",
+        action="store_true",
+        help="Only contacts with public_0x.",
+    )
+    ab_list.add_argument("--search", default=None, help="Filter contacts.")
+    ab_list.add_argument("--json", action="store_true", dest="json_output")
+    ab_add = addressbook_sub.add_parser("add", help="Add a contact.")
+    ab_add.add_argument("--name", dest="display_name", default=None)
+    ab_add.add_argument("--email", default=None)
+    ab_add.add_argument("--wallet", dest="public_0x", default=None)
+    ab_add.add_argument("--aliases", default=None)
+    ab_add.add_argument("--org", default=None)
+    ab_add.add_argument("--id", dest="contact_id", default=None)
+    ab_edit = addressbook_sub.add_parser("edit", help="Edit an existing contact.")
+    ab_edit.add_argument("contact_id", nargs="?", default=None)
+    ab_wallet = addressbook_sub.add_parser(
+        "set-wallet",
+        help="Attach or update public_0x on a contact.",
+    )
+    ab_wallet.add_argument("contact_id")
+    ab_wallet.add_argument("wallet_0x")
+    ab_remove = addressbook_sub.add_parser("remove", help="Delete a contact.")
+    ab_remove.add_argument("contact_id")
+    ab_remove.add_argument("--yes", action="store_true")
+    addressbook_sub.add_parser("validate", help="Validate address book schema.")
+    ab_set = addressbook_sub.add_parser(
+        "set-path",
+        help="Persist mail.addressbook_path in project config.",
+    )
+    ab_set.add_argument("path", nargs="?", default=None)
+    ab_open = addressbook_sub.add_parser(
+        "open",
+        help="Open addressbook.yaml in the OS file manager.",
+    )
+    ab_open.add_argument(
+        "--dir",
+        action="store_true",
+        help="Open the containing directory instead of the file.",
     )
 
     theme_parser = subparsers.add_parser(
@@ -2186,6 +2240,23 @@ def main() -> None:
     ab_add.add_argument("--aliases", default=None, help="Comma-separated aliases.")
     ab_add.add_argument("--org", default=None)
     ab_add.add_argument("--id", dest="contact_id", default=None)
+    ab_add.add_argument("--wallet", dest="public_0x", default=None)
+    mail_addressbook_sub.add_parser("list", help="List contacts in a table.")
+    ab_edit_mail = mail_addressbook_sub.add_parser("edit", help="Edit a contact.")
+    ab_edit_mail.add_argument("contact_id", nargs="?", default=None)
+    ab_wallet_mail = mail_addressbook_sub.add_parser(
+        "set-wallet",
+        help="Attach or update public_0x on a contact.",
+    )
+    ab_wallet_mail.add_argument("contact_id")
+    ab_wallet_mail.add_argument("wallet_0x")
+    ab_remove_mail = mail_addressbook_sub.add_parser("remove", help="Delete a contact.")
+    ab_remove_mail.add_argument("contact_id")
+    ab_remove_mail.add_argument("--yes", action="store_true")
+    ab_open_mail = mail_addressbook_sub.add_parser(
+        "open", help="Open addressbook.yaml."
+    )
+    ab_open_mail.add_argument("--dir", action="store_true")
     ab_set = mail_addressbook_sub.add_parser(
         "set-path",
         help="Persist mail.addressbook_path in project config.",
@@ -2362,6 +2433,73 @@ def main() -> None:
         help="Print resolved steps as JSON.",
     )
 
+    evm_parser = subparsers.add_parser(
+        "evm",
+        help="EVM chain and RPC settings for defi skills.",
+    )
+    evm_sub = evm_parser.add_subparsers(dest="evm_area")
+    evm_sub.add_parser("show", help="Show resolved evm.yaml path and sources.")
+    evm_init = evm_sub.add_parser("init", help="Create user evm.yaml from defaults.")
+    evm_init.add_argument(
+        "--path",
+        type=Path,
+        default=None,
+        help="Target file path (default: resolved global evm.yaml).",
+    )
+    evm_init.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing file.",
+    )
+    evm_init.add_argument(
+        "--yes",
+        action="store_true",
+        help="Non-interactive init (enable all bundled chains).",
+    )
+    evm_chains = evm_sub.add_parser("chains", help="Chain registry commands.")
+    evm_chains_sub = evm_chains.add_subparsers(dest="evm_action")
+    evm_chains_list = evm_chains_sub.add_parser("list", help="List configured chains.")
+    evm_chains_list.add_argument(
+        "--json",
+        action="store_true",
+        help="Output JSON.",
+    )
+    evm_chain = evm_sub.add_parser("chain", help="Manage individual chains.")
+    evm_chain_sub = evm_chain.add_subparsers(dest="evm_action")
+    evm_chain_add = evm_chain_sub.add_parser("add", help="Add a custom chain.")
+    evm_chain_add.add_argument("--name", dest="chain_name", default=None)
+    evm_chain_add.add_argument("--chain-id", dest="chain_id", type=int, default=None)
+    evm_chain_add.add_argument("--rpc-env", default=None)
+    evm_chain_add.add_argument("--rpc-url", default=None)
+    evm_tokens = evm_sub.add_parser("tokens", help="Token registry listing.")
+    evm_tokens_sub = evm_tokens.add_subparsers(dest="evm_action")
+    evm_tokens_list = evm_tokens_sub.add_parser(
+        "list", help="List configured ERC-20 tokens."
+    )
+    evm_tokens_list.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON.",
+    )
+    evm_token = evm_sub.add_parser("token", help="Token registry commands.")
+    evm_token_sub = evm_token.add_subparsers(dest="evm_action")
+    evm_token_add = evm_token_sub.add_parser("add", help="Add a custom ERC-20 token.")
+    evm_token_add.add_argument("--chain", dest="chain_name", default=None)
+    evm_token_add.add_argument("--symbol", default=None)
+    evm_token_add.add_argument("--address", default=None)
+    evm_token_add.add_argument("--decimals", type=int, default=None)
+    evm_rpc = evm_sub.add_parser("rpc", help="RPC enablement helpers.")
+    evm_rpc_sub = evm_rpc.add_subparsers(dest="evm_action")
+    evm_rpc_enable = evm_rpc_sub.add_parser("enable", help="Enable a chain.")
+    evm_rpc_enable.add_argument("chain_name", help="Chain key in evm.yaml.")
+    evm_sub.add_parser("validate", help="Validate merged EVM config.")
+    evm_open = evm_sub.add_parser("open", help="Open evm.yaml in the file manager.")
+    evm_open.add_argument(
+        "--dir",
+        action="store_true",
+        help="Open the containing directory instead of the file.",
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -2390,19 +2528,60 @@ def main() -> None:
     elif args.command == "paths":
         raise SystemExit(cmd_paths(skills_root_override=args.skills_root))
     elif args.command == "doctor":
+        if getattr(args, "install", False):
+            if args.skill_id or args.category or args.skills_root:
+                print(
+                    "doctor --install checks package metadata only; "
+                    "skill/category flags are ignored.",
+                    file=sys.stderr,
+                )
+            raise SystemExit(cmd_doctor_install())
         raise SystemExit(
             cmd_doctor(
                 skills_root_override=args.skills_root,
                 skill_id=args.skill_id,
                 category=args.category,
-                install=getattr(args, "install", False),
             )
         )
     elif args.command == "config":
         if args.config_command == "show":
             raise SystemExit(cmd_config_show())
+        if args.config_command == "open":
+            raise SystemExit(cmd_config_open(open_dir=getattr(args, "dir", False)))
         config_parser.print_help()
         raise SystemExit(2)
+    elif args.command == "addressbook":
+        action = getattr(args, "addressbook_action", None)
+        if action is None:
+            raise SystemExit(cmd_addressbook())
+        kwargs = {}
+        if action == "init":
+            kwargs["path"] = getattr(args, "path", None)
+            kwargs["force"] = getattr(args, "force", False)
+        elif action == "list":
+            kwargs["with_wallet"] = getattr(args, "with_wallet", False)
+            kwargs["search"] = getattr(args, "search", None)
+            kwargs["json_output"] = getattr(args, "json_output", False)
+        elif action == "add":
+            kwargs["display_name"] = getattr(args, "display_name", None)
+            kwargs["email"] = getattr(args, "email", None)
+            kwargs["public_0x"] = getattr(args, "public_0x", None)
+            kwargs["aliases"] = getattr(args, "aliases", None)
+            kwargs["org"] = getattr(args, "org", None)
+            kwargs["contact_id"] = getattr(args, "contact_id", None)
+        elif action == "edit":
+            kwargs["contact_id"] = getattr(args, "contact_id", None)
+        elif action == "set-wallet":
+            kwargs["contact_id"] = getattr(args, "contact_id", None)
+            kwargs["wallet_0x"] = getattr(args, "wallet_0x", None)
+        elif action == "remove":
+            kwargs["contact_id"] = getattr(args, "contact_id", None)
+            kwargs["yes"] = getattr(args, "yes", False)
+        elif action == "set-path":
+            kwargs["path"] = getattr(args, "path", None)
+        elif action == "open":
+            kwargs["open_dir"] = getattr(args, "dir", False)
+        raise SystemExit(cmd_addressbook_dispatch(action, "run", **kwargs))
     elif args.command == "theme":
         raise SystemExit(cmd_theme(theme_name=getattr(args, "name", None)))
     elif args.command == "mail":
@@ -2414,12 +2593,27 @@ def main() -> None:
             if action == "init":
                 kwargs["path"] = getattr(args, "path", None)
                 kwargs["force"] = getattr(args, "force", False)
+            elif action == "list":
+                kwargs["with_wallet"] = getattr(args, "with_wallet", False)
+                kwargs["search"] = getattr(args, "search", None)
+                kwargs["json_output"] = getattr(args, "json_output", False)
             elif action == "add":
                 kwargs["display_name"] = getattr(args, "display_name", None)
                 kwargs["email"] = getattr(args, "email", None)
+                kwargs["public_0x"] = getattr(args, "public_0x", None)
                 kwargs["aliases"] = getattr(args, "aliases", None)
                 kwargs["org"] = getattr(args, "org", None)
                 kwargs["contact_id"] = getattr(args, "contact_id", None)
+            elif action == "edit":
+                kwargs["contact_id"] = getattr(args, "contact_id", None)
+            elif action == "set-wallet":
+                kwargs["contact_id"] = getattr(args, "contact_id", None)
+                kwargs["wallet_0x"] = getattr(args, "wallet_0x", None)
+            elif action == "remove":
+                kwargs["contact_id"] = getattr(args, "contact_id", None)
+                kwargs["yes"] = getattr(args, "yes", False)
+            elif action == "open":
+                kwargs["open_dir"] = getattr(args, "dir", False)
             elif action == "set-path":
                 kwargs["path"] = getattr(args, "path", None)
         elif args.mail_area == "signature":
@@ -2475,6 +2669,81 @@ def main() -> None:
                 )
             )
         chain_parser.print_help()
+        raise SystemExit(2)
+    elif args.command == "evm":
+        area = getattr(args, "evm_area", None)
+        action = getattr(args, "evm_action", None)
+        if area is None:
+            raise SystemExit(cmd_evm())
+        if area == "show":
+            raise SystemExit(cmd_evm_dispatch("show", "show"))
+        if area == "init":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "init",
+                    "init",
+                    path=getattr(args, "path", None),
+                    force=getattr(args, "force", False),
+                    non_interactive=getattr(args, "yes", False),
+                )
+            )
+        if area == "chains" and action == "list":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "chains",
+                    "list",
+                    json_output=getattr(args, "json", False),
+                )
+            )
+        if area == "tokens" and action == "list":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "tokens",
+                    "list",
+                    json_output=getattr(args, "json", False),
+                )
+            )
+        if area == "chain" and action == "add":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "chain",
+                    "add",
+                    chain_name=getattr(args, "chain_name", None),
+                    chain_id=getattr(args, "chain_id", None),
+                    rpc_env=getattr(args, "rpc_env", None),
+                    rpc_url=getattr(args, "rpc_url", None),
+                )
+            )
+        if area == "token" and action == "add":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "token",
+                    "add",
+                    chain_name=getattr(args, "chain_name", None),
+                    symbol=getattr(args, "symbol", None),
+                    address=getattr(args, "address", None),
+                    decimals=getattr(args, "decimals", None),
+                )
+            )
+        if area == "rpc" and action == "enable":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "rpc",
+                    "enable",
+                    chain_name=getattr(args, "chain_name", None),
+                )
+            )
+        if area == "validate":
+            raise SystemExit(cmd_evm_dispatch("validate", "validate"))
+        if area == "open":
+            raise SystemExit(
+                cmd_evm_dispatch(
+                    "open",
+                    "open",
+                    open_dir=getattr(args, "dir", False),
+                )
+            )
+        evm_parser.print_help()
         raise SystemExit(2)
     else:
         cmd_interactive(parser=parser)

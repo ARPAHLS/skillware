@@ -1,6 +1,6 @@
 # Agent loops with Skillware
 
-Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md).
+Every integration follows the same execution pattern. **Skillware** loads the bundle and adapts it to your runtime's tool format; **your host app** calls `execute()` and passes JSON back to the model. The diagram below is the loop you implement in code — for bundle contents, see the [Introduction](../introduction.md). Vocabulary: [glossary](../glossary.md).
 
 **Multiple skills:** use [`SkillContext`](skill_chaining.md#skillcontext--discovery-filters) for registry brief + tools, or [skill chaining](skill_chaining.md) for deterministic middleware chains. Single-skill loops below are unchanged.
 
@@ -148,6 +148,12 @@ All [skill catalog pages](../skills/README.md) include compact **Usage Examples*
 agent loop. It either calls `skill.execute(...)` directly or loads multiple
 skills in one harness.
 
+**Suggested DeFi pre-trade host path:** optional `security/drainer_pattern_guard`
+(when shipped) → `defi/token_security_scanner` → `defi/evm_tx_handler`
+preview/execute. Optional large-holder EOAs → `finance/wallet_screening`.
+Use shared EVM operator config for chains (#379); tokens in `evm.tokens`, not
+the address book.
+
 | Skill | Local execute / mixed | Gemini | Claude | OpenAI | DeepSeek | Ollama |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `compliance/tos_evaluator` | - | `gemini_tos_evaluator.py` | `claude_tos_evaluator.py` | `openai_tos_evaluator.py` | `deepseek_tos_evaluator.py` | `ollama_tos_evaluator.py` |
@@ -161,12 +167,15 @@ skills in one harness.
 | `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/deck_builder` | `deck_builder_demo.py`, `deck_builder_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `optimization/context_optimizer` | `context_optimizer_demo.py`, `context_optimizer_chain_demo.py` (local execute; fastembed) | `context_optimizer_gemini_loop.py` | `context_optimizer_claude_loop.py` | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |
 | `data_engineering/semantic_web_proxy` | `semantic_web_proxy_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `linguistics/korean_slang` | `korean_slang_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
+| `defi/token_security_scanner` | - | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |

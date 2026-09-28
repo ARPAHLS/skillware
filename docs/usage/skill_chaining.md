@@ -16,7 +16,7 @@ Skills **never call each other**. The host (your agent loop, script, or `run_cha
 | **SkillContext — model routing** | Model (from exposed tools) | Model | Open-ended agents; progressive disclosure |
 | **SkillContext — manual chain** | You | Your Python code | Branching, custom error handling, ad hoc pipelines |
 | **Named chains (`chains:`)** | You (pick chain name) | YAML steps | Repeatable middleware → domain; CI/scripts |
-| **Examples** | Copy from `examples/` | Varies | Provider-specific starter loops |
+| **Examples** | Copy from `examples/` | Varies | Provider-specific starter loops ([`pay_and_notify_demo.py`](../../examples/pay_and_notify_demo.py) — manual `ctx.execute` pay + email) |
 
 Use **chain / chains / chaining** for cross-skill host orchestration. Do **not** use framework **`run_pipeline`** (reserved for in-skill actions such as `finance/uk_companies_house_handler`).
 
@@ -37,6 +37,8 @@ the full playbook:
 | Full Directive is needed only after tool selection | `prepare()` then host-inject `prep.directive` on the next turn | Progressive disclosure is host-driven |
 
 ### Glossary
+
+Project-wide role and anatomy terms live in the [glossary](../glossary.md). This section is host-orchestration vocabulary only.
 
 - **Directive:** the full `instructions.md` playbook for a skill.
 - **Brief line:** the `manifest.short_description` summary that `merge_system()` adds in `brief` mode.
@@ -181,6 +183,23 @@ rw = ctx.execute(
 )
 ```
 
+For **large documents**, insert `optimization/context_optimizer` after the firewall and **before** the main LLM (and optionally before `prompt_rewriter`):
+
+```python
+opt = ctx.execute(
+    "optimization/context_optimizer",
+    {
+        "document_text": fw["sanitized_text"],
+        "agent_goal": "jurisdiction clauses for data handling",
+        "max_tokens_return": 2000,
+    },
+)
+# Pass opt["optimized_context"] to the main model; optionally compress further:
+# rw = ctx.execute("optimization/prompt_rewriter", {"raw_text": opt["optimized_context"], ...})
+```
+
+See `examples/context_optimizer_chain_demo.py`.
+
 The host can also **choose skills dynamically** (e.g. route to `monitoring/token_limiter` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
 
 ### Still using SkillLoader directly
@@ -203,13 +222,15 @@ Use `SkillContext` when you need **multiple tools**, **registry brief**, or **sh
 
 Define repeatable order under **`chains:`** in project `.skillware.yaml` or global `~/.config/skillware/config.yaml`. **Project overrides global** on name clash.
 
-See [`.skillware.yaml.example`](../../.skillware.yaml.example) for three reference chains:
+See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference chains:
 
 | Chain | Purpose |
 | :--- | :--- |
 | `sanitize_input` | Firewall → rewriter (rewriter skipped when `is_safe` is false) |
+| `optimize_document_context` | Firewall → context optimizer (optimizer skipped when `is_safe` is false) |
 | `preflight_untrusted_html` | HTML-mode firewall only |
 | `scan_then_gate` | Firewall → token limiter check |
+| `deck_build_pipeline` | Validate → lint → render deck spec |
 
 ### Python API
 

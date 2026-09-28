@@ -1,11 +1,12 @@
 """
-Interactive Claude agent loop for finance/uk_companies_house_handler (v2b).
+Interactive Claude agent loop for finance/uk_companies_house_handler (v1.3.0).
 
-Demonstrates an interactive flow with pipeline orchestration and composites:
-  - map_intent / run_pipeline for multi-intent queries
-  - resolve_and_get_officers / resolve_and_get_filings for single-intent shortcuts
-  - needs_input disambiguation resume via context or follow-up user message
-  - partial previews (10-item limits) with full record rendering
+Demonstrates an interactive flow with turn-by-turn pipeline orchestration and composites:
+  - run_pipeline with direct step lists for multi-intent queries
+  - resolve_and_get_officers / resolve_and_get_filings / resolve_company_officer shortcuts
+  - deterministic officer role/name matching and filing helpers (latest_only)
+  - needs_input disambiguation resume via lean context or follow-up user message
+  - record truncation limits with full record rendering
 
 The agent must pass clean query strings and optional role_hint — the skill does
 not parse conversational prefixes. When the skill returns needs_input, show
@@ -71,7 +72,7 @@ def main() -> None:
     print("This agent can look up UK companies, officers, PSCs, and filings.")
     print("Try asking:")
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
-    print("  - 'Show me officers and filings for Tesco' (map_intent + run_pipeline)")
+    print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)
