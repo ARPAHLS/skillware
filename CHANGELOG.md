@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-09-29
+
 ### Added
 
 - **CLI / packaging:** Harden version display when editable and PyPI installs overlap — `get_package_version_display()` never prints `None`; `detect_install_conflicts()` via `assess_install_health()`; startup stderr hint; **`skillware doctor --install`** with recovery commands; install summary in **`skillware config show`** ([#333](https://github.com/ARPAHLS/skillware/issues/333)).

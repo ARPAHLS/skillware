@@ -16,10 +16,10 @@ class _FakeDist:
         self,
         *,
         name: str = "skillware",
-        version: str = "0.5.6",
+        version: str = "0.5.7",
         has_record: bool = True,
         editable: bool = False,
-        dist_dir_name: str = "skillware-0.5.6.dist-info",
+        dist_dir_name: str = "skillware-0.5.7.dist-info",
     ):
         self._name = name
         self._version = version
@@ -84,10 +84,10 @@ def test_get_installed_version_dev_returns_none(monkeypatch):
 def test_get_installed_version_prefers_highest_among_duplicates(monkeypatch):
     dists = [
         _FakeDist(version="0.5.1", dist_dir_name="skillware-0.5.1.dist-info"),
-        _FakeDist(version="0.5.6", dist_dir_name="skillware-0.5.6.dist-info"),
+        _FakeDist(version="0.5.7", dist_dir_name="skillware-0.5.7.dist-info"),
     ]
     _patch_distributions(monkeypatch, dists)
-    assert version_policy.get_installed_version() == Version("0.5.6")
+    assert version_policy.get_installed_version() == Version("0.5.7")
 
 
 def test_get_package_version_display_never_none(monkeypatch):
@@ -107,11 +107,11 @@ def test_get_package_version_display_uses_parsed_version(monkeypatch):
 def test_assess_install_health_ok_single_wheel(monkeypatch):
     _patch_distributions(
         monkeypatch,
-        [_FakeDist(version="0.5.6", has_record=True, editable=False)],
+        [_FakeDist(version="0.5.7", has_record=True, editable=False)],
     )
     report = version_policy.assess_install_health()
     assert report.ok is True
-    assert report.display_version == "0.5.6"
+    assert report.display_version == "0.5.7"
     assert report.issues == []
 
 
@@ -147,10 +147,10 @@ def test_assess_install_health_editable_and_wheel(monkeypatch):
             dist_dir_name="skillware-0.5.1.dist-info",
         ),
         _FakeDist(
-            version="0.5.6",
+            version="0.5.7",
             has_record=True,
             editable=False,
-            dist_dir_name="skillware-0.5.6.dist-info",
+            dist_dir_name="skillware-0.5.7.dist-info",
         ),
     ]
     _patch_distributions(monkeypatch, dists)
@@ -222,13 +222,14 @@ def test_should_emit_only_below_min_unsupported():
     assert version_policy.should_emit_unsupported_advisory(Version("0.5.4")) is False
     assert version_policy.should_emit_unsupported_advisory(Version("0.5.5")) is False
     assert version_policy.should_emit_unsupported_advisory(Version("0.5.6")) is False
+    assert version_policy.should_emit_unsupported_advisory(Version("0.5.7")) is False
 
 
 def test_emit_advisory_silent_for_current_release(monkeypatch, capsys):
     monkeypatch.setattr(
         version_policy.metadata,
         "version",
-        lambda _name: "0.5.6",
+        lambda _name: "0.5.7",
     )
     monkeypatch.setattr(
         version_policy,
@@ -243,7 +244,7 @@ def test_emit_advisory_silent_for_security_supported_floor(monkeypatch, capsys):
     monkeypatch.setattr(
         version_policy.metadata,
         "version",
-        lambda _name: "0.5.6",
+        lambda _name: "0.5.7",
     )
     monkeypatch.setattr(
         version_policy,
@@ -255,7 +256,7 @@ def test_emit_advisory_silent_for_security_supported_floor(monkeypatch, capsys):
 
 
 def test_emit_advisory_silent_for_outdated_but_supported_band(monkeypatch, capsys):
-    for version in ("0.4.6", "0.5.0", "0.5.2", "0.5.3", "0.5.4", "0.5.5"):
+    for version in ("0.4.6", "0.5.0", "0.5.2", "0.5.3", "0.5.4", "0.5.5", "0.5.6"):
         monkeypatch.setattr(
             version_policy.metadata,
             "version",
@@ -285,7 +286,7 @@ def test_emit_advisory_warns_for_unsupported(monkeypatch, capsys):
     err = capsys.readouterr().err
     assert "0.4.5" in err
     assert "unsupported" in err.lower()
-    assert ">=0.5.6" in err
+    assert ">=0.5.7" in err
 
 
 def test_emit_advisory_respects_opt_out(monkeypatch, capsys):
@@ -346,6 +347,6 @@ def test_cli_doctor_install_ok_exit_code(monkeypatch):
     monkeypatch.setattr(
         cli_module,
         "assess_install_health",
-        lambda: version_policy.InstallHealth(ok=True, display_version="0.5.6"),
+        lambda: version_policy.InstallHealth(ok=True, display_version="0.5.7"),
     )
     assert cli_module.cmd_doctor_install() == 0
