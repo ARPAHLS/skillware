@@ -65,6 +65,8 @@ Bundled standard ABIs for ERC-20, ERC-721, ERC-1155, ERC-4626, Uniswap V2 pairs,
 
 ## Usage Examples
 
+See [examples/README.md](../../../examples/README.md) and [`examples/evm_reader_demo.py`](../../../examples/evm_reader_demo.py) for a runnable script demonstrating offline mock reads and live RPC queries.
+
 ### Gemini
 
 ```python

@@ -22,6 +22,15 @@ EXAMPLES_DIR = REPO_ROOT / "examples"
 # Tuple format: (script_filename, [expected_output_substrings])
 LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     (
+        "evm_reader_demo.py",
+        [
+            "defi/evm_reader Demo",
+            "USD Coin (USDC)",
+            "Balance Formatted:",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
         "sanitize_input_chain_demo.py",
         [
             "sanitize_input chain demo",
@@ -217,6 +226,8 @@ def test_local_execute_example_smoke(script_name: str, expected_markers: List[st
     env.setdefault("SKILLWARE_CONFIG_DIR", str(REPO_ROOT / "tests" / "fixtures"))
     if script_name == "pay_and_notify_demo.py":
         env["PAY_NOTIFY_DEMO"] = "1"
+    if script_name == "evm_reader_demo.py":
+        env["EVM_READER_DEMO"] = "1"
 
     proc = subprocess.run(
         [sys.executable, str(script_path)],

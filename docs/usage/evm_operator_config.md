@@ -166,6 +166,7 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 - [CLI — skillware evm](cli.md#skillware-evm)
 - [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config)
 - [Address book operator config](addressbook_operator_config.md) — people and `public_0x` (not tokens)
+- [EVM Chain Reader](../skills/defi/evm_reader.md) — read-only state reader (tokens, allowances, view calls, Multicall3)
 - [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — signing skill env vars
 - [Token Security Scanner](../skills/defi/token_security_scanner.md) — read-only GoPlus pre-trade scan (chains from this config; no RPC required)
 - [DeFi skills](../skills/README.md#defi) — catalog index

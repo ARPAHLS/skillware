@@ -12,7 +12,26 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
-from .abis import get_preset_abi
+try:
+    from .abis import get_preset_abi
+except (ImportError, ValueError):
+    try:
+        from skills.defi.evm_reader.abis import get_preset_abi
+    except (ImportError, ValueError):
+        import importlib.util
+        import os
+
+        _skill_dir = os.path.dirname(os.path.abspath(__file__))
+        _spec = importlib.util.spec_from_file_location(
+            "evm_reader_abis", os.path.join(_skill_dir, "abis.py")
+        )
+        if _spec and _spec.loader:
+            _mod = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            get_preset_abi = _mod.get_preset_abi
+        else:
+            raise ImportError("Could not load abis.py for defi/evm_reader")
+from skillware.core.base_skill import BaseSkill
 from skillware.core.evm_config import (
     load_merged_evm_config,
     normalize_evm_address,
@@ -30,27 +49,50 @@ _HEX_ADDRESS_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
 _RAW_40HEX_RE = re.compile(r"^[a-fA-F0-9]{40}$")
 
 
-class EVMReaderSkill:
+class EVMReaderSkill(BaseSkill):
     """Read-only EVM state reader."""
 
     def __init__(
         self,
+        config: Optional[Dict[str, Any]] = None,
         credential_fn: Optional[Callable[[str], Optional[str]]] = None,
         addressbook_path: Optional[Union[str, Path]] = None,
         web3_factory: Optional[Callable[[str], Any]] = None,
     ):
-        self._credential_fn = credential_fn
+        super().__init__(config)
+        self._credential_fn = credential_fn or self.credential
         self._addressbook_path = (
             Path(addressbook_path).resolve() if addressbook_path else None
         )
         self._web3_factory = web3_factory
 
+    @property
+    def manifest(self) -> Dict[str, Any]:
+        path = Path(__file__).resolve().parent / "manifest.yaml"
+        if path.is_file():
+            import yaml
+
+            return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        return {}
+
     def run(self, action: str, **kwargs: Any) -> Dict[str, Any]:
         """Execute the requested skill operation."""
-        return self.execute(action, **kwargs)
+        return self.execute(action=action, **kwargs)
 
-    def execute(self, action: str, **kwargs: Any) -> Dict[str, Any]:
+    def execute(
+        self,
+        params: Optional[Union[Dict[str, Any], str]] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
         """Execute a read-only EVM action."""
+        if params is not None and isinstance(params, dict):
+            combined = {**params, **kwargs}
+        elif params is not None and isinstance(params, str):
+            combined = {"action": params, **kwargs}
+        else:
+            combined = dict(kwargs)
+
+        action = combined.pop("action", None)
         act = str(action or "").strip().lower()
         handlers = {
             "erc20_metadata": self._action_erc20_metadata,
@@ -75,7 +117,7 @@ class EVMReaderSkill:
             }
 
         try:
-            return handler(**kwargs)
+            return handler(**combined)
         except Exception as exc:
             return {
                 "status": "error",
