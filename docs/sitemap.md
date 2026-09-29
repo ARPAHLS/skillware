@@ -48,6 +48,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 ### DeFi
 
 - [DeFi hub](skills/defi/README.md)
+- [`defi/evm_reader`](skills/defi/evm_reader.md)
 - [`defi/evm_tx_handler`](skills/defi/evm_tx_handler.md)
 - [`defi/token_security_scanner`](skills/defi/token_security_scanner.md)
 

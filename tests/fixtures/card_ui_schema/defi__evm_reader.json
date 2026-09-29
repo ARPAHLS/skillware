@@ -1,0 +1,18 @@
+{
+  "samples": [
+    {
+      "status": "ok",
+      "chain": "ethereum",
+      "holder": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "balance": "1500.000000"
+    },
+    {
+      "status": "ok",
+      "chain": "base",
+      "holder": "0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed",
+      "token": "0x4200000000000000000000000000000000000006",
+      "balance": "42.000000"
+    }
+  ]
+}

@@ -155,6 +155,10 @@ data_engineering_semantic_web_proxy = [
 
 data_engineering_synthetic_generator = []
 
+defi_evm_reader = [
+    "web3>=6.0.0",
+]
+
 defi_evm_tx_handler = [
     "web3>=6.0.0",
 ]

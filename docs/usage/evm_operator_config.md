@@ -1,6 +1,6 @@
 # EVM operator config
 
-Shared chain and RPC settings for **defi skills** that call JSON-RPC (`defi/evm_tx_handler`, future `defi/evm_reader`, token scanners, and similar). Operators configure networks once; skills resolve chains through `skillware.core.evm_config`.
+Shared chain and RPC settings for **defi skills** that call JSON-RPC (`defi/evm_tx_handler`, `defi/evm_reader`, token scanners, and similar). Operators configure networks once; skills resolve chains through `skillware.core.evm_config`.
 
 **Not the same as:** [`skillware chain`](cli.md#skillware-chain) — that runs **multi-skill orchestration** pipelines from the top-level `chains:` key in YAML. EVM networks live under **`evm:`** / **`evm.yaml`**.
 
