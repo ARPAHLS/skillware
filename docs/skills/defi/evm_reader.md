@@ -50,6 +50,7 @@ All RPC URLs are dynamically resolved through `skillware.core.evm_config`. Opera
 - **EIP-55 Checksumming:** All EVM addresses in outputs are validated and normalized to EIP-55 checksum format.
 - **Token Shortcuts:** Configured tokens in operator `evm.yaml` (such as `usdc` on Ethereum or `degen` on Base) can be passed directly as the `contract` or `token` argument.
 - **Rate-Limited Multicall:** Multicall batches are capped at 50 calls per invocation to protect node throughput.
+- **Chaining (host-side):** Upstream to [`defi/evm_tx_handler`](evm_tx_handler.md) (balance/allowance checks before trade execution) or downstream from [`finance/wallet_screening`](../finance/wallet_screening.md) (read on-chain balances of screened addresses) and [`defi/token_security_scanner`](token_security_scanner.md) (verify token metadata and decimals after security checks). See [DeFi hub](README.md#typical-host-pipelines) and [Skill chaining](../../usage/skill_chaining.md).
 
 ## Bundle layout
 

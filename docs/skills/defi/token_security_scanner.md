@@ -37,7 +37,7 @@ No private keys. No wallet address required. See [API keys for skills](../../usa
 - **`risk_tier`**: `critical` / `high` → refuse trade; `medium` → human confirm; `low` → still not financial advice; `unknown` → missing signals.
 - **`null` signals** mean unknown (common for closed-source or proxy contracts) — do not treat as safe.
 - **Chain coverage** varies; always surface `warnings`.
-- **Chaining (host-side):** suggested pre-trade path — optional `security/drainer_pattern_guard` (when shipped) → `scan` → `defi/evm_tx_handler` preview/execute. Optional holder EOAs → `finance/wallet_screening`. Tokens stay in operator `evm.tokens`, not the address book.
+- **Chaining (host-side):** suggested pre-trade path — optional `security/drainer_pattern_guard` (when shipped) → `scan` → `defi/evm_reader` → `defi/evm_tx_handler` preview/execute. Optional holder EOAs → `finance/wallet_screening`. Tokens stay in operator `evm.tokens`, not the address book.
 - **Chains:** enabled slugs from operator EVM config (`skillware evm`); add further GoPlus-supported networks via `skillware evm chain add` (see [EVM operator config](../../usage/evm_operator_config.md)).
 
 ## Bundle layout
