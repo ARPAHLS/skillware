@@ -1,0 +1,109 @@
+name: defi/evm_reader
+version: 0.1.0
+description: |
+  Read-only EVM state plane: validate/normalize addresses, resolve holders from
+  central address book (public_0x), query ERC-20/721 metadata and balances,
+  execute allowlisted contract view calls, and batch reads via Multicall3. Never signs.
+short_description: "Read-only EVM state plane — token balances, allowances, view calls, and multicall."
+category: defi
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum:
+        - erc20_metadata
+        - erc20_balance
+        - erc20_allowance
+        - erc721_metadata
+        - erc721_balance
+        - erc721_owner_of
+        - call_view
+        - multicall
+        - resolve_holder
+      description: Read-only EVM operation to run.
+    chain:
+      type: string
+      description: EVM chain name (e.g. ethereum, base, arbitrum, megaeth, arc, sepolia).
+    contract:
+      type: string
+      description: Target contract address (0x...) or configured token symbol.
+    token:
+      type: string
+      description: Alias for contract address or configured token symbol.
+    holder:
+      type: string
+      description: Holder 0x address or contact name/alias from central address book.
+    owner:
+      type: string
+      description: Owner 0x address or contact name/alias for allowance checks.
+    spender:
+      type: string
+      description: Spender 0x address or router alias (e.g. router_v2).
+    token_id:
+      type: integer
+      description: Token ID for ERC-721 owner queries.
+    method:
+      type: string
+      description: View function name to call (e.g. getReserves, latestRoundData).
+    abi_preset:
+      type: string
+      description: Bundled ABI preset name (erc20, erc721, erc1155, erc4626, univ2_pair, chainlink_feed, ownable, access_control, multicall3).
+    args:
+      type: array
+      description: Arguments passed to the view function.
+    calls:
+      type: array
+      description: List of call objects for multicall batch reads.
+    multicall_address:
+      type: string
+      description: Optional override address for the Multicall3 contract.
+    require_success:
+      type: boolean
+      description: Whether all multicall calls must succeed (default false).
+    addressbook_path:
+      type: string
+      description: Optional custom path to operator addressbook.yaml.
+  required:
+    - action
+constitution: |
+  1. READ ONLY: This skill strictly executes eth_call queries; it holds no private keys and never signs.
+  2. FAIL CLOSED: Invalid hex lengths, malformed addresses, or unconfigured chains abort deterministically.
+  3. RATE LIMITING: Multicall batch size is capped at 50 calls to protect node RPC throughput.
+  4. ADDRESS DISAMBIGUATION: Central address book queries matching multiple contacts return needs_input.
+  5. EIP-55 NORMALIZATION: All valid EVM addresses in outputs are returned in EIP-55 checksum format.
+env_vars:
+  ETHEREUM_RPC_URL:
+    description: "JSON-RPC endpoint for Ethereum mainnet."
+    required: false
+  BASE_RPC_URL:
+    description: "JSON-RPC endpoint for Base."
+    required: false
+  ARBITRUM_RPC_URL:
+    description: "JSON-RPC endpoint for Arbitrum One."
+    required: false
+  OPTIMISM_RPC_URL:
+    description: "JSON-RPC endpoint for OP Mainnet."
+    required: false
+  POLYGON_RPC_URL:
+    description: "JSON-RPC endpoint for Polygon PoS."
+    required: false
+  BSC_RPC_URL:
+    description: "JSON-RPC endpoint for BNB Smart Chain."
+    required: false
+  SEPOLIA_RPC_URL:
+    description: "JSON-RPC endpoint for Sepolia testnet."
+    required: false
+  MEGAETH_RPC_URL:
+    description: "JSON-RPC endpoint for MegaETH."
+    required: false
+  ARC_RPC_URL:
+    description: "JSON-RPC endpoint for Circle Arc."
+    required: false
+requirements:
+  - "web3>=6.0.0"

@@ -10,13 +10,14 @@ This hub is the documentation landing page for Skillware **defi** agent skills. 
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| **[EVM Chain Reader](evm_reader.md)** | `defi/evm_reader` | `0.1.0` (29 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only EVM state plane — token balances, allowances, view calls, multicall batches, and addressbook resolution. |
 | **[EVM Transaction Handler](evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.3.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and name-based transfer on Ethereum/Base via central address book. |
 | **[Token Security Scanner](token_security_scanner.md)** | `defi/token_security_scanner` | `0.1.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only GoPlus token honeypot/tax/ownership report before agent trades. |
 
 ## Typical host pipelines
 
+- Pre-trade verification and balance checks: `defi/token_security_scanner` → `defi/evm_reader` → `defi/evm_tx_handler` preview/execute.
 - Quote, preview, then execute a Uni V2 swap or transfer from structured intent: `defi/evm_tx_handler`.
-- Pre-trade token vet: `defi/token_security_scanner` → `defi/evm_tx_handler` preview/execute (optional future: `security/drainer_pattern_guard` first).
 - Screen wallet then trade: `finance/wallet_screening` → `defi/evm_tx_handler` (preview / confirm before broadcast).
 
 ## Load by registry ID
