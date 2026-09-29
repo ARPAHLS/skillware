@@ -1,7 +1,7 @@
 name: office/pdf_form_filler
-version: 0.1.0
+version: 0.1.1
 description: Fills PDF forms based on natural language instructions.
-short_description: "Fills AcroForm PDFs by mapping natural-language instructions to detected fields."
+short_description: "Use when filling PDF form fields from a field map or natural-language instructions."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
