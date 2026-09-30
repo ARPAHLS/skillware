@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **Templates:** Modernize `templates/python_skill/` starter bundle — dynamically load `manifest.yaml` in `skill.py`, demonstrate schema parameter validation (`self.validate_params()`) and structured error handling, align `card.json` fields with `manifest.yaml` outputs, fix `test_skill_manifest_consistency` failure, verify `SkillLoader` bundling, and expand `README.md` with complete skill creation workflow, Do's/Don'ts, and card UI schema fixture requirements.
+
 ## [0.5.7] - 2026-09-29
 
 ### Added
