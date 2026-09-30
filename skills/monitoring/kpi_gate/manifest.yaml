@@ -1,5 +1,5 @@
 name: monitoring/kpi_gate
-version: 0.1.0
+version: 0.1.1
 description: >
   Deterministic business-KPI gate. Evaluates a metrics snapshot against an
   operator-maintained policy charter and optional versioned benchmark data,
@@ -8,7 +8,7 @@ description: >
   all three inputs, a closed rule set, and fail-closed contract errors from a
   closed registry. Pure evaluation only: no network calls, no data fetching,
   no side effects; identical input always returns identical output.
-short_description: "Deterministic KPI gate: metrics snapshot vs policy charter, fail-closed findings."
+short_description: "Use as an agent loop quality gate: compare metric snapshots against a policy charter with fail-closed findings."
 issuer:
   name: Masa
   email: masa88keith@gmail.com
