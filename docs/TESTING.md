@@ -43,6 +43,40 @@ Or use the dev pointer file:
 pip install -r requirements.txt
 ```
 
+### Clone dev setup
+
+When contributing from a clone, use a **dedicated virtual environment**. Do not mix a global PyPI `pip install skillware` with `pip install -e ".[dev,all]"` on the same Python interpreter.
+
+**Symptoms of a mixed install:**
+
+- `pytest tests/` or `skillware test` exercises the **installed wheel** under `site-packages`, not the editable clone you are editing
+- Local code changes appear to do nothing until you notice the wrong package is on `PYTHONPATH`
+- Import or loader errors that look like framework bugs
+
+**Verify which package is active** before debugging tests or the CLI:
+
+```bash
+python -c "import skillware; print(skillware.__file__)"
+```
+
+Expect a path under your clone (for example `.../skillware/skillware/__init__.py`), not `.../site-packages/skillware/...`.
+
+**If confused:** uninstall the global wheel, then reinstall editable from the repo root:
+
+```bash
+python -m pip uninstall skillware -y
+pip install -e ".[dev,all]"
+```
+
+Or run [`scripts/dev_install.ps1`](../../scripts/dev_install.ps1) (Windows) or [`scripts/dev_install.sh`](../../scripts/dev_install.sh) (Unix). `skillware doctor --install` reports editable vs PyPI overlap and prints recovery commands — see [CONTRIBUTING.md — Editable vs PyPI](../../CONTRIBUTING.md#editable-vs-pypi-on-the-same-python).
+
+| Install | Use for |
+| :--- | :--- |
+| **Editable clone** (`pip install -e ".[dev,all]"`) | Contributing, `pytest tests/`, framework and skill development |
+| **PyPI wheel** (`pip install skillware`) | End-user / agent runtime only — not for hacking the repo |
+
+For skill directory resolution (`skillware paths`, broader `doctor` UX), see [#81](https://github.com/ARPAHLS/skillware/issues/81).
+
 ## Four test layers
 
 | Layer | Location | Shipped in pip wheel? | CI on PR? |

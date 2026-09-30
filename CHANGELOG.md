@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Docs:** [TESTING.md](docs/TESTING.md) — **Clone dev setup** subsection (dedicated venv, editable vs PyPI wheel, import sanity check, recovery via `doctor --install` and dev install scripts); cross-links from [CONTRIBUTING.md](CONTRIBUTING.md) and [ai_native_workflow.md](docs/contributing/ai_native_workflow.md) ([#232](https://github.com/ARPAHLS/skillware/issues/232)).
 - **Templates:** Modernize `templates/python_skill/` starter bundle — dynamically load `manifest.yaml` in `skill.py`, demonstrate schema parameter validation (`self.validate_params()`) and structured error handling, align `card.json` fields with `manifest.yaml` outputs, fix `test_skill_manifest_consistency` failure, verify `SkillLoader` bundling, and expand `README.md` with complete skill creation workflow, Do's/Don'ts, and card UI schema fixture requirements.
 
 ### Fixed

@@ -13,7 +13,7 @@ Use this guide to choose the smallest install that matches what you run. For loa
 | All skills in a category | `pip install "skillware[<category>]"` |
 | Every bundled skill's runtime deps | `pip install "skillware[all]"` |
 | Agent SDK adapters (Gemini, Claude, OpenAI, Bedrock) | `pip install "skillware[gemini]"` (or `[claude]`, `[openai]`, `[bedrock]`, `[agents]`) |
-| Clone-repo development + tests | `pip install -e ".[dev,all]"` |
+| Clone-repo development + tests | `pip install -e ".[dev,all]"` — see [Clone dev setup](../TESTING.md#clone-dev-setup) |
 | Development + agent SDK examples | `pip install -e ".[dev,all,agents]"` |
 
 > **Pip rule:** `pip install "skillware[extra]"` always installs **core + extra** dependencies. There is no extra-only install without the `skillware` package.

@@ -57,11 +57,14 @@ git checkout -b feat/issue-<number>-short-description
 
 Use `pip install -e ".[dev]"` when the issue is documentation-only; use `[dev,all]` for skill or framework work so local pytest matches CI. Add `[agents]` when running SDK examples (see [Install extras](../usage/install_extras.md)).
 
+Use a dedicated venv for clone work — do not mix global PyPI `skillware` with editable install on the same Python. See [Clone dev setup](../TESTING.md#clone-dev-setup) and [CONTRIBUTING.md — Editable vs PyPI](../../CONTRIBUTING.md#editable-vs-pypi-on-the-same-python).
+
 Before Stage 2, confirm:
 
 - Correct issue number and branch name
 - `origin` points at the operator's fork
 - You are not editing on a stale `main` copy
+- Editable install is active: `python -c "import skillware; print(skillware.__file__)"` points at the clone, not `site-packages` (if not, run `skillware doctor --install`)
 
 ---
 

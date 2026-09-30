@@ -32,7 +32,7 @@ Apply every check that matches the change type before requesting review:
 - If adding/renaming a runnable script under `examples/` → update `examples/README.md`, the skill catalog page, and `docs/usage/agent_loops.md`
 - If changing `skillware/core/` → review framework tests and provider docs under `docs/usage/`
 - If changing public CLI behaviour → update `docs/usage/cli.md` and `skillware/cli.py` help text together
-- **Docs-only PR:** use a dedicated venv with editable install; verify `python -c "import skillware; print(skillware.__file__)"` points at the clone, not global `site-packages` ([TESTING.md](../docs/TESTING.md))
+- **Docs-only PR:** use a dedicated venv with editable install; verify `python -c "import skillware; print(skillware.__file__)"` points at the clone, not global `site-packages` ([TESTING.md — Clone dev setup](../docs/TESTING.md#clone-dev-setup))
 - **Package version bump:** maintainer-only unless explicitly requested; update `pyproject.toml`, `CITATION.cff`, and cut a release section in `CHANGELOG.md`
 
 ## Paths

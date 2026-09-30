@@ -96,6 +96,8 @@ pip install -e ".[dev,all]"
 
 For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI (optional `[agents]` for SDK examples — see [Install extras](docs/usage/install_extras.md)).
 
+Prefer a dedicated venv for clone work — full setup, sanity check, and recovery: [TESTING.md — Clone dev setup](docs/TESTING.md#clone-dev-setup).
+
 #### Editable vs PyPI on the same Python
 
 Use **one install mode per interpreter** — editable **or** PyPI wheel, not both. Mixing `pip install -e ".[dev,all]"` from a clone with `pip install skillware` / `pip install -U skillware` on the same Python can leave orphan `skillware-*.dist-info` folders and make the CLI print `skillware None` / `vNone` ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
@@ -110,7 +112,7 @@ Then either editable (`pip install -e ".[dev,all]"` from the repo) or PyPI (`pip
 
 **If `pip uninstall` fails** (`uninstall-no-record-file`), run `skillware doctor --install` for copy-paste recovery commands, or use [`scripts/dev_install.ps1`](scripts/dev_install.ps1) / [`scripts/dev_install.sh`](scripts/dev_install.sh) from a clean repo checkout.
 
-See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
+See [TESTING.md](docs/TESTING.md#clone-dev-setup) for clone dev setup and [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
 ### 5. Implement and verify
 
