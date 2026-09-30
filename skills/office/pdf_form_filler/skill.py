@@ -5,6 +5,35 @@ import anthropic
 import yaml
 from skillware.core.base_skill import BaseSkill
 
+# SkillLoader runs this file as a standalone module, so the relative import only
+# works when the bundle is imported as a package. Fall back to the package path,
+# then load the sibling utils.py under a unique module name. Do not modify
+# sys.path or import a top-level "utils" module, which can clash with the host.
+try:
+    from .utils import detect_form_fields, apply_edits, FieldEdit
+except (ImportError, ValueError):
+    try:
+        from skills.office.pdf_form_filler.utils import (
+            detect_form_fields,
+            apply_edits,
+            FieldEdit,
+        )
+    except (ImportError, ValueError):
+        import importlib.util
+
+        _utils_spec = importlib.util.spec_from_file_location(
+            "pdf_form_filler_utils",
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "utils.py"),
+        )
+        if _utils_spec and _utils_spec.loader:
+            _utils_module = importlib.util.module_from_spec(_utils_spec)
+            _utils_spec.loader.exec_module(_utils_module)
+            detect_form_fields = _utils_module.detect_form_fields
+            apply_edits = _utils_module.apply_edits
+            FieldEdit = _utils_module.FieldEdit
+        else:
+            raise ImportError("Could not load utils.py for office/pdf_form_filler")
+
 
 class PDFFormFillerSkill(BaseSkill):
     """
@@ -26,15 +55,6 @@ class PDFFormFillerSkill(BaseSkill):
         return {}
 
     def execute(self, params: Dict[str, Any]) -> Any:
-        # Import here to avoid top-level linter issues with relative imports
-        try:
-            from .utils import detect_form_fields, apply_edits, FieldEdit
-        except ImportError:
-            import sys
-
-            sys.path.append(os.path.dirname(__file__))
-            from utils import detect_form_fields, apply_edits, FieldEdit
-
         # 1. Parse Inputs
         pdf_path = params.get("pdf_path")
         instructions = params.get("instructions")
