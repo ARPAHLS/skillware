@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Docs:** Clarify that `SKILLWARE_NO_VERSION_CHECK=1` suppresses both version and install-conflict advisories ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
 - **CLI / packaging:** Harden version display when editable and PyPI installs overlap — `get_package_version_display()` never prints `None`; `detect_install_conflicts()` via `assess_install_health()`; startup stderr hint; **`skillware doctor --install`** with recovery commands; install summary in **`skillware config show`** ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
 - **Scripts:** [`scripts/dev_install.sh`](scripts/dev_install.sh) and [`scripts/dev_install.ps1`](scripts/dev_install.ps1) — uninstall overlapping installs and reinstall editable dev deps.
 - **Core / CLI:** EVM operator config layer — bundled `skillware/data/evm_defaults.yaml`, writable user `evm.yaml`, `skillware.core.evm_config` merge helpers (`load_merged_evm_config`, `resolve_chain`, `resolve_rpc_url`, `normalize_evm_address`), and `skillware evm` commands (`init`, `chains list`, `chain add`, `rpc enable`, `validate`, `open`). Project/global YAML uses top-level **`evm:`** (or read-only **`web3:`** alias) — distinct from orchestration **`chains:`** (#379).
