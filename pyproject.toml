@@ -51,6 +51,7 @@ skillware = "skillware.cli:main"
 dev = [
     "pytest",
     "pytest-mock",
+    "pytest-asyncio",
     "flake8",
     "black",
 ]
