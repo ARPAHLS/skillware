@@ -55,7 +55,7 @@ Project-wide role and anatomy terms live in the [glossary](../glossary.md). This
 | Need | Import |
 | :--- | :--- |
 | Registry context (recommended multi-skill entry) | `from skillware import SkillContext` |
-| Named chain runner | `from skillware.chains import run_chain, list_chains, load_chain, validate_chain` |
+| Named chain runner (sync & async) | `from skillware.chains import run_chain, arun_chain, list_chains, load_chain, validate_chain` |
 | Single skill (unchanged) | `from skillware.core.loader import SkillLoader` |
 
 `SkillContext` wraps `SkillLoader`; it does not replace it. Existing single-skill scripts keep working unchanged.
@@ -249,6 +249,15 @@ result = run_chain(
 # result.steps[i].status: ok | skipped | failed
 # result.final — last executed step output (firewall output when rewriter skipped)
 # result.errors — tuple of error strings
+
+# Asynchronous execution in async agent runtimes / FastAPI:
+from skillware.chains import arun_chain
+
+async_result = await arun_chain(
+    "sanitize_input",
+    host_input={"source_text": untrusted_text},
+    timeout=15.0,  # optional overall chain timeout
+)
 ```
 
 ### CLI

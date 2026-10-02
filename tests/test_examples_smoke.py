@@ -48,6 +48,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "async_tool_loop.py",
+        [
+            "Initialize SkillContext with Concurrency Throttling",
+            "Concurrent Async Execution",
+            "Asynchronous Skill Chain Execution",
+            "All asynchronous executions completed successfully.",
+        ],
+    ),
+    (
         "mental_coach_demo.py",
         ["wellness/mental_coach", "Coaching", "Crisis escalation", "policy_status:"],
     ),

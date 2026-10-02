@@ -1,5 +1,7 @@
+import asyncio
 import os
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, Optional
 
 import jsonschema
@@ -46,12 +48,44 @@ class BaseSkill(ABC):
         """
         pass
 
-    @abstractmethod
     def execute(self, params: Dict[str, Any]) -> Any:
         """
-        The main entry point for the skill.
+        The main synchronous entry point for the skill.
+
+        Subclasses typically implement this method. If a subclass only implements
+        ``aexecute()``, this method provides a synchronous bridge.
         """
-        pass
+        if self.__class__.aexecute is not BaseSkill.aexecute:
+            return self._run_coroutine_sync(self.aexecute(params))
+        raise NotImplementedError(
+            f"Skill {self.__class__.__name__} must implement execute() or aexecute()."
+        )
+
+    async def aexecute(self, params: Dict[str, Any]) -> Any:
+        """
+        The main asynchronous entry point for the skill.
+
+        By default, offloads synchronous ``execute()`` to an async worker thread
+        via ``asyncio.to_thread`` to prevent blocking the host event loop.
+        Subclasses may override this method directly for native non-blocking I/O.
+        """
+        return await asyncio.to_thread(self.execute, params)
+
+    @staticmethod
+    def _run_coroutine_sync(coro: Any) -> Any:
+        """
+        Safely execute an asynchronous coroutine synchronously, even if called
+        from inside a thread where an asyncio event loop is already running.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is not None and loop.is_running():
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                return executor.submit(asyncio.run, coro).result()
+        return asyncio.run(coro)
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """

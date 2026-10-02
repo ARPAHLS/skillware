@@ -1361,7 +1361,7 @@ def test_cmd_evm_open_uses_os_helper(tmp_path, monkeypatch):
 
     monkeypatch.setenv("SKILLWARE_CONFIG_DIR", str(tmp_path / "cfg"))
     assert cmd_evm_init(non_interactive=True) == 0
-    monkeypatch.setattr("skillware.cli_os.open_path_in_os", lambda *a, **k: None)
+    monkeypatch.setattr("skillware.cli_evm.open_path_in_os", lambda *a, **k: None)
     assert cmd_evm_open() == 0
 
 

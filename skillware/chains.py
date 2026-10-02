@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 from skillware.core.chains_config import ChainDefinition, ChainStep, StepWhen
@@ -410,3 +411,195 @@ def run_chain(
 
 def required_host_input_keys(definition: ChainDefinition) -> List[str]:
     return _collect_host_keys(definition.steps)
+
+
+async def arun_chain(
+    name_or_definition: Union[str, ChainDefinition],
+    *,
+    host_input: Optional[Mapping[str, Any]] = None,
+    stop_on_error: Optional[bool] = None,
+    validate_params: bool = True,
+    check_requirements: bool = True,
+    dry_run: bool = False,
+    timeout: Optional[float] = None,
+) -> ChainResult:
+    """
+    Execute a skill chain asynchronously without blocking the event loop.
+
+    Each step invokes the skill's ``aexecute()`` method (falling back to a worker thread
+    via ``asyncio.to_thread`` if the skill only implements synchronous ``execute()``).
+    """
+
+    async def _execute_chain() -> ChainResult:
+        if isinstance(name_or_definition, str):
+            definition = load_chain(name_or_definition)
+            chain_name = name_or_definition
+        else:
+            definition = name_or_definition
+            chain_name = definition.name
+
+        host: Dict[str, Any] = dict(host_input or {})
+        stop = definition.stop_on_error if stop_on_error is None else stop_on_error
+
+        step_results: List[ChainStepResult] = []
+        step_outputs: List[Optional[Dict[str, Any]]] = []
+        step_ids: List[Optional[str]] = []
+        next_params: Dict[str, Any] = {}
+        prev_executed_output: Optional[Dict[str, Any]] = None
+        errors: List[str] = []
+        final: Optional[Dict[str, Any]] = None
+
+        for index, step in enumerate(definition.steps):
+            if step.when is not None and not _evaluate_when(
+                step.when,
+                steps=definition.steps,
+                step_index=index,
+                step_outputs=step_outputs,
+                step_ids=step_ids,
+            ):
+                step_results.append(
+                    ChainStepResult(
+                        index=index,
+                        skill_id=step.skill,
+                        status="skipped",
+                        skip_reason="when condition not met",
+                    )
+                )
+                step_outputs.append(None)
+                step_ids.append(step.step_id)
+                continue
+
+            params = _build_step_params(
+                step,
+                host_input=host,
+                next_params=next_params,
+                prev_output=prev_executed_output,
+            )
+            next_params = {}
+
+            if dry_run:
+                step_results.append(
+                    ChainStepResult(
+                        index=index,
+                        skill_id=step.skill,
+                        status="ok",
+                        output=params,
+                    )
+                )
+                step_outputs.append(params)
+                prev_executed_output = params
+                final = params
+                step_ids.append(step.step_id)
+                continue
+
+            try:
+                bundle = SkillLoader.load_skill(
+                    step.skill,
+                    check_requirements=check_requirements,
+                    execute_module=True,
+                )
+                skill_cls = SkillLoader.get_skill_class(bundle)
+                skill = skill_cls()
+                if validate_params:
+                    skill.validate_params(params)
+                raw_output = await skill.aexecute(params)
+                output = (
+                    dict(raw_output)
+                    if isinstance(raw_output, dict)
+                    else {"result": raw_output}
+                )
+            except Exception as exc:
+                step_results.append(
+                    ChainStepResult(
+                        index=index,
+                        skill_id=step.skill,
+                        status="failed",
+                        output={"error": str(exc)},
+                    )
+                )
+                step_outputs.append(None)
+                step_ids.append(step.step_id)
+                errors.append(f"Step {index} ({step.skill}): {exc}")
+                if stop:
+                    return ChainResult(
+                        chain_name=chain_name,
+                        status="failed",
+                        steps=tuple(step_results),
+                        final=final,
+                        errors=tuple(errors),
+                    )
+                continue
+
+            if _is_error_output(output):
+                step_results.append(
+                    ChainStepResult(
+                        index=index,
+                        skill_id=step.skill,
+                        status="failed",
+                        output=output,
+                    )
+                )
+                step_outputs.append(None)
+                step_ids.append(step.step_id)
+                errors.append(f"Step {index} ({step.skill}): error-shaped output")
+                if stop:
+                    return ChainResult(
+                        chain_name=chain_name,
+                        status="failed",
+                        steps=tuple(step_results),
+                        final=final,
+                        errors=tuple(errors),
+                    )
+                continue
+
+            _apply_map_out(
+                output, step.map_out, host_input=host, next_params=next_params
+            )
+            step_results.append(
+                ChainStepResult(
+                    index=index,
+                    skill_id=step.skill,
+                    status="ok",
+                    output=output,
+                )
+            )
+            step_outputs.append(output)
+            prev_executed_output = output
+            final = output
+            step_ids.append(step.step_id)
+
+        statuses = {s.status for s in step_results}
+        if "failed" in statuses:
+            overall = "failed"
+        elif "skipped" in statuses:
+            overall = "partial"
+        else:
+            overall = "ok"
+
+        return ChainResult(
+            chain_name=chain_name,
+            status=overall,
+            steps=tuple(step_results),
+            final=final,
+            errors=tuple(errors),
+        )
+
+    if timeout is not None and timeout > 0:
+        return await asyncio.wait_for(_execute_chain(), timeout=timeout)
+    return await _execute_chain()
+
+
+__all__ = [
+    "ChainDefinition",
+    "ChainResult",
+    "ChainStep",
+    "ChainStepResult",
+    "ChainValidationError",
+    "StepWhen",
+    "arun_chain",
+    "list_chains",
+    "load_chain",
+    "required_host_input_keys",
+    "run_chain",
+    "validate_chain",
+]
