@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
@@ -155,10 +156,13 @@ class SkillContext:
         mode: ContextMode = "brief",
         check_requirements: bool = True,
         secret_provider: Optional[SecretProvider | Mapping[str, str]] = None,
+        max_concurrency: Optional[int] = None,
     ) -> None:
         self.mode = mode if mode in {"brief", "tools_only", "directives"} else "brief"
         self._check_requirements = check_requirements
         self._secret_provider = coerce_secret_provider(secret_provider)
+        self._max_concurrency = max_concurrency
+        self._semaphore: Optional[asyncio.Semaphore] = None
         self.skill_ids, self.warnings, self._tier_by_id = _discover_skill_ids(
             skill=skill,
             skills=skills,
@@ -278,18 +282,66 @@ class SkillContext:
             return None
         return SkillLoader.resolve_env_vars(manifest, self._secret_provider)
 
-    def execute(self, skill_id: str, params: Mapping[str, Any]) -> Any:
-        prep = self.prepare(skill_id)
+    def _get_instance(self, prep: PreparedSkill) -> Any:
+        skill_id = prep.skill_id
         skill_cls = SkillLoader.get_skill_class(dict(prep.bundle))
         if self._secret_provider is None:
             if skill_id not in self._instances:
                 self._instances[skill_id] = skill_cls()
-            instance = self._instances[skill_id]
-        else:
-            config = self._skill_config(prep.manifest) or {}
-            instance = skill_cls(config=config)
+            return self._instances[skill_id]
+        config = self._skill_config(prep.manifest) or {}
+        return skill_cls(config=config)
+
+    def _get_semaphore(self) -> Optional[asyncio.Semaphore]:
+        if self._max_concurrency is not None and self._max_concurrency > 0:
+            if self._semaphore is None:
+                self._semaphore = asyncio.Semaphore(self._max_concurrency)
+            return self._semaphore
+        return None
+
+    def execute(self, skill_id: str, params: Mapping[str, Any]) -> Any:
+        prep = self.prepare(skill_id)
+        instance = self._get_instance(prep)
         instance.validate_params(dict(params))
         return instance.execute(dict(params))
 
     def call(self, skill_id: str, params: Mapping[str, Any]) -> Any:
         return self.execute(skill_id, params)
+
+    async def aexecute(
+        self,
+        skill_id: str,
+        params: Mapping[str, Any],
+        *,
+        timeout: Optional[float] = None,
+    ) -> Any:
+        """
+        Execute a registered skill asynchronously without blocking the event loop.
+        """
+        prep = self.prepare(skill_id)
+        instance = self._get_instance(prep)
+        instance.validate_params(dict(params))
+
+        async def _run() -> Any:
+            return await instance.aexecute(dict(params))
+
+        sem = self._get_semaphore()
+        if sem is not None:
+            async with sem:
+                if timeout is not None and timeout > 0:
+                    return await asyncio.wait_for(_run(), timeout=timeout)
+                return await _run()
+        else:
+            if timeout is not None and timeout > 0:
+                return await asyncio.wait_for(_run(), timeout=timeout)
+            return await _run()
+
+    async def acall(
+        self,
+        skill_id: str,
+        params: Mapping[str, Any],
+        *,
+        timeout: Optional[float] = None,
+    ) -> Any:
+        """Alias for aexecute()."""
+        return await self.aexecute(skill_id, params, timeout=timeout)

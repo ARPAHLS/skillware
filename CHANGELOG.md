@@ -8,6 +8,13 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Core / Async:** Native asynchronous skill execution parity (`BaseSkill.aexecute`, `SkillContext.aexecute`, `SkillContext.acall`) with non-blocking default fallback via `asyncio.to_thread` for all existing skills, bidirectional sync/async bridging, per-call `timeout` enforcement, and semaphore-backed concurrency throttling via `SkillContext(max_concurrency=N)` ([#18](https://github.com/ARPAHLS/skillware/issues/18)).
+- **Orchestration / Chains:** Asynchronous skill chain runner (`skillware.chains.arun_chain`) supporting deterministic step execution, conditional `when:` skipping, parameter mappings, short-circuit error handling, and chain-level timeouts without blocking the host event loop ([#18](https://github.com/ARPAHLS/skillware/issues/18)).
+- **Examples / Docs:** Added [`examples/async_tool_loop.py`](examples/async_tool_loop.py) demonstrating concurrent async fan-outs with `asyncio.gather`, concurrency limits, and async chain execution; updated [`docs/usage/agent_loops.md`](docs/usage/agent_loops.md) and [`docs/usage/skill_chaining.md`](docs/usage/skill_chaining.md) ([#18](https://github.com/ARPAHLS/skillware/issues/18)).
+- **CLI / Tests:** Guard `open_path_in_os` in `skillware.cli_os` and mock target in `tests/test_cli.py` to prevent automated test runs from launching external OS file managers or application windows on the host desktop.
+
 ### Changed
 
 - **Docs:** [TESTING.md](docs/TESTING.md) — **Clone dev setup** subsection (dedicated venv, editable vs PyPI wheel, import sanity check, recovery via `doctor --install` and dev install scripts); cross-links from [CONTRIBUTING.md](CONTRIBUTING.md) and [ai_native_workflow.md](docs/contributing/ai_native_workflow.md) ([#232](https://github.com/ARPAHLS/skillware/issues/232)).

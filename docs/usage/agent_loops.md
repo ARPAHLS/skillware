@@ -98,8 +98,29 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 | Pattern | Script |
 | :--- | :--- |
 | `SkillContext` + optional Gemini loop | [`skill_context_gemini_loop.py`](../../examples/skill_context_gemini_loop.py) |
+| Async tool loop + `SkillContext.aexecute` | [`async_tool_loop.py`](../../examples/async_tool_loop.py) |
 | Named chain (`run_chain`, local) | [`sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py) |
 | `SkillContext` + Ollama prompt mode | [`ollama_skills_test.py`](../../examples/ollama_skills_test.py) |
+
+### Asynchronous agent loops (`aexecute`)
+
+In modern async runtimes (FastAPI, async LLM clients, streaming agent loops, or multi-tool fan-outs), blocking the event loop degrades throughput. Skillware provides native asynchronous execution parity:
+
+```python
+from skillware import SkillContext
+
+# Initialize context with optional concurrency throttling (semaphore-backed)
+ctx = SkillContext(max_concurrency=10)
+
+# In your async tool execution handler:
+result = await ctx.aexecute(skill_id, arguments, timeout=30.0)
+```
+
+- **Dual Execution Parity:** Any skill can implement synchronous `execute()`, asynchronous `aexecute()`, or both.
+- **Non-blocking Default:** Skills that only implement synchronous `execute()` are automatically offloaded to worker threads via `asyncio.to_thread`.
+- **Bidirectional Bridging:** Synchronous hosts can call async skills via `skill.execute()`, and async hosts can call synchronous skills via `await skill.aexecute()`.
+- **Concurrency Throttling:** `SkillContext(max_concurrency=N)` automatically protects downstream services and rate limits.
+- **Timeouts:** `timeout=float` enforces deadlines, raising standard `asyncio.TimeoutError` upon expiration.
 
 ---
 

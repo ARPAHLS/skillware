@@ -10,6 +10,8 @@ from pathlib import Path
 
 def open_path_in_os(path: Path, *, open_parent: bool = False) -> None:
     """Open a file or its parent directory in the native file manager."""
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return
     target = path.parent if open_parent else path
     if sys.platform == "win32":
         os.startfile(str(target))  # type: ignore[attr-defined]
