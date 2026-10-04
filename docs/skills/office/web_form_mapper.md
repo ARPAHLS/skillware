@@ -235,7 +235,7 @@ Commits that touched this skill bundle or its catalog page ([`office/web_form_ma
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| _Unreleased_ | feat(office): add web_form_mapper skill with CSRF preservation and address book legal_profile (#45) | 04 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`ea42828`](https://github.com/ARPAHLS/skillware/commit/ea42828e319aef9b0b37e51f75300639892f00ac) | feat(office): add web_form_mapper skill with CSRF preservation and legal profile (#45) (#410) | 04 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer

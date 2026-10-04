@@ -104,18 +104,18 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 
 | Category | Skills | Description |
 | :--- | :---: | :--- |
+| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
+| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
+| [DeFi](docs/skills/defi/README.md) | 3 | On-chain ops, trading, and agent wallet management |
 | [Office](docs/skills/office/README.md) | 3 | Documents, desktop work, and productivity automation |
 | [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
 | [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
-| [DeFi](docs/skills/defi/README.md) | 3 | On-chain ops, trading, and agent wallet management |
+| [Monitoring](docs/skills/monitoring/README.md) | 2 | Agent loop observability, budget gates, and task control |
 | [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
-| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
-| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
 | [Security](docs/skills/security/README.md) | 2 | Defenses for untrusted input reaching logical systems |
 | [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
-| [Monitoring](docs/skills/monitoring/README.md) | 2 | Agent loop observability, budget gates, and task control |
-| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
 | [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
+| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
 
 ## Quick Start
 
