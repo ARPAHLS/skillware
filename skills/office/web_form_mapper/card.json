@@ -1,0 +1,29 @@
+{
+  "name": "Web Form Mapper",
+  "description": "Inspects, maps identity profiles to, previews, and submits web forms with confirmation gates.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "globe",
+  "color": "blue",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "status",
+        "label": "Status"
+      },
+      {
+        "key": "action",
+        "label": "Action"
+      },
+      {
+        "key": "form_action",
+        "label": "Endpoint"
+      }
+    ]
+  }
+}

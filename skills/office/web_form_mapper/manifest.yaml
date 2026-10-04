@@ -1,0 +1,131 @@
+name: office/web_form_mapper
+version: 0.1.0
+description: |
+  Deterministically inspects, maps identity profiles to, previews, and submits
+  web forms (HTML & SPAs) with automatic CSRF/hidden state preservation,
+  address book legal_profile integration, and strict confirmation safety gates.
+short_description: "Maps identity profiles to HTML web forms and submits with confirmation gates."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: office
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Operation to perform: 'inspect' (parse DOM/inputs), 'map' (align profile to fields), 'preview' (diff and validation), or 'submit' (execute post/dispatch)."
+      enum:
+        - inspect
+        - map
+        - preview
+        - submit
+      default: inspect
+    html_content:
+      type: string
+      description: "Raw HTML content of the form to parse offline (recommended)."
+    url:
+      type: string
+      description: "Target web URL if fetching live HTML directly."
+    payload:
+      type: object
+      description: "Direct key-value dictionary of values to fill into the form."
+    contact_id:
+      type: string
+      description: "Contact ID from addressbook.yaml to resolve legal_profile for autofill."
+    use_self:
+      type: boolean
+      description: "Autofill using the operator's primary identity (is_self: true) from addressbook.yaml."
+      default: false
+    form_profile_id:
+      type: string
+      description: "Optional ID of a curated site mapping profile from kb/form_profiles/."
+    form_index:
+      type: integer
+      description: "0-based index of the form on the page to target when multiple forms exist."
+      default: 0
+    fill_plan:
+      type: array
+      description: "Explicit field mapping plan to preview or submit."
+      items:
+        type: object
+    confirmed:
+      type: boolean
+      description: "Required 'true' to execute submit when dry_run is false."
+      default: false
+    dry_run:
+      type: boolean
+      description: "When true, simulates submission without emitting external network requests."
+      default: true
+    execution_engine:
+      type: string
+      description: "Submission execution engine: 'http_post' (direct HTTP POST with CSRF passthrough) or 'browser' (headless browser)."
+      enum:
+        - http_post
+        - browser
+      default: http_post
+    save_screenshot:
+      type: boolean
+      description: "Capture visual screenshot artifact during submission if browser engine is active."
+      default: true
+    output_dir:
+      type: string
+      description: "Directory to save receipts and screenshots. Defaults to context scratch directory."
+  required: []
+outputs:
+  status:
+    type: string
+    description: "Status indicator: 'success', 'needs_input', 'blocked', or 'error'."
+  action:
+    type: string
+    description: "Action executed by the skill."
+  form_id:
+    type: string
+    description: "Identifier or name of the targeted form element."
+  form_action:
+    type: string
+    description: "Target URL or endpoint path the form posts to."
+  form_method:
+    type: string
+    description: "HTTP method used by the form (GET or POST)."
+  fields:
+    type: array
+    description: "Extracted form input fields and metadata."
+    items:
+      type: object
+  hidden_fields:
+    type: object
+    description: "Preserved hidden state and CSRF tokens extracted from the form."
+  fill_plan:
+    type: array
+    description: "Generated mapping plan aligning fields with proposed values."
+    items:
+      type: object
+  unmapped_fields:
+    type: array
+    description: "List of required form fields that could not be mapped to any value."
+    items:
+      type: string
+  preview_table:
+    type: array
+    description: "Human-readable diff table comparing field labels, original values, and proposed values."
+    items:
+      type: object
+  submission_result:
+    type: object
+    description: "Result of submission including HTTP status code, confirmation message, and receipt artifact paths."
+  error:
+    type: string
+    description: "Error message or failure reason code if operation failed."
+constitution: |
+  1. USER SAFETY: Never submit PII, financial information, or tax IDs without explicit user confirmation (confirmed: true).
+  2. INTEGRITY: Automatically preserve and pass through all hidden fields, CSRF tokens, and viewstates to prevent session corruption.
+  3. FAIL-CLOSED: Immediately halt with a structured error if CAPTCHA challenges, bot protection, or MFA is encountered; never attempt unauthorized bypass.
+  4. LOCAL ARTIFACTS: Store all evidence, screenshots, and response receipts in the local context scratch directory; never transmit data to unapproved third parties.
+requirements:
+  - beautifulsoup4
+presentation:
+  icon: "globe"
+  color: "#3B82F6"

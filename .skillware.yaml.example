@@ -138,6 +138,26 @@ legacy:
 #         input_from:
 #           deck_spec: host.deck_spec
 #           output_path: host.output_path
+#   secure_web_form_intake:
+#     description: Scan web form HTML for dark patterns; inspect controls only if safe.
+#     when: Autonomous web agent encounters a form on an untrusted or external domain.
+#     steps:
+#       - id: guard
+#         skill: security/deceptive_ui_guard
+#         params:
+#           sensitivity: balanced
+#           intended_action: fill legal corporate declaration form
+#         input_from:
+#           html_content: host.html_content
+#       - skill: office/web_form_mapper
+#         when:
+#           prior_step: guard
+#           field: is_safe
+#           equals: true
+#         params:
+#           action: inspect
+#         input_from:
+#           html_content: host.html_content
 #   optimize_document_context:
 #     description: Scan untrusted document; select goal-relevant spans when safe.
 #     when: Large untrusted document before main LLM context.

@@ -79,6 +79,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [Office hub](skills/office/README.md)
 - [`office/gmail_handler`](skills/office/gmail_handler.md)
 - [`office/pdf_form_filler`](skills/office/pdf_form_filler.md)
+- [`office/web_form_mapper`](skills/office/web_form_mapper.md)
 
 ### Optimization
 

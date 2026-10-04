@@ -231,6 +231,7 @@ See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference cha
 | `preflight_untrusted_html` | HTML-mode firewall only |
 | `scan_then_gate` | Firewall → token limiter check |
 | `deck_build_pipeline` | Validate → lint → render deck spec |
+| `secure_web_form_intake` | Deceptive UI guard → Web form mapper (mapper skipped when dark patterns or deceptive UI detected) |
 
 ### Python API
 
