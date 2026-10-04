@@ -1,0 +1,14 @@
+id: irs_portal
+name: "IRS Portal Standard Form"
+description: "Field mapping rules for IRS federal tax reporting portals."
+domains:
+  - "irs.gov"
+  - "taxportal.gov"
+field_mappings:
+  "input[name='txtTaxpayerTIN']": "tax_id"
+  "input[name='txtLegalName']": "full_name"
+  "input[name='txtStreetAddr']": "street"
+  "input[name='txtCity']": "city"
+  "input[name='txtZip']": "postal_code"
+  "input[name='txtEmail']": "email"
+  "input[name='txtPhone']": "phone"

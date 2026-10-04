@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Just a moment... Security Check</title>
+</head>
+<body>
+    <h1>Verify you are human</h1>
+    <form action="/login" method="POST" id="challenge-form">
+        <input type="text" name="username" placeholder="Username" />
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAABBBBBBCCCCCCDDDD"></div>
+        <button type="submit">Continue</button>
+    </form>
+</body>
+</html>

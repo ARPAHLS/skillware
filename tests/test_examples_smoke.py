@@ -126,6 +126,25 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
     ),
     (
+        "web_form_mapping_demo.py",
+        [
+            "office/web_form_mapper Demo",
+            "Mapping Status: success",
+            "Submitted Legal Name: Alice Marie Example",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
+        "web_form_guard_chain_demo.py",
+        [
+            "Secure Web Form Intake Chain Demo",
+            "Surface Trust Score: 100/100",
+            "Inspection safely aborted due to deceptive UI detection",
+            "Multi-Skill Host Orchestration",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
         "pay_and_notify_demo.py",
         [
             "PAY_NOTIFY_DEMO=1",

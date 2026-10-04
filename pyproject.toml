@@ -185,6 +185,8 @@ office_pdf_form_filler = [
     "anthropic",
 ]
 
+office_web_form_mapper = []
+
 optimization_context_optimizer = [
     "fastembed",
     "numpy",

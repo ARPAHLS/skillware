@@ -76,7 +76,7 @@ Union of non-core `requirements` from every skill in the category.
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
-| `office` | `office/gmail_handler`, `office/pdf_form_filler` | `anthropic`, `pymupdf` |
+| `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `anthropic`, `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
 | `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
@@ -113,6 +113,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
+| `office_web_form_mapper` | `office/web_form_mapper` | *(none today)* | Use this extra in docs and installs |
 | `optimization_context_optimizer` | `optimization/context_optimizer` | `fastembed`, `numpy` | Local embedding model (~50 MB on first use) |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
