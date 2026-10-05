@@ -25,7 +25,7 @@ jobs:
 
       - name: Code Integrity & Anti-Obfuscation (Ruff)
         run: |
-          ruff check .
+          ruff check --config pyproject.toml .
 
       - name: AST Security Scan (Bandit)
         run: |
@@ -34,7 +34,7 @@ jobs:
 
       - name: Static Type Validation (MyPy)
         run: |
-          mypy skillware --ignore-missing-imports
+          mypy skillware --config-file pyproject.toml
 
       - name: Dependency Vulnerability Audit (pip-audit)
         run: |
