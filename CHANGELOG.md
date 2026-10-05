@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Skill (`defi/permit2_helper` v0.1.0):** Build, validate, and hash EIP-712 Permit2 typed data payloads for Uniswap Permit2 allowances and signature transfers without holding private keys, with fail-closed unlimited amount protections and RPC nonce reads ([#400](https://github.com/ARPAHLS/skillware/issues/400)).
+
 ## [0.5.8] - 2026-10-07
 
 ### Added

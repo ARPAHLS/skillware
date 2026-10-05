@@ -49,6 +49,26 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "permit2_helper_demo.py",
+        [
+            "defi/permit2_helper Demo",
+            "Primary Type: PermitSingle",
+            "Is Valid: True",
+            "unlimited_amount_forbidden",
+            "Permit2 helper demo completed successfully.",
+        ],
+    ),
+    (
+        "permit2_chain_demo.py",
+        [
+            "Permit2 Cross-Skill Chaining Demo",
+            "Step 1: Querying balance and existing allowance via defi/evm_reader",
+            "Step 2: Building EIP-712 PermitSingle payload via defi/permit2_helper",
+            "Signer verification matches host address perfectly!",
+            "Permit2 cross-skill chaining demo completed successfully.",
+        ],
+    ),
+    (
         "sanitize_input_chain_demo.py",
         [
             "sanitize_input chain demo",

@@ -238,6 +238,36 @@ See `examples/kyc_authenticity_chain_demo.py`.
 
 The host can also **choose skills dynamically** (e.g. route to `monitoring/token_limiter` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
 
+### DeFi pre-swap Permit2 approval pipeline
+
+For on-chain trades requiring signature-based allowances before router execution:
+
+```python
+# 1. Check current balance & existing Permit2 allowance
+bal = ctx.execute("defi/evm_reader", {
+    "action": "erc20_allowance",
+    "chain": "ethereum",
+    "contract": "usdc",
+    "holder": owner_address,
+    "spender": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+})
+
+# 2. Build and validate EIP-712 PermitSingle typed data
+permit = ctx.execute("defi/permit2_helper", {
+    "action": "build_permit2",
+    "chain": "ethereum",
+    "token": "usdc",
+    "spender": "router_v2",
+    "amount": 1000000,
+    "nonce": 0,
+})
+
+# 3. Host wallet signs permit["digest"] with eth_account or hardware signer
+# 4. Host passes signature to router or defi/evm_tx_handler to execute trade
+```
+
+See [`examples/permit2_chain_demo.py`](../../examples/permit2_chain_demo.py).
+
 ### Still using SkillLoader directly
 
 Single-skill loops remain valid ([agent_loops.md](agent_loops.md)):

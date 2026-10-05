@@ -171,6 +171,10 @@ defi_evm_tx_handler = [
     "web3>=6.0.0",
 ]
 
+defi_permit2_helper = [
+    "web3>=6.0.0",
+]
+
 defi_token_security_scanner = []
 
 dev_tools_issue_resolver = []

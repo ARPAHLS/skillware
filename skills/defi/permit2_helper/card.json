@@ -1,0 +1,22 @@
+{
+  "name": "Permit2 Helper",
+  "description": "Build, validate, and hash EIP-712 typed data payloads for Uniswap Permit2 allowances and signature transfers.",
+  "issuer": {
+    "name": "Achal Nawal",
+    "email": "achalnawal2005@gmail.com",
+    "github": "Achalnawal2745",
+    "org": "ARPAHLS"
+  },
+  "icon": "shield-check",
+  "color": "purple",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "chain", "label": "Chain"},
+      {"key": "token", "label": "Token"},
+      {"key": "spender", "label": "Spender"},
+      {"key": "amount", "label": "Amount"},
+      {"key": "status", "label": "Status", "type": "status_badge"}
+    ]
+  }
+}

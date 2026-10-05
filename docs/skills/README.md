@@ -48,6 +48,7 @@ On-chain execution and trading for dedicated agent wallets (structured intent, p
 | :--- | :--- | :--- | :--- | :--- |
 | **[EVM Chain Reader](defi/evm_reader.md)** | `defi/evm_reader` | `0.1.0` (29 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only EVM state plane — token balances, allowances, view calls, multicall batches, and addressbook resolution. |
 | **[EVM Transaction Handler](defi/evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.3.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and name-based transfer on Ethereum/Base via central address book. |
+| **[Permit2 Helper](defi/permit2_helper.md)** | `defi/permit2_helper` | `0.1.0` (05 Oct 2026) | [@Achalnawal2745](https://github.com/Achalnawal2745) ([@ARPAHLS](https://github.com/ARPAHLS)) | Build, validate, and hash EIP-712 typed data payloads for Uniswap Permit2. |
 | **[Token Security Scanner](defi/token_security_scanner.md)** | `defi/token_security_scanner` | `0.1.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only GoPlus token honeypot/tax/ownership report before agent trades. |
 
 ## Optimization

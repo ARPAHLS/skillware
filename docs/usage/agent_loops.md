@@ -98,6 +98,7 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 | Pattern | Script |
 | :--- | :--- |
 | `SkillContext` + optional Gemini loop | [`skill_context_gemini_loop.py`](../../examples/skill_context_gemini_loop.py) |
+| `SkillContext` cross-skill DeFi chaining | [`permit2_chain_demo.py`](../../examples/permit2_chain_demo.py) |
 | Async tool loop + `SkillContext.aexecute` | [`async_tool_loop.py`](../../examples/async_tool_loop.py) |
 | Named chain (`run_chain`, local) | [`sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py) |
 | `SkillContext` + Ollama prompt mode | [`ollama_skills_test.py`](../../examples/ollama_skills_test.py) |
@@ -170,7 +171,7 @@ agent loop. It either calls `skill.execute(...)` directly or loads multiple
 skills in one harness.
 
 **Suggested DeFi pre-trade host path:** optional `security/drainer_pattern_guard`
-(when shipped) → `defi/token_security_scanner` → `defi/evm_reader` → `defi/evm_tx_handler`
+(when shipped) → `defi/token_security_scanner` → `defi/permit2_helper` (allowance/transfer typed data) → `defi/evm_reader` → `defi/evm_tx_handler`
 preview/execute. Optional large-holder EOAs → `finance/wallet_screening`.
 Use shared EVM operator config for chains (#379); tokens in `evm.tokens`, not
 the address book.
@@ -199,6 +200,7 @@ the address book.
 | `linguistics/korean_slang` | `korean_slang_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_reader` | `evm_reader_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
+| `defi/permit2_helper` | `permit2_helper_demo.py`, `permit2_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/token_security_scanner` | - | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

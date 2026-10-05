@@ -1,0 +1,91 @@
+name: defi/permit2_helper
+version: 0.1.0
+description: |
+  Build and validate EIP-712 typed data for Uniswap Permit2 allowances and signature
+  transfers. Computes signing digests, verifies domain and safety parameters, fails
+  closed on unexpected unlimited approvals, and optionally queries on-chain Permit2 nonces.
+short_description: "Build, validate, and hash EIP-712 typed data payloads for Uniswap Permit2."
+category: defi
+issuer:
+  name: Achal Nawal
+  email: achalnawal2005@gmail.com
+  github: Achalnawal2745
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum:
+        - build_permit2
+        - validate_typed_data
+        - hash_typed_data
+        - read_nonce
+      description: Permit2 action to execute.
+    chain:
+      type: string
+      description: EVM chain name (e.g. ethereum, base, arbitrum, optimism, polygon).
+    token:
+      type: string
+      description: ERC-20 token contract address (0x...).
+    token_address:
+      type: string
+      description: Alias for token address.
+    spender:
+      type: string
+      description: Spender contract address (0x...) or router alias (e.g. router_v2).
+    owner:
+      type: string
+      description: Owner / holder address for on-chain nonce queries.
+    amount:
+      type:
+        - string
+        - integer
+      description: Token amount to permit (raw atomic units).
+    deadline:
+      type: integer
+      description: Signature deadline / expiration timestamp (in unix seconds).
+    sig_deadline:
+      type: integer
+      description: Alias for deadline.
+    expiration:
+      type: integer
+      description: Allowance expiration timestamp (in unix seconds).
+    nonce:
+      type: integer
+      description: Allowance or transfer nonce.
+    permit_type:
+      type: string
+      enum:
+        - PermitSingle
+        - PermitTransferFrom
+      description: EIP-712 Permit2 structure variant (default PermitSingle).
+    allow_unlimited:
+      type: boolean
+      description: Explicit opt-in flag required to build or validate max/unlimited approvals.
+    verifying_contract:
+      type: string
+      description: Optional override for Permit2 verifying contract address.
+    typed_data:
+      type: object
+      description: Complete EIP-712 typed data object for validation or hashing.
+    expected_chain:
+      type: string
+      description: Expected chain name to cross-check domain chainId against.
+    expected_spender:
+      type: string
+      description: Expected spender address to cross-check against message.
+  required:
+    - action
+env_vars:
+  ETHEREUM_RPC_URL:
+    description: "JSON-RPC endpoint for Ethereum mainnet."
+    required: false
+  BASE_RPC_URL:
+    description: "JSON-RPC endpoint for Base."
+    required: false
+  ARBITRUM_RPC_URL:
+    description: "JSON-RPC endpoint for Arbitrum One."
+    required: false
+requirements:
+  - "web3>=6.0.0"

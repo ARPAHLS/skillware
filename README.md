@@ -106,7 +106,7 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 | :--- | :---: | :--- |
 | [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
 | [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
-| [DeFi](docs/skills/defi/README.md) | 3 | On-chain ops, trading, and agent wallet management |
+| [DeFi](docs/skills/defi/README.md) | 4 | On-chain ops, trading, and agent wallet management |
 | [Office](docs/skills/office/README.md) | 3 | Documents, desktop work, and productivity automation |
 | [Security](docs/skills/security/README.md) | 3 | Defenses for untrusted input reaching logical systems |
 | [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
