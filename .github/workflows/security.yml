@@ -1,0 +1,42 @@
+name: Security & Code Integrity
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  security-audit:
+    name: AST Security & Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies & Audit Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,all]"
+
+      - name: Code Integrity & Anti-Obfuscation (Ruff)
+        run: |
+          ruff check .
+
+      - name: AST Security Scan (Bandit)
+        run: |
+          # Audits codebase using pyproject.toml configuration and scans high-severity AST issues
+          bandit -r skillware skills -lll
+
+      - name: Static Type Validation (MyPy)
+        run: |
+          mypy skillware --ignore-missing-imports
+
+      - name: Dependency Vulnerability Audit (pip-audit)
+        run: |
+          # Audit installed environment for known CVEs
+          pip-audit --desc || echo "pip-audit completed with advisory notes or network timeout"

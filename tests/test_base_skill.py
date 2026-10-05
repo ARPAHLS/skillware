@@ -18,6 +18,24 @@ def test_credential_prefers_config_over_environ(monkeypatch):
     assert skill.credential("ETHERSCAN_API_KEY") == "from-config"
 
 
+def test_credential_prefers_credential_fn_over_config_and_environ(monkeypatch):
+    monkeypatch.setenv("ETHERSCAN_API_KEY", "from-env")
+    skill = _CredentialProbeSkill(
+        config={"ETHERSCAN_API_KEY": "from-config"},
+        credential_fn=lambda k: "from-fn" if k == "ETHERSCAN_API_KEY" else None,
+    )
+    assert skill.credential("ETHERSCAN_API_KEY") == "from-fn"
+
+
+def test_credential_fn_falls_back_when_returns_none(monkeypatch):
+    monkeypatch.setenv("ETHERSCAN_API_KEY", "from-env")
+    skill = _CredentialProbeSkill(
+        config={"ETHERSCAN_API_KEY": "from-config"},
+        credential_fn=lambda k: None,
+    )
+    assert skill.credential("ETHERSCAN_API_KEY") == "from-config"
+
+
 def test_credential_falls_back_to_environ(monkeypatch):
     monkeypatch.setenv("ETHERSCAN_API_KEY", "from-env")
     skill = _CredentialProbeSkill()

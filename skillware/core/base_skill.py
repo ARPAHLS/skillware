@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import jsonschema
 from jsonschema import ValidationError
@@ -19,17 +19,30 @@ class BaseSkill(ABC):
     The foundational class for all Skillware skills.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        config: Optional[Dict[str, Any]] = None,
+        credential_fn: Optional[Callable[[str], Optional[str]]] = None,
+    ):
         self.config = config or {}
+        self._credential_fn = credential_fn
 
     def credential(self, key: str) -> Optional[str]:
         """
         Resolve a manifest ``env_vars`` name.
 
-        Host-injected ``config`` wins over ``os.environ`` so multi-tenant and
-        KMS-backed providers do not rely on process-global state. Local dev
-        still works via ``.env`` / exports when the host omits ``config``.
+        Resolution order:
+        1. Injected ``credential_fn`` callable (if provided)
+        2. Host-injected ``config`` wins over ``os.environ`` so multi-tenant and
+           KMS-backed providers do not rely on process-global state.
+        3. Local dev still works via ``.env`` / exports when host omits config.
         """
+        if self._credential_fn is not None:
+            fn_val = self._credential_fn(key)
+            if fn_val is not None:
+                text = str(fn_val).strip()
+                if text:
+                    return text
         cfg_val = self.config.get(key)
         if cfg_val is not None:
             text = str(cfg_val).strip()

@@ -247,11 +247,15 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - `card.json` issuer must match manifest `name` and `email` when present
 - Output-card `ui_schema.fields[].key` values must resolve in `execute()` JSON; keep `tests/fixtures/card_ui_schema/<category>__<skill_name>.json` in sync (#199)
 - Update `docs/skills/<category>/<skill_name>.md`, `docs/skills/<category>/README.md`, `docs/skills/README.md`, and `docs/sitemap.md` (**Version**, **Skill history**, intent block, and index columns per [CONTRIBUTING.md § catalog page](../../CONTRIBUTING.md#6-docsskillscategoryskill_namemd-catalog-page))
+- **Skill history audit:** The **Skill history** table on every catalog page must contain exact commit hashes, dates, release versions, and real contributor attribution. Never commit template placeholders or omit historical versions. Verify history manually line-by-line against `git log --oneline -- <skill_dir>` and `CHANGELOG.md`; never use automated batch scripts for documentation curation.
 - On each catalog page, add a **Usage Examples** section (Gemini, Claude, OpenAI, DeepSeek, Ollama prompt mode) per [skill usage template](../usage/skill_usage_template.md). Keep provider mechanics in `docs/usage/`; put skill-specific paths, sample user messages, and `execute` payloads on the skill page.
 - Categories: `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `linguistics`, `monitoring`, `office`, `optimization`, `security`, `wellness` — see [Skill library](../skills/README.md) for the live registry; [Choosing a category](../../CONTRIBUTING.md#choosing-a-category) in CONTRIBUTING.md (issue first for new top-level folders)
 - Do not bump `pyproject.toml` version in skill-only PRs unless requested
 - **Effect** in `skill.py`; **Directive** (skill context, not host persona) in `instructions.md`; **Contract** in `manifest.yaml`
 - Never commit secrets; document `env_vars` in the manifest
+- **Credential isolation**: Access all API keys, RPC URLs, and secrets via `self.credential("KEY_NAME")`. Do not read raw `os.environ` directly in skill execution logic (enforced via `tests/test_security_audit.py` and `bandit`).
+- **Prompt scoping & sanitization**: Prompts inside skills must use strict, typed template parameters. Never concatenate raw, unsanitized user inputs into model prompts.
+- **Runnable examples & chaining**: Skills should provide runnable demonstration scripts under `examples/` and chaining tests under `tests/` verifying multi-skill compositions.
 
 ### Core framework (`skillware/core/`)
 
@@ -266,9 +270,10 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 - Link to [TESTING.md](../TESTING.md) instead of duplicating long command lists
 - Provider integration: [Usage guides index](../usage/README.md), [agent loops](../usage/agent_loops.md), and [examples/README.md](../../examples/README.md) for runnable script inventory. Per-skill copy-paste examples belong on `docs/skills/<category>/<skill_name>.md`, not repeated in full on every provider guide.
 
-### Conduct
+### Conduct and legal compliance
 
 - Follow the [Agent Code of Conduct](../../CODE_OF_CONDUCT.md), including [contribution process and co-authoring rules](../../CODE_OF_CONDUCT.md#contribution-process)
+- Verify and adhere to the [Legal notice and code ownership](../../CONTRIBUTING.md#legal-notice-and-code-ownership) terms (original work warranty, irrevocable license grant, no malicious code or telemetry)
 
 ---
 

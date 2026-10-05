@@ -21,7 +21,8 @@ Agents: map each acceptance criterion to a file or test in your diff.
 
 - [ ] Linked GitHub issue (`Fixes #…` or `Refs #…`)
 - [ ] Scope matches the issue — no unrelated refactors
-- [ ] `python -m black --check .` and `flake8` pass locally (or CI-equivalent subset)
+- [ ] Contribution complies with [Legal notice and code ownership](CONTRIBUTING.md#legal-notice-and-code-ownership) (original work, MIT license grant, no malicious logic)
+- [ ] `python -m black --check .`, `flake8`, and `ruff check .` pass locally (or CI-equivalent subset)
 - [ ] `pytest skills/` and `pytest tests/` pass locally when relevant
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` when user-visible behavior changes
 - [ ] `examples/README.md` updated if this PR adds, renames, or removes a runnable script
