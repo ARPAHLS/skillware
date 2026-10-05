@@ -24,8 +24,13 @@ Tests fall into four layers: **bundle**, **framework**, **maintainer**, and **ex
 | Card UI schema vs execute output (`tests/test_card_ui_schema.py`) | Done |
 | Local-execute example smoke tests in CI (`tests/test_examples_smoke.py`) | Done |
 | Framework tests isolated from operator global config (`tests/conftest.py`, #302) | Done |
+| AST security audit guard (`tests/test_security_audit.py`) | Done |
+| Static AST security scanning with Bandit (`bandit`) | Done |
+| Dependency vulnerability scanning (`pip-audit`) | Done |
+| Fast architecture & quality linting (`ruff`) | Done |
+| Static type checking (`mypy skillware`) | Done |
 
-Every pull request runs `black --check`, `flake8`, `pytest skills/`, `pytest tests/`, and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle tests gate merge the same as framework and maintainer tests.
+Every pull request runs `black --check`, `flake8`, `ruff check .`, `pytest skills/`, `pytest tests/`, automated security audits (`bandit`, `pip-audit`, `tests/test_security_audit.py`), static typing (`mypy skillware`), and a **wheel-smoke** job that builds a wheel, installs it in a fresh venv (base install only — no `[all]` or per-skill extras), and verifies every bundled registry skill is present and loadable. Bundle and security tests gate merge the same as framework and maintainer tests.
 
 When [`.github/labels.json`](../../.github/labels.json) changes on `main`, the [Sync GitHub Labels](../../.github/workflows/sync-labels.yml) workflow updates label colors and descriptions on the repository automatically — do not edit labels manually in the GitHub UI. [`tests/test_github_labels.py`](../../tests/test_github_labels.py) enforces repo-wide labels, every registry `cat: <category>` label (shared pastel color, no collision with repo-wide names like `security`), and alignment with the category dropdown in `01_skill_proposal.yml`.
 
@@ -269,6 +274,92 @@ If you add tests that exercise merged YAML behavior, write explicit project or g
 - **Maintainer test:** `tests/skills/<category>/test_<name>.py` — optional; use shared fixtures in `tests/conftest.py` when helpful.
 - **Framework test:** `tests/test_*.py` at repo root — for loader, CLI, issuer, and cross-cutting rules.
 
+## 4. Architecture & Linting (Ruff)
+
+We use **Ruff** for lightning-fast linting and architecture policy enforcement across the codebase.
+
+### Installation
+
+```bash
+pip install ruff
+```
+
+### Usage
+
+Run Ruff checks:
+
+```bash
+ruff check .
+```
+
+To automatically fix safe lint violations:
+
+```bash
+ruff check --fix .
+```
+
+## 5. Security Analysis & AST Audits (Bandit & Security Tests)
+
+Skillware enforces strict security sandboxing and checks for dangerous AST patterns across both the framework and bundled skills.
+
+### Bandit
+
+**Bandit** scans Python source code for common security issues (such as insecure file operations, unsafe shell executions, and weak crypto):
+
+```bash
+pip install bandit
+bandit -r skillware skills -lll
+```
+
+### AST Security Audits (`tests/test_security_audit.py`)
+
+A dedicated AST security test suite (`tests/test_security_audit.py`) enforces the **Permissive Fortress** guarantees:
+- Prohibits `eval()`, `exec()`, `compile()`, and `__import__()` in skill code.
+- Enforces credential isolation: bundled skills must use `self.credential()` or `BaseSkill.credential()` instead of reading `os.environ` directly for secrets.
+- Verifies `credential_fn` sandbox isolation.
+
+Run locally:
+
+```bash
+python -m pytest tests/test_security_audit.py
+```
+
+## 6. Dependency Vulnerability Auditing (pip-audit)
+
+We use **pip-audit** to scan project dependencies against known vulnerability databases (such as PyPI advisory and OSV databases).
+
+### Installation
+
+```bash
+pip install pip-audit
+```
+
+### Usage
+
+Run dependency vulnerability audit:
+
+```bash
+pip-audit
+```
+
+## 7. Static Type Checking (Mypy)
+
+We use **Mypy** to check type annotations across core framework packages (`skillware/`).
+
+### Installation
+
+```bash
+pip install mypy
+```
+
+### Usage
+
+Run type check:
+
+```bash
+mypy skillware
+```
+
 ## Pre-Commit Checklist
 
 Before pushing your code, run the following commands:
@@ -276,8 +367,12 @@ Before pushing your code, run the following commands:
 1. `skillware list` (verify install and path resolution)
 2. `skillware doctor` (optional — check manifest deps and skill.py import readiness)
 3. `python -m black --check .` (verify formatting; use `python -m black .` to fix)
-4. `python -m flake8 .` (check quality)
-5. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
-6. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
-7. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
-8. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill
+4. `python -m flake8 .` (check style and quality)
+5. `ruff check .` (fast linting and architecture checks)
+6. `bandit -r skillware skills -lll` (AST security analysis)
+7. `mypy skillware` (type validation)
+8. `python -m pytest tests/test_security_audit.py` (security AST audit)
+9. `python -m pytest skills/` or `skillware test` (bundle tests — same scope as CI)
+10. `python -m pytest tests/` (framework + maintainer tests — same scope as CI)
+11. `python scripts/sync_extras.py --check` (when `manifest.yaml` or `pyproject.toml` extras change)
+12. `python -m pytest skills/<category>/<skill_name>/test_skill.py` or `skillware test <category>/<skill_name>` for a single skill

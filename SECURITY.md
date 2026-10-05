@@ -16,7 +16,14 @@ Thresholds are defined in `skillware/version_policy.py` (`MIN_SECURITY_SUPPORTED
 
 ## Skill execution model
 
-Loading a skill runs its `skill.py` in your host process, with full filesystem and environment access. Skillware does not sandbox skills; trust is based on provenance (where a skill came from and who reviewed it), not runtime isolation. Before loading skills you did not write, review the [skill trust model](docs/security/skill-trust-model.md).
+Loading a skill runs its `skill.py` in your host process. Skillware implements a **Permissive Fortress** architecture to safeguard the runtime:
+
+1. **Credential Sandboxing:** Bundled and third-party skills must never read raw `os.environ` for API keys, secrets, or RPC endpoints. Skills resolve credentials via `BaseSkill.credential(key)` or `SkillContext(secret_provider=...)`, ensuring host-injected scoping and tenant isolation.
+2. **Automated AST & Security Scanning:** Automated security gates in CI (`bandit`, `tests/test_security_audit.py`) prohibit dangerous execution primitives like `eval()`, `exec()`, `compile()`, and dynamic code generation across all bundled skill execution paths.
+3. **Dependency Auditing:** Dependencies are pinned and scanned against known vulnerability databases on every PR and release candidate (`pip-audit`).
+4. **Provenance & Review:** While skills execute in-process without OS-level sandboxes (like containers or WASM), trust is reinforced by strict human line-by-line review, provenance tracking, and explicit licensing.
+
+Before loading external skills or designing host integrations, review the [Skill Trust Model](docs/security/skill-trust-model.md) (especially Section 10: *The Permissive Fortress Architecture*).
 
 ## Reporting a Vulnerability
 

@@ -7,6 +7,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 import yaml
 
 from skillware.core.loader import SkillLoader
@@ -177,7 +178,7 @@ def test_scan_medium_proxy_mint(mock_get, skill):
 def test_rate_limited(mock_get, skill):
     response = MagicMock()
     response.status_code = 429
-    response.raise_for_status.side_effect = __import__("requests").exceptions.HTTPError(
+    response.raise_for_status.side_effect = requests.exceptions.HTTPError(
         response=response
     )
     mock_get.return_value = response

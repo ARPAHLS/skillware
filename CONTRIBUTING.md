@@ -18,6 +18,7 @@ This document is the single entry point for how to contribute. If you are an **A
 | [Skill categories](#skill-categories) | Folder taxonomy under `skills/` |
 | [What to avoid](#what-to-avoid) | Anti-patterns |
 | [Safety and security](#safety-and-security) | High-risk skills |
+| [Legal notice and code ownership](#legal-notice-and-code-ownership) | Inbound license terms and original work certification |
 | [Related documents](#related-documents) | Code of conduct, testing, templates |
 
 ---
@@ -462,6 +463,19 @@ When a new top-level category lands under `skills/`, update this table and the c
 
 ---
 
+## Legal notice and code ownership
+
+By submitting a Pull Request to this project, you explicitly certify, represent, and agree that:
+
+1. **Original Authorship & Authority:** The contribution is your own original creation, or you have verified that you possess the full legal authority and rights to submit it under the project's existing [MIT License](LICENSE).
+2. **Permanent Irrevocable License:** You grant ARPA Hellenic Logical Systems and project maintainers a permanent, worldwide, non-exclusive, royalty-free, irrevocable, and sublicensable license to use, modify, adapt, prepare derivative works of, publicly display, publish, and distribute your code across all present and future releases of Skillware.
+3. **Non-Revocability:** You understand and agree that once merged into the repository, contributions cannot be retroactively revoked, clawed back, or forced to be deleted from git commit history or distribution packages.
+4. **Patent Non-Assertion:** You grant a royalty-free, perpetual patent license covering any patent claims you own, control, or license that are necessarily infringed by your contribution when combined with Skillware.
+5. **No Malicious Logic or Undeclared Telemetry:** You warrant that your submission does not contain malicious logic, unauthorized credential exfiltration routines, hidden telemetry backdoors, or undisclosed third-party proprietary materials. All runtime credentials must be declared via manifest `env_vars` and resolved through `BaseSkill.credential()`.
+6. **Third-Party Rights & Contributor Responsibility:** You represent and warrant that your submission does not copy, incorporate, or infringe upon any confidential, proprietary, or copyrighted code from your employer, former employers, or third parties without explicit authorization. You acknowledge that you remain personally responsible and legally liable for any willful misrepresentation or intellectual property infringement in your contribution.
+
+---
+
 ## Related documents
 
 | Document | Purpose |
@@ -493,6 +507,7 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | `pyproject.toml` → `[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
 | `CHANGELOG.md` | **Yes** | Move `[Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`; leave a fresh empty `[Unreleased]` |
 | `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
+| Skill docs (`docs/skills/<category>/<skill_name>.md`) → **Skill history** | **Yes (for all touched skills)** | Audit the **Skill history** table manually line-by-line. Verify exact commit hashes, dates, descriptions, and contributors. Never leave template placeholders; compare against `git log --oneline -- skills/<category>/<name>` and `CHANGELOG.md` to ensure complete attribution. |
 | GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269). Paste release notes from `CHANGELOG.md` in the GitHub Releases UI — **do not commit** maintainer draft files such as `.github/RELEASE_*.md` to the public tree. |
 | PyPI upload | **Yes** | After tag / CI as usual |
 | `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used” is enough |
@@ -500,6 +515,9 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | CLI / loader code | **Usually no** | Version is read from installed package metadata |
 | Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |
 | `docs/contributing/ai_native_workflow.md` / `CODE_OF_CONDUCT.md` | **No** | Not version bump surfaces |
+
+#### Strict Manual Verification Policy for Maintainers
+Maintainer release preparation and documentation curation must always be conducted through **manual, line-by-line inspection and editing**. Never use automated batch scripts to update documentation, changelogs, or skill histories. Comparing past commits (`git log -p -- <skill_dir>`) and `CHANGELOG.md` ensures zero template placeholders, accurate commit numbers, and precise author attribution across every catalog page.
 
 README Citing badge and `pyproject.toml` `[project.urls]` `DOI` already point at the concept DOI. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
 
