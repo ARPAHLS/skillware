@@ -4,6 +4,9 @@ from typing import Any, Dict, List
 
 from skillware.core.base_skill import BaseSkill
 
+# Bundled MiCA corpus snapshot — informational reference, not live legal portal data.
+STATUTORY_SNAPSHOT = "Regulation (EU) 2023/1114 (MiCA), OJ L 150/40, 9 June 2023"
+
 
 class MiCAModuleSkill(BaseSkill):
     """
@@ -90,6 +93,7 @@ class MiCAModuleSkill(BaseSkill):
             final_context = eval_result.get("final_context_for_agent", final_context)
 
         return {
+            "statutory_snapshot": STATUTORY_SNAPSHOT,
             "retrieved_sections": list(set(retrieved_sections)),
             "policy_status": policy_status,
             "gemini_evaluator_feedback": gemini_feedback,

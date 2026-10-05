@@ -96,6 +96,32 @@ cp -r templates/python_skill skills/<category>/<skill_name>
 * Tests **must run offline**. Mock all external HTTP requests, APIs, database calls, and first-run model downloads.
 * Test normal execution, output dictionary schema compliance, parameter validation failures, and dynamic loading via `SkillLoader.load_skill()`.
 
+### Regulatory / statutory knowledge skills
+
+Skills that ship bundled statutory or regulatory corpora (for example `compliance/mica_module`, future GDPR or EU AI Act modules) must include a **Statutory knowledge notice** on the catalog page immediately above **Enterprise disclaimer**:
+
+```markdown
+## Statutory knowledge notice
+
+> [!NOTE]
+> **Statutory Snapshot Cutoff:** [Official instrument and OJ publication date]
+>
+> This skill provides deterministic, offline access to bundled statutory provisions …
+>
+> **Informational Reference Only:** … decision-support … not formal legal counsel …
+```
+
+Also mirror the notice across the bundle:
+
+| Role | Action |
+| :--- | :--- |
+| **Directive** (`instructions.md`) | Remind the host that citations reflect the bundled snapshot, not live legal portals or formal counsel. |
+| **Contract** (`manifest.yaml` `constitution`) | State that retrieved provisions are informational reference material. |
+| **Presentation** (`card.json`) | Optional `statutory_snapshot` field in `ui_schema.fields` and in `execute()` output. |
+| **Effect** (`skill.py`) | Return a stable `statutory_snapshot` string on each successful `execute()`. |
+
+Reference implementation: [`compliance/mica_module`](../../skills/compliance/mica_module/) ([#397](https://github.com/ARPAHLS/skillware/issues/397)).
+
 ### 9. Create Catalog Documentation
 Create `docs/skills/<category>/<skill_name>.md` following [Skill Usage Template](../../docs/usage/skill_usage_template.md):
 1. **Header Metadata**: ID, Issuer, Version, and Recommended Install (`pip install "skillware[<category>_<skill>]"`).

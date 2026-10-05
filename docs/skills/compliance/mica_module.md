@@ -3,7 +3,7 @@
 **ID**: `compliance/mica_module`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.1` — 9 Sep 2026
+**Version**: `0.1.2` — 5 Oct 2026
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Local MiCA policy enforcement and RAG over a bundled crypto-asset regulation corpus.
@@ -291,6 +291,15 @@ Commits that touched this skill bundle or its catalog page ([`compliance/mica_mo
 | [`85480b0`](https://github.com/ARPAHLS/skillware/commit/85480b0) | chore: resolve flake8 linting violations across MiCA module and examples | 11 Apr 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`9cd18b0`](https://github.com/ARPAHLS/skillware/commit/9cd18b0) | feat(compliance): implement high-performance MiCA module (close #35) | 11 Apr 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
+
+## Statutory knowledge notice
+
+> [!NOTE]
+> **Statutory Snapshot Cutoff:** Regulation (EU) 2023/1114 (MiCA), OJ L 150/40, 9 June 2023
+>
+> This skill provides deterministic, offline access to bundled statutory provisions to enable local compliance pre-flight checks, agent grounding, and automated evaluation in environments where live legal portal access is restricted or unavailable.
+>
+> **Informational Reference Only:** This capability is designed for demonstration and decision-support purposes and does not constitute formal legal counsel. Statutory frameworks evolve over time through delegated legislation, regulatory technical standards (RTS), and regulatory enforcement; operators and developers should verify current statutory amendments and consult qualified legal professionals for binding determinations.
 
 ## Enterprise disclaimer
 
