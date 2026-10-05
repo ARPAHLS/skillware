@@ -13,6 +13,10 @@
         "type": "card",
         "fields": [
             {
+                "key": "statutory_snapshot",
+                "label": "Statutory Snapshot"
+            },
+            {
                 "key": "policy_status",
                 "label": "Policy Status",
                 "type": "status_badge"
