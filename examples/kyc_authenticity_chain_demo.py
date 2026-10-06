@@ -69,14 +69,12 @@ def main() -> None:
     ):
         print("\n[Step 2] Authenticity verified! Proceeding with profile extraction...")
         fields = guard_result["doc"]["fields"]
-        applicant_profile = {
-            "full_name": f"{fields['given_names']} {fields['surname']}",
-            "doc_number": fields["document_number"],
-            "nationality": fields["nationality"],
-            "birth_date": fields["date_of_birth"],
-            "doc_expired": fields["is_expired"],
-        }
-        print(f"  Applicant Onboarding Record: {applicant_profile}")
+        doc_num = fields.get("document_number", "")
+        masked_doc = f"{doc_num[:2]}****{doc_num[-2:]}" if len(doc_num) >= 4 else "****"
+        print(
+            f"  Applicant Onboarding Record: Nationality={fields.get('nationality')}, "
+            f"Masked ID={masked_doc}, Expired={fields.get('is_expired')}"
+        )
         print("  -> Ready for onboarding and KYC compliance verification!")
     else:
         print("  -> Alert: Document failed pre-flight verification; rejected.")
