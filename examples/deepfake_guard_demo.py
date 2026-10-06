@@ -130,10 +130,9 @@ def main() -> None:
     print(f"  Format:          {res_pass['format']}")
     print(f"  MRZ Valid:       {res_pass['mrz_valid']}")
     fields = res_pass.get("fields", {})
-    doc_num = fields.get("document_number", "")
-    masked_doc = f"{doc_num[:2]}****{doc_num[-2:]}" if len(doc_num) >= 4 else "****"
-    print(f"  Document Check:  Masked ID={masked_doc}, Issuer={fields.get('issuer')}")
-    print(f"  Status:          Expired={fields.get('is_expired')}")
+    print(
+        f"  Fields Verified: {len(fields)} document fields parsed (cleartext PII omitted from log)"
+    )
 
     # -------------------------------------------------------------------------
     # Scenario 6: Adversarially Altered Passport MRZ (Tampered Checksum)

@@ -67,13 +67,9 @@ def main() -> None:
         guard_result["verdict"] in ("authentic_likely", "suspicious")
         and guard_result["doc"]["mrz_valid"]
     ):
-        print("\n[Step 2] Authenticity verified! Proceeding with profile extraction...")
         fields = guard_result["doc"]["fields"]
-        doc_num = fields.get("document_number", "")
-        masked_doc = f"{doc_num[:2]}****{doc_num[-2:]}" if len(doc_num) >= 4 else "****"
         print(
-            f"  Applicant Onboarding Record: Nationality={fields.get('nationality')}, "
-            f"Masked ID={masked_doc}, Expired={fields.get('is_expired')}"
+            f"  Fields Extracted: {len(fields)} identity fields validated (cleartext PII omitted from log)."
         )
         print("  -> Ready for onboarding and KYC compliance verification!")
     else:
