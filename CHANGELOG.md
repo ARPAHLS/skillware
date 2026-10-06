@@ -21,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Typing:** `skillware/core/ui_schema.py` and `skillware/version_policy.py` are now type-clean and removed from the `[[tool.mypy.overrides]]` list, so `mypy skillware` checks them in CI (#415, Phase 1).
 - **Skill (`compliance/mica_module` v0.1.2):** Statutory knowledge notice — catalog callout, directive and constitution framing, `statutory_snapshot` on execute output and card UI; documents offline snapshot cutoff (Regulation (EU) 2023/1114) as informational reference, not formal legal counsel ([#397](https://github.com/ARPAHLS/skillware/issues/397)).
 - **Docs / templates:** CONTRIBUTING and `templates/python_skill/README.md` document the statutory notice pattern for future regulatory skills ([#397](https://github.com/ARPAHLS/skillware/issues/397)).
 - **Docs:** [TESTING.md](docs/TESTING.md) — **Clone dev setup** subsection (dedicated venv, editable vs PyPI wheel, import sanity check, recovery via `doctor --install` and dev install scripts); cross-links from [CONTRIBUTING.md](CONTRIBUTING.md) and [ai_native_workflow.md](docs/contributing/ai_native_workflow.md) ([#232](https://github.com/ARPAHLS/skillware/issues/232)).
