@@ -124,7 +124,10 @@ optimization = [
     "numpy",
 ]
 
-security = []
+security = [
+    "numpy",
+    "pillow",
+]
 
 wellness = [
     "google-genai",
@@ -199,6 +202,11 @@ optimization_context_optimizer = [
 optimization_prompt_rewriter = []
 
 security_deceptive_ui_guard = []
+
+security_deepfake_guard = [
+    "pillow",
+    "numpy",
+]
 
 security_prompt_injection_firewall = []
 

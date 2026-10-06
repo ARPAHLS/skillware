@@ -91,6 +91,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
 - [Security hub](skills/security/README.md)
 - [`security/deceptive_ui_guard`](skills/security/deceptive_ui_guard.md)
+- [`security/deepfake_guard`](skills/security/deepfake_guard.md)
 - [`security/prompt_injection_firewall`](skills/security/prompt_injection_firewall.md)
 
 ### Wellness

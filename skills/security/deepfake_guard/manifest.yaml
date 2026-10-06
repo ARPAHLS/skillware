@@ -1,0 +1,132 @@
+name: security/deepfake_guard
+version: 0.1.0
+description: |
+  Air-gapped media and document authenticity guard. Performs multi-signal forensic
+  analysis on images, scanned documents, and identity credentials without calling
+  external APIs. Detects AI generation (diffusion frequency roll-off, C2PA assertions,
+  spectral slope anomalies), digital manipulation (Error Level Analysis ELA, high-pass
+  Laplacian noise residual divergence, copy-move cloning, Photoshop/editing metadata),
+  and document forgery (ICAO 9303 MRZ 7-3-1 check digit validation on TD1/TD2/TD3,
+  screen-recapture moiré detection, and document geometry consistency).
+short_description: "Air-gapped media & document authenticity guard with ELA, noise, and MRZ validation."
+category: security
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      enum:
+        - analyze
+        - inspect_document
+        - inspect_media
+        - verify_provenance
+        - validate_mrz
+      default: analyze
+      description: Forensic inspection action to execute.
+    media_path:
+      type: string
+      description: Local file path of image or document to inspect.
+    image_path:
+      type: string
+      description: Local file path of image or document to inspect.
+    media_bytes_b64:
+      type: string
+      description: Base64-encoded image or document bytes (or data URI).
+    image_base64:
+      type: string
+      description: Base64-encoded image or document bytes (or data URI).
+    url:
+      type: string
+      description: Public http(s) URL of media to inspect (guarded against SSRF).
+    image_url:
+      type: string
+      description: Public http(s) URL of media to inspect (guarded against SSRF).
+    raw_mrz:
+      type:
+        - string
+        - array
+      description: Raw ICAO 9303 MRZ string or line array for passport / ID validation.
+    mrz_string:
+      type:
+        - string
+        - array
+      description: Raw ICAO 9303 MRZ string or line array for passport / ID validation.
+    mode:
+      type: string
+      enum:
+        - auto
+        - media_only
+        - document
+      default: auto
+      description: Analysis mode (auto detects document markers; document activates geometry/MRZ checks).
+    claimed_doc_type:
+      type: string
+      enum:
+        - passport
+        - national_id
+        - drivers_license
+        - certificate
+        - auto
+        - unknown
+      description: Expected document type for geometry and structural cross-checking.
+    expected_document_type:
+      type: string
+      enum:
+        - passport
+        - national_id
+        - drivers_license
+        - certificate
+        - auto
+        - unknown
+      description: Expected document type for geometry and structural cross-checking.
+    claimed_country:
+      type: string
+      description: Claimed 2-letter or 3-letter issuing country code (e.g. GRC, USA, DEU).
+    strictness:
+      type: string
+      enum:
+        - balanced
+        - paranoid
+      default: balanced
+      description: Risk threshold strictness (paranoid lowers detection tolerances).
+constitution: |
+  1. Never make outbound network requests or upload user documents/media to third-party APIs.
+  2. Maintain strict air-gapped isolation to protect biometric and sensitive document data.
+  3. Treat all outputs as forensic risk signals rather than courtroom or legal certitude.
+  4. Always return an explainable evidence bundle with specific signals and limitations.
+requirements:
+  - "pillow"
+  - "numpy"
+outputs:
+  status:
+    type: string
+    description: Execution status ("ok" or "error").
+  verdict:
+    type: string
+    description: Forensic verdict ("authentic_likely", "suspicious", "tampered_likely", "synthetic_likely").
+  confidence_score:
+    type: number
+    description: Composite risk score from 0.0 (clean) to 1.0 (severe anomalies).
+  is_synthetic_likely:
+    type: boolean
+    description: Whether evidence indicates AI diffusion/generative origin.
+  is_tampered_likely:
+    type: boolean
+    description: Whether evidence indicates digital manipulation, splicing, or forgery.
+  offline:
+    type: boolean
+    description: Always true; certifies that inspection occurred strictly locally.
+  artifacts_detected:
+    type: array
+    description: List of detected forensic anomalies and tampering indicators.
+  signals:
+    type: array
+    description: Detailed evidence objects with signal classes, weights, and explanations.
+  summary:
+    type: string
+    description: Human-readable assessment and primary forensic findings for operator or agent context.

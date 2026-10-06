@@ -181,3 +181,22 @@ legacy:
 #           min_score: 0.45
 #         input_from:
 #           agent_goal: host.agent_goal
+#   kyc_document_authenticity_gate:
+#     description: Validate document MRZ and image forensics before PII masking.
+#     when: Onboarding new customers or processing submitted identification.
+#     steps:
+#       - id: verify_doc
+#         skill: security/deepfake_guard
+#         params:
+#           action: inspect_document
+#           strictness: balanced
+#         input_from:
+#           mrz_string: host.mrz_string
+#           image_path: host.image_path
+#       - skill: compliance/pii_masker
+#         when:
+#           prior_step: verify_doc
+#           field: verdict
+#           equals: authentic
+#         input_from:
+#           text: host.applicant_notes
