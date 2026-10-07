@@ -87,8 +87,11 @@ pip install -e ".[dev,all,agents]"
 | `gmail_handler_demo.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | None | Mocked resolve, preview/send gate, search, and read flow (no Gmail credentials). |
 | `web_form_mapping_demo.py` | `office/web_form_mapper` | Local execute | `[office_web_form_mapper]` | None | Offline form inspect, operator legal_profile mapping, preview diff, and dry-run submit simulation. |
 | `web_form_guard_chain_demo.py` | `security/deceptive_ui_guard`, `office/web_form_mapper` | Local execute | `[security_deceptive_ui_guard]`, `[office_web_form_mapper]` | None | Preflight dark pattern & deceptive UX scan (`deceptive_ui_guard`), conditional inspection, addressbook `legal_profile` mapping, and human preview diff table. |
+| `deepfake_guard_demo.py` | `security/deepfake_guard` | Local execute | `[security_deepfake_guard]` | None | Offline forensic inspection of authentic, spliced, screen-recaptured, C2PA AI-provenance, and ICAO 9303 passport assets. |
+| `kyc_authenticity_chain_demo.py` | `security/deepfake_guard`, `office/web_form_mapper` | Local execute | `[security_deepfake_guard]`, `[office_web_form_mapper]` | None | Cross-skill SkillContext orchestration: pre-flight document authenticity verification & MRZ validation before profile ingestion. |
 | `gmail_signature_test_send.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`; run `skillware mail signature init` first | Preview or send one test message to verify plain + HTML signature. |
 | `gemini_gmail_handler.py` | `office/gmail_handler` | Gemini | `[office_gmail_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` (dedicated agent mailbox; demo: `GMAIL_HANDLER_EXAMPLE_DEMO=1`) | Interactive Gemini loop for resolve, search, read, preview/send mail. |
+
 
 ## Notes
 

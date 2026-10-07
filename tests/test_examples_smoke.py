@@ -22,6 +22,24 @@ EXAMPLES_DIR = REPO_ROOT / "examples"
 # Tuple format: (script_filename, [expected_output_substrings])
 LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     (
+        "deepfake_guard_demo.py",
+        [
+            "security/deepfake_guard",
+            "Inspecting Clean Authentic Asset",
+            "Cryptographically Validating Authentic Passport MRZ",
+            "Deepfake and document authenticity demo completed successfully.",
+        ],
+    ),
+    (
+        "kyc_authenticity_chain_demo.py",
+        [
+            "Cross-Skill Chaining: Pre-Flight KYC & Document Authenticity Gate",
+            "Pipeline Case A: Authentic Passport Submission",
+            "Pipeline Case B: Adversarially Altered Document Submission",
+            "KYC document authenticity chaining demo completed successfully.",
+        ],
+    ),
+    (
         "evm_reader_demo.py",
         [
             "defi/evm_reader Demo",

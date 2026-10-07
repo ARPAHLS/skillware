@@ -91,6 +91,7 @@ Offline and local-first defenses for untrusted input before it reaches model con
 | :--- | :--- | :--- | :--- | :--- |
 | **[Prompt Injection Firewall](security/prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.2.0` (21 Sep 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
 | **[Deceptive UI Guard](security/deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.2.0` (3 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic HTML surface scan with zone weighting, allowlists, optional render diff, trust scoring, and pre-click agent guidance (#314). |
+| **[Deepfake Guard](security/deepfake_guard.md)** | `security/deepfake_guard` | `0.1.0` (6 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Offline media and KYC document authenticity guard: ICAO 9303 MRZ validation, C2PA provenance, ELA, noise residual variance, and moiré screen recapture detection (#48). |
 
 ## Dev Tools
 Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.
