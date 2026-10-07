@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-10-07
+
 ### Added
 
 - **Governance / Security (The Permissive Fortress):** Established repository and supply-chain defense-in-depth under the MIT License — inbound `Legal notice and code ownership` terms in [`CONTRIBUTING.md`](CONTRIBUTING.md) (irrevocable license grant, non-revocability, patent non-assertion, no malicious logic), PR template confirmation checkbox, and strengthened [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) enforcement authority against credential exfiltration and rogue execution.
