@@ -236,7 +236,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
     "pay_and_notify_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
-    "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",
+    "issue_resolver_common.py": "Shared helper module, not a standalone demo script.",
     "mica_claude_flow.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
     "mica_ollama_flow.py": "Requires local Ollama server and models installed.",
     "mica_rag_flow.py": "Requires GOOGLE_API_KEY for Gemini RAG.",
