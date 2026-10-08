@@ -1,0 +1,20 @@
+{
+  "name": "Multi-Omics FAIR Normalizer",
+  "description": "Validates and packages local CSV or TSV omics data with FAIR-oriented metadata.",
+  "issuer": {
+    "name": "Miemie Wu",
+    "email": "18373026967@163.com",
+    "github": "miemie7wu"
+  },
+  "icon": "database",
+  "color": "green",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "status", "label": "Status", "type": "status_badge"},
+      {"key": "row_count", "label": "Rows", "type": "number"},
+      {"key": "column_count", "label": "Columns", "type": "number"},
+      {"key": "missing_metadata_warnings", "label": "Missing metadata", "type": "list"}
+    ]
+  }
+}
