@@ -277,8 +277,6 @@ module = [
     "skillware.core.loader",
     "skillware.core.config",
     "skillware.core.mail_config",
-    "skillware.core.ui_schema",
-    "skillware.version_policy",
 ]
 ignore_errors = true
 

@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass, field
 from importlib import metadata
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
+from typing import Any, Iterable, List, Optional, Sequence, cast
 
 from packaging.version import InvalidVersion, Version
 
@@ -65,7 +65,7 @@ def _is_invalid_version_string(raw: Optional[str]) -> bool:
 def iter_skillware_distributions() -> Iterable[metadata.Distribution]:
     for dist in metadata.distributions():
         try:
-            name = (dist.metadata.get("Name") or "").strip()
+            name = (cast(Any, dist.metadata).get("Name") or "").strip()
         except Exception:
             continue
         if name.lower() == PACKAGE_NAME:
@@ -74,7 +74,7 @@ def iter_skillware_distributions() -> Iterable[metadata.Distribution]:
 
 def _distribution_dist_info_dir(dist: metadata.Distribution) -> Optional[Path]:
     try:
-        return Path(dist.locate_file("METADATA")).parent
+        return Path(cast("os.PathLike[str]", dist.locate_file("METADATA"))).parent
     except Exception:
         pass
     path = getattr(dist, "_path", None)
@@ -105,7 +105,7 @@ def _distribution_version_raw(dist: metadata.Distribution) -> Optional[str]:
         raw = None
     if _is_invalid_version_string(raw):
         try:
-            raw = dist.metadata.get("Version")
+            raw = cast(Any, dist.metadata).get("Version")
         except Exception:
             raw = None
     if _is_invalid_version_string(raw):

@@ -81,7 +81,7 @@ def normalize_fixture_samples(
         raw_samples = payload.get("samples")
         if not isinstance(raw_samples, list) or not raw_samples:
             raise ValueError("fixture samples must be a non-empty list")
-        return [sample for sample in raw_samples if isinstance(sample, Mapping)]
+        return [dict(sample) for sample in raw_samples if isinstance(sample, Mapping)]
 
     if isinstance(payload, Mapping):
         return [payload]
