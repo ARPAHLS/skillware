@@ -8,6 +8,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Governance / Licensing (SPDX & Copyright Headers):** Standardized top-of-file SPDX license identifiers (`SPDX-License-Identifier: MIT`) and explicit copyright notices (`# Copyright (c) 2026 ARPA Hellenic Logical Systems`) across all core framework source files (`skillware/**/*.py`), CLI entry points, and authoring templates (`templates/python_skill/`) to protect against attribution stripping and ensure enterprise SCA compliance ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
+- **Tests / CI:** Added [`tests/test_spdx_headers.py`](tests/test_spdx_headers.py) asserting that all Python source files under `skillware/` and `templates/` enforce valid top-of-file SPDX license identifiers and copyright notices ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
+
 ## [0.5.8] - 2026-10-07
 
 ### Added

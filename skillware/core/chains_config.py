@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Parse and merge skill chain definitions from Skillware YAML config."""
 
 from __future__ import annotations

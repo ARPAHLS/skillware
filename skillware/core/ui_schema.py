@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Helpers for validating card.json ui_schema field keys against skill output."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Supported-version policy, install health, and CLI advisories."""
 
 from __future__ import annotations

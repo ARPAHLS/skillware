@@ -260,6 +260,7 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 ### Core framework (`skillware/core/`)
 
 - Require a framework feature issue; add tests under `tests/`
+- All core source files under `skillware/` must retain top-of-file copyright and SPDX license headers (`# Copyright (c) 2026 ARPA Hellenic Logical Systems` and `# SPDX-License-Identifier: MIT`)
 - Do not change `loader.py` unless the issue requires it
 - Issuer metadata is not passed into LLM tool schemas today
 - Update `docs/usage/` when loader or adapter behavior changes (for example requirement validation, `registry_id`, identity warnings)

@@ -133,6 +133,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - **No emojis** in source code, documentation, commit messages, or PR titles.
 - Use **Black** for formatting (CI runs `black --check`) and **Flake8** for linting (see [TESTING.md](docs/TESTING.md)).
+- Core framework files (`skillware/**/*.py`) must include the standardized copyright notice and SPDX header (`# Copyright (c) 2026 ARPA Hellenic Logical Systems` and `# SPDX-License-Identifier: MIT`). Skill template files (`templates/python_skill/`) and community skills must include `# SPDX-License-Identifier: MIT` ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
 - Match existing naming, structure, and documentation tone in the files you touch.
 - Use [glossary.md](docs/glossary.md) terms in new prose. Inclusive language: [inclusive-language.md](docs/contributing/inclusive-language.md). Do not global-replace `user` with `operator`.
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Cross-platform helpers for opening paths in the OS file manager."""
 
 from __future__ import annotations

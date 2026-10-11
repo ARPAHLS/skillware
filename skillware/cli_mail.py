@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """CLI commands for mail operator settings (office/gmail_handler)."""
 
 from __future__ import annotations
