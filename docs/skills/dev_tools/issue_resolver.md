@@ -83,7 +83,7 @@ Sample user message: *Analyse issue #56 in ARPAHLS/skillware and produce a resol
 | [`claude_issue_resolver.py`](../../../examples/claude_issue_resolver.py) | Claude | `ANTHROPIC_API_KEY`; optional `GITHUB_TOKEN` |
 | [`ollama_issue_resolver.py`](../../../examples/ollama_issue_resolver.py) | Ollama | optional `GITHUB_TOKEN`; local Ollama (`gemma4:e2b` or `qwen3.5:4b`) |
 
-> **Shared helper:** All three scripts import [`examples/issue_resolver_common.py`](../../examples/issue_resolver_common.py) for GitHub fetch utilities. It is not a runnable example.
+> **Shared helper:** All three scripts import [`examples/issue_resolver_common.py`](../../../examples/issue_resolver_common.py) for GitHub fetch utilities. It is not a runnable example.
 
 All three scripts use [issue #123](https://github.com/ARPAHLS/skillware/issues/123) as the sample issue. After `prepare`, the example script fetches issue and README content from GitHub and returns it to the model — demonstrating that the skill returns URLs and checklists, not a finished plan.
 
