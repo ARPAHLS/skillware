@@ -1,0 +1,99 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "schema_profile": "robotics_kinematics_imu",
+      "observations": [
+        {
+          "sensor_id": "imu_chassis_front",
+          "observed_at_utc": "2026-10-11T12:00:00.120000Z",
+          "phenomenon": "angular_velocity_z",
+          "raw_value": 180.0,
+          "raw_unit": "deg/s",
+          "canonical_value": 3.14159,
+          "canonical_unit": "rad/s",
+          "quality": "valid"
+        },
+        {
+          "sensor_id": "imu_chassis_front",
+          "observed_at_utc": "2026-10-11T12:00:00.120000Z",
+          "phenomenon": "temperature",
+          "raw_value": 113.0,
+          "raw_unit": "degF",
+          "canonical_value": 45.0,
+          "canonical_unit": "degC",
+          "quality": "valid"
+        }
+      ],
+      "quality_metrics": {
+        "total_readings": 2,
+        "mapped_count": 2,
+        "out_of_bounds_count": 0,
+        "sensor_fault_count": 0,
+        "coverage_score": 1.0
+      },
+      "fields_unknown": [],
+      "validation_errors": [],
+      "agent_hint": "All 2 telemetry observation(s) in 'robotics_kinematics_imu' are within nominal physical bounds (coverage: 1.0). Standardized to canonical SI units.",
+      "jsonld_payload": null,
+      "error": null
+    },
+    {
+      "status": "warning",
+      "schema_profile": "energy_battery_fleet",
+      "observations": [
+        {
+          "sensor_id": "pack_04",
+          "observed_at_utc": "2026-10-11T14:30:00Z",
+          "phenomenon": "voltage",
+          "raw_value": 1200.0,
+          "raw_unit": "V",
+          "canonical_value": 1200.0,
+          "canonical_unit": "V",
+          "quality": "out_of_bounds"
+        },
+        {
+          "sensor_id": "pack_04",
+          "observed_at_utc": "2026-10-11T14:30:00Z",
+          "phenomenon": "temperature",
+          "raw_value": 99999.0,
+          "raw_unit": "degC",
+          "canonical_value": null,
+          "canonical_unit": "degC",
+          "quality": "sensor_fault"
+        }
+      ],
+      "quality_metrics": {
+        "total_readings": 2,
+        "mapped_count": 1,
+        "out_of_bounds_count": 1,
+        "sensor_fault_count": 1,
+        "coverage_score": 0.5
+      },
+      "fields_unknown": ["aux_flag"],
+      "validation_errors": [],
+      "agent_hint": "Normalized 1 reading(s) in 'energy_battery_fleet'. Detected 1 out-of-bounds reading(s) and 1 sensor fault(s).",
+      "jsonld_payload": null,
+      "error": null
+    },
+    {
+      "status": "error",
+      "schema_profile": "unknown_profile",
+      "observations": [],
+      "quality_metrics": {
+        "total_readings": 0,
+        "mapped_count": 0,
+        "out_of_bounds_count": 0,
+        "sensor_fault_count": 0,
+        "coverage_score": 0.0
+      },
+      "fields_unknown": [],
+      "validation_errors": [
+        "Unknown schema_profile 'unknown_profile'."
+      ],
+      "agent_hint": "Telemetry normalization failed: Unknown schema_profile 'unknown_profile'.",
+      "jsonld_payload": null,
+      "error": "Unknown schema_profile 'unknown_profile'."
+    }
+  ]
+}

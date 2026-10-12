@@ -163,6 +163,8 @@ data_engineering_semantic_web_proxy = [
 
 data_engineering_synthetic_generator = []
 
+data_engineering_telemetry_normalizer = []
+
 defi_evm_reader = [
     "web3>=6.0.0",
 ]

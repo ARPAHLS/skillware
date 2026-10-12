@@ -44,6 +44,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [`data_engineering/novelty_extractor`](skills/data_engineering/novelty_extractor.md)
 - [`data_engineering/semantic_web_proxy`](skills/data_engineering/semantic_web_proxy.md)
 - [`data_engineering/synthetic_generator`](skills/data_engineering/synthetic_generator.md)
+- [`data_engineering/telemetry_normalizer`](skills/data_engineering/telemetry_normalizer.md)
 
 ### DeFi
 
