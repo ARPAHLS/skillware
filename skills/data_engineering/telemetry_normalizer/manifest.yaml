@@ -11,7 +11,7 @@ issuer:
   name: Rin Katsuragi
   email: r.katsuragi@proton.me
   github: rin-katsuragi
-  org: ARPA Hellenic Logical Systems
+  org: ARPAHLS
 category: data_engineering
 parameters:
   type: object
