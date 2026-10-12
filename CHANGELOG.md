@@ -8,9 +8,16 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **Skill (`data_engineering/telemetry_normalizer` v0.1.0):** Universal, deterministic telemetry normalizer for heterogeneous IoT, robotics kinematics (IMU), battery fleet energy storage, and smart building HVAC sensor arrays. Performs mathematical SI/UCUM unit harmonization, strict UTC ISO-8601 timestamp normalization, physical boundary validation, stuck sensor/fault detection, coverage scoring, and W3C SOSA/SSN JSON-LD semantic export without LLM calls inside execution ([#47](https://github.com/ARPAHLS/skillware/issues/47)).
+- **Governance / Licensing (SPDX & Copyright Headers):** Standardized top-of-file SPDX license identifiers (`SPDX-License-Identifier: MIT`) and explicit copyright notices (`# Copyright (c) 2026 ARPA Hellenic Logical Systems`) across all core framework source files (`skillware/**/*.py`), CLI entry points, and authoring templates (`templates/python_skill/`) to protect against attribution stripping and ensure enterprise SCA compliance ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
+- **Tests / CI:** Added [`tests/test_spdx_headers.py`](tests/test_spdx_headers.py) asserting that all Python source files under `skillware/` and `templates/` enforce valid top-of-file SPDX license identifiers and copyright notices ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
+
 ### Changed
 
 - **Examples:** Renamed `examples/issue_resolver_github_context.py` to `examples/issue_resolver_common.py` to match the `*_common.py` helper module convention; updated imports in `claude_issue_resolver.py`, `gemini_issue_resolver.py`, and `ollama_issue_resolver.py`; removed `GRANDFATHERED_EXAMPLES` workaround from `tests/test_registry_docs.py` (#233).
+- **Typing:** `skillware/core/ui_schema.py` and `skillware/version_policy.py` are now type-clean and removed from the `[[tool.mypy.overrides]]` list, so `mypy skillware` checks them in CI (#415, Phase 1).
 
 ## [0.5.8] - 2026-10-07
 

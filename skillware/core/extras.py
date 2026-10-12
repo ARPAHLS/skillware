@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Optional install extras derived from bundled skill manifests."""
 
 from __future__ import annotations

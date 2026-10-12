@@ -91,6 +91,7 @@ pip install -e ".[dev,all,agents]"
 | `kyc_authenticity_chain_demo.py` | `security/deepfake_guard`, `office/web_form_mapper` | Local execute | `[security_deepfake_guard]`, `[office_web_form_mapper]` | None | Cross-skill SkillContext orchestration: pre-flight document authenticity verification & MRZ validation before profile ingestion. |
 | `gmail_signature_test_send.py` | `office/gmail_handler` | Local execute | `[office_gmail_handler]` | `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`; run `skillware mail signature init` first | Preview or send one test message to verify plain + HTML signature. |
 | `gemini_gmail_handler.py` | `office/gmail_handler` | Gemini | `[office_gmail_handler]`, `[gemini]` | `GOOGLE_API_KEY`, `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD` (dedicated agent mailbox; demo: `GMAIL_HANDLER_EXAMPLE_DEMO=1`) | Interactive Gemini loop for resolve, search, read, preview/send mail. |
+| `telemetry_normalizer_demo.py` | `data_engineering/telemetry_normalizer` | Local execute | `[data_engineering_telemetry_normalizer]` | None | Offline telemetry normalization across robotics, air quality, battery fleet, and HVAC profiles, with W3C SOSA/SSN semantic export. |
 
 
 ## Notes

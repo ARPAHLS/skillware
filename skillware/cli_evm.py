@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """CLI commands for EVM operator configuration (chains and RPC)."""
 
 from __future__ import annotations

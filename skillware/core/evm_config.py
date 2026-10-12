@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Merged EVM operator settings — chains, RPC resolution, and address helpers."""
 
 from __future__ import annotations

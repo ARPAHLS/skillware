@@ -207,6 +207,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Chain demo complete.",
         ],
     ),
+    (
+        "telemetry_normalizer_demo.py",
+        [
+            "data_engineering/telemetry_normalizer",
+            "Robotics Kinematics IMU Normalization",
+            "W3C SOSA / SSN Linked Data Semantic Export",
+            "Telemetry normalizer demo completed successfully.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

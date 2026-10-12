@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Pluggable secret resolution for skill runtime credentials."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Registry host context for multi-skill agent sessions."""
 
 from __future__ import annotations

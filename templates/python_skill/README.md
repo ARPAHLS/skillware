@@ -62,6 +62,7 @@ cp -r templates/python_skill skills/<category>/<skill_name>
 
 ### 5. Implement the Effect (`skill.py`)
 * Define **exactly one** subclass of `BaseSkill`. `SkillLoader` discovers this class as `bundle["class"]`.
+* Retain the `# SPDX-License-Identifier: MIT` license identifier at the top of Python source and test files.
 * Call `super().__init__(config=config)` in `__init__`.
 * Read secrets with `self.credential("KEY_NAME")` (checks host-injected `config` first, then falls back to `os.environ`). See [API Keys for Skills](../../docs/usage/api_keys.md).
 * Validate arguments against manifest JSON schema using `self.validate_params(payload)`.
@@ -158,6 +159,7 @@ Create `docs/skills/<category>/<skill_name>.md` following [Skill Usage Template]
 | **Do** mock all network and model downloads in `test_skill.py`. | **Don't** make real network requests in CI tests. |
 | **Do** use real issuer attribution in your final PR. | **Don't** commit placeholder text (`Your Name`, `you@example.com`). |
 | **Do** keep `instructions.md` concise and append-only. | **Don't** add persona starters ("You are an AI assistant..."). |
+| **Do** keep `# SPDX-License-Identifier: MIT` at the top of skill files. | **Don't** strip license headers from starter templates. |
 | **Do** put category hubs in `docs/skills/<category>/README.md`. | **Don't** create `skills/<category>/README.md` inside the registry code path. |
 
 ---

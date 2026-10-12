@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: MIT
+name: robotics_kinematics_imu
+description: Kinematics and inertial measurement telemetry for mobile robots, manipulators, and autonomous vehicles.
+sensor_id_fields:
+  - node
+  - sensor_id
+  - device_id
+  - imu_id
+timestamp_fields:
+  - t
+  - timestamp
+  - time
+  - ts
+  - epoch_ms
+phenomena:
+  linear_acceleration_x:
+    aliases: [accel_x, a_x, ax, linear_accel_x]
+    canonical_unit: m/s2
+    units:
+      m/s2: { factor: 1.0, offset: 0.0 }
+      g: { factor: 9.80665, offset: 0.0 }
+    min_valid: -196.2
+    max_valid: 196.2
+  linear_acceleration_y:
+    aliases: [accel_y, a_y, ay, linear_accel_y]
+    canonical_unit: m/s2
+    units:
+      m/s2: { factor: 1.0, offset: 0.0 }
+      g: { factor: 9.80665, offset: 0.0 }
+    min_valid: -196.2
+    max_valid: 196.2
+  linear_acceleration_z:
+    aliases: [accel_z, a_z, az, linear_accel_z]
+    canonical_unit: m/s2
+    units:
+      m/s2: { factor: 1.0, offset: 0.0 }
+      g: { factor: 9.80665, offset: 0.0 }
+    min_valid: -196.2
+    max_valid: 196.2
+  angular_velocity_x:
+    aliases: [gyro_x, omega_x, gx, gyro_x_dps]
+    canonical_unit: rad/s
+    units:
+      rad/s: { factor: 1.0, offset: 0.0 }
+      deg/s: { factor: 0.017453292519943295, offset: 0.0 }
+      dps: { factor: 0.017453292519943295, offset: 0.0 }
+    min_valid: -35.0
+    max_valid: 35.0
+  angular_velocity_y:
+    aliases: [gyro_y, omega_y, gy, gyro_y_dps]
+    canonical_unit: rad/s
+    units:
+      rad/s: { factor: 1.0, offset: 0.0 }
+      deg/s: { factor: 0.017453292519943295, offset: 0.0 }
+      dps: { factor: 0.017453292519943295, offset: 0.0 }
+    min_valid: -35.0
+    max_valid: 35.0
+  angular_velocity_z:
+    aliases: [gyro_z, omega_z, gz, gyro_z_dps]
+    canonical_unit: rad/s
+    units:
+      rad/s: { factor: 1.0, offset: 0.0 }
+      deg/s: { factor: 0.017453292519943295, offset: 0.0 }
+      dps: { factor: 0.017453292519943295, offset: 0.0 }
+    min_valid: -35.0
+    max_valid: 35.0
+  temperature:
+    aliases: [temp, t_c, temp_c, temp_f, temperature, imu_temp]
+    canonical_unit: degC
+    units:
+      degC: { factor: 1.0, offset: 0.0 }
+      degF: { formula: "fahrenheit_to_celsius" }
+      K: { factor: 1.0, offset: -273.15 }
+    min_valid: -40.0
+    max_valid: 125.0
+  battery_voltage:
+    aliases: [v_batt, battery_v, vbatt, voltage]
+    canonical_unit: V
+    units:
+      V: { factor: 1.0, offset: 0.0 }
+      mV: { factor: 0.001, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 60.0
