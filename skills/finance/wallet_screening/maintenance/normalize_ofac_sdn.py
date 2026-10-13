@@ -202,7 +202,8 @@ def build_manifest(
             "Full SDN.CSV replacement. Not a delta patch.",
             "Absence from this snapshot is not a delisting or legal clearance.",
             "Only currency code ETH is indexed for Ethereum screening.",
-            "Aban Tether is an entity-level designation in the Aug 2026 action and has no digital-currency identifier in SDN remarks, so address screening cannot hit it.",
+            "Aban Tether is an entity-level designation in the Aug 2026 action "
+            "and has no digital-currency identifier in SDN remarks, so address screening cannot hit it.",
         ],
     }
 
