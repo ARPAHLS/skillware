@@ -1,0 +1,20 @@
+{
+  "source": "OFAC SDN",
+  "source_url": "https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN.CSV",
+  "sha256": "a472434fd73854d52b8c0e53d4348f50a73c2cd5651cb2db1d6b8917e6b7f405",
+  "downloaded_at": "2026-10-14T00:00:00Z",
+  "source_last_modified": "2026-10-13T14:02:04Z",
+  "parser_version": "1",
+  "raw_currency_identifier_occurrences": 513,
+  "distinct_typed_wallets": 511,
+  "eth_indexed": 87,
+  "published_records": 512,
+  "quarantined": 1,
+  "empty_wallet_set": false,
+  "notes": [
+    "Full SDN.CSV replacement. Not a delta patch.",
+    "Absence from this snapshot is not a delisting or legal clearance.",
+    "Only currency code ETH is indexed for Ethereum screening.",
+    "Aban Tether is an entity-level designation in the Aug 2026 action and has no digital-currency identifier in SDN remarks, so address screening cannot hit it."
+  ]
+}
