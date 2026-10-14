@@ -215,20 +215,6 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         _DOCS_CLI_MAIL,
     ),
     (
-        "Addressbook",
-        [
-            ("skillware addressbook list", "formatted contacts table"),
-            ("skillware addressbook add", "interactive contact wizard"),
-            ("skillware addressbook edit <id>", "update an existing contact"),
-            ("skillware addressbook set-wallet <id> <0x>", "attach EVM wallet"),
-            ("skillware addressbook open [--dir]", "open addressbook.yaml in OS"),
-            ("skillware config open [--dir]", "open config folder in OS"),
-            ("skillware mail addressbook …", "backward-compatible alias"),
-            ("skillware (menu 10 / addressbook)", "interactive addressbook submenu"),
-        ],
-        _DOCS_CLI_ADDRESSBOOK,
-    ),
-    (
         "EVM",
         [
             ("skillware evm", "resolved evm.yaml path and enabled chains"),
@@ -243,6 +229,20 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware (menu 9 / evm)", "interactive evm submenu"),
         ],
         _DOCS_CLI_EVM,
+    ),
+    (
+        "Addressbook",
+        [
+            ("skillware addressbook list", "formatted contacts table"),
+            ("skillware addressbook add", "interactive contact wizard"),
+            ("skillware addressbook edit <id>", "update an existing contact"),
+            ("skillware addressbook set-wallet <id> <0x>", "attach EVM wallet"),
+            ("skillware addressbook open [--dir]", "open addressbook.yaml in OS"),
+            ("skillware config open [--dir]", "open config folder in OS"),
+            ("skillware mail addressbook …", "backward-compatible alias"),
+            ("skillware (menu 10 / addressbook)", "interactive addressbook submenu"),
+        ],
+        _DOCS_CLI_ADDRESSBOOK,
     ),
     (
         "General",
@@ -283,10 +283,12 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
     ("6", "chains", "list, validate, run named chains", 5),
     ("7", "theme", "CLI color theme picker", 6),
     ("8", "mail", "address book and signature setup", 7),
-    ("9", "general", "menu, help, version", 8),
-    ("10", "install", "pip install skillware", "install"),
-    ("11", "docs", "full CLI guide online", "docs"),
-    ("12", "interactive", "numbered splash menu", "interactive"),
+    ("9", "evm", "chains, tokens, and RPC config", 8),
+    ("10", "addressbook", "shared contacts, identity, and wallets", 9),
+    ("11", "general", "menu, help, version", 10),
+    ("12", "install", "pip install skillware", "install"),
+    ("13", "docs", "full CLI guide online", "docs"),
+    ("14", "interactive", "numbered splash menu", "interactive"),
 ]
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
@@ -828,7 +830,7 @@ def _print_help_static_topic(console, topic: str) -> None:
     elif topic == "interactive":
         console.print(Text("Interactive mode", style=TABLE_STYLE))
         console.print("  skillware — open splash menu", style=MENU_STYLE)
-        console.print("  1-8 or command name — run a command", style="dim")
+        console.print("  1-10 or command name — run a command", style="dim")
         console.print("  0 — exit from any menu level", style="dim")
     console.print()
 
@@ -1812,7 +1814,7 @@ def cmd_help(console=None, *, brief: bool = True) -> None:
         console.print()
         console.print(Text("Interactive mode", style=TABLE_STYLE))
         console.print(
-            "  skillware — menu 1-8; help topic drill-down via 6", style="dim"
+            "  skillware — menu 1-10; help topic drill-down via 6", style="dim"
         )
         console.print("  0 — exit from any menu level", style="dim")
         console.print()

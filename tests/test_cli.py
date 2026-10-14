@@ -1492,3 +1492,70 @@ def test_main_addressbook_list_subcommand(tmp_path, monkeypatch):
         assert exc.value.code == 0
     finally:
         sys.argv = argv
+
+
+def test_cmd_help_brief_and_submenu_mapping():
+    import io
+    from rich.console import Console
+    from skillware.cli import HELP_GROUPS, _HELP_MENU, cmd_help
+
+    assert len(_HELP_MENU) == 14
+    slugs = [slug for _, slug, _, _ in _HELP_MENU]
+    assert "evm" in slugs
+    assert "addressbook" in slugs
+    assert "general" in slugs
+
+    for _key, slug, _summary, target in _HELP_MENU:
+        if isinstance(target, int):
+            assert 0 <= target < len(HELP_GROUPS)
+            group_title = HELP_GROUPS[target][0].lower()
+            if slug in ("evm", "addressbook", "general"):
+                assert slug in group_title
+        else:
+            assert target in ("install", "docs", "interactive")
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    cmd_help(console=console, brief=True)
+    out = buf.getvalue()
+    assert "Topics" in out
+    assert "evm" in out
+    assert "addressbook" in out
+    assert "menu 1-10; help topic drill-down via 6" in out
+
+
+def test_cmd_help_submenu_navigation_evm_and_addressbook():
+    import io
+    from rich.console import Console
+    from skillware.cli import cmd_help_submenu
+
+    inputs = iter(["9", "", "back"])
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=120)
+    ret = cmd_help_submenu(console=console, input_fn=lambda _: next(inputs))
+    assert ret is None
+    out = buf.getvalue()
+    assert "EVM" in out
+
+    inputs2 = iter(["addressbook", "", "exit"])
+    buf2 = io.StringIO()
+    console2 = Console(file=buf2, force_terminal=False, width=120)
+    ret2 = cmd_help_submenu(console=console2, input_fn=lambda _: next(inputs2))
+    assert ret2 == "exit"
+    out2 = buf2.getvalue()
+    assert "Addressbook" in out2
+
+
+def test_cli_docs_history_and_menu_sync():
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parent.parent
+    cli_md = (repo_root / "docs" / "usage" / "cli.md").read_text(encoding="utf-8")
+    assert "<!-- cli-history:begin -->" in cli_md
+    assert "<!-- cli-history:end -->" in cli_md
+    assert "2f20e20" in cli_md
+    assert "5e524a1" in cli_md
+    assert "dd90896" in cli_md
+    assert "31 May 2026" in cli_md
+    assert "`9` / [`evm`]" in cli_md
+    assert "`10` / [`addressbook`]" in cli_md
