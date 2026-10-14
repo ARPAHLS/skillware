@@ -49,6 +49,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "token_security_scanner_demo.py",
+        [
+            "defi/token_security_scanner demo",
+            "goplus_supported=True",
+            "policy_action=allow",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
         "sanitize_input_chain_demo.py",
         [
             "sanitize_input chain demo",

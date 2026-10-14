@@ -56,6 +56,7 @@ def run_offline() -> None:
         f"tier={report['risk_tier']} policy_action={report['policy_action']} "
         f"profile={report['policy_profile']}"
     )
+    print("Demo completed successfully.")
 
 
 def run_live() -> None:
