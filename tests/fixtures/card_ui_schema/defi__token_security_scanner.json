@@ -5,6 +5,7 @@
       "chain": "base",
       "contract": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed",
       "risk_tier": "low",
+      "policy_action": "allow",
       "signals": {
         "is_honeypot": false,
         "buy_tax_pct": 0.0,
@@ -23,6 +24,7 @@
       "chain": "ethereum",
       "contract": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
       "risk_tier": "critical",
+      "policy_action": "block",
       "signals": {
         "is_honeypot": true,
         "buy_tax_pct": 12.0,

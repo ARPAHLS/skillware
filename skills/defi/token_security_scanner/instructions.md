@@ -7,9 +7,9 @@ scanner for ERC-20 / LP token contracts on supported EVM chains (GoPlus Token Se
 
 | You (agent) | Skill |
 |-------------|--------|
-| Extract chain + contract from user intent | Call GoPlus and normalize flags |
-| Block or warn before swaps/transfers | Return `risk_tier` + `signals` JSON |
-| Chain into wallet screening / `evm_tx_handler` when clean | Never sign or buy |
+| Extract chain + contract or token slug from user intent | Call GoPlus and normalize flags |
+| Gate the trade on `policy_action` | Return `risk_tier`, `policy_action`, and `signals` |
+| Chain into wallet screening / `evm_tx_handler` when `allow` | Never sign or buy |
 
 **Do not** invent honeypot/tax flags from explorer UI or model memory.
 **Do not** pass private keys. **Do not** treat `low` as a guarantee of safety.
@@ -18,24 +18,27 @@ scanner for ERC-20 / LP token contracts on supported EVM chains (GoPlus Token Se
 
 | Action | Use when |
 |--------|----------|
-| `supported_chains` | List enabled slugs from operator EVM config |
-| `scan` | Vet a contract before quoting/buying |
+| `supported_chains` | List enabled slugs and whether GoPlus covers each `chain_id` |
+| `scan` | Vet one contract or `evm.tokens` slug before quoting/buying |
+| `scan_batch` | Vet up to 5 `{chain, contract\|token}` pairs; read `worst_risk_tier` |
 
 ### `scan` parameters
 
 ```json
-{"action": "scan", "chain": "base", "contract": "0x4ed4e862860bed51a9570b96d89af5e1b0efefed"}
+{"action": "scan", "chain": "base", "token": "degen"}
 ```
 
-Chain slugs come from shared `skillware.core.evm_config` (bundled defaults: `ethereum`, `base`). Add more GoPlus-capable networks with `skillware evm chain add` — do not expect a per-skill `chains.yaml`.
+`contract` is still accepted. If both `token` and `contract` are set, they must be the same address. Chain slugs come from shared `skillware.core.evm_config`. A chain with `goplus_supported: false` cannot be scanned.
 
 ### How to read the report
 
 1. If `status` is not `ok` — fix input / retry; do not trade.
-2. If `risk_tier` is **`critical`**, **`high`**, or **`unknown`** — refuse swap/transfer; explain signals.
-3. If **`medium`** — surface warnings; require human confirmation before `evm_tx_handler`.
-4. If **`low`** — still not financial advice; optional next step: screen large holders
-   via `finance/wallet_screening`, then preview buy with `defi/evm_tx_handler`.
+2. Gate on **`policy_action`**, not a hand-written tier list.
+   - `block` — refuse swap/transfer.
+   - `flag` — surface warnings and require human confirmation before `evm_tx_handler`.
+   - `allow` — still not financial advice.
+3. Default profile `enterprise_default` maps `critical`, `high`, and `unknown` to `block`, `medium` to `flag`, and `low` to `allow`.
+4. Operators override thresholds in `~/.config/skillware/token_scan_policy.yaml` or `TOKEN_SCAN_POLICY_PATH`.
 5. Treat `null` signal fields as **unknown** (especially when source is not open, or proxy).
 6. Always mention `sources[].provider` and that coverage varies by chain (`warnings`).
 

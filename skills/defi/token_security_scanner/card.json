@@ -15,7 +15,11 @@
       {"key": "chain", "label": "Chain"},
       {"key": "contract", "label": "Contract"},
       {"key": "risk_tier", "label": "Risk", "type": "status_badge"},
-      {"key": "signals.is_honeypot", "label": "Honeypot", "type": "status_badge"}
+      {"key": "policy_action", "label": "Policy", "type": "status_badge"},
+      {"key": "signals.is_honeypot", "label": "Honeypot", "type": "status_badge"},
+      {"key": "signals.buy_tax_pct", "label": "Buy tax %"},
+      {"key": "signals.sell_tax_pct", "label": "Sell tax %"},
+      {"key": "contract_errors", "label": "Factors"}
     ]
   }
 }

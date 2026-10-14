@@ -1,0 +1,33 @@
+# Chain IDs the GoPlus Token Security API accepts.
+# https://docs.gopluslabs.io/reference/token-security-api
+# Enabled operator chains missing from this list are returned with
+# goplus_supported: false so hosts do not scan them.
+chain_ids:
+  - 1
+  - 10
+  - 25
+  - 56
+  - 66
+  - 100
+  - 128
+  - 137
+  - 146
+  - 169
+  - 196
+  - 204
+  - 250
+  - 321
+  - 324
+  - 480
+  - 130
+  - 5000
+  - 8453
+  - 42161
+  - 43114
+  - 59144
+  - 81457
+  - 534352
+  - 80094
+  - 2741
+  - 4200
+  - 200901

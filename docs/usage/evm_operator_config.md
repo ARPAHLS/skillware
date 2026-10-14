@@ -161,6 +161,21 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 
 ---
 
+## Token scan policy
+
+`defi/token_security_scanner` reads thresholds from a YAML file, not from code.
+
+| Layer | Location |
+| :--- | :--- |
+| Bundled default | `skills/defi/token_security_scanner/data/default_policy.yaml` (`enterprise_default`) |
+| User file | `~/.config/skillware/token_scan_policy.yaml` |
+| Env override | `TOKEN_SCAN_POLICY_PATH` |
+| One call | `policy_path` on `scan` / `scan_batch` |
+
+A missing user file uses the bundled profile, which keeps the v0.1 tiers: tax at or above 10% is high, closed-source unknown honeypot is high, and `critical` / `high` / `unknown` map to `policy_action: block`. Copy the bundled file to the user path and change `high_tax_pct` or `min_holder_count` to override one desk without forking the skill.
+
+---
+
 ## Related docs
 
 - [CLI — skillware evm](cli.md#skillware-evm)

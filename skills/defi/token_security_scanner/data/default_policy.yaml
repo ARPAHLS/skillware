@@ -1,0 +1,16 @@
+# Default token-scan policy. Reproduces v0.1 risk tiers.
+# Operators override with ~/.config/skillware/token_scan_policy.yaml
+# or TOKEN_SCAN_POLICY_PATH. Missing file means this profile.
+profile: enterprise_default
+high_tax_pct: 10
+medium_tax_above_pct: 0
+# high | block | ignore. "block" forces policy_action block for closed-source
+# unknown honeypot even if the high-tier action is later remapped.
+closed_source_unknown_honeypot: high
+min_holder_count: null
+actions:
+  critical: block
+  high: block
+  unknown: block
+  medium: flag
+  low: allow
