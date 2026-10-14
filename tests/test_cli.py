@@ -1556,6 +1556,8 @@ def test_cli_docs_history_and_menu_sync():
     assert "2f20e20" in cli_md
     assert "5e524a1" in cli_md
     assert "dd90896" in cli_md
-    assert "31 May 2026" in cli_md
+    assert "14 Jun 2026" in cli_md
+    assert "[@rizzoMartin](https://github.com/rizzoMartin)" in cli_md
+    assert "[@blade-dancer](https://github.com/bd-c3)" in cli_md
     assert "`9` / [`evm`]" in cli_md
     assert "`10` / [`addressbook`]" in cli_md

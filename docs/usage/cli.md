@@ -607,34 +607,33 @@ of `description`, truncated to 80 characters.
 <!-- cli-history:begin -->
 ## CLI history
 
-Provenance of key CLI features, subcommands, and UX updates:
+Commits that touched the `skillware` CLI tool, its subcommands, or its documentation page (`docs/usage/cli.md`).
 
-| Date | Commit | Version | Author | Scope |
+| Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| 11 Oct 2026 | [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20) | `0.4.7` | Ross Peili | feat(core): standardize SPDX license identifiers across skills and packages |
-| 25 Sep 2026 | [`f079bf3`](https://github.com/ARPAHLS/skillware/commit/f079bf3) | `0.4.7` | Ross Peili | fix(cli): detect editable/PyPI overlap and harden version check against orphan dists |
-| 23 Sep 2026 | [`85d29f4`](https://github.com/ARPAHLS/skillware/commit/85d29f4) | `0.4.6` | Ross Peili | docs: addressbook guide, evm tokens list, and example index updates |
-| 23 Sep 2026 | [`30234c9`](https://github.com/ARPAHLS/skillware/commit/30234c9) | `0.4.6` | Ross Peili | feat(evm): add token add CLI, live integration test, and doc alignment |
-| 23 Sep 2026 | [`004e8cb`](https://github.com/ARPAHLS/skillware/commit/004e8cb) | `0.4.6` | Ross Peili | feat(core): shared addressbook public_0x and evm_tx_handler integration |
-| 23 Sep 2026 | [`13040ba`](https://github.com/ARPAHLS/skillware/commit/13040ba) | `0.4.6` | Ross Peili | feat(core): add shared EVM operator config and skillware evm CLI |
-| 04 Sep 2026 | [`9e47261`](https://github.com/ARPAHLS/skillware/commit/9e47261) | `0.4.5` | Panagiotis Peilivanis | feat(cli): add theme subcommand and align help topics |
-| 03 Sep 2026 | [`5fcf76a`](https://github.com/ARPAHLS/skillware/commit/5fcf76a) | `0.4.5` | harshthakur3 | feat(cli): add configurable themes for terminal output |
-| 19 Aug 2026 | [`a1bab61`](https://github.com/ARPAHLS/skillware/commit/a1bab61) | `0.4.2` | Ross Peili | Add mail CLI and config for gmail_handler operator UX |
-| 12 Aug 2026 | [`50c08fb`](https://github.com/ARPAHLS/skillware/commit/50c08fb) | `0.4.2` | Ross Peili | feat(cli): interactive paths editor, tiered help, and flat-layout discovery |
-| 10 Aug 2026 | [`eb20942`](https://github.com/ARPAHLS/skillware/commit/eb20942) | `0.4.2` | Ross Peili | feat(config,cli): persistent YAML config and skillware paths command |
-| 09 Aug 2026 | [`9de244b`](https://github.com/ARPAHLS/skillware/commit/9de244b) | `0.4.2` | Ross Peili | feat(loader,cli): inspect-only load and skillware doctor command |
-| 10 Jul 2026 | [`c22c8df`](https://github.com/ARPAHLS/skillware/commit/c22c8df) | `0.4.0` | Ross Peili | feat(cli): add skillware paths and shared discovery logic |
-| 08 Jul 2026 | [`b867202`](https://github.com/ARPAHLS/skillware/commit/b867202) | `0.4.0` | Ross Peili | docs: add CLI splash art and interactive menu screenshot to docs |
-| 08 Jul 2026 | [`087b0b3`](https://github.com/ARPAHLS/skillware/commit/087b0b3) | `0.4.0` | Ross Peili | feat(cli): fix splash logo and add Rich gradient branding |
-| 29 Jun 2026 | [`93d0d9e`](https://github.com/ARPAHLS/skillware/commit/93d0d9e) | `0.3.5` | Ross Peili | docs: align CLI docs with examples menu and pip-install flow |
-| 26 Jun 2026 | [`89a99a7`](https://github.com/ARPAHLS/skillware/commit/89a99a7) | `0.3.5` | Ross Peili | feat: add interactive examples menu and GitHub source link |
-| 26 Jun 2026 | [`9827812`](https://github.com/ARPAHLS/skillware/commit/9827812) | `0.3.5` | Ross Peili | feat: add skillware examples CLI and list --examples flag |
-| 24 Jun 2026 | [`b713fe4`](https://github.com/ARPAHLS/skillware/commit/b713fe4) | `0.3.5` | Ross Peili | feat: add skillware test CLI for bundle tests (#83) |
-| 14 Jun 2026 | [`04a3d69`](https://github.com/ARPAHLS/skillware/commit/04a3d69) | `0.3.5` | Ross Peili | Wire skillware --help to cmd_help and clean up status table |
-| 31 May 2026 | [`dd90896`](https://github.com/ARPAHLS/skillware/commit/dd90896) | `0.3.5` | Ross Peili | Add __main__.py, cmd_help, --version, and move rich to core deps |
-| 28 May 2026 | [`20093df`](https://github.com/ARPAHLS/skillware/commit/20093df) | `0.3.5` | Ross Peili | feat: version support policy and CLI advisory for unsupported releases |
-| 27 May 2026 | [`0bd2410`](https://github.com/ARPAHLS/skillware/commit/0bd2410) | `0.3.5` | Ross Peili | Feat/issue 130 cli polish ux (#131) |
-| 26 May 2026 | [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78) | `0.3.5` | Ross Peili | Feat/issue 93 cli visual redesign (#129) |
-| 22 May 2026 | [`5e524a1`](https://github.com/ARPAHLS/skillware/commit/5e524a1) | `0.3.5` | Ross Peili | Feat/issue 16 cli for skill discovery (#84) |
+| [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20b08) | feat(core): standardize SPDX license identifiers and copyright headers (#416) (#422) | 11 Oct 2026 | `0.5.8` | [@blade-dancer](https://github.com/bd-c3) |
+| [`f079bf3`](https://github.com/ARPAHLS/skillware/commit/f079bf3594) | fix(cli): detect editable/PyPI overlap and harden version display (#333) (#388) | 25 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`85d29f4`](https://github.com/ARPAHLS/skillware/commit/85d29f48bb) | docs: addressbook guide, evm tokens list, and example polish (#373, #374) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`30234c9`](https://github.com/ARPAHLS/skillware/commit/30234c9e0e) | feat(evm): add token add CLI, live integration tests, and card v0.3.0 ripples | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`004e8cb`](https://github.com/ARPAHLS/skillware/commit/004e8cbd82) | feat(core): shared addressbook public_0x and evm_tx_handler v0.3.0 (#373, #374) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`13040ba`](https://github.com/ARPAHLS/skillware/commit/13040ba0db) | feat(core): add shared EVM operator config and skillware evm CLI (#379) (#380) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`9e47261`](https://github.com/ARPAHLS/skillware/commit/9e47261b9d) | feat(cli): add theme subcommand and align help topics with context/chains | 04 Sep 2026 | `0.5.5` | [@rosspeili](https://github.com/rosspeili) |
+| [`5fcf76a`](https://github.com/ARPAHLS/skillware/commit/5fcf76af90) | feat(cli): add theme picker and CLI color themes (#248, #305) | 03 Sep 2026 | `0.5.4` | [@harshthakur3](https://github.com/harshthakur3) |
+| [`a1bab61`](https://github.com/ARPAHLS/skillware/commit/a1bab615ac) | Add mail CLI and config for gmail_handler operator UX (#292) | 19 Aug 2026 | `0.5.1` | [@rosspeili](https://github.com/rosspeili) |
+| [`50c08fb`](https://github.com/ARPAHLS/skillware/commit/50c08fb6cf) | feat(cli): interactive paths editor, tiered help, and nav (#247) (#285) | 12 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`eb20942`](https://github.com/ARPAHLS/skillware/commit/eb2094237f) | feat(config,cli): persistent YAML config and skillware config show (#246) (#283) | 10 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`9de244b`](https://github.com/ARPAHLS/skillware/commit/9de244b3ee) | feat(loader,cli): inspect-only load and skillware doctor (#235) (#282) | 09 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`c22c8df`](https://github.com/ARPAHLS/skillware/commit/c22c8df4d2) | feat(cli): add skillware paths and shared discovery module (#249) | 10 Jul 2026 | `0.4.5` | [@rosspeili](https://github.com/rosspeili) |
+| [`b867202`](https://github.com/ARPAHLS/skillware/commit/b8672027ae) | docs: add CLI splash art and interactive menu screenshot to cli.md | 08 Jul 2026 | `0.4.3` | [@rosspeili](https://github.com/rosspeili) |
+| [`087b0b3`](https://github.com/ARPAHLS/skillware/commit/087b0b33cb) | feat(cli): fix splash logo and add Rich gradient branding | 08 Jul 2026 | `0.4.2` | [@rosspeili](https://github.com/rosspeili) |
+| [`93d0d9e`](https://github.com/ARPAHLS/skillware/commit/93d0d9e889) | docs: align CLI docs with examples menu and pip-install behavior (#194) | 29 Jun 2026 | `0.4.0` | [@uttam12331](https://github.com/uttam12331) |
+| [`89a99a7`](https://github.com/ARPAHLS/skillware/commit/89a99a75c6) | feat: add interactive examples menu and GitHub source links (#126) | 26 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`9827812`](https://github.com/ARPAHLS/skillware/commit/9827812b11) | feat: add skillware examples CLI and list --examples (#126) | 26 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`b713fe4`](https://github.com/ARPAHLS/skillware/commit/b713fe4752) | feat: add skillware test CLI for bundle tests (#83) (#188) | 24 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`04a3d69`](https://github.com/ARPAHLS/skillware/commit/04a3d693dd) | Wire skillware --help to cmd_help and clean up stale [cli] mentions | 14 Jun 2026 | `0.3.6` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`dd90896`](https://github.com/ARPAHLS/skillware/commit/dd90896286) | Add __main__.py, cmd_help, --version, and move rich to core | 14 Jun 2026 | `0.3.6` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`20093df`](https://github.com/ARPAHLS/skillware/commit/20093dff79) | feat: version support policy and CLI advisory for unsupported installs (#132) (#137) | 28 May 2026 | `0.3.3` | [@rosspeili](https://github.com/rosspeili) |
+| [`0bd2410`](https://github.com/ARPAHLS/skillware/commit/0bd2410e38) | Feat/issue 130 cli polish ux (#131) | 27 May 2026 | `0.3.2` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78b70) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.3.2` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`5e524a1`](https://github.com/ARPAHLS/skillware/commit/5e524a1396) | Feat/issue 16 cli for skill discovery (#84) | 22 May 2026 | `0.2.9` | [@rizzoMartin](https://github.com/rizzoMartin) |
 <!-- cli-history:end -->
-
