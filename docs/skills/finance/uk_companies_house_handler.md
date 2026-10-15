@@ -3,10 +3,10 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.3.0` — 17 Sep 2026
+**Version**: `1.4.0` — 15 Oct 2026
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
-**Solves:** Deterministic UK Companies House search, officers, PSC, and filing history for compliance agents.
+**Solves:** Deterministic UK Companies House search, officers, PSC, filing history, and Document API download for compliance agents.
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
 **Runtime:** Needs `COMPANIES_HOUSE_API_KEY`.
 <!-- skill-intent:end -->
@@ -14,7 +14,7 @@
 **Recommended install:** `pip install "skillware[finance_uk_companies_house_handler]"`. See [Install extras](../../usage/install_extras.md).
 [Skill Library](../README.md) · [Finance](README.md) · [Testing](../../TESTING.md)
 
-A deterministic UK Companies House API handler for agents. Provides structured operations for company search, profile lookup, officer and PSC listing with deterministic role/name filtering, filing history with helpers, multi-step pipeline orchestration, and composite shortcuts. Returns status-based responses (`ready`, `partial`, `needs_input`, `error`) with disambiguation support.
+A deterministic UK Companies House API handler for agents. Provides structured operations for company search, profile lookup, officer and PSC listing with deterministic role/name filtering, filing history with helpers, Document API discover/pick/download (bounded base64, no disk), multi-step pipeline orchestration, and composite shortcuts. Returns status-based responses (`ready`, `partial`, `needs_input`, `error`) with disambiguation support.
 
 ## Capabilities
 
@@ -24,6 +24,7 @@ A deterministic UK Companies House API handler for agents. Provides structured o
 - **Multi-Page Officer Scanning**: Automatically scans up to 10 pages (1,000 records) in batches of 100 when filtering officers by role or name to prevent missing records.
 - **Persons with Significant Control (PSC)**: List beneficial owners with natures of control, equivalent to the US concept of "beneficial owner" or "shareholder".
 - **Filing History & Helpers**: List filings (accounts, confirmation statements, incorporations) sorted deterministically newest-first by date, with optional category filtering and deterministic helper flags (`latest_only: true`, `latest_per_category: true`).
+- **Document API Flow**: `list_downloadable_documents` builds a pick list from filings with `links.document_metadata`; `get_document_metadata` inspects MIME types and size; `fetch_document` streams bytes as bounded `content_base64` (default 5 MB, hard ceiling 10 MB) with Authorization dropped on redirects to external storage. No local disk persistence.
 - **Pipeline Orchestration (`run_pipeline`)**: Execute ordered steps sequentially, halting on disambiguation (`needs_input`) or `error`, and preserving execution progress in `pipeline`.
 - **Composite Actions**: One-step resolution and extraction for common workflows (`resolve_and_get_officers`, `resolve_and_get_filings`, `resolve_company_officer`).
 - **Deterministic Step Composition**: Compose direct `run_pipeline` step stacks with `<from_resolve>` parameter substitution across turns without intermediate prompt overhead.
@@ -42,10 +43,11 @@ Skill-context instructions (registry ID opener, not a persona). The host agent:
 - **Always replies in plain language** — never ends with an empty or one-word answer; explains empty registry results and asks focused follow-ups when data is missing.
 
 ### Effect (`skill.py`)
-A single `execute()` entry point dispatches to nine action handlers:
+A single `execute()` entry point dispatches to twelve action handlers:
 - **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`.
+- **Document actions**: `list_downloadable_documents`, `get_document_metadata`, `fetch_document`.
 - **Pipeline orchestration & composites**: `run_pipeline`, `resolve_and_get_officers`, `resolve_and_get_filings`, `resolve_company_officer`.
-- **HTTP layer**: Authenticated requests using API key as HTTP Basic username.
+- **HTTP layer**: Authenticated requests to the Public Data API and Document API using the API key as HTTP Basic username; Authorization is dropped when following redirects to external storage.
 - **Status envelope**: Every response includes `status` (ready/partial/needs_input/error), `fetched_at` (UTC ISO), and `source`. The `partial` status is used exclusively during multi-step `run_pipeline` execution when steps remain.
 - **Record limits and truncation**: Returns up to 10 active officers or recent filings by default (configurable via `limit`), with `total_results` and `active_count` metadata indicating truncation when more records exist, while maintaining `status: "ready"`.
 - **State propagation**: Extracts and updates session `context` (such as `company_number`, `company_name`, `last_action`, and `selected_transaction_id`) in every response, automatically falling back to these values if omitted in subsequent turns.
@@ -80,7 +82,7 @@ Companies House enforces **600 requests per 5 minutes per API key**. See the off
 - Officer lists default to 10 active records; standalone actions return `ready` with `total_results` / `active_count` when truncated — render all returned rows. `partial` is reserved for in-flight `run_pipeline` only.
 - For stress testing NLP hosts, see `scripts/uk_companies_house_host_simulation.py` (`--provider host|gemini|claude|all`). Gemini free tier may need `--gemini-delay 15` between scenarios.
 
-## Direct execute — pipeline and composites (v1.3.0)
+## Direct execute — pipeline, documents, and composites (v1.4.0)
 
 Use these patterns when calling `skill.execute()` directly (no LLM) or when building deterministic hosts. Mocked flows: [`examples/uk_companies_house_handler_demo.py`](../../../examples/uk_companies_house_handler_demo.py). Interactive agent loops: [`examples/gemini_uk_companies_house_handler.py`](../../../examples/gemini_uk_companies_house_handler.py), [`examples/claude_uk_companies_house_handler.py`](../../../examples/claude_uk_companies_house_handler.py).
 
@@ -158,6 +160,33 @@ result = skill.execute(
     }
 )
 ```
+
+
+**Document flow (list → fetch):**
+
+```python
+listed = skill.execute(
+    {
+        "action": "list_downloadable_documents",
+        "company_number": "00102498",
+        "category": "accounts",
+        "latest_only": True,
+    }
+)
+doc = listed["documents"][0]
+fetched = skill.execute(
+    {
+        "action": "fetch_document",
+        "transaction_id": doc["transaction_id"],
+        "metadata_url": doc["metadata_url"],
+        "max_bytes": 5_242_880,
+        "context": listed["context"],
+    }
+)
+# fetched["content_base64"] holds the PDF bytes; nothing is written to disk.
+```
+
+Mocked document-flow demo: [`examples/uk_companies_house_document_flow_demo.py`](../../../examples/uk_companies_house_document_flow_demo.py).
 
 Status envelopes (`ready`, `partial`, `needs_input`, `error`) and host reply expectations are defined in `instructions.md` (Directive). In agent loops, pass **`bundle["instructions"]`** as system context so the model passes clean `query` values, handles `needs_input`, and always produces a user-facing answer — including when registry rows are empty.
 
@@ -592,11 +621,99 @@ print(json.dumps(result, indent=2))
 }
 ```
 
+
+### Input — list downloadable documents
+
+```json
+{
+  "action": "list_downloadable_documents",
+  "company_number": "00102498",
+  "category": "accounts",
+  "latest_only": true
+}
+```
+
+### Output — document pick list
+
+```json
+{
+  "status": "ready",
+  "source": "companies_house_api",
+  "company_number": "00102498",
+  "documents": [
+    {
+      "transaction_id": "tx-accounts-001",
+      "description": "accounts-with-accounts-type-full",
+      "date": "2024-03-15",
+      "category": "accounts",
+      "metadata_url": "https://document-api.company-information.service.gov.uk/document/doc-accounts-001",
+      "downloadable": true
+    }
+  ],
+  "context": {
+    "company_number": "00102498",
+    "selected_transaction_id": null,
+    "last_action": "list_downloadable_documents",
+    "document_candidates": {
+      "tx-accounts-001": {
+        "metadata_url": "https://document-api.company-information.service.gov.uk/document/doc-accounts-001",
+        "date": "2024-03-15",
+        "category": "accounts"
+      }
+    }
+  }
+}
+```
+
+### Input — fetch document
+
+```json
+{
+  "action": "fetch_document",
+  "transaction_id": "tx-accounts-001",
+  "metadata_url": "https://document-api.company-information.service.gov.uk/document/doc-accounts-001",
+  "content_type": "application/pdf",
+  "max_bytes": 5242880
+}
+```
+
+### Output — document ready (base64)
+
+```json
+{
+  "status": "ready",
+  "source": "companies_house_document_api",
+  "transaction_id": "tx-accounts-001",
+  "content_type": "application/pdf",
+  "filename": "00102498_accounts_2024-03-15.pdf",
+  "size_bytes": 1024,
+  "content_base64": "JVBERi0xLjQ...",
+  "context": {
+    "selected_transaction_id": "tx-accounts-001",
+    "last_action": "fetch_document"
+  }
+}
+```
+
+### Output — document too large
+
+```json
+{
+  "status": "error",
+  "error_code": "document_too_large",
+  "reason": "document_too_large",
+  "size_bytes": 12582912,
+  "max_bytes": 5242880,
+  "message": "Document exceeds max_bytes limit of 5.0 MB (actual: 12.0 MB). Set a higher max_bytes (up to 10 MB) or retrieve metadata only."
+}
+```
+
 ## Limitations
 
-- **Scope**: Search, profile, officers, PSC, filing history, multi-step pipeline orchestration, and composite resolution. Charges, insolvency registers, and document downloads are planned for later v2 phases.
+- **Scope**: Search, profile, officers, PSC, filing history, Document API download, multi-step pipeline orchestration, and composite resolution. Charges and insolvency registers remain out of scope for this skill.
 - **Read-only**: This skill cannot submit filings or modify Companies House records.
-- **Rate limits**: Companies House API allows [600 requests per 5 minutes per key](https://developer.company-information.service.gov.uk/documentation/rate-limiting). The skill returns a structured `rate_limited` error when throttled. Batch or pipeline hosts should backoff and retry.
+- **Rate limits**: Companies House allows [600 requests per 5 minutes per key](https://developer.company-information.service.gov.uk/documentation/rate-limiting) across hosts. The skill returns a structured `rate_limited` error with Retry-After in `agent_hint` when throttled; it does not sleep or client-throttle. Batch or pipeline hosts should backoff and retry.
+- **Document size**: `fetch_document` enforces `max_bytes` (default 5 MB, hard ceiling 10 MB) and returns `document_too_large` when exceeded. Bytes are returned as `content_base64` only — never written to disk.
 - **Public data only**: Only publicly available information is returned.
 - **Not legal advice**: Company information is provided as-is. This is not legal, accounting, or regulatory advice.
 

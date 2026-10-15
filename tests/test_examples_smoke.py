@@ -149,6 +149,14 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "uk_companies_house_document_flow_demo.py",
+        [
+            "Flow A: list_downloadable_documents",
+            "Flow C: fetch_document (redirect drops auth)",
+            "=== flow complete ===",
+        ],
+    ),
+    (
         "gmail_handler_demo.py",
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
     ),

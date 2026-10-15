@@ -2,6 +2,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+import requests
 import yaml
 
 from .skill import UkCompaniesHouseHandlerSkill
@@ -81,6 +82,13 @@ def test_missing_company_number(skill):
         result = skill.execute({"action": action})
         assert result["status"] == "error"
         assert result["error_code"] == "missing_company_number"
+
+
+def test_list_downloadable_documents_needs_company_number(skill):
+    """list_downloadable_documents returns needs_input without company_number."""
+    result = skill.execute({"action": "list_downloadable_documents"})
+    assert result["status"] == "needs_input"
+    assert result["reason"] == "missing_company_number"
 
 
 # --- resolve_company Tests ---
@@ -2154,3 +2162,595 @@ def test_run_pipeline_multi_company_resolve_boundary(mock_request, skill):
     assert rem_steps2[0]["action"] == "resolve_company"
     # Barclays officers step MUST STILL remain <from_resolve>!
     assert rem_steps2[1]["params"]["company_number"] == "<from_resolve>"
+
+
+# --- Document API Tests (v1.4.0 / #421) ---
+
+_MOCK_FILINGS_WITH_DOCS = {
+    "total_count": 3,
+    "filing_history_status": "filing-history-available",
+    "items": [
+        {
+            "date": "2024-03-15",
+            "category": "accounts",
+            "type": "AA",
+            "description": "accounts-with-accounts-type-full",
+            "transaction_id": "tx-accounts-001",
+            "barcode": "B1",
+            "links": {
+                "document_metadata": (
+                    "https://document-api.company-information.service.gov.uk"
+                    "/document/doc-accounts-001"
+                )
+            },
+        },
+        {
+            "date": "2024-01-10",
+            "category": "confirmation-statement",
+            "type": "CS01",
+            "description": "confirmation-statement",
+            "transaction_id": "tx-cs-001",
+            "barcode": "B2",
+            "links": {
+                "document_metadata": (
+                    "https://document-api.company-information.service.gov.uk"
+                    "/document/doc-cs-001"
+                )
+            },
+        },
+        {
+            "date": "2023-06-01",
+            "category": "officers",
+            "type": "AP01",
+            "description": "appointment",
+            "transaction_id": "tx-no-doc",
+            "barcode": "B3",
+            "links": {},
+        },
+    ],
+}
+
+_MOCK_DOC_METADATA = {
+    "id": "doc-accounts-001",
+    "created_at": "2024-03-16T10:00:00Z",
+    "pages": 42,
+    "resources": {
+        "application/pdf": {
+            "content_length": 1024,
+            "created_at": "2024-03-16T10:00:00Z",
+        },
+        "application/xhtml+xml": {
+            "content_length": 2048,
+            "created_at": "2024-03-16T10:00:00Z",
+        },
+    },
+    "links": {
+        "self": (
+            "https://document-api.company-information.service.gov.uk"
+            "/document/doc-accounts-001"
+        ),
+        "document": (
+            "https://document-api.company-information.service.gov.uk"
+            "/document/doc-accounts-001/content"
+        ),
+    },
+}
+
+
+def _mock_response(json_data=None, status=200, headers=None, content=b"", raw=None):
+    resp = MagicMock()
+    resp.status_code = status
+    resp.headers = headers or {}
+    if json_data is not None:
+        resp.json.return_value = json_data
+    resp.content = content
+    resp.raise_for_status = MagicMock()
+    if status >= 400:
+        http_err = requests.exceptions.HTTPError(f"HTTP {status}", response=resp)
+        resp.raise_for_status.side_effect = http_err
+
+    def iter_content(chunk_size=8192):
+        data = raw if raw is not None else content
+        for i in range(0, len(data), chunk_size):
+            yield data[i : i + chunk_size]
+
+    resp.iter_content = iter_content
+    resp.close = MagicMock()
+    return resp
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_list_downloadable_documents(mock_request, skill):
+    """list_downloadable_documents filters filings with metadata links."""
+    mock_request.return_value = _mock_response(_MOCK_FILINGS_WITH_DOCS)
+
+    result = skill.execute(
+        {
+            "action": "list_downloadable_documents",
+            "company_number": "00102498",
+            "limit": 10,
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert len(result["documents"]) == 2
+    assert result["documents"][0]["transaction_id"] == "tx-accounts-001"
+    assert result["documents"][0]["downloadable"] is True
+    assert "document-api.company-information" in result["documents"][0]["metadata_url"]
+    assert "tx-no-doc" not in [d["transaction_id"] for d in result["documents"]]
+    assert "document_candidates" in result["context"]
+    assert "tx-accounts-001" in result["context"]["document_candidates"]
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_list_downloadable_documents_latest_only(mock_request, skill):
+    mock_request.return_value = _mock_response(_MOCK_FILINGS_WITH_DOCS)
+    result = skill.execute(
+        {
+            "action": "list_downloadable_documents",
+            "company_number": "00102498",
+            "latest_only": True,
+        }
+    )
+    assert result["status"] == "ready"
+    assert len(result["documents"]) == 1
+    assert result["documents"][0]["transaction_id"] == "tx-accounts-001"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_list_downloadable_documents_category_filter(mock_request, skill):
+    mock_request.return_value = _mock_response(_MOCK_FILINGS_WITH_DOCS)
+    result = skill.execute(
+        {
+            "action": "list_downloadable_documents",
+            "company_number": "00102498",
+            "category": "accounts",
+        }
+    )
+    assert result["status"] == "ready"
+    # Mock ignores category server-side; client still returns downloadable only
+    assert all(d["downloadable"] for d in result["documents"])
+    filing_call = mock_request.call_args_list[0]
+    assert filing_call[1]["params"]["category"] == "accounts"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_document_metadata(mock_request, skill):
+    mock_request.return_value = _mock_response(_MOCK_DOC_METADATA)
+    result = skill.execute(
+        {
+            "action": "get_document_metadata",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+            "transaction_id": "tx-accounts-001",
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["source"] == "companies_house_document_api"
+    assert "application/pdf" in result["mime_types"]
+    assert result["total_pages"] == 42
+    assert result["content_length"] == 1024
+    assert result["context"]["selected_transaction_id"] == "tx-accounts-001"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_document_metadata_404(mock_request, skill):
+    mock_request.return_value = _mock_response(status=404)
+    result = skill.execute(
+        {
+            "action": "get_document_metadata",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/missing"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_document_metadata_410(mock_request, skill):
+    resp = _mock_response(status=410)
+    mock_request.return_value = resp
+    result = skill.execute(
+        {
+            "action": "get_document_metadata",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/gone"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "api_error"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_document_api_429_includes_retry_after(mock_request, skill):
+    resp = _mock_response(status=429, headers={"Retry-After": "12"})
+    mock_request.return_value = resp
+    result = skill.execute(
+        {
+            "action": "get_document_metadata",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "rate_limited"
+    assert result["retry_after"] == "12"
+    assert "Retry-After: 12" in result["agent_hint"]
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_with_redirect_drops_auth(mock_request, skill):
+    """Auth on Document API only; redirect to storage has no Authorization."""
+    pdf_bytes = b"%PDF-1.4 mock document content"
+
+    def side_effect(method, url, **kwargs):
+        if url.endswith("/document/doc-accounts-001") and not url.endswith("/content"):
+            return _mock_response(_MOCK_DOC_METADATA)
+        if url.endswith("/document/doc-accounts-001/content"):
+            assert kwargs.get("auth") is not None
+            assert kwargs.get("allow_redirects") is False
+            return _mock_response(
+                status=302,
+                headers={
+                    "Location": "https://s3.example.com/presigned/doc.pdf?X-Amz=1"
+                },
+            )
+        if url.startswith("https://s3.example.com/"):
+            assert kwargs.get("auth") is None
+            assert "Authorization" not in (kwargs.get("headers") or {})
+            return _mock_response(status=200, content=pdf_bytes, raw=pdf_bytes)
+        raise AssertionError(f"Unexpected URL: {url}")
+
+    mock_request.side_effect = side_effect
+
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+            "transaction_id": "tx-accounts-001",
+            "company_number": "00102498",
+            "context": {
+                "company_number": "00102498",
+                "document_candidates": {
+                    "tx-accounts-001": {
+                        "metadata_url": (
+                            "https://document-api.company-information.service.gov.uk"
+                            "/document/doc-accounts-001"
+                        ),
+                        "date": "2024-03-15",
+                        "category": "accounts",
+                    }
+                },
+            },
+        }
+    )
+
+    assert result["status"] == "ready"
+    assert result["size_bytes"] == len(pdf_bytes)
+    assert result["content_type"] == "application/pdf"
+    import base64
+
+    assert base64.b64decode(result["content_base64"]) == pdf_bytes
+    assert result["context"]["selected_transaction_id"] == "tx-accounts-001"
+    assert "00102498" in result["filename"]
+    # Ensure no disk write artifacts from skill
+    assert not any(key.endswith("_path") or key == "saved_to" for key in result)
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_oversize_from_metadata(mock_request, skill):
+    big_meta = dict(_MOCK_DOC_METADATA)
+    big_meta["resources"] = {
+        "application/pdf": {
+            "content_length": 12_582_912,
+            "created_at": "2024-03-16T10:00:00Z",
+        }
+    }
+    mock_request.return_value = _mock_response(big_meta)
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+            "max_bytes": 5_242_880,
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "document_too_large"
+    assert result["reason"] == "document_too_large"
+    assert result["size_bytes"] == 12_582_912
+    assert result["max_bytes"] == 5_242_880
+    assert mock_request.call_count == 1  # metadata only; no content fetch
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_oversize_during_stream(mock_request, skill):
+    oversized = b"x" * 3000
+
+    def side_effect(method, url, **kwargs):
+        if url.endswith("/document/doc-accounts-001") and not url.endswith("/content"):
+            meta = dict(_MOCK_DOC_METADATA)
+            # Declare small so we enter stream path
+            meta["resources"] = {
+                "application/pdf": {
+                    "content_length": 100,
+                    "created_at": "2024-03-16T10:00:00Z",
+                }
+            }
+            return _mock_response(meta)
+        if url.endswith("/content"):
+            return _mock_response(
+                status=302,
+                headers={"Location": "https://s3.example.com/big.pdf"},
+            )
+        if url.startswith("https://s3.example.com/"):
+            return _mock_response(status=200, content=oversized, raw=oversized)
+        raise AssertionError(url)
+
+    mock_request.side_effect = side_effect
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+            "max_bytes": 2048,
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "document_too_large"
+    assert result["max_bytes"] == 2048
+    assert result["size_bytes"] > 2048
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_include_content_false(mock_request, skill):
+    mock_request.return_value = _mock_response(_MOCK_DOC_METADATA)
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+            "include_content": False,
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["content_base64"] is None
+    assert result["download_url"].endswith("/content")
+    assert mock_request.call_count == 1
+
+
+def test_fetch_document_missing_target(skill):
+    result = skill.execute({"action": "fetch_document"})
+    assert result["status"] == "error"
+    assert result["error_code"] == "missing_document_target"
+
+
+def test_invalid_metadata_url(skill):
+    result = skill.execute(
+        {
+            "action": "get_document_metadata",
+            "metadata_url": "https://evil.example.com/document/x",
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "invalid_metadata_url"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_document_flow(mock_request, skill):
+    """resolve -> list_downloadable_documents via run_pipeline."""
+    call_n = {"i": 0}
+
+    def side_effect(method, url, **kwargs):
+        idx = call_n["i"]
+        call_n["i"] += 1
+        if "/search/companies" in url:
+            return _mock_response(
+                {
+                    "items": [
+                        {
+                            "company_number": "00102498",
+                            "title": "BP P.L.C.",
+                            "company_status": "active",
+                            "company_type": "plc",
+                            "address_snippet": "London",
+                            "date_of_creation": "1909-04-14",
+                            "snippet": "",
+                        }
+                    ]
+                }
+            )
+        if "/filing-history" in url:
+            return _mock_response(_MOCK_FILINGS_WITH_DOCS)
+        raise AssertionError(f"unexpected {url} call={idx}")
+
+    mock_request.side_effect = side_effect
+
+    first = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": [
+                {"action": "resolve_company", "params": {"query": "BP"}},
+                {
+                    "action": "list_downloadable_documents",
+                    "params": {
+                        "company_number": "<from_resolve>",
+                        "category": "accounts",
+                        "latest_only": True,
+                    },
+                },
+            ],
+        }
+    )
+    assert first["status"] == "partial"
+    assert first["company_number"] == "00102498"
+
+    second = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": first["steps"],
+            "context": first["context"],
+            "pipeline": first["pipeline"],
+        }
+    )
+    assert second["status"] == "ready"
+    assert len(second["documents"]) == 1
+    assert second["documents"][0]["category"] == "accounts"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_404_on_content(mock_request, skill):
+    def side_effect(method, url, **kwargs):
+        if url.endswith("/document/doc-accounts-001") and not url.endswith("/content"):
+            return _mock_response(_MOCK_DOC_METADATA)
+        if url.endswith("/content"):
+            return _mock_response(status=404)
+        raise AssertionError(url)
+
+    mock_request.side_effect = side_effect
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_410_on_content(mock_request, skill):
+    def side_effect(method, url, **kwargs):
+        if url.endswith("/document/doc-accounts-001") and not url.endswith("/content"):
+            return _mock_response(_MOCK_DOC_METADATA)
+        if url.endswith("/content"):
+            return _mock_response(status=410)
+        raise AssertionError(url)
+
+    mock_request.side_effect = side_effect
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "api_error"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_429_on_content(mock_request, skill):
+    def side_effect(method, url, **kwargs):
+        if url.endswith("/document/doc-accounts-001") and not url.endswith("/content"):
+            return _mock_response(_MOCK_DOC_METADATA)
+        if url.endswith("/content"):
+            return _mock_response(status=429, headers={"Retry-After": "30"})
+        raise AssertionError(url)
+
+    mock_request.side_effect = side_effect
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "metadata_url": (
+                "https://document-api.company-information.service.gov.uk"
+                "/document/doc-accounts-001"
+            ),
+        }
+    )
+    assert result["status"] == "error"
+    assert result["error_code"] == "rate_limited"
+    assert result["retry_after"] == "30"
+
+
+def test_manifest_version_140(manifest):
+    assert manifest["version"] == "1.4.0"
+    actions = manifest["parameters"]["properties"]["action"]["enum"]
+    assert "list_downloadable_documents" in actions
+    assert "get_document_metadata" in actions
+    assert "fetch_document" in actions
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_keeps_document_candidates_in_context(mock_request, skill):
+    """Candidates from a pipeline list step survive the outer context merge."""
+    mock_request.return_value = _mock_response(_MOCK_FILINGS_WITH_DOCS)
+    result = skill.execute(
+        {
+            "action": "run_pipeline",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+            "steps": [
+                {
+                    "action": "list_downloadable_documents",
+                    "params": {"company_number": "<from_resolve>"},
+                }
+            ],
+        }
+    )
+    assert result["status"] == "ready"
+    assert "tx-accounts-001" in result["context"]["document_candidates"]
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_fetch_document_resolves_unknown_transaction_via_filing_item(
+    mock_request, skill
+):
+    """A transaction_id outside candidates is resolved via filing-history item."""
+    pdf = b"%PDF-1.7 tiny"
+    seen = []
+
+    def side_effect(method, url, **kwargs):
+        seen.append(url)
+        if url.endswith("/company/00102498/filing-history/tx-accounts-001"):
+            return _mock_response(_MOCK_FILINGS_WITH_DOCS["items"][0])
+        if url.endswith("/document/doc-accounts-001"):
+            return _mock_response(_MOCK_DOC_METADATA)
+        if url.endswith("/content"):
+            return _mock_response(
+                status=302, headers={"Location": "https://s3.example.com/x.pdf"}
+            )
+        if url.startswith("https://s3.example.com/"):
+            return _mock_response(status=200, raw=pdf)
+        raise AssertionError(url)
+
+    mock_request.side_effect = side_effect
+    result = skill.execute(
+        {
+            "action": "fetch_document",
+            "transaction_id": "tx-accounts-001",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert result["status"] == "ready"
+    assert result["filename"] == "00102498_accounts_2024-03-15.pdf"
+    assert not any("/document/tx-accounts-001" in u for u in seen)
+
+
+def test_fetch_document_unknown_transaction_without_company(skill):
+    result = skill.execute({"action": "fetch_document", "transaction_id": "tx-x"})
+    assert result["status"] == "error"
+    assert result["error_code"] == "unknown_transaction_id"
