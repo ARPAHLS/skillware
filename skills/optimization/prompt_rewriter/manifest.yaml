@@ -1,7 +1,7 @@
 name: "optimization/prompt_rewriter"
-version: "0.1.0"
+version: "0.1.1"
 description: "A powerful middleware skill that aggressively compresses massive, bloated prompts into fewer tokens while retaining 100% of the semantic meaning and instructions."
-short_description: "Compresses bloated prompts into fewer tokens without losing meaning."
+short_description: "Use when a prompt is bloated and must be compressed without losing meaning."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
