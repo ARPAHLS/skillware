@@ -179,7 +179,7 @@ Sample output:
     ID                           VERSION  CATEGORY    ISSUER      DESCRIPTION                                       REQUIREMENTS
     compliance/pii_masker        0.1.0    compliance  rosspeili   Detects and redacts PII locally using Ollama.     requests
     finance/wallet_screening     1.0.0    finance     rosspeili   Screens Ethereum wallets against OFAC sanctions.  requests
-    office/pdf_form_filler       0.1.0    office      rosspeili   Fills PDF forms from natural language.            pymupdf, anthropic
+    office/pdf_form_filler       0.1.2    office      rosspeili   Fills PDF forms from natural language.            pymupdf
 
 #### Flags
 

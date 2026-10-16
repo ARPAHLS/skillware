@@ -43,11 +43,7 @@ The directive provides operational guidance for host models to:
 
 ### Environment
 
-| Variable | Required | Purpose |
-| :--- | :--- | :--- |
-| `ANTHROPIC_API_KEY` | No | Optional: only needed if using legacy deprecated `instructions` prompt mode |
-
-Configure values per [API keys for skills](../../usage/api_keys.md).
+None. This skill operates entirely deterministically and locally on PDF byte streams; no provider API keys or external services are required.
 
 ## Usage Examples
 
@@ -286,7 +282,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `—` | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
+| [`f5942a8`](https://github.com/ARPAHLS/skillware/commit/f5942a89f01b95cbc240cdd73d7f8a6e452f2664) | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`42df736`](https://github.com/ARPAHLS/skillware/commit/42df736318a4ee8fbf4c40bcfe1d3f3f00994fbc) | Fix pdf_form_filler helper imports without mutating sys.path (#399) | 30 Sep 2026 | `0.1.1` | [@Bdysj](https://github.com/Bdysj) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
