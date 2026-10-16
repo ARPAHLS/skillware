@@ -60,7 +60,7 @@ flowchart TD
 - **CI, contributors, or multi-skill apps** — use `[all]`.
 - **Runnable examples under `examples/`** — list each skill's extra plus an SDK extra (`[gemini]`, `[claude]`, …) when the provider is not local execute.
 
-Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf` and `anthropic`; a Gemini agent loop around it also needs `[gemini]`.
+Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf`; a Gemini agent loop around it also needs `[gemini]`.
 
 ## Category extras
 
@@ -76,7 +76,7 @@ Union of non-core `requirements` from every skill in the category.
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
-| `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `anthropic`, `pymupdf` |
+| `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
 | `security` | `security/deceptive_ui_guard`, `security/deepfake_guard`, `security/prompt_injection_firewall` | `numpy`, `pillow` |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
@@ -113,7 +113,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
-| `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
+| `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf` | |
 | `office_web_form_mapper` | `office/web_form_mapper` | *(none today)* | Use this extra in docs and installs |
 | `optimization_context_optimizer` | `optimization/context_optimizer` | `fastembed`, `numpy` | Local embedding model (~50 MB on first use) |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
@@ -133,7 +133,7 @@ Empty extras (`[]`) are intentional — always use the per-skill extra in docume
 
 | Extra | Purpose | Packages |
 | :--- | :--- | :--- |
-| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `anthropic`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
+| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
 | `agents` | Union of all agent SDK extras | `google-genai`, `anthropic`, `openai` |
 | `dev` | Clone-repo lint, test, typecheck, and security tools | `pytest`, `pytest-mock`, `pytest-asyncio`, `flake8`, `black`, `ruff`, `bandit`, `pip-audit`, `mypy` |
 

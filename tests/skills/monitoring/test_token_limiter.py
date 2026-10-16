@@ -37,17 +37,12 @@ def test_local_loop_example_smoke():
     module.run_demo()
 
 
-@patch("google.genai.Client")
-def test_gemini_example_smoke(mock_client_cls):
-    mock_client = MagicMock()
-    mock_client_cls.return_value = mock_client
-    module = _load_example_module("gemini_token_limiter.py")
-    module.run_demo(live_gemini=False)
+def test_gemini_example_smoke():
+    import pytest
 
-
-@patch("anthropic.Anthropic")
-def test_claude_example_smoke(mock_client_cls):
-    mock_client = MagicMock()
-    mock_client_cls.return_value = mock_client
-    module = _load_example_module("claude_token_limiter.py")
-    module.run_demo(live_claude=False)
+    pytest.importorskip("google.genai")
+    with patch("google.genai.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client_cls.return_value = mock_client
+        module = _load_example_module("gemini_token_limiter.py")
+        module.run_demo(live_gemini=False)

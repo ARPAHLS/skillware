@@ -115,7 +115,6 @@ linguistics = []
 monitoring = []
 
 office = [
-    "anthropic",
     "pymupdf",
 ]
 
@@ -191,7 +190,6 @@ office_gmail_handler = []
 
 office_pdf_form_filler = [
     "pymupdf",
-    "anthropic",
 ]
 
 office_web_form_mapper = []
@@ -217,7 +215,6 @@ wellness_mental_coach = [
 ]
 
 all = [
-    "anthropic",
     "fastembed",
     "google-genai",
     "numpy",
