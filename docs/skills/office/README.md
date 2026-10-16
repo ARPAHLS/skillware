@@ -10,7 +10,7 @@ This hub is the documentation landing page for Skillware **office** agent skills
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | `0.2.0` (16 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs deterministically with XFA and radio group safeguards. |
+| **[PDF Form Filler](pdf_form_filler.md)** | `office/pdf_form_filler` | `0.1.2` (16 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs deterministically with XFA and radio group safeguards. |
 | **[Gmail Handler](gmail_handler.md)** | `office/gmail_handler` | `0.2.0` (19 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
 | **[Web Form Mapper](web_form_mapper.md)** | `office/web_form_mapper` | `0.1.0` (04 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministically maps identity profiles to HTML web forms and submits with CSRF preservation and confirmation gates. |
 

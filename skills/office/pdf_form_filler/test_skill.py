@@ -102,8 +102,8 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert manifest["name"] == "office/pdf_form_filler"
-    assert skill_manifest["version"] == "0.2.0"
-    assert manifest["version"] == "0.2.0"
+    assert skill_manifest["version"] == "0.1.2"
+    assert manifest["version"] == "0.1.2"
     assert "pymupdf" in manifest.get("requirements", [])
     assert "anthropic" not in manifest.get("requirements", [])
 

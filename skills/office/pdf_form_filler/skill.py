@@ -13,7 +13,10 @@ from skillware.core.base_skill import BaseSkill
 try:
     import anthropic
 except ImportError:
-    anthropic = None
+    import types
+
+    anthropic = types.ModuleType("anthropic")
+    anthropic.Anthropic = None
 # works when the bundle is imported as a package. Fall back to the package path,
 # then load the sibling utils.py under a unique module name. Do not modify
 # sys.path or import a top-level "utils" module, which can clash with the host.
@@ -285,9 +288,14 @@ class PDFFormFillerSkill(BaseSkill):
             stacklevel=2,
         )
 
-        try:
-            import anthropic
-        except ImportError:
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+
+        fields = detect_form_fields(pdf_bytes)
+        if not fields:
+            return {"status": "warning", "message": "No fillable fields found in PDF."}
+
+        if getattr(anthropic, "Anthropic", None) is None:
             return {
                 "error": (
                     "anthropic package is required for legacy instructions mode. "
@@ -296,13 +304,6 @@ class PDFFormFillerSkill(BaseSkill):
             }
 
         client = anthropic.Anthropic(api_key=api_key)
-
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
-
-        fields = detect_form_fields(pdf_bytes)
-        if not fields:
-            return {"status": "warning", "message": "No fillable fields found in PDF."}
 
         inst_path = os.path.join(os.path.dirname(__file__), "instructions.md")
         system_prompt = "You are a form filling assistant."

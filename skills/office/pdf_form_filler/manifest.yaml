@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.2.0
+version: 0.1.2
 description: "Deterministic AcroForm PDF inspection, validation, and filling engine with multi-action dispatch, XFA guard, and radio group handling."
 short_description: "Inspects, validates, and fills AcroForm PDFs deterministically with XFA and radio group safeguards."
 issuer:
