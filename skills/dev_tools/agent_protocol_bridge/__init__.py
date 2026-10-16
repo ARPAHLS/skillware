@@ -1,0 +1,1 @@
+# Agent Protocol Bridge skill bundle.

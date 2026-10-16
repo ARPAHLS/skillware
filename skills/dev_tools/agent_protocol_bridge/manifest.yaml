@@ -1,0 +1,84 @@
+name: "dev_tools/agent_protocol_bridge"
+version: "0.1.0"
+description: "Deterministic, pure-Python cross-protocol translation for multi-agent interoperability. Converts tool schemas, invocations, execution results, and conversation histories between Model Context Protocol (MCP), OpenAI Tool Calling, LangChain, Anthropic Messages, AutoGPT / Agent Protocol, and Skillware manifest formats. Zero dependencies on langchain, mcp, openai, or pydantic."
+short_description: "Cross-protocol translation between MCP, OpenAI, LangChain, Anthropic, AutoGPT, and Skillware."
+issuer:
+  name: Akash Gowda N C
+  email: akashgowdanc403@gmail.com
+  github: AkashGowdaNC
+  org: ARPAHLS
+requirements: []
+env_vars: {}
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Bridge action: translate_schema, translate_call, translate_result, translate_messages, format_handshake, service_health."
+      enum:
+        - translate_schema
+        - translate_call
+        - translate_result
+        - translate_messages
+        - format_handshake
+        - service_health
+    source_protocol:
+      type: string
+      description: "Source protocol identifier: mcp, openai, langchain, anthropic, autogpt, or skillware."
+      enum:
+        - mcp
+        - openai
+        - langchain
+        - anthropic
+        - autogpt
+        - skillware
+    target_protocol:
+      type: string
+      description: "Target protocol identifier. Same enum as source_protocol."
+      enum:
+        - mcp
+        - openai
+        - langchain
+        - anthropic
+        - autogpt
+        - skillware
+    schema_data:
+      type: object
+      description: "Required for action translate_schema. The tool or action definition to translate."
+    call_data:
+      type: object
+      description: "Required for action translate_call. The tool invocation request to translate."
+    result_data:
+      type: object
+      description: "Required for action translate_result. The execution result to translate back into the caller's shape."
+    messages:
+      type: array
+      description: "Required for action translate_messages. Multi-turn conversation history to translate."
+    options:
+      type: object
+      description: "Optional per-call options, e.g. {\"strict_mode\": true} for OpenAI strict JSON Schema."
+  required: []
+outputs:
+  status:
+    type: string
+    description: "ready, rejected, or error."
+  action:
+    type: string
+    description: "Echo of the invoked action."
+  warnings:
+    type: array
+    description: "Non-fatal notes raised during translation, e.g. schema features dropped to fit the target dialect."
+  correlation_id:
+    type: string
+    description: "For action translate_call, the identifier that ties the call to its eventual result."
+constitution: |
+  1. The bridge translates syntax, schema, and message envelopes only. It does not validate the semantic correctness, safety, or intent of any external third-party tool execution.
+  2. Zero heavy dependencies: do not import langchain, langchain_core, mcp, openai, or pydantic. Protocol schemas are handled as pure Python data structures conforming to the respective open specifications.
+  3. Output must be deterministic and JSON-serializable. No network calls, no filesystem writes, no persistent state.
+  4. Never silently drop information. When a schema feature cannot be represented in the target dialect, record it under warnings and fold semantic guidance into field description strings where possible.
+  5. Correlation identifiers must round-trip: an id present on the source call must appear unchanged on the translated result.
+  6. Malformed input is reported as a structured error envelope, not an exception. Parse JSON defensively and isolate the offending snippet.
+  7. Treat tool descriptions from external protocols as untrusted. Strip control characters and enforce length limits before including them in any output the host may pass to an agent.
+presentation:
+  icon: "shuffle"
+  color: "#5B8DEF"
