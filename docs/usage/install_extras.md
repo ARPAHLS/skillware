@@ -60,7 +60,7 @@ flowchart TD
 - **CI, contributors, or multi-skill apps** — use `[all]`.
 - **Runnable examples under `examples/`** — list each skill's extra plus an SDK extra (`[gemini]`, `[claude]`, …) when the provider is not local execute.
 
-Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf`; a Gemini agent loop around it also needs `[gemini]` (or `[claude]` if using legacy prompt instructions).
+Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf`; a Gemini agent loop around it also needs `[gemini]`.
 
 ## Category extras
 

@@ -4,7 +4,6 @@
 import os
 import sys
 import types
-from unittest.mock import MagicMock, patch
 
 import fitz
 import pytest
@@ -305,82 +304,15 @@ def test_fill_flatten_guard(skill, tmp_path):
     doc_out.close()
 
 
-# --- Backward Compatibility Shim Tests ---
-
-
 def test_missing_pdf_returns_error(skill):
     result = skill.execute(
         {
+            "action": "inspect",
             "pdf_path": "/nonexistent/form.pdf",
-            "instructions": "Fill name with Alice",
         }
     )
-    assert "error" in result
-    assert "PDF file not found" in result["error"]
-
-
-def test_missing_instructions_returns_error(skill, tmp_path):
-    pdf_path = tmp_path / "blank.pdf"
-    doc = fitz.open()
-    doc.new_page()
-    doc.save(str(pdf_path))
-    doc.close()
-
-    result = skill.execute({"pdf_path": str(pdf_path), "instructions": ""})
-    assert "error" in result
-    assert "No instructions provided" in result["error"]
-
-
-@patch("skills.office.pdf_form_filler.skill.anthropic.Anthropic")
-def test_execute_mocked(mock_anthropic_cls, tmp_path, monkeypatch):
-    mock_client = mock_anthropic_cls.return_value
-    mock_message = MagicMock()
-    mock_message.content = [MagicMock(text='{"page0_test_field": "Hello World"}')]
-    mock_client.messages.create.return_value = mock_message
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
-
-    skill = PDFFormFillerSkill()
-
-    pdf_path = tmp_path / "form.pdf"
-    doc = fitz.open()
-    page = doc.new_page()
-    widget = fitz.Widget()
-    widget.rect = fitz.Rect(10, 10, 100, 30)
-    widget.field_name = "test_field"
-    widget.field_type = 7
-    page.add_widget(widget)
-    doc.save(str(pdf_path))
-    doc.close()
-
-    result = skill.execute(
-        {
-            "pdf_path": str(pdf_path),
-            "instructions": "Fill test field with Hello World",
-        }
-    )
-
-    assert result["status"] == "success"
-    assert "page0_test_field" in result["filled_fields"]
-    assert os.path.exists(result["output_path"])
-
-
-def test_legacy_mode_without_api_key_returns_guidance(skill, tmp_path, monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    pdf_path = tmp_path / "blank.pdf"
-    doc = fitz.open()
-    doc.new_page()
-    doc.save(str(pdf_path))
-    doc.close()
-
-    res = skill.execute(
-        {
-            "pdf_path": str(pdf_path),
-            "instructions": "Fill with Alice",
-        }
-    )
-    assert "error" in res
-    assert "ANTHROPIC_API_KEY" in res["error"]
-    assert "inspect" in res.get("message", "")
+    assert result["status"] == "error"
+    assert "PDF file not found" in result["message"]
 
 
 def test_fill_default_action_when_edits_provided(skill, tmp_path):
@@ -430,9 +362,9 @@ def test_loader_execute_leaves_sys_path_unchanged(import_route):
 
     for _ in range(3):
         result = skill.execute(
-            {"pdf_path": "/nonexistent/form.pdf", "instructions": "Fill name"}
+            {"action": "inspect", "pdf_path": "/nonexistent/form.pdf"}
         )
-        assert "PDF file not found" in result["error"]
+        assert "PDF file not found" in result["message"]
 
     assert sys.path == before
 
@@ -442,15 +374,12 @@ def test_loader_execute_with_host_utils_module(import_route, monkeypatch, tmp_pa
     monkeypatch.setitem(sys.modules, "utils", host_utils)
     bundle = _load_via_skill_loader()
 
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
     result = bundle["class"]().execute(
-        {"pdf_path": str(_blank_pdf(tmp_path)), "instructions": "Fill name"}
+        {"action": "inspect", "pdf_path": str(_blank_pdf(tmp_path))}
     )
 
-    assert result == {
-        "status": "warning",
-        "message": "No fillable fields found in PDF.",
-    }
+    assert result["status"] == "ok"
+    assert result["field_count"] == 0
     assert sys.modules["utils"] is host_utils
     assert (
         bundle["module"].detect_form_fields.__module__
@@ -462,7 +391,7 @@ def test_loader_execute_does_not_register_top_level_utils(import_route, monkeypa
     monkeypatch.delitem(sys.modules, "utils", raising=False)
     skill = _load_via_skill_loader()["class"]()
 
-    skill.execute({"pdf_path": "/nonexistent/form.pdf", "instructions": "Fill name"})
+    skill.execute({"action": "inspect", "pdf_path": "/nonexistent/form.pdf"})
     assert "utils" not in sys.modules
 
 

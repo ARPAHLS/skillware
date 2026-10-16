@@ -34,9 +34,6 @@ parameters:
     output_path:
       type: string
       description: "Optional destination path for the filled PDF. Defaults to '<original>_filled.pdf'."
-    instructions:
-      type: string
-      description: "Legacy one-shot prompt instructions (deprecated; requires ANTHROPIC_API_KEY)."
   required:
     - pdf_path
 outputs:
@@ -86,10 +83,6 @@ constitution: |
   1. USER PRIVACY: Process PDFs strictly in-memory and on local disk; never exfiltrate document bytes or filled values to external servers.
   2. INTEGRITY: Verify field types, dropdown choices, and radio button export values deterministically before modifying documents.
   3. SAFETY: Enforce explicit confirmation before persisting document edits and guard against unsupported dynamic XFA forms.
-env_vars:
-  ANTHROPIC_API_KEY:
-    description: "Optional: only needed for deprecated legacy instructions prompt mode."
-    required: false
 presentation:
   icon: "document-text"
   color: "rose"

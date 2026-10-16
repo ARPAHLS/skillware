@@ -3,20 +3,10 @@
 
 from typing import Dict, Any, Optional
 import os
-import json
-import warnings
 import fitz
 import yaml
 from skillware.core.base_skill import BaseSkill
 
-# Optional lazy reference for deprecated legacy one-shot prompt execution
-try:
-    import anthropic
-except ImportError:
-    import types
-
-    anthropic = types.ModuleType("anthropic")
-    anthropic.Anthropic = None
 # works when the bundle is imported as a package. Fall back to the package path,
 # then load the sibling utils.py under a unique module name. Do not modify
 # sys.path or import a top-level "utils" module, which can clash with the host.
@@ -85,22 +75,21 @@ class PDFFormFillerSkill(BaseSkill):
         action = params.get("action")
         pdf_path = params.get("pdf_path")
 
-        # Backward compatibility shim: if no explicit action provided
+        # Default action: if edits provided default to fill, otherwise inspect
         if not action:
             if "edits" in params:
                 action = "fill"
-            elif "instructions" in params:
-                return self._legacy_execute(params)
             else:
-                return {
-                    "status": "error",
-                    "message": (
-                        "Missing 'action' parameter. Supported actions: 'inspect', 'validate', 'fill'. "
-                        "For legacy one-shot prompt filling, supply 'instructions'."
-                    ),
-                }
+                action = "inspect"
 
         action = str(action).strip().lower()
+        if action not in ("inspect", "validate", "fill"):
+            return {
+                "status": "error",
+                "message": (
+                    f"Unsupported action '{action}'. Supported actions: 'inspect', 'validate', 'fill'."
+                ),
+            }
 
         if not pdf_path:
             return {
@@ -256,112 +245,3 @@ class PDFFormFillerSkill(BaseSkill):
             "message": f"Successfully filled {len(applied_fields)} fields.",
             "flattened": flatten,
         }
-
-    def _legacy_execute(self, params: Dict[str, Any]) -> Any:
-        """Deprecated legacy one-shot prompt execution path."""
-        pdf_path = params.get("pdf_path")
-        instructions = params.get("instructions")
-        output_path = params.get("output_path")
-
-        if not pdf_path or not os.path.exists(pdf_path):
-            return {"error": f"PDF file not found: {pdf_path}"}
-
-        if not instructions:
-            return {"error": "No instructions provided."}
-
-        api_key = self.credential("ANTHROPIC_API_KEY")
-        if not api_key:
-            return {
-                "error": "Missing ANTHROPIC_API_KEY environment variable.",
-                "message": (
-                    "Missing ANTHROPIC_API_KEY for legacy one-shot prompt mode. "
-                    "In Skillware, the host model drives reasoning: use action='inspect' to "
-                    "discover fields, map values in your host loop, and call action='fill' with 'edits'."
-                ),
-            }
-
-        warnings.warn(
-            "office/pdf_form_filler: One-shot prompt execution with 'instructions' and internal "
-            "Anthropic client is deprecated. Please migrate to the host-agnostic multi-action "
-            "protocol ('inspect' -> 'validate' -> 'fill').",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
-
-        fields = detect_form_fields(pdf_bytes)
-        if not fields:
-            return {"status": "warning", "message": "No fillable fields found in PDF."}
-
-        if getattr(anthropic, "Anthropic", None) is None:
-            return {
-                "error": (
-                    "anthropic package is required for legacy instructions mode. "
-                    "Install with: pip install 'skillware[claude]'"
-                ),
-            }
-
-        client = anthropic.Anthropic(api_key=api_key)
-
-        inst_path = os.path.join(os.path.dirname(__file__), "instructions.md")
-        system_prompt = "You are a form filling assistant."
-        if os.path.exists(inst_path):
-            with open(inst_path, "r", encoding="utf-8") as f:
-                system_prompt = f.read()
-
-        fields_context = [f.to_dict() for f in fields]
-        user_message = f"""
-        User Instructions: {instructions}
-
-        Detected Fields:
-        {json.dumps(fields_context, indent=2)}
-
-        Return a JSON object mapping field_ids to values.
-        """
-
-        try:
-            message = client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=4096,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
-            )
-            response_text = message.content[0].text
-
-            json_str = response_text.strip()
-            if "```json" in json_str:
-                json_str = json_str.split("```json")[1].split("```")[0]
-            elif "```" in json_str:
-                json_str = json_str.split("```")[1].split("```")[0]
-
-            edits = json.loads(json_str)
-        except Exception as e:
-            return {"error": f"LLM processing failed: {str(e)}"}
-
-        if not edits:
-            return {
-                "status": "no_change",
-                "message": "LLM determined no fields needed to be changed.",
-            }
-
-        try:
-            edits_list = [FieldEdit(field_id=k, value=v) for k, v in edits.items()]
-            filled_pdf_bytes = apply_edits(pdf_bytes, edits_list)
-
-            if not output_path:
-                base, ext = os.path.splitext(pdf_path)
-                output_path = f"{base}_filled{ext}"
-
-            with open(output_path, "wb") as f:
-                f.write(filled_pdf_bytes)
-
-            return {
-                "status": "success",
-                "output_path": output_path,
-                "filled_fields": list(edits.keys()),
-                "message": f"Successfully filled {len(edits)} fields.",
-            }
-        except Exception as e:
-            return {"error": f"Failed to apply edits to PDF: {str(e)}"}
