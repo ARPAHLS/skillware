@@ -1,6 +1,6 @@
 {
     "name": "PDF Form Filler",
-    "description": "Smartly fills PDF forms from natural language instructions.",
+    "description": "Deterministic AcroForm PDF inspection, validation, and filling engine.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",
@@ -13,8 +13,12 @@
         "type": "card",
         "fields": [
             {
-                "key": "message",
+                "key": "status",
                 "label": "Status"
+            },
+            {
+                "key": "message",
+                "label": "Message"
             },
             {
                 "key": "filled_fields",

@@ -3,41 +3,41 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.1` — 30 Sep 2026
+**Version**: `0.2.0` — 16 Oct 2026
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
-**Solves:** Map natural-language fill instructions onto AcroForm PDF fields for document automation.
+**Solves:** Inspect, validate, and fill AcroForm PDFs deterministically with XFA guards, radio group handling, and vector flattening.
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
-**Runtime:** Needs `ANTHROPIC_API_KEY` for the semantic field mapper.
+**Runtime:** 100% offline local Python execution with PyMuPDF. No mandatory external API keys required.
 <!-- skill-intent:end -->
 
 **Recommended install:** `pip install "skillware[office_pdf_form_filler]"`. See [Install extras](../../usage/install_extras.md).
 [Skill Library](../README.md) · [Office](README.md) · [Testing](../../TESTING.md)
 
-A productivity skill that fills AcroForm-based PDFs by mapping natural language instructions to detected form fields using semantic understanding.
+A deterministic productivity skill that inspects, validates, and fills AcroForm-based PDFs using structured multi-action dispatch, XFA dynamic form guards, and vector flattening.
 
 ## Capabilities
 
-*   **Smart Field Detection**: Automatically identifies text fields, checkboxes, radio buttons, and dropdowns in standard PDFs.
-*   **Semantic Mapping**: Uses an internal LLM (Claude) to understand user instructions (e.g., "Sign me up for the newsletter") and map them to the correct field (e.g., `checkbox_subscribe_newsletter`).
-*   **Context Awareness**: Extracts nearby text labels to ensure accurate mapping, even if field names are obscure (e.g., `field_123` vs label "First Name").
-*   **Type Safety**: Automatically converts values to the correct format (booleans for checkboxes, specific options for dropdowns).
+*   **Multi-Action Protocol**: Discrete actions (`inspect`, `validate`, `fill`) giving host models full visibility and control over field discovery and form filling.
+*   **XFA Dynamic Form Guard**: Early detection and graceful error handling for unsupported Adobe LiveCycle dynamic forms.
+*   **Radio Button Group Normalization**: Accurately aggregates shared-name radio widgets, mapping on-state export values and nearby labels without field collision.
+*   **Confirmation Safety Gate**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to disk.
+*   **Tamper-Proof Flattening**: Optional vector baking (`flatten: true`) converts interactive form fields into permanent page graphics for formal compliance submissions.
 
 ## Bundle layout
 
 The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
 
 ### Directive (`instructions.md`)
-The system prompt teaches the internal mapping engine to:
-*   Analyze the provided "User Instructions".
-*   Review the list of "Detected Fields" (ID, Type, Context, Options).
-*   Output a strict JSON mapping of `Field ID -> Value`.
-*   Handle ambiguities by preferring precision over guessing.
+The directive provides operational guidance for host models to:
+*   Inspect form fields and radio options (`action: "inspect"`).
+*   Validate proposed edits against field types and export values (`action: "validate"`).
+*   Enforce confirmation gates and optional flattening (`action: "fill"`).
 
 ### Effect (`skill.py` & `utils.py`)
-*   **PDF Processing**: Uses `PyMuPDF` (fitz) for high-fidelity rendering and widget manipulation.
-*   **LLM Integration**: Wraps the Anthropic SDK to perform the semantic reasoning step.
-*   **Validation**: Ensures values match the field type (e.g., selecting a valid option from a dropdown).
+*   **PDF Processing**: Uses `PyMuPDF` (fitz) for high-fidelity widget manipulation, radio button state resolution, and document flattening.
+*   **Host Agnostic**: Operates 100% deterministically without internal LLM calls or vendor lock-in.
+*   **Safety Guards**: Detects dynamic XFA forms and prevents unauthorized overwrites.
 
 ## Integration Guide
 
@@ -45,7 +45,7 @@ The system prompt teaches the internal mapping engine to:
 
 | Variable | Required | Purpose |
 | :--- | :--- | :--- |
-| `ANTHROPIC_API_KEY` | Yes | Claude API for semantic field mapping |
+| `ANTHROPIC_API_KEY` | No | Optional: only needed if using legacy deprecated `instructions` prompt mode |
 
 Configure values per [API keys for skills](../../usage/api_keys.md).
 
@@ -72,11 +72,36 @@ from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("office/pdf_form_filler")
 filler = bundle["class"]()
-result = filler.execute({
+
+# Step 1: Inspect PDF form fields and radio options
+inspect_res = filler.execute({
+    "action": "inspect",
     "pdf_path": "/absolute/path/to/form.pdf",
-    "instructions": "Name: John Doe. Check the terms of service box.",
 })
-print(result["output_path"])
+print(f"Detected {inspect_res['field_count']} fields across {inspect_res['page_count']} page(s).")
+
+# Step 2: Validate proposed edits against AcroForm constraints
+edits = {
+    "page0_full_name": "Jane Doe",
+    "page0_agree_terms": True,
+    "page0_tax_class": "Individual",
+}
+valid_res = filler.execute({
+    "action": "validate",
+    "pdf_path": "/absolute/path/to/form.pdf",
+    "edits": edits,
+})
+assert valid_res["valid"] is True
+
+# Step 3: Fill with confirmation gate and vector flattening
+fill_res = filler.execute({
+    "action": "fill",
+    "pdf_path": "/absolute/path/to/form.pdf",
+    "edits": edits,
+    "confirmed": True,
+    "flatten": True,
+})
+print("Filled PDF saved to:", fill_res["output_path"])
 ```
 
 ### Gemini
@@ -249,8 +274,8 @@ The skill returns a JSON object with the result of the operation.
 
 ## Limitations
 
-*   **AcroForms Only**: Does not support XFA forms or non-interactive "flat" PDFs.
-*   **LLM Dependency**: Requires an active internet connection and valid API key for the semantic mapping step.
+*   **AcroForms Only**: Does not support dynamic XFA forms; returns explicit `unsupported_xfa_form` error for LiveCycle forms.
+*   **Interactive Confirmation**: Modifying files requires explicit `confirmed: true`.
 
 ---
 
@@ -261,6 +286,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `—` | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`42df736`](https://github.com/ARPAHLS/skillware/commit/42df736318a4ee8fbf4c40bcfe1d3f3f00994fbc) | Fix pdf_form_filler helper imports without mutating sys.path (#399) | 30 Sep 2026 | `0.1.1` | [@Bdysj](https://github.com/Bdysj) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
