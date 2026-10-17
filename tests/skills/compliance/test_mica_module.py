@@ -13,7 +13,7 @@ def mica_skill():
 def test_mica_module_manifest(mica_skill):
     manifest = mica_skill.manifest
     assert manifest["name"] == "compliance/mica_module"
-    assert manifest["version"] == "0.1.1"
+    assert manifest["version"] == "0.1.2"
 
 
 def test_mica_module_stateless_rag_execution(mica_skill):
@@ -27,6 +27,8 @@ def test_mica_module_stateless_rag_execution(mica_skill):
 
     # Since run_evaluator is False, policy_status should default to CAUTION
     assert result["policy_status"] == "CAUTION"
+    assert "statutory_snapshot" in result
+    assert "2023/1114" in result["statutory_snapshot"]
 
     # It should have either found some chunks or correctly reported no matches
     assert "retrieved_sections" in result

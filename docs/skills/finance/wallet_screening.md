@@ -3,7 +3,7 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.0.1` — 23 Jul 2026
+**Version**: `1.0.2` — 14 Oct 2026
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts.
@@ -18,7 +18,7 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
 
 ## Capabilities
 
-*   **Sanctions Check**: Screens against **880+** bundled lists (OFAC, FBI, Israel NBCTF, etc.) via dynamic dataset loading.
+*   **Sanctions Check**: Screens Ethereum addresses against bundled OFAC SDN, FBI Lazarus, Israel NBCTF, Uniswap TRM, and OpenSanctions `il_mod_crypto` snapshots.
 *   **Malicious Contract Detection**: Identifies interactions with known bad actors (Tornado Cash, Drainers).
 *   **Financial Forensic Analysis**:
     *   Calculates total Inflows/Outflows/Gas.
@@ -46,13 +46,15 @@ The Python implementation has been engineered for speed and depth:
 
 ### Corpus (`data/`)
 Contains localized JSON snapshots of global sanctions lists.
-*   `entities.ftm.json`: Core sanctions list.
+*   `entities.ftm.json`: OpenSanctions FollowTheMoney extract (`il_mod_crypto`).
 *   `malicious_scs_2025.json`: Known malicious smart contracts.
-*   `data/*.json`: Hundreds of normalized lists (UniSwap TRM, FBI Lazarus, etc.).
+*   `normalized_ofac_sdn.json`: Full OFAC SDN digital-currency snapshot. Only `ETH` identifiers are Ethereum match keys. `ofac_sdn_manifest.json` and `ofac_sdn_quarantine.json` are metadata and are not screened.
+*   `normalized_fbi_lazarus_*.json`, `normalized_israel_nbctf_*.json`, `normalized_uniswap_trm.json`: Other bundled lists.
 
 ### Corpus tooling (`maintenance/`)
 Offline tools to refresh Corpus (not loaded by `execute()`).
 *   `normalization_tool.py`: Ingests raw CSVs from authorities (FBI, Israel NBCTF) and converts them to the Skillware JSON schema.
+*   `normalize_ofac_sdn.py`: Projects a full OFAC `SDN.CSV` publication into `normalized_ofac_sdn.json` plus a manifest. Re-run this instead of editing the JSON.
 *   `normalize_uniswap_trm.py`: Converts Uniswap's blocked address list into our risk format.
 
 ## Integration Guide
@@ -299,7 +301,10 @@ The skill returns a rich forensic report. Agents act on this data. `metadata.war
 
 - **Ethereum only**: The skill screens Ethereum (EVM) addresses exclusively. Bitcoin, Solana, or other chain addresses are not supported and will fail address validation.
 - **Etherscan transaction cap**: Normal ETH history is fetched via paginated `txlist` (1,000 txs per page, max 10 pages → **10,000 txs**). When that cap is hit, or Etherscan fails, the report includes `metadata.warnings` with codes such as `etherscan_txlist_truncated`, `etherscan_txlist_unavailable`, or `etherscan_txlist_partial`. Treat PnL and counterparty stats as incomplete when warnings are present.
-- **Point-in-time sanctions data**: The bundled JSON lists (`entities.ftm.json`, `malicious_scs_2025.json`, and the normalized lists) reflect the state at the time of the last `maintenance/` run. They must be refreshed periodically to stay current.
+- **Point-in-time sanctions data**: Bundled lists are snapshots, not a live OFAC feed. `ofac_sdn_manifest.json` records the SDN.CSV sha256, download time, and source `Last-Modified`. A wallet missing from a newer snapshot was not observed in that file. That is not a delisting or legal clearance.
+- **ETH identifiers only**: Screening matches currency code `ETH` with a 40-hex address. USDT, USDC, TRON, Bitcoin, and other SDN identifiers are stored but are not Ethereum hits, even when the identifier looks like `0x`.
+- **Entity-only designations**: Aban Tether is designated without a digital-currency identifier in SDN remarks, so address screening cannot hit it.
+- **Deferred peer lists**: OpenSanctions `il_mod_crypto` (`entities.ftm.json`), FBI Lazarus, Israel NBCTF, and Uniswap TRM stay at their 22 Jul 2025 snapshots. UK OFSI, the EU 20th package, and MEW darklist had no public address file in this bundle to ingest.
 - **No ERC-20 or internal transaction coverage**: Only standard ETH transfers from the Etherscan `txlist` action are analyzed. ERC-20 token transfers, internal transactions, and NFT transfers are not included in financial flow calculations.
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
@@ -312,6 +317,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`30b7b2e`](https://github.com/ARPAHLS/skillware/commit/30b7b2e82cdb71c8932468df57679ac45e457b20) | feat(wallet_screening): refresh OFAC SDN snapshot for Ethereum screening | 14 Oct 2026 | `1.0.2` | [@Hendobox](https://github.com/Hendobox) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`0b308d3`](https://github.com/ARPAHLS/skillware/commit/0b308d3) | feat(wallet_screening): paginate Etherscan txlist and surface warnings (#214) (#215) | 23 Jul 2026 | `1.0.1` | [@Hendobox](https://github.com/Hendobox) |

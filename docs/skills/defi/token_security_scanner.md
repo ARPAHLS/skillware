@@ -3,7 +3,7 @@
 **ID**: `defi/token_security_scanner`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0`
+**Version**: `0.2.0`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Vet an ERC-20 / LP contract for honeypot, tax, ownership, and related risk before an agent trades.
@@ -21,23 +21,26 @@ Read-only **ERC-20 / LP token** safety report for agents. Calls the [GoPlus Toke
 
 | Action | Description |
 |--------|-------------|
-| `scan` | Fetch GoPlus signals for `{chain, contract}` → `risk_tier` + `signals` |
-| `supported_chains` | List enabled chain slugs from operator EVM config (+ GoPlus `chain_id`) |
+| `scan` | Fetch GoPlus signals for `{chain, contract}` or `{chain, token}` → `risk_tier`, `policy_action`, `signals` |
+| `scan_batch` | Up to 5 sequential scans plus `worst_risk_tier` |
+| `supported_chains` | Enabled chain slugs, with `goplus_supported` true or false |
 
 ## Environment
 
 | Variable | Required | Purpose |
 | :--- | :--- | :--- |
 | `GOPLUS_APP_KEY` | No | Optional Bearer token for higher limits / authenticated GoPlus access. Free permissionless Token Security calls work without it. |
+| `TOKEN_SCAN_POLICY_PATH` | No | Operator policy YAML. Otherwise `~/.config/skillware/token_scan_policy.yaml`, then the bundled `enterprise_default` profile. |
 
 No private keys. No wallet address required. See [API keys for skills](../../usage/api_keys.md).
 
 ## Agent notes
 
-- **`risk_tier`**: `critical` / `high` → refuse trade; `medium` → human confirm; `low` → still not financial advice; `unknown` → missing signals.
+- **`policy_action`**: `block` refuses the trade, `flag` needs a human, `allow` may continue. Default profile blocks `critical`, `high`, and `unknown`.
+- **`risk_tier`**: still returned. Hosts should gate on `policy_action` so an operator file can change thresholds without a new host script.
 - **`null` signals** mean unknown (common for closed-source or proxy contracts) — do not treat as safe.
 - **Chain coverage** varies; always surface `warnings`.
-- **Chaining (host-side):** suggested pre-trade path — optional `security/drainer_pattern_guard` (when shipped) → `scan` → `defi/evm_tx_handler` preview/execute. Optional holder EOAs → `finance/wallet_screening`. Tokens stay in operator `evm.tokens`, not the address book.
+- **Chaining (host-side):** suggested pre-trade path — optional `security/drainer_pattern_guard` (when shipped) → `scan` → `defi/evm_reader` → `defi/evm_tx_handler` preview/execute. Optional holder EOAs → `finance/wallet_screening`. Tokens stay in operator `evm.tokens`, not the address book.
 - **Chains:** enabled slugs from operator EVM config (`skillware evm`); add further GoPlus-supported networks via `skillware evm chain add` (see [EVM operator config](../../usage/evm_operator_config.md)).
 
 ## Bundle layout
@@ -55,6 +58,8 @@ When to call `scan`, how to interpret tiers, constitution reminders.
 ### Corpus
 
 - Chain slugs / `chain_id` from shared [`skillware.core.evm_config`](../../usage/evm_operator_config.md) (no per-bundle `chains.yaml`)
+- `data/default_policy.yaml` — `enterprise_default` thresholds. Operators override with `token_scan_policy.yaml`
+- `data/goplus_chain_ids.yaml` — chain IDs GoPlus Token Security accepts
 - `fixtures/` — recorded GoPlus JSON for CI (no live network)
 
 ## Usage Examples
@@ -67,9 +72,9 @@ Sample user message: *“Is this Base token safe to buy?”* → `scan` with cha
 
 ### Host-side pre-trade gate (chain into `evm_tx_handler`)
 
-Skills stay atomic — the **host** owns `scan → gate → quote/preview`. Fail closed on
-`critical` / `high` / `unknown`, or when `status` is not `ok`. Do not treat a missing
-honeypot signal as “low risk.”
+Skills stay atomic — the **host** owns `scan → gate → quote/preview`. Fail closed when
+`status` is not `ok` or `policy_action` is `block`. `flag` needs a person. Do not
+treat a missing honeypot signal as “low risk.”
 
 ```python
 from skillware.core.env import load_env_file
@@ -84,18 +89,15 @@ report = scanner.execute(
     {"action": "scan", "chain": "base", "contract": token_contract}
 )
 
-blocked = report.get("status") != "ok" or report.get("risk_tier") in (
-    "critical",
-    "high",
-    "unknown",
-)
-if blocked:
+if report.get("status") != "ok" or report.get("policy_action") == "block":
     print(
         "Blocked pre-trade:",
         report.get("risk_tier"),
         report.get("contract_errors"),
         report.get("warnings"),
     )
+elif report.get("policy_action") == "flag":
+    print("Needs confirmation:", report.get("risk_tier"), report.get("contract_errors"))
 else:
     # Host proceeds only after a clean scan — quote/preview, then HITL confirm.
     preview = evm.execute(
@@ -309,11 +311,12 @@ print(result.get("risk_tier"), result.get("status"))
 pytest skills/defi/token_security_scanner/test_skill.py -q
 ```
 
-## Limitations (v0.1)
+## Limitations (v0.2)
 
 - EVM Token Security only (no Solana / NFT collections / MEV simulation).
-- Single provider (GoPlus); no DexScreener market chrome.
-- Chain coverage follows operator EVM config (bundled defaults: `ethereum`, `base`); not a Solana skill.
+- Single provider (GoPlus); no second-source quorum.
+- `scan_batch` is sequential and capped at 5. One retry on HTTP 429 or 5xx, then fail closed.
+- A chain can be enabled in EVM config and still be `goplus_supported: false`.
 - Does not replace a professional audit or live Chainalysis/TRM feeds.
 
 <!-- skill-history:begin -->
@@ -323,5 +326,6 @@ Commits that touched this skill bundle or its catalog page ([`defi/token_securit
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`d7f721f`](https://github.com/ARPAHLS/skillware/commit/d7f721f0bd7519029902f65ac78b83cd64641015) | feat(token_security_scanner): operator policy and policy_action (#393) | 14 Oct 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`e90bbce`](https://github.com/ARPAHLS/skillware/commit/e90bbceadb360772cbe1f6cff16a9ec96c90a225) | feat(defi): token_security_scanner v0.1 (GoPlus read-only) (#368) | 26 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->

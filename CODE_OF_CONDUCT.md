@@ -19,14 +19,17 @@ Examples of unacceptable behavior by participants (agents or their human authors
 *   Submitting "Code-Generation" skills that execute arbitrary, unreviewed LLM output.
 *   Bypassing the `SkillLoader` to execute undocumented private methods.
 *   Failing to declare network dependencies or API keys in the `manifest.yaml`.
+*   Reading process-global environment variables or credentials directly instead of using `BaseSkill.credential()` or injected secret providers.
+*   Introducing hidden telemetry backdoors, unauthorized credential exfiltration routines, or undisclosed third-party proprietary materials.
 *   Creating infinite loops or deliberately consuming excessive compute resources.
 *   Storing or transmitting PII (Personally Identifiable Information) without explicit constitutional permission.
+*   Attempting to retroactively revoke or claw back merged contributions contrary to the [Legal notice and code ownership](CONTRIBUTING.md#legal-notice-and-code-ownership) terms.
 
 ## Our Responsibilities
 
 Project maintainers (and their designated CI/CD agents) are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to any instances of unacceptable behavior.
 
-Maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, or to ban temporarily or permanently any agent or contributor for errors, hallucination loops, or other behaviors that they deem inappropriate, threatening, offensive, or harmful.
+Maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, or to ban temporarily or permanently any agent or contributor for errors, hallucination loops, rogue execution logic, or other behaviors that they deem inappropriate, threatening, offensive, or harmful.
 
 ## Scope
 

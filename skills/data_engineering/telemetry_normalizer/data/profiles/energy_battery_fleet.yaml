@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MIT
+name: energy_battery_fleet
+description: High-voltage battery pack and energy storage telemetry for electric fleets and ESS.
+sensor_id_fields:
+  - pack_id
+  - battery_id
+  - vehicle_id
+  - sensor_id
+timestamp_fields:
+  - timestamp
+  - time
+  - t
+  - logged_at
+phenomena:
+  state_of_charge:
+    aliases: [soc, state_of_charge, soc_pct, battery_level]
+    canonical_unit: "%"
+    units:
+      "%": { factor: 1.0, offset: 0.0 }
+      ratio: { factor: 100.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 100.0
+  voltage:
+    aliases: [voltage, v, pack_voltage, v_bus]
+    canonical_unit: V
+    units:
+      V: { factor: 1.0, offset: 0.0 }
+      mV: { factor: 0.001, offset: 0.0 }
+      kV: { factor: 1000.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 1000.0
+  current:
+    aliases: [current, amperage, amps, i, i_pack]
+    canonical_unit: A
+    units:
+      A: { factor: 1.0, offset: 0.0 }
+      mA: { factor: 0.001, offset: 0.0 }
+    min_valid: -1000.0
+    max_valid: 1000.0
+  temperature:
+    aliases: [temperature, temp, cell_temp, pack_temp]
+    canonical_unit: degC
+    units:
+      degC: { factor: 1.0, offset: 0.0 }
+      degF: { formula: "fahrenheit_to_celsius" }
+      K: { factor: 1.0, offset: -273.15 }
+    min_valid: -30.0
+    max_valid: 85.0

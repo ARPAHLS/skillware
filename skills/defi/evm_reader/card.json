@@ -1,0 +1,22 @@
+{
+  "name": "EVM Chain Reader",
+  "description": "Read-only EVM state plane: balances, allowances, metadata, view calls, multicall batches, and addressbook resolution.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "database",
+  "color": "blue",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "chain", "label": "Chain"},
+      {"key": "holder", "label": "Holder"},
+      {"key": "token", "label": "Token"},
+      {"key": "balance", "label": "Balance", "type": "currency"},
+      {"key": "status", "label": "Status", "type": "status_badge"}
+    ]
+  }
+}

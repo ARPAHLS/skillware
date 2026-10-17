@@ -1,4 +1,4 @@
-name: "category/my-awesome-skill"
+name: "category/my_awesome_skill"
 version: "0.1.0"
 description: "A short description of what this skill does."
 short_description: "One-line summary for skillware list (~80 chars)."
@@ -17,14 +17,22 @@ parameters:
   required:
     - param1
 outputs:
+  status:
+    type: string
+    description: "Execution status indicator ('success' or 'error')"
   result:
     type: string
-    description: "Description of the output"
+    description: "Description of the primary result"
 requirements: []
 env_vars: {}
+# Declare required or optional environment variables / credentials:
+# env_vars:
+#   MY_SERVICE_API_KEY:
+#     description: "API key for external service authentication"
+#     required: false
 constitution: |
   1. Always provide helpful and accurate results.
-  2. Do not include sensitive information in the output.
+  2. Do not include sensitive information, API keys, or private data in the output.
 presentation:
-  icon: "star"
+  icon: "zap"
   color: "#3498DB"

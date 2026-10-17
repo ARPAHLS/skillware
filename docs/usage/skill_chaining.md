@@ -55,7 +55,7 @@ Project-wide role and anatomy terms live in the [glossary](../glossary.md). This
 | Need | Import |
 | :--- | :--- |
 | Registry context (recommended multi-skill entry) | `from skillware import SkillContext` |
-| Named chain runner | `from skillware.chains import run_chain, list_chains, load_chain, validate_chain` |
+| Named chain runner (sync & async) | `from skillware.chains import run_chain, arun_chain, list_chains, load_chain, validate_chain` |
 | Single skill (unchanged) | `from skillware.core.loader import SkillLoader` |
 
 `SkillContext` wraps `SkillLoader`; it does not replace it. Existing single-skill scripts keep working unchanged.
@@ -200,6 +200,42 @@ opt = ctx.execute(
 
 See `examples/context_optimizer_chain_demo.py`.
 
+### Pre-flight KYC & document authenticity gating
+
+For automated customer onboarding and document verification, gate downstream PII extraction and form intake behind `security/deepfake_guard`:
+
+```python
+from skillware import SkillContext
+
+ctx = SkillContext(skills=[
+    "security/deepfake_guard",
+    "compliance/pii_masker",
+])
+
+# 1. Pre-flight authenticity check: verify MRZ check digits and photo forensics
+auth_result = ctx.execute(
+    "security/deepfake_guard",
+    {
+        "action": "inspect_document",
+        "mrz_string": raw_mrz,
+        "image_path": document_image_path,
+        "expected_document_type": "passport",
+    },
+)
+
+if auth_result.get("verdict") in ("tampered_likely", "synthetic_likely", "suspicious"):
+    # Reject or route to manual human fraud review
+    return {"status": "blocked", "reason": auth_result["summary"]}
+
+# 2. Mask sensitive PII before routing to downstream host agents or storage
+masked = ctx.execute(
+    "compliance/pii_masker",
+    {"text": applicant_profile_text},
+)
+```
+
+See `examples/kyc_authenticity_chain_demo.py`.
+
 The host can also **choose skills dynamically** (e.g. route to `monitoring/token_limiter` when a budget flag is set) without YAML — same pattern: `ctx.execute(skill_id, params)`.
 
 ### Still using SkillLoader directly
@@ -231,6 +267,8 @@ See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference cha
 | `preflight_untrusted_html` | HTML-mode firewall only |
 | `scan_then_gate` | Firewall → token limiter check |
 | `deck_build_pipeline` | Validate → lint → render deck spec |
+| `secure_web_form_intake` | Deceptive UI guard → Web form mapper (mapper skipped when dark patterns or deceptive UI detected) |
+| `kyc_document_authenticity_gate` | Deepfake guard → PII masker (masker skipped when document is not authentic) |
 
 ### Python API
 
@@ -249,6 +287,15 @@ result = run_chain(
 # result.steps[i].status: ok | skipped | failed
 # result.final — last executed step output (firewall output when rewriter skipped)
 # result.errors — tuple of error strings
+
+# Asynchronous execution in async agent runtimes / FastAPI:
+from skillware.chains import arun_chain
+
+async_result = await arun_chain(
+    "sanitize_input",
+    host_input={"source_text": untrusted_text},
+    timeout=15.0,  # optional overall chain timeout
+)
 ```
 
 ### CLI

@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: MIT
+name: environmental_air_quality
+description: Ambient atmospheric quality and particulate monitoring for smart cities and facilities.
+sensor_id_fields:
+  - sensor_id
+  - device_id
+  - station_id
+  - node_id
+timestamp_fields:
+  - timestamp
+  - datetime
+  - time
+  - t
+  - observed_at
+phenomena:
+  pm2_5:
+    aliases: [pm25, pm2_5, pm_2_5, particulate_matter_2_5]
+    canonical_unit: ug/m3
+    units:
+      ug/m3: { factor: 1.0, offset: 0.0 }
+      mg/m3: { factor: 1000.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 1000.0
+  pm10:
+    aliases: [pm10, pm_10, particulate_matter_10]
+    canonical_unit: ug/m3
+    units:
+      ug/m3: { factor: 1.0, offset: 0.0 }
+      mg/m3: { factor: 1000.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 1500.0
+  co2:
+    aliases: [co2, carbon_dioxide, co2_ppm]
+    canonical_unit: ppm
+    units:
+      ppm: { factor: 1.0, offset: 0.0 }
+    min_valid: 300.0
+    max_valid: 10000.0
+  temperature:
+    aliases: [temperature, temp, temp_c, temp_f, ambient_temp]
+    canonical_unit: degC
+    units:
+      degC: { factor: 1.0, offset: 0.0 }
+      degF: { formula: "fahrenheit_to_celsius" }
+      K: { factor: 1.0, offset: -273.15 }
+    min_valid: -50.0
+    max_valid: 70.0
+  relative_humidity:
+    aliases: [humidity, rh, relative_humidity, humidity_pct]
+    canonical_unit: "%"
+    units:
+      "%": { factor: 1.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 100.0

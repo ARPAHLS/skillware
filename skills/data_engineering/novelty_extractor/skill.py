@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, List
 import numpy as np
 from fastembed import TextEmbedding
@@ -18,14 +19,7 @@ class NoveltyExtractor(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {
-            "name": "data_engineering/novelty_extractor",
-            "version": "0.1.0",
-            "description": (
-                "Filters a text dataset by semantic novelty, retaining only "
-                "chunks that carry new information above a configurable threshold."
-            ),
-        }
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     def _chunk_text(self, text: str, strategy: str) -> List[str]:
         """Split text into chunks using the given strategy."""

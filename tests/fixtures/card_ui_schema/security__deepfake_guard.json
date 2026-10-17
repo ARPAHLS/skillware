@@ -1,0 +1,49 @@
+{
+  "samples": [
+    {
+      "status": "ok",
+      "action": "analyze",
+      "offline": true,
+      "verdict": "authentic_likely",
+      "confidence_score": 0.12,
+      "is_synthetic_likely": false,
+      "is_tampered_likely": false,
+      "detected_doc_type": "P",
+      "artifacts_detected": [],
+      "summary": "Asset appears authentic: no significant digital tampering, synthetic artifacts, or checksum anomalies detected.",
+      "signals": [],
+      "doc": {
+        "detected_type": "P",
+        "jurisdiction": "GRC",
+        "mrz_valid": true
+      },
+      "limitations": [
+        "Air-gapped optical/pixel analysis only"
+      ]
+    },
+    {
+      "status": "ok",
+      "action": "analyze",
+      "offline": true,
+      "verdict": "tampered_likely",
+      "confidence_score": 0.88,
+      "is_synthetic_likely": false,
+      "is_tampered_likely": true,
+      "detected_doc_type": "I",
+      "artifacts_detected": [
+        "jpeg_ela_inconsistency",
+        "mrz_checksum_mismatch"
+      ],
+      "summary": "Digital tampering detected: ELA compression error variance divergence.",
+      "signals": [
+        {
+          "class": "ela_hotspot_inconsistency",
+          "score": 0.82
+        }
+      ],
+      "limitations": [
+        "Air-gapped optical/pixel analysis only"
+      ]
+    }
+  ]
+}

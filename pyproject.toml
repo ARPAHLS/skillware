@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skillware"
-version = "0.5.6"
+version = "0.5.8"
 description = "A framework for modular, self-contained AI skills."
 readme = "README.md"
 authors = [
@@ -51,8 +51,13 @@ skillware = "skillware.cli:main"
 dev = [
     "pytest",
     "pytest-mock",
+    "pytest-asyncio",
     "flake8",
     "black",
+    "ruff",
+    "bandit",
+    "pip-audit",
+    "mypy",
 ]
 gemini = [
     "google-genai",
@@ -110,7 +115,6 @@ linguistics = []
 monitoring = []
 
 office = [
-    "anthropic",
     "pymupdf",
 ]
 
@@ -119,7 +123,10 @@ optimization = [
     "numpy",
 ]
 
-security = []
+security = [
+    "numpy",
+    "pillow",
+]
 
 wellness = [
     "google-genai",
@@ -155,6 +162,12 @@ data_engineering_semantic_web_proxy = [
 
 data_engineering_synthetic_generator = []
 
+data_engineering_telemetry_normalizer = []
+
+defi_evm_reader = [
+    "web3>=6.0.0",
+]
+
 defi_evm_tx_handler = [
     "web3>=6.0.0",
 ]
@@ -177,8 +190,9 @@ office_gmail_handler = []
 
 office_pdf_form_filler = [
     "pymupdf",
-    "anthropic",
 ]
+
+office_web_form_mapper = []
 
 optimization_context_optimizer = [
     "fastembed",
@@ -189,6 +203,11 @@ optimization_prompt_rewriter = []
 
 security_deceptive_ui_guard = []
 
+security_deepfake_guard = [
+    "pillow",
+    "numpy",
+]
+
 security_prompt_injection_firewall = []
 
 wellness_mental_coach = [
@@ -196,7 +215,6 @@ wellness_mental_coach = [
 ]
 
 all = [
-    "anthropic",
     "fastembed",
     "google-genai",
     "numpy",
@@ -233,3 +251,34 @@ markers = [
 [tool.black]
 line-length = 88
 target-version = ["py310"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E4", "E7", "E9",
+    "F",
+]
+ignore = [
+    "E501",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "skillware.cli",
+    "skillware.core.loader",
+    "skillware.core.config",
+    "skillware.core.mail_config",
+]
+ignore_errors = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]
+skips = ["B101", "B104", "B108", "B310"]

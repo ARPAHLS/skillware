@@ -98,8 +98,29 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 | Pattern | Script |
 | :--- | :--- |
 | `SkillContext` + optional Gemini loop | [`skill_context_gemini_loop.py`](../../examples/skill_context_gemini_loop.py) |
+| Async tool loop + `SkillContext.aexecute` | [`async_tool_loop.py`](../../examples/async_tool_loop.py) |
 | Named chain (`run_chain`, local) | [`sanitize_input_chain_demo.py`](../../examples/sanitize_input_chain_demo.py) |
 | `SkillContext` + Ollama prompt mode | [`ollama_skills_test.py`](../../examples/ollama_skills_test.py) |
+
+### Asynchronous agent loops (`aexecute`)
+
+In modern async runtimes (FastAPI, async LLM clients, streaming agent loops, or multi-tool fan-outs), blocking the event loop degrades throughput. Skillware provides native asynchronous execution parity:
+
+```python
+from skillware import SkillContext
+
+# Initialize context with optional concurrency throttling (semaphore-backed)
+ctx = SkillContext(max_concurrency=10)
+
+# In your async tool execution handler:
+result = await ctx.aexecute(skill_id, arguments, timeout=30.0)
+```
+
+- **Dual Execution Parity:** Any skill can implement synchronous `execute()`, asynchronous `aexecute()`, or both.
+- **Non-blocking Default:** Skills that only implement synchronous `execute()` are automatically offloaded to worker threads via `asyncio.to_thread`.
+- **Bidirectional Bridging:** Synchronous hosts can call async skills via `skill.execute()`, and async hosts can call synchronous skills via `await skill.aexecute()`.
+- **Concurrency Throttling:** `SkillContext(max_concurrency=N)` automatically protects downstream services and rate limits.
+- **Timeouts:** `timeout=float` enforces deadlines, raising standard `asyncio.TimeoutError` upon expiration.
 
 ---
 
@@ -149,7 +170,7 @@ agent loop. It either calls `skill.execute(...)` directly or loads multiple
 skills in one harness.
 
 **Suggested DeFi pre-trade host path:** optional `security/drainer_pattern_guard`
-(when shipped) → `defi/token_security_scanner` → `defi/evm_tx_handler`
+(when shipped) → `defi/token_security_scanner` → `defi/evm_reader` → `defi/evm_tx_handler`
 preview/execute. Optional large-holder EOAs → `finance/wallet_screening`.
 Use shared EVM operator config for chains (#379); tokens in `evm.tokens`, not
 the address book.
@@ -160,10 +181,12 @@ the address book.
 | `finance/wallet_screening` | - | `gemini_wallet_check.py` | `claude_wallet_check.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `office/gmail_handler` | `gmail_handler_demo.py` (local execute) | `gemini_gmail_handler.py` | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `office/pdf_form_filler` | - | `gemini_pdf_form_filler.py` | `claude_pdf_form_filler.py` | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `office/web_form_mapper` | `web_form_mapping_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `compliance/mica_module` | - | `mica_rag_flow.py` | `mica_claude_flow.py` | (catalog page) | (catalog page) | `mica_ollama_flow.py` |
 | `compliance/pii_masker` | `pii_guardrail_flow.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `security/prompt_injection_firewall` | `prompt_injection_firewall_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `security/deceptive_ui_guard` | `deceptive_ui_guard_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `security/deepfake_guard` | `deepfake_guard_demo.py`, `kyc_authenticity_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/deck_builder` | `deck_builder_demo.py`, `deck_builder_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
@@ -171,11 +194,13 @@ the address book.
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |
 | `data_engineering/semantic_web_proxy` | `semantic_web_proxy_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `data_engineering/telemetry_normalizer` | `telemetry_normalizer_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `dev_tools/issue_resolver` | - | `gemini_issue_resolver.py` | `claude_issue_resolver.py` | (catalog page) | (catalog page) | `ollama_issue_resolver.py` |
 | `wellness/mental_coach` | `mental_coach_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `linguistics/korean_slang` | `korean_slang_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `defi/evm_reader` | `evm_reader_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `defi/evm_tx_handler` | - | `gemini_evm_tx_handler.py` | `claude_evm_tx_handler.py` | - | - | - |
-| `defi/token_security_scanner` | - | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `defi/token_security_scanner` | `token_security_scanner_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/token_limiter` | `token_limiter_loop.py` (local execute) | `gemini_token_limiter.py`, `skill_context_gemini_loop.py` (multi-skill) | `claude_token_limiter.py` | (catalog page) | (catalog page) | (catalog page) |
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |

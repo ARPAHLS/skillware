@@ -1,9 +1,16 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
+import asyncio
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, Union
 
 import jsonschema
 from jsonschema import ValidationError
+import yaml
 
 
 class SkillwareParamValidationError(ValueError):
@@ -15,17 +22,30 @@ class BaseSkill(ABC):
     The foundational class for all Skillware skills.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        config: Optional[Dict[str, Any]] = None,
+        credential_fn: Optional[Callable[[str], Optional[str]]] = None,
+    ):
         self.config = config or {}
+        self._credential_fn = credential_fn
 
     def credential(self, key: str) -> Optional[str]:
         """
         Resolve a manifest ``env_vars`` name.
 
-        Host-injected ``config`` wins over ``os.environ`` so multi-tenant and
-        KMS-backed providers do not rely on process-global state. Local dev
-        still works via ``.env`` / exports when the host omits ``config``.
+        Resolution order:
+        1. Injected ``credential_fn`` callable (if provided)
+        2. Host-injected ``config`` wins over ``os.environ`` so multi-tenant and
+           KMS-backed providers do not rely on process-global state.
+        3. Local dev still works via ``.env`` / exports when host omits config.
         """
+        if self._credential_fn is not None:
+            fn_val = self._credential_fn(key)
+            if fn_val is not None:
+                text = str(fn_val).strip()
+                if text:
+                    return text
         cfg_val = self.config.get(key)
         if cfg_val is not None:
             text = str(cfg_val).strip()
@@ -37,6 +57,22 @@ class BaseSkill(ABC):
         text = str(env_val).strip()
         return text or None
 
+    @staticmethod
+    def load_manifest_from_dir(bundle_dir: Union[str, Path]) -> Dict[str, Any]:
+        """
+        Read and parse ``manifest.yaml`` from a bundle directory or direct file path.
+
+        Returns an empty dictionary when the file does not exist or does not contain
+        a valid YAML mapping.
+        """
+        path = Path(bundle_dir).resolve()
+        manifest_file = path / "manifest.yaml" if path.is_dir() else path
+        if manifest_file.is_file():
+            with open(manifest_file, "r", encoding="utf-8") as f:
+                loaded = yaml.safe_load(f)
+            return loaded if isinstance(loaded, dict) else {}
+        return {}
+
     @property
     @abstractmethod
     def manifest(self) -> Dict[str, Any]:
@@ -46,12 +82,44 @@ class BaseSkill(ABC):
         """
         pass
 
-    @abstractmethod
     def execute(self, params: Dict[str, Any]) -> Any:
         """
-        The main entry point for the skill.
+        The main synchronous entry point for the skill.
+
+        Subclasses typically implement this method. If a subclass only implements
+        ``aexecute()``, this method provides a synchronous bridge.
         """
-        pass
+        if self.__class__.aexecute is not BaseSkill.aexecute:
+            return self._run_coroutine_sync(self.aexecute(params))
+        raise NotImplementedError(
+            f"Skill {self.__class__.__name__} must implement execute() or aexecute()."
+        )
+
+    async def aexecute(self, params: Dict[str, Any]) -> Any:
+        """
+        The main asynchronous entry point for the skill.
+
+        By default, offloads synchronous ``execute()`` to an async worker thread
+        via ``asyncio.to_thread`` to prevent blocking the host event loop.
+        Subclasses may override this method directly for native non-blocking I/O.
+        """
+        return await asyncio.to_thread(self.execute, params)
+
+    @staticmethod
+    def _run_coroutine_sync(coro: Any) -> Any:
+        """
+        Safely execute an asynchronous coroutine synchronously, even if called
+        from inside a thread where an asyncio event loop is already running.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is not None and loop.is_running():
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                return executor.submit(asyncio.run, coro).result()
+        return asyncio.run(coro)
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """

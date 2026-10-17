@@ -1,16 +1,19 @@
 """
 UK Companies House Handler Skill
 
-Deterministic skill that wraps the Companies House REST API into structured
-actions with status-based responses. Supports company search, profile lookup,
-officer and PSC listing with role/name filters, filing history with helpers,
-turn-by-turn pipeline orchestration, and composite shortcuts.
+Deterministic skill that wraps the Companies House REST API and Document API
+into structured actions with status-based responses. Supports company search,
+profile lookup, officer and PSC listing with role/name filters, filing history
+with helpers, document discover/pick/download flow, turn-by-turn pipeline
+orchestration, and composite shortcuts.
 """
 
+import base64
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import requests
 import yaml
@@ -18,6 +21,11 @@ from skillware.core.base_skill import BaseSkill
 
 _SKILL_DIR = os.path.dirname(__file__)
 _BASE_URL = "https://api.company-information.service.gov.uk"
+_DOCUMENT_API_BASE = "https://document-api.company-information.service.gov.uk"
+_DEFAULT_MAX_BYTES = 5_242_880  # 5 MB
+_HARD_MAX_BYTES = 10_485_760  # 10 MB
+_DEFAULT_CONTENT_TYPE = "application/pdf"
+_DOCUMENT_CHUNK_SIZE = 8192
 
 _VALID_ACTIONS = {
     "resolve_company",
@@ -25,6 +33,9 @@ _VALID_ACTIONS = {
     "get_officers",
     "get_pscs",
     "get_filing_history",
+    "list_downloadable_documents",
+    "get_document_metadata",
+    "fetch_document",
     "run_pipeline",
     "resolve_and_get_officers",
     "resolve_and_get_filings",
@@ -38,12 +49,26 @@ _ACTIONS_REQUIRING_COMPANY_NUMBER = {
     "get_filing_history",
 }
 
+# Pipeline auto-fills company_number for these steps (includes document list).
+_PIPELINE_COMPANY_NUMBER_ACTIONS = _ACTIONS_REQUIRING_COMPANY_NUMBER | {
+    "list_downloadable_documents",
+}
+
 _OPERATIONAL_RETRY_HINT = (
     "Retry after a short backoff. Companies House allows 600 requests per "
     "5 minutes per API key. If you know the 8-character company_number, "
     "pass it directly. Otherwise check spelling and pass a clean company "
     "name in query (no conversational prefixes)."
 )
+
+
+class _DocumentTooLarge(Exception):
+    """Raised when streamed document bytes exceed max_bytes."""
+
+    def __init__(self, total_seen: int, max_bytes: int):
+        self.total_seen = total_seen
+        self.max_bytes = max_bytes
+        super().__init__(f"document_too_large: seen={total_seen} max_bytes={max_bytes}")
 
 
 class UkCompaniesHouseHandlerSkill(BaseSkill):
@@ -117,6 +142,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "get_officers": self._get_officers,
             "get_pscs": self._get_pscs,
             "get_filing_history": self._get_filing_history,
+            "list_downloadable_documents": self._list_downloadable_documents,
+            "get_document_metadata": self._get_document_metadata,
+            "fetch_document": self._fetch_document,
             "run_pipeline": self._run_pipeline,
             "resolve_and_get_officers": self._resolve_and_get_officers,
             "resolve_and_get_filings": self._resolve_and_get_filings,
@@ -151,16 +179,25 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 except Exception:
                     pass
 
+            selected_tx = (
+                result.get("selected_transaction_id")
+                or params.get("selected_transaction_id")
+                or context.get("selected_transaction_id")
+            )
+            document_candidates = result.pop("_document_candidates", None)
+            if document_candidates is None and isinstance(result.get("context"), dict):
+                document_candidates = result["context"].get("document_candidates")
+            if document_candidates is None:
+                document_candidates = context.get("document_candidates")
+
             new_context = {
                 "company_number": company_number,
                 "company_name": company_name,
-                "selected_transaction_id": (
-                    result.get("selected_transaction_id")
-                    or params.get("selected_transaction_id")
-                    or context.get("selected_transaction_id")
-                ),
+                "selected_transaction_id": selected_tx,
                 "last_action": action,
             }
+            if document_candidates is not None:
+                new_context["document_candidates"] = document_candidates
 
             result["context"] = new_context
             return result
@@ -171,15 +208,21 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 return self._error_response(
                     "not_found",
                     "The requested resource was not found at "
-                    "Companies House. Check the company number.",
+                    "Companies House. Check the company number, "
+                    "transaction_id, or document metadata_url.",
                     context=context,
                 )
             if status_code == 429:
+                retry_after = None
+                if exc.response is not None:
+                    retry_after = exc.response.headers.get("Retry-After")
+                hint = self._rate_limit_hint(retry_after)
                 return self._error_response(
                     "rate_limited",
                     "Companies House API rate limit exceeded. Wait and retry.",
-                    agent_hint=_OPERATIONAL_RETRY_HINT,
+                    agent_hint=hint,
                     context=context,
+                    extra={"retry_after": retry_after} if retry_after else None,
                 )
             return self._error_response(
                 "api_error",
@@ -198,6 +241,12 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "connection_error",
                 "Could not connect to the Companies House API.",
                 agent_hint=_OPERATIONAL_RETRY_HINT,
+                context=context,
+            )
+        except _DocumentTooLarge as exc:
+            return self._document_too_large_response(
+                size_bytes=exc.total_seen,
+                max_bytes=exc.max_bytes,
                 context=context,
             )
         except Exception as exc:
@@ -751,7 +800,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 if not rem_params.get("company_number") or rem_params.get(
                     "company_number"
                 ) in ("<from_resolve>", "<from resolve>", "<from-resolve>"):
-                    if rem_step.get("action") in _ACTIONS_REQUIRING_COMPANY_NUMBER:
+                    if rem_step.get("action") in _PIPELINE_COMPANY_NUMBER_ACTIONS:
                         rem_params["company_number"] = resolved_number
 
         pipeline_info: Dict[str, Any] = {
@@ -955,6 +1004,540 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         officer_params["action"] = "get_officers"
         return self._get_officers(officer_params)
 
+    def _list_downloadable_documents(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Filter filing history to filings with document_metadata links."""
+        context = dict(params.get("context") or {})
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        if not company_number:
+            return self._needs_input_response(
+                "missing_company_number",
+                [],
+                agent_hint=(
+                    "list_downloadable_documents needs a company_number. "
+                    "Call resolve_company first or pass company_number."
+                ),
+                context=context,
+            )
+
+        limit = params.get("limit", 10)
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = 10
+        limit = max(1, min(limit, 25))
+
+        category = params.get("category")
+        latest_only = bool(params.get("latest_only", False))
+        latest_per_category = bool(params.get("latest_per_category", False))
+
+        filing_params = {
+            "company_number": company_number,
+            "limit": 100,
+            "start_index": 0,
+            "context": context,
+        }
+        if category:
+            filing_params["category"] = category
+
+        filing_result = self._get_filing_history(filing_params)
+        if filing_result.get("status") == "error":
+            return filing_result
+
+        documents: List[Dict[str, Any]] = []
+        candidates_map: Dict[str, Dict[str, Any]] = {}
+        for filing in filing_result.get("filings", []):
+            metadata_url = filing.get("document_metadata_url")
+            if not metadata_url:
+                continue
+            tx_id = str(filing.get("transaction_id") or "")
+            doc = {
+                "transaction_id": tx_id,
+                "description": filing.get("description", ""),
+                "date": filing.get("date", ""),
+                "category": filing.get("category", ""),
+                "metadata_url": metadata_url,
+                "downloadable": True,
+            }
+            documents.append(doc)
+            if tx_id:
+                candidates_map[tx_id] = {
+                    "metadata_url": metadata_url,
+                    "date": doc["date"],
+                    "category": doc["category"],
+                    "description": doc["description"],
+                }
+
+        # Filings already newest-first from _get_filing_history
+        if latest_only:
+            documents = documents[:1]
+        elif latest_per_category:
+            deduped = []
+            seen = set()
+            for doc in documents:
+                cat = doc.get("category", "")
+                if cat not in seen:
+                    seen.add(cat)
+                    deduped.append(doc)
+            documents = deduped
+
+        documents = documents[:limit]
+
+        company_name = (
+            filing_result.get("company_name")
+            or context.get("company_name")
+            or params.get("company_name")
+            or ""
+        )
+
+        if not documents:
+            hint = (
+                "No downloadable documents found for this company_number"
+                + (f" and category '{category}'" if category else "")
+                + ". Filings without links.document_metadata cannot be fetched."
+            )
+        elif latest_only and documents:
+            hint = (
+                "One downloadable document candidate ready. "
+                "Call fetch_document with transaction_id or metadata_url to download."
+            )
+        else:
+            hint = (
+                f"{len(documents)} downloadable document candidate(s). "
+                "Present the pick list, then call get_document_metadata or "
+                "fetch_document with the chosen transaction_id or metadata_url."
+            )
+
+        result = {
+            "company_number": company_number,
+            "company_name": company_name,
+            "documents": documents,
+            "total_results": len(documents),
+            "_document_candidates": candidates_map,
+        }
+        return self._ready_response(
+            result,
+            agent_hint=hint,
+            source="companies_house_api",
+        )
+
+    def _get_document_metadata(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Query Document API metadata before downloading bytes."""
+        context = dict(params.get("context") or {})
+        resolved = self._resolve_document_target(params, context)
+        if resolved.get("status") == "error":
+            return resolved
+
+        metadata_url = resolved["metadata_url"]
+        transaction_id = resolved["transaction_id"]
+        significant_date = resolved.get("significant_date", "")
+
+        meta = self._document_get_metadata(metadata_url)
+        resources = meta.get("resources") or {}
+        mime_types = sorted(resources.keys())
+        content_length = None
+        if _DEFAULT_CONTENT_TYPE in resources:
+            content_length = resources[_DEFAULT_CONTENT_TYPE].get("content_length")
+        elif mime_types:
+            content_length = resources[mime_types[0]].get("content_length")
+
+        within_limit = True
+        limit_note = "File size is within the default 5 MB retrieval limit."
+        if content_length is not None:
+            try:
+                size_int = int(content_length)
+                within_limit = size_int <= _DEFAULT_MAX_BYTES
+                if not within_limit:
+                    limit_note = (
+                        f"Declared content_length {size_int} exceeds the default "
+                        f"max_bytes ({_DEFAULT_MAX_BYTES}). Raise max_bytes "
+                        f"(up to {_HARD_MAX_BYTES}) or set include_content false."
+                    )
+            except (TypeError, ValueError):
+                pass
+
+        result = {
+            "transaction_id": transaction_id or meta.get("id", ""),
+            "total_pages": meta.get("pages"),
+            "created_at": meta.get("created_at", ""),
+            "significant_date": significant_date,
+            "mime_types": mime_types,
+            "content_length": content_length,
+            "metadata_url": metadata_url,
+            "selected_transaction_id": transaction_id or meta.get("id", ""),
+        }
+        return self._ready_response(
+            result,
+            agent_hint=limit_note if within_limit else limit_note,
+            source="companies_house_document_api",
+        )
+
+    def _fetch_document(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Stream Document API bytes into a bounded base64 envelope (no disk)."""
+        context = dict(params.get("context") or {})
+        resolved = self._resolve_document_target(params, context)
+        if resolved.get("status") == "error":
+            return resolved
+
+        metadata_url = resolved["metadata_url"]
+        transaction_id = resolved["transaction_id"]
+        significant_date = resolved.get("significant_date", "")
+        document_id = self._document_id_from_metadata_url(metadata_url)
+
+        content_type = str(params.get("content_type") or _DEFAULT_CONTENT_TYPE)
+        include_content = params.get("include_content", True)
+        if include_content is None:
+            include_content = True
+        include_content = bool(include_content)
+
+        max_bytes = params.get("max_bytes", _DEFAULT_MAX_BYTES)
+        try:
+            max_bytes = int(max_bytes)
+        except (TypeError, ValueError):
+            max_bytes = _DEFAULT_MAX_BYTES
+        if max_bytes < 1:
+            max_bytes = _DEFAULT_MAX_BYTES
+        if max_bytes > _HARD_MAX_BYTES:
+            max_bytes = _HARD_MAX_BYTES
+
+        # Always inspect metadata first for availability / declared size.
+        meta = self._document_get_metadata(metadata_url)
+        resources = meta.get("resources") or {}
+        if content_type not in resources and resources:
+            available = ", ".join(sorted(resources.keys()))
+            return self._error_response(
+                "unsupported_content_type",
+                f"Content type '{content_type}' is not available. "
+                f"Available: {available}.",
+                context=context,
+            )
+
+        declared_length = None
+        if content_type in resources:
+            declared_length = resources[content_type].get("content_length")
+            try:
+                if declared_length is not None and int(declared_length) > max_bytes:
+                    size_int = int(declared_length)
+                    return self._document_too_large_response(
+                        size_bytes=size_int,
+                        max_bytes=max_bytes,
+                        transaction_id=transaction_id or document_id,
+                        context=context,
+                    )
+            except (TypeError, ValueError):
+                pass
+
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        category = resolved.get("category") or "document"
+        date_part = significant_date or "unknown-date"
+        ext = self._extension_for_content_type(content_type)
+        filename = (
+            f"{company_number or 'company'}_{category}_{date_part}{ext}"
+            if company_number or category
+            else f"{document_id}{ext}"
+        )
+
+        content_url = f"{_DOCUMENT_API_BASE}/document/{document_id}/content"
+
+        if not include_content:
+            result = {
+                "transaction_id": transaction_id or document_id,
+                "content_type": content_type,
+                "filename": filename,
+                "size_bytes": declared_length,
+                "download_url": content_url,
+                "content_base64": None,
+                "selected_transaction_id": transaction_id or document_id,
+            }
+            return self._ready_response(
+                result,
+                agent_hint=(
+                    "Metadata only (include_content=false). "
+                    "Call again with include_content=true to stream bytes, "
+                    "or fetch download_url with the Companies House API key."
+                ),
+                source="companies_house_document_api",
+            )
+
+        payload, actual_type, size_bytes = self._document_stream_content(
+            document_id=document_id,
+            content_type=content_type,
+            max_bytes=max_bytes,
+        )
+
+        result = {
+            "transaction_id": transaction_id or document_id,
+            "content_type": actual_type or content_type,
+            "filename": filename,
+            "size_bytes": size_bytes,
+            "content_base64": base64.b64encode(payload).decode("ascii"),
+            "selected_transaction_id": transaction_id or document_id,
+        }
+        return self._ready_response(
+            result,
+            agent_hint=(
+                "Document ready as content_base64. Relay to the user; "
+                "do not write the payload to disk inside the skill."
+            ),
+            source="companies_house_document_api",
+        )
+
+    def _resolve_document_target(
+        self, params: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Resolve metadata_url / transaction_id from params or prior candidates."""
+        metadata_url = str(params.get("metadata_url") or "").strip()
+        transaction_id = str(
+            params.get("transaction_id") or context.get("selected_transaction_id") or ""
+        ).strip()
+        significant_date = ""
+        category = ""
+
+        candidates = context.get("document_candidates") or {}
+        if transaction_id and transaction_id in candidates:
+            entry = candidates[transaction_id] or {}
+            if not metadata_url:
+                metadata_url = str(entry.get("metadata_url") or "").strip()
+            significant_date = str(entry.get("date") or "")
+            category = str(entry.get("category") or "")
+
+        if not metadata_url and transaction_id:
+            # Filing transaction ids differ from Document API ids. Resolve the
+            # metadata link from the single filing-history item when possible.
+            company_number = str(
+                params.get("company_number") or context.get("company_number") or ""
+            ).strip()
+            if not company_number:
+                return self._error_response(
+                    "unknown_transaction_id",
+                    f"transaction_id '{transaction_id}' is not in "
+                    "context.document_candidates and no company_number is "
+                    "available to look it up. Call list_downloadable_documents "
+                    "first or pass metadata_url.",
+                    context=context,
+                )
+            item = self._request(
+                "GET",
+                f"/company/{company_number}/filing-history/{transaction_id}",
+            )
+            metadata_url = str(
+                (item.get("links") or {}).get("document_metadata") or ""
+            ).strip()
+            significant_date = significant_date or str(item.get("date") or "")
+            category = category or str(item.get("category") or "")
+            if not metadata_url:
+                return self._error_response(
+                    "document_unavailable",
+                    f"Filing '{transaction_id}' has no downloadable document.",
+                    context=context,
+                )
+
+        if not metadata_url and not transaction_id:
+            return self._error_response(
+                "missing_document_target",
+                "Provide transaction_id or metadata_url "
+                "(from list_downloadable_documents).",
+                context=context,
+            )
+
+        if metadata_url and not self._is_document_api_url(metadata_url):
+            return self._error_response(
+                "invalid_metadata_url",
+                "metadata_url must be a Companies House Document API URL "
+                f"under {_DOCUMENT_API_BASE}.",
+                context=context,
+            )
+
+        if not transaction_id and metadata_url:
+            transaction_id = self._document_id_from_metadata_url(metadata_url)
+
+        return {
+            "status": "ok",
+            "metadata_url": metadata_url,
+            "transaction_id": transaction_id,
+            "significant_date": significant_date,
+            "category": category,
+        }
+
+    @staticmethod
+    def _is_document_api_url(url: str) -> bool:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+        return host in {
+            "document-api.company-information.service.gov.uk",
+            "frontend-doc-api.company-information.service.gov.uk",
+            "document-api.companieshouse.gov.uk",
+        } and "/document/" in (parsed.path or "")
+
+    @staticmethod
+    def _document_id_from_metadata_url(metadata_url: str) -> str:
+        path = urlparse(metadata_url).path.rstrip("/")
+        # /document/{id} or /document/{id}/content
+        parts = [p for p in path.split("/") if p]
+        if "document" in parts:
+            idx = parts.index("document")
+            if idx + 1 < len(parts) and parts[idx + 1] != "content":
+                return parts[idx + 1]
+        return parts[-1] if parts else ""
+
+    @staticmethod
+    def _extension_for_content_type(content_type: str) -> str:
+        mapping = {
+            "application/pdf": ".pdf",
+            "application/xhtml+xml": ".xhtml",
+            "application/xml": ".xml",
+            "application/json": ".json",
+            "application/zip": ".zip",
+            "text/csv": ".csv",
+        }
+        return mapping.get(content_type, ".bin")
+
+    def _document_get_metadata(self, metadata_url: str) -> Dict[str, Any]:
+        """GET Document API metadata JSON with Basic auth."""
+        response = requests.request(
+            "GET",
+            metadata_url,
+            auth=(self.companies_house_api_key, ""),
+            timeout=30,
+        )
+        if response.status_code == 429:
+            raise requests.exceptions.HTTPError(
+                "429 rate limited",
+                response=response,
+            )
+        response.raise_for_status()
+        return response.json()
+
+    def _document_stream_content(
+        self,
+        document_id: str,
+        content_type: str,
+        max_bytes: int,
+    ) -> Tuple[bytes, str, int]:
+        """
+        Fetch document bytes via Document API.
+
+        Auth is sent only to document-api hosts. Authorization is dropped when
+        following redirects to external storage (pre-signed URLs reject extra auth).
+        Streams chunks and aborts with document_too_large when max_bytes is exceeded.
+        """
+        content_url = f"{_DOCUMENT_API_BASE}/document/{document_id}/content"
+        headers = {"Accept": content_type}
+
+        response = requests.request(
+            "GET",
+            content_url,
+            auth=(self.companies_house_api_key, ""),
+            headers=headers,
+            allow_redirects=False,
+            timeout=60,
+            stream=True,
+        )
+
+        try:
+            if response.status_code in (301, 302, 303, 307, 308):
+                location = response.headers.get("Location")
+                if not location:
+                    response.raise_for_status()
+                    raise requests.exceptions.HTTPError(
+                        "Redirect without Location header",
+                        response=response,
+                    )
+                response.close()
+                # External storage: no Authorization header
+                response = requests.request(
+                    "GET",
+                    location,
+                    headers=headers,
+                    allow_redirects=True,
+                    timeout=60,
+                    stream=True,
+                )
+
+            if response.status_code == 429:
+                raise requests.exceptions.HTTPError(
+                    "429 rate limited",
+                    response=response,
+                )
+
+            if response.status_code in (404, 410):
+                response.raise_for_status()
+
+            response.raise_for_status()
+
+            actual_type = response.headers.get("Content-Type", content_type)
+            # Strip charset etc.
+            if actual_type and ";" in actual_type:
+                actual_type = actual_type.split(";", 1)[0].strip()
+
+            chunks: List[bytes] = []
+            total = 0
+            for chunk in response.iter_content(chunk_size=_DOCUMENT_CHUNK_SIZE):
+                if not chunk:
+                    continue
+                total += len(chunk)
+                if total > max_bytes:
+                    response.close()
+                    raise _DocumentTooLarge(total_seen=total, max_bytes=max_bytes)
+                chunks.append(chunk)
+
+            payload = b"".join(chunks)
+            return payload, actual_type, len(payload)
+        finally:
+            response.close()
+
+    def _document_too_large_response(
+        self,
+        size_bytes: int,
+        max_bytes: int,
+        transaction_id: str = "",
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        def _fmt(n: int) -> str:
+            if n >= 1024 * 1024:
+                return f"{n / (1024 * 1024):.1f} MB"
+            return f"{n} bytes"
+
+        if max_bytes >= _HARD_MAX_BYTES or size_bytes > _HARD_MAX_BYTES:
+            advice = (
+                "This exceeds the 10 MB hard ceiling; use include_content false "
+                "and share the download_url instead."
+            )
+        else:
+            advice = (
+                f"Set a higher max_bytes (up to {_fmt(_HARD_MAX_BYTES)}) or "
+                "retrieve metadata only."
+            )
+        message = (
+            f"Document exceeds max_bytes limit of {_fmt(max_bytes)} "
+            f"(actual: {_fmt(size_bytes)}). {advice}"
+        )
+        response = self._error_response(
+            "document_too_large",
+            message,
+            agent_hint=message,
+            context=context,
+            extra={
+                "reason": "document_too_large",
+                "size_bytes": size_bytes,
+                "max_bytes": max_bytes,
+                "transaction_id": transaction_id or None,
+            },
+        )
+        return response
+
+    @staticmethod
+    def _rate_limit_hint(retry_after: Optional[str] = None) -> str:
+        if retry_after:
+            return (
+                f"Rate limited by Companies House. Retry-After: {retry_after} "
+                f"seconds. {_OPERATIONAL_RETRY_HINT}"
+            )
+        return _OPERATIONAL_RETRY_HINT
+
     # --- HTTP Layer ---
 
     def _request(
@@ -1041,6 +1624,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         agent_hint: str = "",
         context: Optional[Dict[str, Any]] = None,
         pipeline: Optional[Dict[str, int]] = None,
+        extra: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Build a structured error response envelope."""
         response = {
@@ -1055,6 +1639,10 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             response["pipeline"] = pipeline
         if agent_hint:
             response["agent_hint"] = agent_hint
+        if extra:
+            for key, value in extra.items():
+                if value is not None:
+                    response[key] = value
         return response
 
     # --- Data Loaders ---

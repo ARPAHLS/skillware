@@ -1,13 +1,16 @@
 name: finance/uk_companies_house_handler
-version: 1.3.0
+version: 1.4.0
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing with
-  deterministic role/name filters, filing history with helpers, and turn-by-turn
-  pipeline orchestration. Returns status-based responses (ready, partial,
-  needs_input, error) with disambiguation support. The agent owns natural-language
-  dialogue; the skill returns structured candidates and records.
-short_description: "UK Companies House search, officers, PSC, filings, and pipeline orchestration via structured actions."
+  deterministic role/name filters, filing history with helpers, Document API
+  discover/pick/download flow (list_downloadable_documents, get_document_metadata,
+  fetch_document), and turn-by-turn pipeline orchestration. Returns status-based
+  responses (ready, partial, needs_input, error) with disambiguation support. The
+  agent owns natural-language dialogue; the skill returns structured candidates
+  and records. Downloaded document bytes are returned in-memory as bounded base64
+  and are never persisted to disk.
+short_description: "UK Companies House search, officers, PSC, filings, Document API download, and pipeline orchestration via structured actions."
 issuer:
   name: Areen Agrawal
   email: agrawalareen09@gmail.com
@@ -20,7 +23,8 @@ parameters:
       type: string
       description: >
         The operation to perform. One of: resolve_company, get_company_profile,
-        get_officers, get_pscs, get_filing_history, run_pipeline,
+        get_officers, get_pscs, get_filing_history, list_downloadable_documents,
+        get_document_metadata, fetch_document, run_pipeline,
         resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer.
       enum:
         - resolve_company
@@ -28,6 +32,9 @@ parameters:
         - get_officers
         - get_pscs
         - get_filing_history
+        - list_downloadable_documents
+        - get_document_metadata
+        - fetch_document
         - run_pipeline
         - resolve_and_get_officers
         - resolve_and_get_filings
@@ -40,25 +47,25 @@ parameters:
       description: "Company name query for composite actions (resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer)."
     company_number:
       type: string
-      description: "8-character UK company number (required for profile/officers/pscs/filing)."
+      description: "8-character UK company number (required for profile/officers/pscs/filing/list_downloadable_documents)."
     active_only:
       type: boolean
       description: "Filter to current/active records only. Default true for get_officers and get_pscs."
     limit:
       type: integer
-      description: "Max results to return. Default 5 for resolve_company, 10 for officers and filings."
+      description: "Max results to return. Default 5 for resolve_company, 10 for officers/filings/documents (documents max 25)."
     start_index:
       type: integer
       description: "Offset index for paginated queries (default 0)."
     category:
       type: string
-      description: "Filing category filter (get_filing_history, resolve_and_get_filings)."
+      description: "Filing category filter (get_filing_history, resolve_and_get_filings, list_downloadable_documents)."
     latest_only:
       type: boolean
-      description: "Filter filing history to return only the single most recent filing."
+      description: "Return only the single most recent filing or downloadable document."
     latest_per_category:
       type: boolean
-      description: "Filter filing history to return the latest filing for each distinct category."
+      description: "Return the latest filing or downloadable document for each distinct category."
     officer_name:
       type: string
       description: "Officer name filter for get_officers, resolve_and_get_officers, or resolve_company_officer."
@@ -68,9 +75,24 @@ parameters:
     role_hint:
       type: string
       description: "Requested role or title hint (e.g. 'ceo', 'cfo', 'chairman') for officers lookup and UK terminology note."
+    transaction_id:
+      type: string
+      description: "Filing/document transaction id for get_document_metadata or fetch_document."
+    metadata_url:
+      type: string
+      description: "Document API metadata URL from filing links.document_metadata (get_document_metadata, fetch_document)."
+    content_type:
+      type: string
+      description: "Desired MIME type for fetch_document (default application/pdf)."
+    include_content:
+      type: boolean
+      description: "When false, fetch_document returns metadata and download_url without base64 bytes (default true)."
+    max_bytes:
+      type: integer
+      description: "Maximum document payload size in bytes for fetch_document (default 5242880 / 5 MB, hard ceiling 10485760 / 10 MB)."
     steps:
       type: array
-      description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline). For multi-intent queries, construct steps directly with resolve_company first and '<from_resolve>' in subsequent steps."
+      description: "Ordered list of step objects with action and params to execute sequentially (run_pipeline). For multi-intent queries, construct steps directly with resolve_company first and '<from_resolve>' in subsequent steps. Document steps: list_downloadable_documents, fetch_document."
       items:
         type: object
         properties:
@@ -78,7 +100,7 @@ parameters:
             type: string
           params:
             type: object
-            description: "Step-specific parameters (e.g. query, company_number, role_hint, officer_name, officer_role, active_only, category, latest_only, latest_per_category, limit, start_index)."
+            description: "Step-specific parameters (e.g. query, company_number, role_hint, officer_name, officer_role, active_only, category, latest_only, latest_per_category, limit, start_index, transaction_id, metadata_url, content_type, include_content, max_bytes)."
         required:
           - action
     stop_on:
@@ -88,7 +110,7 @@ parameters:
         type: string
     context:
       type: object
-      description: "State carried over from prior skill turns (e.g. company_number, company_name)."
+      description: "State carried over from prior skill turns (e.g. company_number, company_name, selected_transaction_id, document_candidates)."
     pipeline:
       type: object
       description: "State of an executing Single-step pipeline (e.g. completed_steps, total_steps) to carry forward."
@@ -100,19 +122,19 @@ outputs:
     description: "Envelope status: ready, partial, needs_input, or error. Status partial is reserved for in-flight run_pipeline execution."
   source:
     type: string
-    description: "Data provenance (typically companies_house_api)."
+    description: "Data provenance (companies_house_api or companies_house_document_api)."
   fetched_at:
     type: string
     description: "UTC ISO timestamp when the response was built."
   context:
     type: object
-    description: "Session state to pass on the next call (company_number, company_name, last_action, selected_transaction_id)."
+    description: "Session state to pass on the next call (company_number, company_name, last_action, selected_transaction_id, document_candidates)."
   pipeline:
     type: object
     description: "Single-step progress when using run_pipeline."
   agent_hint:
     type: string
-    description: "Optional guidance for the host agent (disambiguation, partial previews, retries)."
+    description: "Optional guidance for the host agent (disambiguation, partial previews, retries, Retry-After)."
   company_number:
     type: string
     description: "Resolved 8-character company number when applicable."
@@ -125,6 +147,12 @@ outputs:
   filings:
     type: array
     description: "Filing records from get_filing_history or composite actions."
+  documents:
+    type: array
+    description: "Downloadable document candidates from list_downloadable_documents."
+  content_base64:
+    type: string
+    description: "Base64-encoded document bytes from fetch_document when include_content is true."
   steps:
     type: array
     description: "Remaining steps to execute when run_pipeline returns status partial."
@@ -136,9 +164,15 @@ constitution: |
   5. Never guess a company number; return ranked search hits when ambiguous.
   6. This skill provides company information, not legal or accounting advice.
   7. Do not submit filings or modify Companies House records.
+  8. Downloaded document bytes must be delivered directly in response envelopes;
+     never persist PDFs, metadata caches, or corporate records to local filesystem disks.
+  9. When following Document API redirects to external storage, drop Authorization
+     headers so pre-signed URLs are not rejected.
+  10. On HTTP 429, return a structured error with Retry-After in agent_hint; do not
+      sleep or client-throttle inside the skill.
 env_vars:
   COMPANIES_HOUSE_API_KEY:
-    description: "API key from the Companies House Developer Hub. Used as HTTP Basic username with empty password."
+    description: "API key from the Companies House Developer Hub. Used as HTTP Basic username with empty password for both the Public Data API and Document API."
     required: true
 requirements:
   - requests

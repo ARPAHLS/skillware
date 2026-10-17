@@ -1,0 +1,28 @@
+{
+    "name": "Telemetry Normalizer",
+    "description": "Standardizes raw, heterogeneous IoT, robotics, and facility sensor telemetry into canonical SI units and W3C SOSA/SSN semantic observations.",
+    "issuer": {
+        "name": "Rin Katsuragi",
+        "email": "r.katsuragi@proton.me",
+        "github": "rin-katsuragi",
+        "org": "ARPAHLS"
+    },
+    "icon": "activity",
+    "color": "#10b981",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {"key": "status", "label": "Status"},
+            {"key": "schema_profile", "label": "Profile"},
+            {"key": "quality_metrics.total_readings", "label": "Total Readings"},
+            {"key": "quality_metrics.mapped_count", "label": "Mapped Readings"},
+            {"key": "quality_metrics.out_of_bounds_count", "label": "Out of Bounds"},
+            {"key": "quality_metrics.sensor_fault_count", "label": "Sensor Faults"},
+            {"key": "quality_metrics.coverage_score", "label": "Coverage Score"},
+            {"key": "agent_hint", "label": "Agent Hint"},
+            {"key": "fields_unknown", "label": "Unknown Fields"},
+            {"key": "validation_errors", "label": "Validation Errors"},
+            {"key": "error", "label": "Error"}
+        ]
+    }
+}

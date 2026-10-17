@@ -62,7 +62,11 @@
         "order_by": {
           "type": "string",
           "required": false,
-          "enum": ["appointed_on", "resigned_on", "surname"],
+          "enum": [
+            "appointed_on",
+            "resigned_on",
+            "surname"
+          ],
           "description": "Sort order for results"
         }
       },
@@ -113,6 +117,25 @@
         }
       },
       "response_key": "items"
+    },
+    "document_metadata": {
+      "method": "GET",
+      "path": "/document/{document_id}",
+      "base": "document_api",
+      "description": "Fetch Document API metadata (MIME types, pages, content_length).",
+      "params": {},
+      "response_key": null
+    },
+    "document_content": {
+      "method": "GET",
+      "path": "/document/{document_id}/content",
+      "base": "document_api",
+      "description": "Fetch document bytes. Returns 302 to external storage; drop Authorization on redirect.",
+      "headers": {
+        "Accept": "Desired MIME type (e.g. application/pdf)"
+      },
+      "params": {},
+      "response_key": null
     }
   },
   "v2_planned": [
@@ -123,5 +146,6 @@
     "document_fetch",
     "search_officers",
     "search_disqualified_officers"
-  ]
+  ],
+  "document_api_base_url": "https://document-api.company-information.service.gov.uk"
 }

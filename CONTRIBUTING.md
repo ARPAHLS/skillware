@@ -18,6 +18,7 @@ This document is the single entry point for how to contribute. If you are an **A
 | [Skill categories](#skill-categories) | Folder taxonomy under `skills/` |
 | [What to avoid](#what-to-avoid) | Anti-patterns |
 | [Safety and security](#safety-and-security) | High-risk skills |
+| [Legal notice and code ownership](#legal-notice-and-code-ownership) | Inbound license terms and original work certification |
 | [Related documents](#related-documents) | Code of conduct, testing, templates |
 
 ---
@@ -96,6 +97,8 @@ pip install -e ".[dev,all]"
 
 For documentation-only PRs, `pip install -e ".[dev]"` is sufficient. For skill or framework work, use `[dev,all]` to match CI (optional `[agents]` for SDK examples — see [Install extras](docs/usage/install_extras.md)).
 
+Prefer a dedicated venv for clone work — full setup, sanity check, and recovery: [TESTING.md — Clone dev setup](docs/TESTING.md#clone-dev-setup).
+
 #### Editable vs PyPI on the same Python
 
 Use **one install mode per interpreter** — editable **or** PyPI wheel, not both. Mixing `pip install -e ".[dev,all]"` from a clone with `pip install skillware` / `pip install -U skillware` on the same Python can leave orphan `skillware-*.dist-info` folders and make the CLI print `skillware None` / `vNone` ([#333](https://github.com/ARPAHLS/skillware/issues/333)).
@@ -110,7 +113,7 @@ Then either editable (`pip install -e ".[dev,all]"` from the repo) or PyPI (`pip
 
 **If `pip uninstall` fails** (`uninstall-no-record-file`), run `skillware doctor --install` for copy-paste recovery commands, or use [`scripts/dev_install.ps1`](scripts/dev_install.ps1) / [`scripts/dev_install.sh`](scripts/dev_install.sh) from a clean repo checkout.
 
-See [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
+See [TESTING.md](docs/TESTING.md#clone-dev-setup) for clone dev setup and [TESTING.md](docs/TESTING.md) for the bundle / framework / maintainer / example model and pytest usage.
 
 ### 5. Implement and verify
 
@@ -130,6 +133,7 @@ Follow the [Agent Code of Conduct](CODE_OF_CONDUCT.md): deterministic skill outp
 
 - **No emojis** in source code, documentation, commit messages, or PR titles.
 - Use **Black** for formatting (CI runs `black --check`) and **Flake8** for linting (see [TESTING.md](docs/TESTING.md)).
+- Core framework files (`skillware/**/*.py`) must include the standardized copyright notice and SPDX header (`# Copyright (c) 2026 ARPA Hellenic Logical Systems` and `# SPDX-License-Identifier: MIT`). Skill template files (`templates/python_skill/`) and community skills must include `# SPDX-License-Identifier: MIT` ([#416](https://github.com/ARPAHLS/skillware/issues/416)).
 - Match existing naming, structure, and documentation tone in the files you touch.
 - Use [glossary.md](docs/glossary.md) terms in new prose. Inclusive language: [inclusive-language.md](docs/contributing/inclusive-language.md). Do not global-replace `user` with `operator`.
 
@@ -301,6 +305,7 @@ requirements:
 
 - Define **exactly one** concrete subclass of `BaseSkill` per skill file. `SkillLoader.load_skill()` discovers it automatically as `bundle["class"]` (see `SkillLoader.get_skill_class()`).
 - Implement deterministic Python logic; inherit from `BaseSkill`.
+- Expose the bundle manifest via `@property def manifest(self) -> Dict[str, Any]: return self.load_manifest_from_dir(os.path.dirname(__file__))` (template: `templates/python_skill/skill.py`).
 - Accept a dictionary of inputs; return a JSON-serializable dictionary.
 - Catch internal errors and return a structured error report; do not crash the host agent.
 - Do **not** print to stdout or stderr for normal operation.
@@ -369,7 +374,8 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
 - Add a **Usage Examples** section with runnable snippets for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Follow [skill usage example template](docs/usage/skill_usage_template.md) and link to [usage guides](docs/usage/README.md) and [agent loops](docs/usage/agent_loops.md).
-- Add a **Skill history** section before the enterprise disclaimer: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR.
+- Add a **Skill history** section before the statutory / enterprise disclaimers: a table of notable commits that touched the skill bundle or catalog page. Link each commit SHA and list contributors as linked GitHub usernames (`[@username](https://github.com/username)`). Append a row when you ship a skill update in the same PR. Note for contributors and maintainers: do **not** push piecemeal commit-link chore commits immediately after every individual squash-merge. Reconciling squash-merge commit SHAs on `main` is consolidated into maintainer release bump chores when cutting a framework release.
+- **Regulatory / statutory knowledge skills** (for example MiCA, GDPR, EU AI Act): add a **Statutory knowledge notice** (`## Statutory knowledge notice`) immediately above **Enterprise disclaimer**, mirror the snapshot date and informational framing in `instructions.md` and `manifest.yaml` `constitution`, and expose `statutory_snapshot` on catalog cards when useful. Pattern: [templates/python_skill/README.md](templates/python_skill/README.md#regulatory-statutory-knowledge-skills) ([#397](https://github.com/ARPAHLS/skillware/issues/397)).
 
 Do **not** add `skills/<category>/README.md` inside the runtime registry. Category landing pages belong under `docs/skills/<category>/README.md` so `SkillLoader.load_skill()` IDs stay stable.
 
@@ -458,6 +464,19 @@ When a new top-level category lands under `skills/`, update this table and the c
 
 ---
 
+## Legal notice and code ownership
+
+By submitting a Pull Request to this project, you explicitly certify, represent, and agree that:
+
+1. **Original Authorship & Authority:** The contribution is your own original creation, or you have verified that you possess the full legal authority and rights to submit it under the project's existing [MIT License](LICENSE).
+2. **Permanent Irrevocable License:** You grant ARPA Hellenic Logical Systems and project maintainers a permanent, worldwide, non-exclusive, royalty-free, irrevocable, and sublicensable license to use, modify, adapt, prepare derivative works of, publicly display, publish, and distribute your code across all present and future releases of Skillware.
+3. **Non-Revocability:** You understand and agree that once merged into the repository, contributions cannot be retroactively revoked, clawed back, or forced to be deleted from git commit history or distribution packages.
+4. **Patent Non-Assertion:** You grant a royalty-free, perpetual patent license covering any patent claims you own, control, or license that are necessarily infringed by your contribution when combined with Skillware.
+5. **No Malicious Logic or Undeclared Telemetry:** You warrant that your submission does not contain malicious logic, unauthorized credential exfiltration routines, hidden telemetry backdoors, or undisclosed third-party proprietary materials. All runtime credentials must be declared via manifest `env_vars` and resolved through `BaseSkill.credential()`.
+6. **Third-Party Rights & Contributor Responsibility:** You represent and warrant that your submission does not copy, incorporate, or infringe upon any confidential, proprietary, or copyrighted code from your employer, former employers, or third parties without explicit authorization. You acknowledge that you remain personally responsible and legally liable for any willful misrepresentation or intellectual property infringement in your contribution.
+
+---
+
 ## Related documents
 
 | Document | Purpose |
@@ -489,6 +508,7 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | `pyproject.toml` → `[project].version` | **Yes** | Source of truth for PyPI / `importlib.metadata` / `skillware --version` |
 | `CHANGELOG.md` | **Yes** | Move `[Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`; leave a fresh empty `[Unreleased]` |
 | `CITATION.cff` → `version`, `date-released` | **Yes** | Match the release tag/date. Keep the Zenodo **concept DOI** in `identifiers` stable — do not swap it for a version DOI |
+| Skill docs (`docs/skills/<category>/<skill_name>.md`) → **Skill history** | **Yes (for all touched skills)** | Audit the **Skill history** table manually line-by-line during release cuts. Reconcile commit links to match actual squash-merge commits on `main`, and verify dates, descriptions, and contributors. Never leave template placeholders; compare against `git log --oneline -- skills/<category>/<name>` and `CHANGELOG.md` to ensure complete attribution. (Do not push piecemeal history chores after individual PR merges; batch them here). |
 | GitHub Release + tag (`vX.Y.Z`) | **Yes** | Triggers Zenodo archive when GitHub–Zenodo is linked (#269). Paste release notes from `CHANGELOG.md` in the GitHub Releases UI — **do not commit** maintainer draft files such as `.github/RELEASE_*.md` to the public tree. |
 | PyPI upload | **Yes** | After tag / CI as usual |
 | `README.md` **Citing** example version | **Optional** | Only if an example pin (e.g. `0.4.7`) is present; otherwise “record the version you used” is enough |
@@ -496,6 +516,9 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 | CLI / loader code | **Usually no** | Version is read from installed package metadata |
 | Skill `manifest.yaml` `version` | **No** (unless that skill changed) | Skill versions are independent of the framework version |
 | `docs/contributing/ai_native_workflow.md` / `CODE_OF_CONDUCT.md` | **No** | Not version bump surfaces |
+
+#### Strict Manual Verification Policy for Maintainers
+Maintainer release preparation and documentation curation must always be conducted through **manual, line-by-line inspection and editing**. Never use automated batch scripts to update documentation, changelogs, or skill histories. Comparing past commits (`git log -p -- <skill_dir>`) and `CHANGELOG.md` ensures zero template placeholders, accurate commit numbers, and precise author attribution across every catalog page.
 
 README Citing badge and `pyproject.toml` `[project.urls]` `DOI` already point at the concept DOI. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
 

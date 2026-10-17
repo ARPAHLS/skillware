@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Merged mail operator settings for office/gmail_handler."""
 
 from __future__ import annotations

@@ -13,7 +13,7 @@ Use this guide to choose the smallest install that matches what you run. For loa
 | All skills in a category | `pip install "skillware[<category>]"` |
 | Every bundled skill's runtime deps | `pip install "skillware[all]"` |
 | Agent SDK adapters (Gemini, Claude, OpenAI, Bedrock) | `pip install "skillware[gemini]"` (or `[claude]`, `[openai]`, `[bedrock]`, `[agents]`) |
-| Clone-repo development + tests | `pip install -e ".[dev,all]"` |
+| Clone-repo development + tests | `pip install -e ".[dev,all]"` — see [Clone dev setup](../TESTING.md#clone-dev-setup) |
 | Development + agent SDK examples | `pip install -e ".[dev,all,agents]"` |
 
 > **Pip rule:** `pip install "skillware[extra]"` always installs **core + extra** dependencies. There is no extra-only install without the `skillware` package.
@@ -60,7 +60,7 @@ flowchart TD
 - **CI, contributors, or multi-skill apps** — use `[all]`.
 - **Runnable examples under `examples/`** — list each skill's extra plus an SDK extra (`[gemini]`, `[claude]`, …) when the provider is not local execute.
 
-Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf` and `anthropic`; a Gemini agent loop around it also needs `[gemini]`.
+Skill extras are **orthogonal** to SDK extras. Example: `office/pdf_form_filler` needs `[office_pdf_form_filler]` for `pymupdf`; a Gemini agent loop around it also needs `[gemini]`.
 
 ## Category extras
 
@@ -70,15 +70,15 @@ Union of non-core `requirements` from every skill in the category.
 | :--- | :--- | :--- |
 | `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
 | `creative` | `creative/bg_remover`, `creative/deck_builder` | `onnxruntime`, `pillow`, `python-pptx>=1.0.0`, `rembg>=2.0.0` |
-| `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
-| `defi` | `defi/evm_tx_handler`, `defi/token_security_scanner` | `web3>=6.0.0` |
+| `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator`, `data_engineering/telemetry_normalizer` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
+| `defi` | `defi/evm_reader`, `defi/evm_tx_handler`, `defi/token_security_scanner` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
-| `office` | `office/gmail_handler`, `office/pdf_form_filler` | `anthropic`, `pymupdf` |
+| `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
-| `security` | `security/deceptive_ui_guard`, `security/prompt_injection_firewall` | *(none today)* |
+| `security` | `security/deceptive_ui_guard`, `security/deepfake_guard`, `security/prompt_injection_firewall` | `numpy`, `pillow` |
 | `wellness` | `wellness/mental_coach` | `google-genai` |
 
 ```bash
@@ -102,6 +102,8 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `data_engineering_semantic_web_proxy` | `data_engineering/semantic_web_proxy` | `trafilatura>=2.0.0` | |
 | `data_engineering_semantic_web_proxy_tokenizer` | `data_engineering/semantic_web_proxy` | `tiktoken` | Optional exact `cl100k_base` token counts; without it the skill falls back to its offline heuristic |
 | `data_engineering_synthetic_generator` | `data_engineering/synthetic_generator` | *(none today)* | Use this extra in docs and installs |
+| `data_engineering_telemetry_normalizer` | `data_engineering/telemetry_normalizer` | *(none today)* | Use this extra in docs and installs |
+| `defi_evm_reader` | `defi/evm_reader` | `web3>=6.0.0` | |
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
 | `defi_token_security_scanner` | `defi/token_security_scanner` | *(none today)* | Use this extra in docs and installs |
 | `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
@@ -111,12 +113,14 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
-| `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf`, `anthropic` | |
+| `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf` | |
+| `office_web_form_mapper` | `office/web_form_mapper` | *(none today)* | Use this extra in docs and installs |
 | `optimization_context_optimizer` | `optimization/context_optimizer` | `fastembed`, `numpy` | Local embedding model (~50 MB on first use) |
 | `optimization_prompt_rewriter` | `optimization/prompt_rewriter` | *(none today)* | Use this extra in docs and installs |
 | `security_prompt_injection_firewall` | `security/prompt_injection_firewall` | *(none today)* | Offline-only; no runtime deps |
 | `security_deceptive_ui_guard` | `security/deceptive_ui_guard` | *(none today)* | Offline HTML analysis; optional url fetch uses `requests` (core) |
 | `security_deceptive_ui_guard_render` | `security/deceptive_ui_guard` | `playwright` | Optional headless Playwright computed-style diffing (v0.2.0) |
+| `security_deepfake_guard` | `security/deepfake_guard` | `numpy`, `pillow` | Air-gapped synthetic media, C2PA, and ICAO 9303 authenticity guard |
 | `wellness_mental_coach` | `wellness/mental_coach` | `google-genai` | |
 
 ```bash
@@ -129,9 +133,9 @@ Empty extras (`[]`) are intentional — always use the per-skill extra in docume
 
 | Extra | Purpose | Packages |
 | :--- | :--- | :--- |
-| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `anthropic`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
+| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
 | `agents` | Union of all agent SDK extras | `google-genai`, `anthropic`, `openai` |
-| `dev` | Clone-repo lint and test tools | `pytest`, `pytest-mock`, `flake8`, `black` |
+| `dev` | Clone-repo lint, test, typecheck, and security tools | `pytest`, `pytest-mock`, `pytest-asyncio`, `flake8`, `black`, `ruff`, `bandit`, `pip-audit`, `mypy` |
 
 `[all]` does **not** include SDK packages. For full local development matching skill bundle tests **and** agent examples:
 

@@ -2,7 +2,7 @@
 
 You are using the `finance/uk_companies_house_handler` skill.
 
-This skill wraps the UK Companies House REST API (`api.company-information.service.gov.uk`) with deterministic actions. It returns structured JSON envelopes (`ready`, `partial`, `needs_input`, `error`) — it does not parse conversational user text.
+This skill wraps the UK Companies House REST API (`api.company-information.service.gov.uk`) and Document API (`document-api.company-information.service.gov.uk`) with deterministic actions. It returns structured JSON envelopes (`ready`, `partial`, `needs_input`, `error`) — it does not parse conversational user text.
 
 **You are the host agent.** You infer intent, choose actions, pass clean parameters (`query`, `company_number`, `role_hint`, `category`), handle disambiguation with the user, interpret every envelope, and **always** reply in plain language. The skill never speaks to the user directly.
 
@@ -18,6 +18,7 @@ Use this skill when the user:
 - Wants directors, officers, secretaries, PSCs, or filing history for a UK entity.
 - Mentions Companies House or a UK company number (8 characters, e.g. `00445790`).
 - Needs multi-step registry lookups that benefit from `run_pipeline` or composite actions.
+- Wants to discover, pick, and download statutory filings (accounts, incorporation docs) as bounded base64 payloads.
 
 ## UK terminology (present only when the user used non-UK terms)
 
@@ -40,6 +41,9 @@ Only explain terminology when the user used informal or US-centric wording. Do n
 | `get_officers` | Directors and secretaries with deterministic filtering | `company_number` | `active_only` (default **true**), `limit`, `start_index`, `role_hint`, `officer_name`, `officer_role` |
 | `get_pscs` | Persons with significant control | `company_number` | `active_only` |
 | `get_filing_history` | Filings with deterministic sorting and helpers | `company_number` | `category`, `limit`, `start_index`, `latest_only`, `latest_per_category` |
+| `list_downloadable_documents` | Pick list of filings that have Document API metadata links | `company_number` (or context) | `category`, `limit` (max 25), `latest_only`, `latest_per_category` |
+| `get_document_metadata` | Inspect Document API metadata (MIME types, size, pages) | `transaction_id` **or** `metadata_url` | |
+| `fetch_document` | Stream document bytes as bounded base64 (no disk) | `transaction_id` **or** `metadata_url` | `content_type` (default PDF), `include_content` (default true), `max_bytes` (default 5 MB, hard ceiling 10 MB) |
 | `run_pipeline` | Run ordered atomic steps; halt on `needs_input`/`error` | `steps` (and `context`, `pipeline` when continuing) | `company_number`, `stop_on` |
 | `resolve_and_get_officers` | Resolve + list officers in one call | `query` **or** `company_number` | `role_hint`, `active_only`, `limit`, `officer_name`, `officer_role` |
 | `resolve_and_get_filings` | Resolve + list filings in one call | `query` **or** `company_number` | `category`, `limit`, `latest_only`, `latest_per_category` |
@@ -125,6 +129,31 @@ When the user asks for more than one registry aspect (e.g. *"get me the officers
 - Officers only: `resolve_company_officer` or `resolve_and_get_officers` with `company_number` (if known) or clean `query` + optional `officer_role` / `officer_name` / `role_hint`.
 - Filings only: `resolve_and_get_filings` with `company_number` (if known) or clean `query` + optional `category` / `latest_only`.
 
+
+## Playbook — Document Mode (discover → pick → download)
+
+Use when the user asks to download accounts, confirmation statements, incorporation documents, or other filings.
+
+1. **Discover** — Call `list_downloadable_documents` with `company_number` (or after `resolve_company`) and optional `category` / `latest_only`.
+2. **Pick** — Present `documents[]` (`transaction_id`, `date`, `description`, `category`). Optionally call `get_document_metadata` to confirm MIME types and size before download.
+3. **Download** — Call `fetch_document` with the chosen `transaction_id` or `metadata_url`. Carry `context` so `document_candidates` and `selected_transaction_id` stay available.
+4. **Relay** — Return `content_base64` to the user. Never write PDFs to disk inside the skill. On `document_too_large`, raise `max_bytes` (up to 10 MB) or use `include_content: false`.
+5. **Rate limits** — On `rate_limited`, read `retry_after` / `agent_hint` and wait before retrying. The skill does not sleep.
+
+Pipeline example:
+
+```json
+{
+  "action": "run_pipeline",
+  "steps": [
+    {"action": "resolve_company", "params": {"query": "BP"}},
+    {"action": "list_downloadable_documents", "params": {"company_number": "<from_resolve>", "category": "accounts", "latest_only": true}}
+  ]
+}
+```
+
+Then call `fetch_document` with the selected `transaction_id` from the list result.
+
 ## Conversation workflow
 
 Follow this loop for every user question:
@@ -148,7 +177,7 @@ After tool results return `ready` or `partial`, **stop calling tools** unless yo
 
 Every response includes `fetched_at`, `source`, and usually `context`. Pipeline responses may include `pipeline: {"completed_steps": N, "total_steps": M}`.
 
-Common `error_code` values: `not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`.
+Common `error_code` values: `not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`, `missing_document_target`, `document_too_large`, `invalid_metadata_url`, `unsupported_content_type`.
 
 ## Empty or missing registry data
 
@@ -166,6 +195,7 @@ Use `agent_hint` when present; it summarizes machine-oriented guidance — trans
 
 ## Limitations
 
-- Read-only public registry data; no document downloads or filing submission (later v2 phases).
-- Rate limit: [600 requests per 5 minutes per API key](https://developer.company-information.service.gov.uk/documentation/rate-limiting). On `rate_limited`, tell the user to wait and retry.
+- Read-only public registry data; supports Document API downloads as in-memory base64. No filing submission or local disk persistence of documents.
+- Rate limit: [600 requests per 5 minutes per API key](https://developer.company-information.service.gov.uk/documentation/rate-limiting) across Public Data and Document API hosts. On `rate_limited`, tell the user the Retry-After hint and retry later — the skill does not sleep.
+- Document payloads are capped (`max_bytes`, default 5 MB, hard ceiling 10 MB). Oversized files return `document_too_large`.
 - Not legal or accounting advice — cite `company_number` and `fetched_at` when presenting data.

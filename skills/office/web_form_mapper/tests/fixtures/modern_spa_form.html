@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modern Investor Portal</title>
+</head>
+<body>
+    <div id="root">
+        <form id="investor-kyc-form" action="/api/v1/kyc/submit" method="POST">
+            <input type="hidden" name="authenticity_token" value="sec_token_5544332211" />
+
+            <div class="row">
+                <input type="text" name="first_name" id="first_name" aria-label="First Name" placeholder="First Name" required />
+                <input type="text" name="last_name" id="last_name" aria-label="Last Name" placeholder="Last Name" required />
+            </div>
+
+            <div class="row">
+                <input type="email" name="contact_email" id="contact_email" placeholder="Email Address" required />
+                <input type="tel" name="phone_number" id="phone_number" placeholder="Mobile Phone Number" />
+            </div>
+
+            <div class="row">
+                <input type="text" name="ssn" id="ssn" placeholder="Social Security Number" required />
+                <input type="date" name="birth_date" id="birth_date" aria-label="Date of Birth" />
+            </div>
+
+            <button type="submit" id="btn-submit-kyc">Verify & Complete</button>
+        </form>
+    </div>
+</body>
+</html>

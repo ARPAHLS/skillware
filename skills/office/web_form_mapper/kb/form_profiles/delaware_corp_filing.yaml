@@ -1,0 +1,12 @@
+id: delaware_corp_filing
+name: "Delaware Corporate Registry Filing"
+description: "Field mapping rules for Delaware Division of Corporations filing portal."
+domains:
+  - "corp.delaware.gov"
+field_mappings:
+  "input[name='corp_name']": "org"
+  "input[name='ein_number']": "tax_id"
+  "input[name='registered_street']": "street"
+  "input[name='registered_city']": "city"
+  "input[name='registered_zip']": "postal_code"
+  "input[name='contact_email']": "email"

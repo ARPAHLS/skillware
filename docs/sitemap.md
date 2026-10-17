@@ -44,10 +44,12 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [`data_engineering/novelty_extractor`](skills/data_engineering/novelty_extractor.md)
 - [`data_engineering/semantic_web_proxy`](skills/data_engineering/semantic_web_proxy.md)
 - [`data_engineering/synthetic_generator`](skills/data_engineering/synthetic_generator.md)
+- [`data_engineering/telemetry_normalizer`](skills/data_engineering/telemetry_normalizer.md)
 
 ### DeFi
 
 - [DeFi hub](skills/defi/README.md)
+- [`defi/evm_reader`](skills/defi/evm_reader.md)
 - [`defi/evm_tx_handler`](skills/defi/evm_tx_handler.md)
 - [`defi/token_security_scanner`](skills/defi/token_security_scanner.md)
 
@@ -78,6 +80,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [Office hub](skills/office/README.md)
 - [`office/gmail_handler`](skills/office/gmail_handler.md)
 - [`office/pdf_form_filler`](skills/office/pdf_form_filler.md)
+- [`office/web_form_mapper`](skills/office/web_form_mapper.md)
 
 ### Optimization
 
@@ -89,6 +92,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
 - [Security hub](skills/security/README.md)
 - [`security/deceptive_ui_guard`](skills/security/deceptive_ui_guard.md)
+- [`security/deepfake_guard`](skills/security/deepfake_guard.md)
 - [`security/prompt_injection_firewall`](skills/security/prompt_injection_firewall.md)
 
 ### Wellness

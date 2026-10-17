@@ -1,0 +1,50 @@
+{
+  "name": "Deepfake & Document Authenticity Guard",
+  "description": "Air-gapped media & document authenticity guard with ELA, noise residuals, C2PA, and MRZ validation.",
+  "issuer": {
+    "name": "Ross Peili",
+    "email": "vpeilivanidis@gmail.com",
+    "github": "rosspeili",
+    "org": "ARPAHLS"
+  },
+  "icon": "shield-alert",
+  "color": "#dc2626",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {
+        "key": "verdict",
+        "label": "Verdict",
+        "type": "status_badge"
+      },
+      {
+        "key": "confidence_score",
+        "label": "Confidence Score"
+      },
+      {
+        "key": "is_synthetic_likely",
+        "label": "Synthetic Likely"
+      },
+      {
+        "key": "is_tampered_likely",
+        "label": "Tampered Likely"
+      },
+      {
+        "key": "detected_doc_type",
+        "label": "Doc Type"
+      },
+      {
+        "key": "artifacts_detected",
+        "label": "Artifacts Detected"
+      },
+      {
+        "key": "summary",
+        "label": "Summary"
+      },
+      {
+        "key": "offline",
+        "label": "Air Gapped"
+      }
+    ]
+  }
+}

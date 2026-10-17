@@ -41,7 +41,7 @@ skillware config show
 
 For **mail-only** workflows, `skillware mail addressbook init` is the same file — see [Gmail Handler — address book (mail)](../skills/office/gmail_handler.md#address-book-mail).
 
-For **defi transfers by name**, contacts need `public_0x` — see [EVM Transaction Handler — transfers by contact name](../skills/defi/evm_tx_handler.md#transfers-by-contact-name).
+For **defi transfers and balance reads by name**, contacts need `public_0x` — see [EVM Transaction Handler — transfers by contact name](../skills/defi/evm_tx_handler.md#transfers-by-contact-name) and [EVM Chain Reader](../skills/defi/evm_reader.md#address-disambiguation-protocol).
 
 ---
 
@@ -220,6 +220,7 @@ The shared schema is intentionally small and YAML-first so operators can extend 
 - [EVM operator config](evm_operator_config.md) — chains, RPC, token registry
 - [API keys](api_keys.md) — Gmail App Password, EVM RPC, agent wallet key
 - [Gmail Handler](../skills/office/gmail_handler.md) — mail-specific address book usage
+- [EVM Chain Reader](../skills/defi/evm_reader.md) — holder resolution via public_0x with disambiguation
 - [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — transfers by contact name
 - [Skill chaining](skill_chaining.md) — multi-skill host orchestration
 - [Examples index](../../examples/README.md) — `gemini_gmail_minimal.py`, `pay_and_notify_demo.py`

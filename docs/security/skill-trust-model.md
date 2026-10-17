@@ -170,13 +170,14 @@ Instruction-only packs (markdown the agent reads, no `skill.py` execute) still a
 
 ---
 
-## 10. Roadmap
+## 10. The Permissive Fortress Architecture
 
-**Shipped (#39):** host-injected credentials, `credential()` on bundled skills, doctor **ENVS** checks.
+Under the project's MIT governance, security and supply-chain integrity are enforced through **The Permissive Fortress**: a defense-in-depth model that combines inbound legal guarantees, runtime credential isolation, and automated CI gatekeepers:
 
-**Planned:**
+1. **Inbound Legal Guardrails:** All contributions are bound by the [Legal notice and code ownership](../../CONTRIBUTING.md#legal-notice-and-code-ownership) terms upon opening a Pull Request, providing irrevocable licensing, patent non-assertion, and preventing retroactive code takedowns.
+2. **Credential Sandboxing:** Third-party skills must never read `os.environ` directly for API keys or secrets. Credentials must be resolved through `BaseSkill.credential()`, which prioritizes injected `credential_fn` callables and `config` mappings over process-global environment variables.
+3. **AST Security Audits:** Pull Requests are automatically scanned using `bandit` to detect dynamic execution primitives (`eval`, `exec`, `compile`), insecure deserialization, or hardcoded secrets. Automated test suite `tests/test_security_audit.py` enforces these rules offline.
+4. **Supply Chain & CVE Auditing:** Dependency trees and optional pip extras (`pip install "skillware[web3]"`) are audited via `pip-audit` to detect known vulnerabilities or package compromises before merge.
+5. **AI-Native Integrity:** Inbound skill bundles must adhere to the [Agent Contribution Workflow](../contributing/ai_native_workflow.md), requiring pre-flight tool schema validation, hermetic prompt templating, and full chaining integration suites.
+6. **Social Shield & Enforcement:** Maintainers enforce the [Agent Code of Conduct](../../CODE_OF_CONDUCT.md) with explicit authority to reject PRs, ban bad-faith actors, or block rogue AI bots that attempt credential exfiltration or unauthorized execution.
 
-- #110 — operator warnings and a trust flag for remote/external code
-- #111 — tighter scoped-secret enforcement
-- #112–#114 — stronger isolation research (WASM, containers)
-- #17 — parent Security Sandboxing RFC

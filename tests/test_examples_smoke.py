@@ -22,6 +22,42 @@ EXAMPLES_DIR = REPO_ROOT / "examples"
 # Tuple format: (script_filename, [expected_output_substrings])
 LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     (
+        "deepfake_guard_demo.py",
+        [
+            "security/deepfake_guard",
+            "Inspecting Clean Authentic Asset",
+            "Cryptographically Validating Authentic Passport MRZ",
+            "Deepfake and document authenticity demo completed successfully.",
+        ],
+    ),
+    (
+        "kyc_authenticity_chain_demo.py",
+        [
+            "Cross-Skill Chaining: Pre-Flight KYC & Document Authenticity Gate",
+            "Pipeline Case A: Authentic Passport Submission",
+            "Pipeline Case B: Adversarially Altered Document Submission",
+            "KYC document authenticity chaining demo completed successfully.",
+        ],
+    ),
+    (
+        "evm_reader_demo.py",
+        [
+            "defi/evm_reader Demo",
+            "USD Coin (USDC)",
+            "Balance Formatted:",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
+        "token_security_scanner_demo.py",
+        [
+            "defi/token_security_scanner demo",
+            "goplus_supported=True",
+            "policy_action=allow",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
         "sanitize_input_chain_demo.py",
         [
             "sanitize_input chain demo",
@@ -36,6 +72,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Phase 1: SkillContext offline",
             "security/prompt_injection_firewall",
             "merge_system length:",
+        ],
+    ),
+    (
+        "async_tool_loop.py",
+        [
+            "Initialize SkillContext with Concurrency Throttling",
+            "Concurrent Async Execution",
+            "Asynchronous Skill Chain Execution",
+            "All asynchronous executions completed successfully.",
         ],
     ),
     (
@@ -104,8 +149,35 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "uk_companies_house_document_flow_demo.py",
+        [
+            "Flow A: list_downloadable_documents",
+            "Flow C: fetch_document (redirect drops auth)",
+            "=== flow complete ===",
+        ],
+    ),
+    (
         "gmail_handler_demo.py",
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
+    ),
+    (
+        "web_form_mapping_demo.py",
+        [
+            "office/web_form_mapper Demo",
+            "Mapping Status: success",
+            "Submitted Legal Name: Alice Marie Example",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
+        "web_form_guard_chain_demo.py",
+        [
+            "Secure Web Form Intake Chain Demo",
+            "Surface Trust Score: 100/100",
+            "Inspection safely aborted due to deceptive UI detection",
+            "Multi-Skill Host Orchestration",
+            "Demo completed successfully.",
+        ],
     ),
     (
         "pay_and_notify_demo.py",
@@ -152,6 +224,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Chain demo complete.",
         ],
     ),
+    (
+        "telemetry_normalizer_demo.py",
+        [
+            "data_engineering/telemetry_normalizer",
+            "Robotics Kinematics IMU Normalization",
+            "W3C SOSA / SSN Linked Data Semantic Export",
+            "Telemetry normalizer demo completed successfully.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because
@@ -181,7 +262,7 @@ LIVE_PROVIDER_SCRIPTS = {
     "gmail_handler_common.py": "Shared helper module, not a standalone demo script.",
     "pay_and_notify_common.py": "Shared helper module, not a standalone demo script.",
     "gmail_signature_test_send.py": "Requires live GMAIL_ADDRESS and GMAIL_APP_PASSWORD.",
-    "issue_resolver_github_context.py": "Shared helper module, not a standalone demo script.",
+    "issue_resolver_common.py": "Shared helper module, not a standalone demo script.",
     "mica_claude_flow.py": "Requires ANTHROPIC_API_KEY for Claude agent loop.",
     "mica_ollama_flow.py": "Requires local Ollama server and models installed.",
     "mica_rag_flow.py": "Requires GOOGLE_API_KEY for Gemini RAG.",
@@ -217,6 +298,8 @@ def test_local_execute_example_smoke(script_name: str, expected_markers: List[st
     env.setdefault("SKILLWARE_CONFIG_DIR", str(REPO_ROOT / "tests" / "fixtures"))
     if script_name == "pay_and_notify_demo.py":
         env["PAY_NOTIFY_DEMO"] = "1"
+    if script_name == "evm_reader_demo.py":
+        env["EVM_READER_DEMO"] = "1"
 
     proc = subprocess.run(
         [sys.executable, str(script_path)],

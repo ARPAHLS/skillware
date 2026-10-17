@@ -13,8 +13,9 @@ Skills for document processing, email automation, and productivity.
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Fills AcroForm-based PDFs by mapping user instructions to detected form fields using LLM-based semantic understanding. |
+| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `0.1.2` (16 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs deterministically with XFA and radio group safeguards. |
 | **[Gmail Handler](office/gmail_handler.md)** | `office/gmail_handler` | `0.2.0` (19 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
+| **[Web Form Mapper](office/web_form_mapper.md)** | `office/web_form_mapper` | `0.1.0` (04 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministically maps identity profiles to HTML web forms and submits with CSRF preservation and confirmation gates. |
 
 ## Creative
 Skills for image processing, media editing, and creative utilities.
@@ -33,8 +34,8 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Wallet Screening](finance/wallet_screening.md)** | `finance/wallet_screening` | `1.0.1` (23 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
-| **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `1.3.0` (17 Sep 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, filing history with helpers, and turn-by-turn pipeline orchestration. |
+| **[Wallet Screening](finance/wallet_screening.md)** | `finance/wallet_screening` | `1.0.2` (14 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
+| **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `1.4.0` (15 Oct 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, filing history with helpers, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).
@@ -45,8 +46,9 @@ On-chain execution and trading for dedicated agent wallets (structured intent, p
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| **[EVM Chain Reader](defi/evm_reader.md)** | `defi/evm_reader` | `0.1.0` (29 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only EVM state plane — token balances, allowances, view calls, multicall batches, and addressbook resolution. |
 | **[EVM Transaction Handler](defi/evm_tx_handler.md)** | `defi/evm_tx_handler` | `0.3.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Uni V2 quote, preview, execute, and name-based transfer on Ethereum/Base via central address book. |
-| **[Token Security Scanner](defi/token_security_scanner.md)** | `defi/token_security_scanner` | `0.1.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only GoPlus token honeypot/tax/ownership report before agent trades. |
+| **[Token Security Scanner](defi/token_security_scanner.md)** | `defi/token_security_scanner` | `0.2.0` | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Read-only GoPlus token honeypot/tax/ownership report before agent trades. |
 
 ## Optimization
 Middleware skills that operate on text or state to increase performance, security, or efficiency.
@@ -68,6 +70,7 @@ Skills tailored for generating, parsing, and orchestrating large datasets for ma
 | **[Synthetic Data Generator](data_engineering/synthetic_generator.md)** | `data_engineering/synthetic_generator` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Generates high-entropy structured synthetic data for model fine-tuning to avoid mode collapse. |
 | **[Novelty Extractor](data_engineering/novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 | **[Semantic Web Proxy](data_engineering/semantic_web_proxy.md)** | `data_engineering/semantic_web_proxy` | `0.1.0` (5 Sep 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Converts a live web page or raw HTML into token-efficient Markdown, text, or JSON, stripping boilerplate behind an SSRF guard and reporting estimated token savings. |
+| **[Telemetry Normalizer](data_engineering/telemetry_normalizer.md)** | `data_engineering/telemetry_normalizer` | `0.1.0` (12 Oct 2026) | [@rin-katsuragi](https://github.com/rin-katsuragi) ([@ARPAHLS](https://github.com/ARPAHLS)) | Normalizes raw sensor telemetry into canonical SI units and W3C SOSA/SSN observations. |
 
 ## Compliance
 Enforces privacy, guardrails, and secure handling of sensitive data before it reaches external endpoints.
@@ -77,7 +80,7 @@ Enforces privacy, guardrails, and secure handling of sensitive data before it re
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | **[PII Masker](compliance/pii_masker.md)** | `compliance/pii_masker` | `0.1.0` (20 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | High-precision, local PII (Personally Identifiable Information) detection and redaction using the micro-f1-mask model. |
-| **[MiCA Module](compliance/mica_module.md)** | `compliance/mica_module` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
+| **[MiCA Module](compliance/mica_module.md)** | `compliance/mica_module` | `0.1.2` (5 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Self-contained local Policy Enforcement and RAG engine strictly adhering to MiCA crypto-asset regulation. |
 | **[Terms of Service Evaluator](compliance/tos_evaluator.md)** | `compliance/tos_evaluator` | `0.1.1` (9 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Local-first evaluation of robots.txt and website legal pages to decide whether an intended automated action appears permissible. |
 
 ## Security
@@ -89,6 +92,7 @@ Offline and local-first defenses for untrusted input before it reaches model con
 | :--- | :--- | :--- | :--- | :--- |
 | **[Prompt Injection Firewall](security/prompt_injection_firewall.md)** | `security/prompt_injection_firewall` | `0.2.0` (21 Sep 2026) | [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS), [AO](https://github.com/0x-AO-Protocol)) | Offline deterministic scan and sanitization for hostile instructions in untrusted text before LLM context. |
 | **[Deceptive UI Guard](security/deceptive_ui_guard.md)** | `security/deceptive_ui_guard` | `0.2.0` (3 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic HTML surface scan with zone weighting, allowlists, optional render diff, trust scoring, and pre-click agent guidance (#314). |
+| **[Deepfake Guard](security/deepfake_guard.md)** | `security/deepfake_guard` | `0.1.0` (6 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Offline media and KYC document authenticity guard: ICAO 9303 MRZ validation, C2PA provenance, ELA, noise residual variance, and moiré screen recapture detection (#48). |
 
 ## Dev Tools
 Skills that assist developers in understanding codebases, planning changes, and resolving issues across any repository.

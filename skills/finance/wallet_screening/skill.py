@@ -111,7 +111,13 @@ class WalletScreeningSkill(BaseSkill):
     def _load_additional_datasets(self) -> List[Dict]:
         """Loads all other JSON files in data_dir not explicitly loaded."""
         all_entries = []
-        exclude = ["malicious_scs_2025.json", "entities.ftm.json"]
+        exclude = [
+            "malicious_scs_2025.json",
+            "entities.ftm.json",
+            # Snapshot metadata, not screenable wallet rows.
+            "ofac_sdn_manifest.json",
+            "ofac_sdn_quarantine.json",
+        ]
         for fname in glob.glob(os.path.join(self.data_dir, "*.json")):
             if os.path.basename(fname) in exclude:
                 continue

@@ -22,6 +22,7 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert skill_manifest["version"] == manifest["version"]
+    assert "informational reference" in skill_manifest["constitution"].lower()
 
 
 def test_stateless_rag_execution(skill):
@@ -33,6 +34,9 @@ def test_stateless_rag_execution(skill):
             ),
             "run_evaluator": False,
         }
+    )
+    assert result["statutory_snapshot"] == (
+        "Regulation (EU) 2023/1114 (MiCA), OJ L 150/40, 9 June 2023"
     )
     assert result["policy_status"] == "CAUTION"
     assert "retrieved_sections" in result

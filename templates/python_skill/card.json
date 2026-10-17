@@ -1,5 +1,5 @@
 {
-    "name": "My Skill",
+    "name": "My Awesome Skill",
     "description": "A template description.",
     "issuer": {
         "name": "Your Name",
@@ -8,7 +8,7 @@
         "org": "YOUR ORG"
     },
     "icon": "zap",
-    "color": "gray",
+    "color": "#3498DB",
     "ui_schema": {
         "type": "card",
         "fields": [
@@ -16,6 +16,10 @@
                 "key": "status",
                 "label": "Status",
                 "type": "status_badge"
+            },
+            {
+                "key": "result",
+                "label": "Result"
             }
         ]
     }

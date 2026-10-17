@@ -1,0 +1,83 @@
+name: data_engineering/telemetry_normalizer
+version: 0.1.0
+description: >
+  Deterministic telemetry normalizer that converts heterogeneous, noisy sensor feeds
+  from robotics, IoT fleets, smart buildings, and environmental stations into canonical
+  SI units, strict UTC ISO-8601 timestamps, and W3C SOSA/SSN semantic observations.
+  Provides physical boundary sanity checks, sensor fault tagging, and coverage scoring
+  without invoking an LLM.
+short_description: "Normalizes raw sensor telemetry into canonical SI units and W3C SOSA/SSN observations."
+issuer:
+  name: Rin Katsuragi
+  email: r.katsuragi@proton.me
+  github: rin-katsuragi
+  org: ARPAHLS
+category: data_engineering
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: Operation to execute ('normalize', 'list_profiles', 'validate').
+      enum:
+        - normalize
+        - list_profiles
+        - validate
+      default: normalize
+    schema_profile:
+      type: string
+      description: Target domain schema profile (e.g., 'robotics_kinematics_imu', 'environmental_air_quality', 'energy_battery_fleet', 'smart_building_hvac').
+    raw_telemetry:
+      description: Raw sensor reading dictionary or list of readings to normalize.
+    unit_system:
+      type: string
+      description: Canonical unit representation system.
+      enum:
+        - si
+        - canonical
+      default: si
+    output_format:
+      type: string
+      description: Output envelope shape ('canonical' observation list or 'jsonld' W3C SOSA graph).
+      enum:
+        - canonical
+        - jsonld
+      default: canonical
+  required: []
+outputs:
+  status:
+    type: string
+    description: Status of the operation ('ready', 'warning', 'insufficient_data', 'error').
+  schema_profile:
+    type: string
+    description: Target schema profile used for normalization.
+  observations:
+    type: array
+    description: List of normalized, typed observation records.
+  quality_metrics:
+    type: object
+    description: Aggregated telemetry quality and validation metrics.
+  fields_unknown:
+    type: array
+    description: Unmapped telemetry keys encountered in the payload.
+  validation_errors:
+    type: array
+    description: List of validation anomalies or non-fatal structural errors.
+  agent_hint:
+    type: string
+    description: Template-based deterministic guidance note for downstream host agents.
+  jsonld_payload:
+    type: object
+    description: W3C SOSA/SSN JSON-LD graph representation when output_format is jsonld.
+  error:
+    type: string
+    description: Human-readable error description or null if successful.
+requirements: []
+constitution: |
+  1. DETERMINISTIC PIPELINE: Identical telemetry arrays and options always yield an identical normalized output. No LLM or generative model is invoked inside execute().
+  2. FAIL-CLOSED INTEGRITY: Reject unsupported profiles or payloads with insufficient structural data with clean error / insufficient_data envelopes without crashing.
+  3. PHYSICAL SANITY: Never alter or fabricate telemetry readings. Flag sensor anomalies, NaN values, and physical boundary violations explicitly via quality tags.
+  4. AIR-GAPPED COMPATIBILITY: Telemetry normalization occurs entirely in-memory using bundled profile definitions. No network calls or database dependencies.
+presentation:
+  icon: "activity"
+  color: "#10b981"

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
 """Shared presentation themes for Skillware CLI modules."""
 
 from __future__ import annotations

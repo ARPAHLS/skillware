@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: MIT
+name: smart_building_hvac
+description: Heating, ventilation, and air conditioning telemetry for building automation systems.
+sensor_id_fields:
+  - vav_id
+  - zone_id
+  - device_id
+  - sensor_id
+timestamp_fields:
+  - timestamp
+  - time
+  - t
+  - sample_time
+phenomena:
+  airflow:
+    aliases: [airflow, cfm, flow_rate, air_volume]
+    canonical_unit: m3/h
+    units:
+      m3/h: { factor: 1.0, offset: 0.0 }
+      cfm: { factor: 1.6990108, offset: 0.0 }
+      l/s: { factor: 3.6, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 50000.0
+  static_pressure:
+    aliases: [pressure, diff_pressure, static_pressure, in_wc, pa]
+    canonical_unit: Pa
+    units:
+      Pa: { factor: 1.0, offset: 0.0 }
+      in_wc: { factor: 249.0889, offset: 0.0 }
+      bar: { factor: 100000.0, offset: 0.0 }
+      psi: { factor: 6894.757, offset: 0.0 }
+    min_valid: -500.0
+    max_valid: 2000.0
+  temperature:
+    aliases: [zone_temp, supply_temp, temp, temp_f, temp_c]
+    canonical_unit: degC
+    units:
+      degC: { factor: 1.0, offset: 0.0 }
+      degF: { formula: "fahrenheit_to_celsius" }
+      K: { factor: 1.0, offset: -273.15 }
+    min_valid: -10.0
+    max_valid: 50.0
+  damper_position:
+    aliases: [damper_pos, damper, valve_pos, valve_pct]
+    canonical_unit: "%"
+    units:
+      "%": { factor: 1.0, offset: 0.0 }
+      ratio: { factor: 100.0, offset: 0.0 }
+    min_valid: 0.0
+    max_valid: 100.0

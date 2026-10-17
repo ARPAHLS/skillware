@@ -1,6 +1,6 @@
 # API Keys for Skills
 
-Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host `config` first**, then `os.environ` for local `.env` workflows. This page covers local setup, cloud injection, and `skillware doctor` checks.
+Skills that call external APIs declare credential names in `manifest.yaml` under **`env_vars`**. Bundled skills resolve them with `BaseSkill.credential(name)` — **host dynamic `credential_fn` / `config` first**, then `os.environ` fallback for local `.env` workflows. This page covers local setup, cloud injection, and `skillware doctor` checks.
 
 ---
 
@@ -99,47 +99,69 @@ docker run --env-file .env your-image python examples/gemini_wallet_check.py
 ---
 
 ## Secret managers
-
-Production hosts inject credentials without polluting global `os.environ`:
-
-```python
-from skillware.core.loader import SkillLoader
-from skillware.core.secrets import MappingSecretProvider, CallableSecretProvider
-
-bundle = SkillLoader.load_skill("finance/wallet_screening")
-config = SkillLoader.resolve_env_vars(
-    bundle["manifest"],
-    MappingSecretProvider({"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}),
-)
-skill = bundle["class"](config=config)
-```
-
-Or multi-skill:
-
-```python
-from skillware import SkillContext
-
-ctx = SkillContext(
-    categories=["finance"],
-    secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
-)
-ctx.execute("finance/wallet_screening", {"address": "0x..."})
-```
-
-| Provider | Use when |
-| :--- | :--- |
-| `MappingSecretProvider(dict)` | Secrets already fetched (Vault, K8s, Secrets Manager) |
-| `CallableSecretProvider(fetcher)` | Wrap STS / workload identity / KMS SDK in one callback |
-| `EnvSecretProvider()` | Resolve from existing `os.environ` (after `load_env_file()`) |
-| Custom `get(key)` class | Full control (ephemeral tokens per call) |
-
-`get(key)` runs at resolution time — each `SkillContext.execute()` with a provider re-fetches, so short-lived tokens work. Use one context (or provider) per tenant.
-
-**Local dev unchanged:** `load_env_file()` + default skill construction still reads `.env` via `credential()` fallback.
-
-**Check readiness:** `skillware doctor` reports missing **required** `env_vars` (**ENVS** column).
-
-Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
+ 
+ Production hosts inject credentials without polluting global `os.environ`:
+ 
+ ```python
+ from skillware.core.loader import SkillLoader
+ from skillware.core.secrets import MappingSecretProvider, CallableSecretProvider
+ 
+ bundle = SkillLoader.load_skill("finance/wallet_screening")
+ config = SkillLoader.resolve_env_vars(
+     bundle["manifest"],
+     MappingSecretProvider({"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")}),
+ )
+ skill = bundle["class"](config=config)
+ ```
+ 
+ Or multi-skill via `SkillContext`:
+ 
+ ```python
+ from skillware import SkillContext
+ 
+ ctx = SkillContext(
+     categories=["finance"],
+     secret_provider={"ETHERSCAN_API_KEY": fetch_from_vault("etherscan")},
+ )
+ ctx.execute("finance/wallet_screening", {"address": "0x..."})
+ ```
+ 
+ ### Direct instance injection (`credential_fn`)
+ 
+ For fine-grained or single-skill sandboxing, you can inject a dynamic resolver callable directly into `BaseSkill`:
+ 
+ ```python
+ from skillware.core.loader import SkillLoader
+ 
+ bundle = SkillLoader.load_skill("finance/wallet_screening")
+ skill = bundle["class"](
+     credential_fn=lambda key: fetch_from_vault(key) if key == "ETHERSCAN_API_KEY" else None
+ )
+ ```
+ 
+ ### Resolution Order
+ 
+ When a skill calls `self.credential("KEY_NAME")`, it resolves via a 3-tier hierarchy:
+ 
+ 1. **Dynamic sandbox callable (`credential_fn`):** Host-provided resolver `(key: str) -> Optional[str]`. If it returns a non-None string, that value is used immediately.
+ 2. **Host configuration dictionary (`config`):** Injected via `SkillContext(secret_provider=...)` or `SkillLoader.resolve_env_vars()`.
+ 3. **Environment fallback (`os.environ`):** Local `.env` fallback for development environments.
+ 
+ | Provider | Use when |
+ | :--- | :--- |
+ | `credential_fn` | Per-instance dynamic sandboxing or ephemeral token callback |
+ | `MappingSecretProvider(dict)` | Secrets already fetched (Vault, K8s, Secrets Manager) |
+ | `CallableSecretProvider(fetcher)` | Wrap STS / workload identity / KMS SDK in one callback |
+ | `EnvSecretProvider()` | Resolve from existing `os.environ` (after `load_env_file()`) |
+ | Custom `get(key)` class | Full control (ephemeral tokens per call) |
+ 
+ `get(key)` runs at resolution time — each `SkillContext.execute()` with a provider re-fetches, so short-lived tokens work. Use one context (or provider) per tenant.
+ 
+ **Local dev unchanged:** `load_env_file()` + default skill construction still reads `.env` via `credential()` fallback.
+ 
+ **Check readiness:** `skillware doctor` reports missing **required** `env_vars` (**ENVS** column).
+ 
+ Demo: [`examples/secret_provider_demo.py`](../../examples/secret_provider_demo.py).
 
 ---
 

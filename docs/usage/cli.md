@@ -118,14 +118,16 @@ Available commands:
 
 | Input | Command | Status |
 | :--- | :--- | :--- |
-| `1` / `list` | List all locally installed skills | Available |
-| `2` / `examples` | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
-| `3` / `test` | Run bundle tests (`test_skill.py`) for one or all skills | Available |
-| `4` / `paths` | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
-| `5` / `doctor` | Check manifest deps and skill.py import readiness | Available |
-| `6` / `help` | Grouped help (Skills, Examples, Paths, Config, Context, Chains, Theme, Mail, General) with doc links | Available |
-| `7` / `mail` | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
-| `8` / `theme` | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
+| `1` / [`list`](#skillware-list) | List all locally installed skills | Available |
+| `2` / [`examples`](#skillware-examples) | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
+| `3` / [`test`](#skillware-test) | Run bundle tests (`test_skill.py`) for one or all skills | Available |
+| `4` / [`paths`](#skillware-paths) | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
+| `5` / [`doctor`](#skillware-doctor) | Check manifest deps and skill.py import readiness | Available |
+| `6` / [`help`](#grouped-help) | Grouped help (Skills, Examples, Paths, Config, Context, Chains, Theme, Mail, EVM, Addressbook, General) with doc links | Available |
+| `7` / [`mail`](#skillware-mail) | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
+| `8` / [`theme`](#skillware-theme) | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
+| `9` / [`evm`](#skillware-evm) | EVM submenu — EVM chains and RPC config for defi skills | Available |
+| `10` / [`addressbook`](#skillware-addressbook) | Addressbook submenu — shared contacts and EVM wallets | Available |
 
 ## Grouped help
 
@@ -141,24 +143,28 @@ Available commands:
 | `6` / `chains` | `chain list`, `show`, `validate`, `run`, `dry-run` |
 | `7` / `theme` | `theme` — CLI color theme picker or direct set |
 | `8` / `mail` | address book and signature setup |
-| `9` / `general` | menu, `--help`, `--version` |
-| `10` / `install` | pip install skillware |
-| `11` / `docs` | link to this CLI guide |
-| `12` / `interactive` | numbered splash menu |
+| `9` / `evm` | chains, tokens, and RPC config |
+| `10` / `addressbook` | shared contacts, identity, and wallets |
+| `11` / `general` | menu, `--help`, `--version` |
+| `12` / `install` | pip install skillware |
+| `13` / `docs` | link to this CLI guide |
+| `14` / `interactive` | numbered splash menu |
 
 Brief `--help` topic index matches the table above. Each topic expands to the command groups below when you choose **`6` / `help`** in the interactive menu:
 
 | Group | Topics |
 | :--- | :--- |
-| **Skills** | `list`, `test`, `doctor` |
-| **Examples** | `examples` |
-| **Paths** | `paths`, interactive paths submenu |
-| **Config** | `config show` |
-| **Context** | `context show` — registry brief (SkillContext) |
-| **Chains** | `chain list`, `chain show`, `chain validate`, `chain run`, `chain dry-run` |
-| **Theme** | `theme`, interactive menu `8`, direct `theme <name>` |
-| **Mail** | `mail`, interactive mail submenu |
-| **General** | interactive menu, `--help`, `--version` |
+| **[Skills](#skillware-list)** | `list`, `test`, `doctor` |
+| **[Examples](#skillware-examples)** | `examples` |
+| **[Paths](#skillware-paths)** | `paths`, interactive paths submenu |
+| **[Config](#skillware-config)** | `config show` |
+| **[Context](#skillware-context)** | `context show` — registry brief (SkillContext) |
+| **[Chains](#skillware-chain)** | `chain list`, `chain show`, `chain validate`, `chain run`, `chain dry-run` |
+| **[Theme](#skillware-theme)** | `theme`, interactive menu `8`, direct `theme <name>` |
+| **[Mail](#skillware-mail)** | `mail`, interactive mail submenu |
+| **[EVM](#skillware-evm)** | `evm`, `evm init`, `evm chains list`, `evm chain add`, `evm tokens list`, `evm token add`, `evm rpc enable`, `evm validate`, `evm open` |
+| **[Addressbook](#skillware-addressbook)** | `addressbook list`, `addressbook add`, `addressbook edit`, `addressbook set-wallet`, `addressbook open` |
+| **[General](#interactive-menu)** | interactive menu, `--help`, `--version` |
 
 ## Commands
 
@@ -173,7 +179,7 @@ Sample output:
     ID                           VERSION  CATEGORY    ISSUER      DESCRIPTION                                       REQUIREMENTS
     compliance/pii_masker        0.1.0    compliance  rosspeili   Detects and redacts PII locally using Ollama.     requests
     finance/wallet_screening     1.0.0    finance     rosspeili   Screens Ethereum wallets against OFAC sanctions.  requests
-    office/pdf_form_filler       0.1.0    office      rosspeili   Fills PDF forms from natural language.            pymupdf, anthropic
+    office/pdf_form_filler       0.1.2    office      rosspeili   Fills PDF forms from natural language.            pymupdf
 
 #### Flags
 
@@ -597,3 +603,37 @@ a concise one-line summary shown in `skillware list`:
 
 If `short_description` is absent, the CLI falls back to the first sentence
 of `description`, truncated to 80 characters.
+
+<!-- cli-history:begin -->
+## CLI history
+
+Commits that touched the `skillware` CLI tool, its subcommands, or its documentation page (`docs/usage/cli.md`).
+
+| Commit | Description | Date | Version | Contributors |
+| :--- | :--- | :--- | :--- | :--- |
+| [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20b08) | feat(core): standardize SPDX license identifiers and copyright headers (#416) (#422) | 11 Oct 2026 | `0.5.8` | [@blade-dancer](https://github.com/bd-c3) |
+| [`f079bf3`](https://github.com/ARPAHLS/skillware/commit/f079bf3594) | fix(cli): detect editable/PyPI overlap and harden version display (#333) (#388) | 25 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`85d29f4`](https://github.com/ARPAHLS/skillware/commit/85d29f48bb) | docs: addressbook guide, evm tokens list, and example polish (#373, #374) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`30234c9`](https://github.com/ARPAHLS/skillware/commit/30234c9e0e) | feat(evm): add token add CLI, live integration tests, and card v0.3.0 ripples | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`004e8cb`](https://github.com/ARPAHLS/skillware/commit/004e8cbd82) | feat(core): shared addressbook public_0x and evm_tx_handler v0.3.0 (#373, #374) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`13040ba`](https://github.com/ARPAHLS/skillware/commit/13040ba0db) | feat(core): add shared EVM operator config and skillware evm CLI (#379) (#380) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
+| [`9e47261`](https://github.com/ARPAHLS/skillware/commit/9e47261b9d) | feat(cli): add theme subcommand and align help topics with context/chains | 04 Sep 2026 | `0.5.5` | [@rosspeili](https://github.com/rosspeili) |
+| [`5fcf76a`](https://github.com/ARPAHLS/skillware/commit/5fcf76af90) | feat(cli): add theme picker and CLI color themes (#248, #305) | 03 Sep 2026 | `0.5.4` | [@harshthakur3](https://github.com/harshthakur3) |
+| [`a1bab61`](https://github.com/ARPAHLS/skillware/commit/a1bab615ac) | Add mail CLI and config for gmail_handler operator UX (#292) | 19 Aug 2026 | `0.5.1` | [@rosspeili](https://github.com/rosspeili) |
+| [`50c08fb`](https://github.com/ARPAHLS/skillware/commit/50c08fb6cf) | feat(cli): interactive paths editor, tiered help, and nav (#247) (#285) | 12 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`eb20942`](https://github.com/ARPAHLS/skillware/commit/eb2094237f) | feat(config,cli): persistent YAML config and skillware config show (#246) (#283) | 10 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`9de244b`](https://github.com/ARPAHLS/skillware/commit/9de244b3ee) | feat(loader,cli): inspect-only load and skillware doctor (#235) (#282) | 09 Aug 2026 | `0.4.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`c22c8df`](https://github.com/ARPAHLS/skillware/commit/c22c8df4d2) | feat(cli): add skillware paths and shared discovery module (#249) | 10 Jul 2026 | `0.4.5` | [@rosspeili](https://github.com/rosspeili) |
+| [`b867202`](https://github.com/ARPAHLS/skillware/commit/b8672027ae) | docs: add CLI splash art and interactive menu screenshot to cli.md | 08 Jul 2026 | `0.4.3` | [@rosspeili](https://github.com/rosspeili) |
+| [`087b0b3`](https://github.com/ARPAHLS/skillware/commit/087b0b33cb) | feat(cli): fix splash logo and add Rich gradient branding | 08 Jul 2026 | `0.4.2` | [@rosspeili](https://github.com/rosspeili) |
+| [`93d0d9e`](https://github.com/ARPAHLS/skillware/commit/93d0d9e889) | docs: align CLI docs with examples menu and pip-install behavior (#194) | 29 Jun 2026 | `0.4.0` | [@uttam12331](https://github.com/uttam12331) |
+| [`89a99a7`](https://github.com/ARPAHLS/skillware/commit/89a99a75c6) | feat: add interactive examples menu and GitHub source links (#126) | 26 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`9827812`](https://github.com/ARPAHLS/skillware/commit/9827812b11) | feat: add skillware examples CLI and list --examples (#126) | 26 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`b713fe4`](https://github.com/ARPAHLS/skillware/commit/b713fe4752) | feat: add skillware test CLI for bundle tests (#83) (#188) | 24 Jun 2026 | `0.3.8` | [@rosspeili](https://github.com/rosspeili) |
+| [`04a3d69`](https://github.com/ARPAHLS/skillware/commit/04a3d693dd) | Wire skillware --help to cmd_help and clean up stale [cli] mentions | 14 Jun 2026 | `0.3.6` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`dd90896`](https://github.com/ARPAHLS/skillware/commit/dd90896286) | Add __main__.py, cmd_help, --version, and move rich to core | 14 Jun 2026 | `0.3.6` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`20093df`](https://github.com/ARPAHLS/skillware/commit/20093dff79) | feat: version support policy and CLI advisory for unsupported installs (#132) (#137) | 28 May 2026 | `0.3.3` | [@rosspeili](https://github.com/rosspeili) |
+| [`0bd2410`](https://github.com/ARPAHLS/skillware/commit/0bd2410e38) | Feat/issue 130 cli polish ux (#131) | 27 May 2026 | `0.3.2` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`5b68b78`](https://github.com/ARPAHLS/skillware/commit/5b68b78b70) | Feat/issue 93 cli visual redesign (#129) | 26 May 2026 | `0.3.2` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`5e524a1`](https://github.com/ARPAHLS/skillware/commit/5e524a1396) | Feat/issue 16 cli for skill discovery (#84) | 22 May 2026 | `0.2.9` | [@rizzoMartin](https://github.com/rizzoMartin) |
+<!-- cli-history:end -->

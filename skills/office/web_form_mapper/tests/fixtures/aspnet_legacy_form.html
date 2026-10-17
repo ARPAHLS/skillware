@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State Department of Revenue - Tax Filing</title>
+</head>
+<body>
+    <h1>Annual Business Declaration</h1>
+    <form name="aspnetForm" method="post" action="/TaxPortal/Submit.aspx" id="aspnetForm">
+        <input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTE4MzQ5MzY4NzAPZBYCZg9kFgICAQ9kFgICAQ88KwANAwAPFgIeC18hSXRlbWJvdW5kZxYBAgJkZAIED2QWAgIBDw8WAh4EVGV4dAUR" />
+        <input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+        <input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdAATz1O9r" />
+        <input type="hidden" name="__RequestVerificationToken" value="anti_csrf_token_xyz_998877" />
+
+        <div class="form-group">
+            <label for="txtLegalName">Legal Entity / Full Name</label>
+            <input type="text" name="txtLegalName" id="txtLegalName" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label for="txtTaxID">Taxpayer Identification Number (TIN / EIN)</label>
+            <input type="text" name="txtTaxID" id="txtTaxID" class="form-control" placeholder="XX-XXXXXXX" required />
+        </div>
+
+        <div class="form-group">
+            <label for="txtEmail">Official Notification Email</label>
+            <input type="email" name="txtEmail" id="txtEmail" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+            <label for="txtStreet">Registered Physical Address</label>
+            <input type="text" name="txtStreet" id="txtStreet" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="txtCity">City</label>
+            <input type="text" name="txtCity" id="txtCity" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="txtZip">Postal / ZIP Code</label>
+            <input type="text" name="txtZip" id="txtZip" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="ddlCountry">Country</label>
+            <select name="ddlCountry" id="ddlCountry">
+                <option value="">-- Select Country --</option>
+                <option value="US">United States</option>
+                <option value="DE">Germany</option>
+                <option value="GR">Greece</option>
+                <option value="GB">United Kingdom</option>
+            </select>
+        </div>
+
+        <input type="submit" name="btnSubmit" value="Submit Declaration" id="btnSubmit" />
+    </form>
+</body>
+</html>

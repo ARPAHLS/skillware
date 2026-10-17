@@ -1,6 +1,6 @@
 {
   "name": "UK Companies House Handler",
-  "description": "Search, profile, officers, PSC, and filing history for UK-registered companies via Companies House API.",
+  "description": "Search, profile, officers, PSC, filing history, and Document API download for UK-registered companies via Companies House.",
   "issuer": {
     "name": "Areen Agrawal",
     "email": "agrawalareen09@gmail.com",

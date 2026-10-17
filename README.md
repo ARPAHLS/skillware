@@ -104,18 +104,18 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 
 | Category | Skills | Description |
 | :--- | :---: | :--- |
-| [Office](docs/skills/office/README.md) | 2 | Documents, desktop work, and productivity automation |
+| [Data Engineering](docs/skills/data_engineering/README.md) | 4 | Datasets, generation, and ETL-style tooling |
+| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
+| [DeFi](docs/skills/defi/README.md) | 3 | On-chain ops, trading, and agent wallet management |
+| [Office](docs/skills/office/README.md) | 3 | Documents, desktop work, and productivity automation |
+| [Security](docs/skills/security/README.md) | 3 | Defenses for untrusted input reaching logical systems |
 | [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
 | [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
-| [DeFi](docs/skills/defi/README.md) | 2 | On-chain ops, trading, and agent wallet management |
-| [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
-| [Data Engineering](docs/skills/data_engineering/README.md) | 3 | Datasets, generation, and ETL-style tooling |
-| [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
-| [Security](docs/skills/security/README.md) | 2 | Defenses for untrusted input reaching logical systems |
-| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
 | [Monitoring](docs/skills/monitoring/README.md) | 2 | Agent loop observability, budget gates, and task control |
-| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
+| [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
+| [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
 | [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
+| [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
 
 ## Quick Start
 
@@ -245,7 +245,7 @@ PyPI download counts measure **install activity** from public aggregators (inclu
 
 <a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-c7d2fe?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
 
-If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.6`).
+If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.5.8`).
 
 ## Contact
 

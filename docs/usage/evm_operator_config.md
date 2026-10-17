@@ -1,6 +1,6 @@
 # EVM operator config
 
-Shared chain and RPC settings for **defi skills** that call JSON-RPC (`defi/evm_tx_handler`, future `defi/evm_reader`, token scanners, and similar). Operators configure networks once; skills resolve chains through `skillware.core.evm_config`.
+Shared chain and RPC settings for **defi skills** that call JSON-RPC (`defi/evm_tx_handler`, `defi/evm_reader`, token scanners, and similar). Operators configure networks once; skills resolve chains through `skillware.core.evm_config`.
 
 **Not the same as:** [`skillware chain`](cli.md#skillware-chain) — that runs **multi-skill orchestration** pipelines from the top-level `chains:` key in YAML. EVM networks live under **`evm:`** / **`evm.yaml`**.
 
@@ -161,11 +161,27 @@ Skills should import these helpers rather than duplicating `data/chains.yaml` pe
 
 ---
 
+## Token scan policy
+
+`defi/token_security_scanner` reads thresholds from a YAML file, not from code.
+
+| Layer | Location |
+| :--- | :--- |
+| Bundled default | `skills/defi/token_security_scanner/data/default_policy.yaml` (`enterprise_default`) |
+| User file | `~/.config/skillware/token_scan_policy.yaml` |
+| Env override | `TOKEN_SCAN_POLICY_PATH` |
+| One call | `policy_path` on `scan` / `scan_batch` |
+
+A missing user file uses the bundled profile, which keeps the v0.1 tiers: tax at or above 10% is high, closed-source unknown honeypot is high, and `critical` / `high` / `unknown` map to `policy_action: block`. Copy the bundled file to the user path and change `high_tax_pct` or `min_holder_count` to override one desk without forking the skill.
+
+---
+
 ## Related docs
 
 - [CLI — skillware evm](cli.md#skillware-evm)
 - [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config)
 - [Address book operator config](addressbook_operator_config.md) — people and `public_0x` (not tokens)
+- [EVM Chain Reader](../skills/defi/evm_reader.md) — read-only state reader (tokens, allowances, view calls, Multicall3)
 - [EVM Transaction Handler](../skills/defi/evm_tx_handler.md) — signing skill env vars
 - [Token Security Scanner](../skills/defi/token_security_scanner.md) — read-only GoPlus pre-trade scan (chains from this config; no RPC required)
 - [DeFi skills](../skills/README.md#defi) — catalog index

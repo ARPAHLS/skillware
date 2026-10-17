@@ -27,16 +27,6 @@ def isolate_skillware_config(monkeypatch, tmp_path):
 
 
 @pytest.fixture
-def mock_anthropic():
-    """Mocks the Anthropic client."""
-    mock_client = MagicMock()
-    # Mock the messages.create return structure
-    mock_message = MagicMock()
-    mock_message.content = [MagicMock(text='{"field_id": "value"}')]
-    return mock_client
-
-
-@pytest.fixture
 def mock_skill_loader():
     """Mocks the SkillLoader to return a sample skill bundle."""
     # This might not be needed if we import the class directly, but good to have.

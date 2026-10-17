@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 from typing import Any, Dict, List, Tuple
@@ -11,7 +12,7 @@ class PIIMaskerSkill(BaseSkill):
 
     @property
     def manifest(self) -> Dict[str, Any]:
-        return {"name": "compliance/pii_masker", "version": "0.1.0"}
+        return self.load_manifest_from_dir(os.path.dirname(__file__))
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         text = params.get("text", "")

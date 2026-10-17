@@ -1,5 +1,5 @@
 name: defi/token_security_scanner
-version: 0.1.0
+version: 0.2.0
 description: |
   Read-only ERC-20 / LP token security scan on supported EVM chains via GoPlus.
   Returns a stable JSON report (honeypot, taxes, ownership, proxy, mint/blacklist)
@@ -18,6 +18,7 @@ parameters:
       type: string
       enum:
         - scan
+        - scan_batch
         - supported_chains
       description: Skill operation to run.
     chain:
@@ -27,7 +28,23 @@ parameters:
         Call supported_chains for the full list.
     contract:
       type: string
-      description: ERC-20 (or LP) contract address (0x…). Required for scan.
+      description: |
+        ERC-20 (or LP) contract address (0x…). Required for scan unless token is set.
+    token:
+      type: string
+      description: |
+        Operator token slug from evm.tokens (for example degen on base).
+        Used when contract is omitted. Must match contract when both are set.
+    items:
+      type: array
+      description: |
+        scan_batch targets. Each item is {chain, contract|token}. Maximum 5.
+    policy_path:
+      type: string
+      description: |
+        Optional operator policy YAML for this call. When omitted, uses
+        TOKEN_SCAN_POLICY_PATH, then ~/.config/skillware/token_scan_policy.yaml,
+        then the bundled enterprise_default profile.
   required:
     - action
 outputs:
@@ -43,6 +60,21 @@ outputs:
   risk_tier:
     type: string
     description: "critical | high | medium | low | unknown (scan only)."
+  policy_action:
+    type: string
+    description: "allow | flag | block. Hosts gate trades on this field."
+  policy_profile:
+    type: string
+    description: "Operator profile name that produced policy_action."
+  report_schema_version:
+    type: string
+    description: "Report contract version (0.2)."
+  report_id:
+    type: string
+    description: "Stable id for this scan report."
+  worst_risk_tier:
+    type: string
+    description: "Highest risk_tier across a scan_batch."
   signals:
     type: object
     description: "Normalized GoPlus flags (honeypot, taxes, ownership, etc.)."
@@ -77,14 +109,20 @@ constitution: |
   3. FAIL CLOSED ON BAD INPUT: Invalid addresses or unsupported chains return error —
      do not invent risk tiers.
   4. SECRETS: Optional GoPlus credentials stay in env/config only; never log them.
-  5. CHAIN BEFORE TRADE: Hosts should treat critical/high/unknown tiers (and
-     status != ok) as block; medium as require human confirmation before
-     evm_tx_handler execute.
+  5. CHAIN BEFORE TRADE: Hosts gate on policy_action. block means do not trade.
+     flag means human confirmation. allow still is not financial advice.
+     status != ok fails closed. Default profile blocks critical, high, and unknown.
 env_vars:
   GOPLUS_APP_KEY:
     description: |
       Optional GoPlus access token / app credential. When set, sent as
       Authorization Bearer. Free permissionless Token Security calls work without it.
+    required: false
+  TOKEN_SCAN_POLICY_PATH:
+    description: |
+      Optional path to an operator token-scan policy YAML. When unset, the skill
+      uses ~/.config/skillware/token_scan_policy.yaml if that file exists, otherwise
+      the bundled enterprise_default profile.
     required: false
 requirements:
   - requests

@@ -288,6 +288,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/n
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`3d36648`](https://github.com/ARPAHLS/skillware/commit/3d366482cb3f659c0e6a5580b7336b20063010fa) | feat(core): shared BaseSkill.load_manifest_from_dir() helper and stub skill migration (#203) (#383) | 5 Oct 2026 | `0.1.0` | [@Achalnawal2745](https://github.com/Achalnawal2745) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4096824`](https://github.com/ARPAHLS/skillware/commit/4096824fbaeb87a2b48a90d1ba2bec29cf3a1766) | docs: document issuer.org policy and align ARPA-driven registry skills (#295) (#316) | 28 Aug 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
