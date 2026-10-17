@@ -10,7 +10,7 @@ This hub is the documentation landing page for Skillware **finance** agent skill
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | `1.0.2` (14 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
+| **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | `1.1.0` (17 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). |
 | **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `1.4.0` (15 Oct 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, filing history with helpers, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 
 ## Typical host pipelines
