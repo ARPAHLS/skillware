@@ -9,7 +9,7 @@ issuer:
   name: Masa
   email: masa88keith@gmail.com
   github: mrmasa88
-  org: ARPAHLS, AO
+  org: ARPAHLS
 category: security
 parameters:
   type: object
