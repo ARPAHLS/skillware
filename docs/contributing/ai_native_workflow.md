@@ -286,7 +286,7 @@ Complete the checklist that matches your issue during Stage 5.
 ### New or updated skill
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
-- [ ] `manifest.yaml` (Contract): `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
+- [ ] `manifest.yaml` (Contract): Manifest v2 fields valid (`tier`: `core`/`cloud`/`enterprise`, `shape`: `atomic`/`workflow`/`middleware`/`stream`, `target`: list of `software`/`hardware`/`bioware`, `tags`: 2-10 unique lowercase keywords matching `^[a-z0-9_-]+$`, no duplicate meanings), `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
 - [ ] `skill.py` (Effect): exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md` (Directive): when to use, how to interpret output, limitations

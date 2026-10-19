@@ -274,6 +274,7 @@ Commits that touched this skill bundle or its catalog page ([`compliance/pii_mas
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`3d36648`](https://github.com/ARPAHLS/skillware/commit/3d366482cb3f659c0e6a5580b7336b20063010fa) | feat(core): shared BaseSkill.load_manifest_from_dir() helper and stub skill migration (#203) (#383) | 5 Oct 2026 | `0.1.0` | [@Achalnawal2745](https://github.com/Achalnawal2745) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

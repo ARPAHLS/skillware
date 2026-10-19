@@ -186,11 +186,29 @@ Sample output:
 | Flag | Description |
 | :--- | :--- |
 | `--category <name>` | Show only skills in the given category. Discovered at runtime, never hardcoded. |
+| `--shape <shape>` | Filter by execution shape: `atomic`, `workflow`, `middleware`, or `stream`. |
+| `--tier <tier>` | Filter by deployment tier: `core`, `cloud`, or `enterprise`. |
+| `--target <substrate>` | Filter by execution substrate: `software`, `hardware`, or `bioware`. |
+| `--tag <keyword>` | Filter by domain keyword or semantic tag (e.g. `aml`, `pdf`, `sanctions`). |
 | `--issuer <handle>` | Show only skills by a given GitHub handle or issuer name. |
 | `--skills-root <path>` | Override the skills directory for this command only. |
-| `--examples` | Add an **EXAMPLES** column with the count of indexed scripts per skill (`-` when none). Works with `--category` and `--issuer`. |
+| `--examples` | Add an **EXAMPLES** column with the count of indexed scripts per skill (`-` when none). Works with filters. |
 
 #### Examples
+
+    # Filter by execution shape
+    skillware list --shape workflow
+    skillware list --shape atomic
+
+    # Filter by domain tag
+    skillware list --tag aml
+    skillware list --tag security
+
+    # Filter by execution substrate
+    skillware list --target hardware
+
+    # Multi-flag discovery
+    skillware list --category finance --shape workflow
 
     # Filter by category
     skillware list --category compliance
@@ -204,6 +222,31 @@ Sample output:
 
     # Use a custom skills directory
     skillware list --skills-root /path/to/my/skills
+
+### skillware info
+
+Inspect detailed metadata and the **Taxonomy Badge Panel** for any skill in the registry.
+
+    skillware info finance/wallet_screening
+    skillware info security/prompt_injection_firewall
+
+Sample output:
+
+    +------------------- Skill Info: finance/wallet_screening --------------------+
+    | ID: finance/wallet_screening                                                |
+    | Version: 1.1.0                                                              |
+    | Category: finance                                                           |
+    | Issuer: rosspeili                                                           |
+    | Description: Screens Ethereum wallets against OFAC sanctions and mixer      |
+    | lists.                                                                      |
+    | Requirements: requests                                                      |
+    |                                                                             |
+    | Taxonomy:                                                                   |
+    |   Shape:  workflow (Multi-step interactive flow with preview/confirmation)  |
+    |   Tier:   core (Bundled open-source, local offline execution)               |
+    |   Target: software                                                          |
+    |   Tags:   aml, sanctions, forensics, web3, compliance                       |
+    +-----------------------------------------------------------------------------+
 
 ### skillware examples
 
@@ -287,7 +330,7 @@ Bundled registry paths cannot be edited. Global config (`~/.config/skillware/con
 
 ### skillware doctor
 
-Check whether skills can load in the current environment — manifest **requirements** (**DEPS**), `skill.py` import (**LOAD**), and required **`env_vars`** (**ENVS**) — without running `execute()`. Uses the same skill roots as `skillware list`.
+Check whether skills are valid and can load in the current environment — Manifest v2 schema validity (**SCHEMA**), manifest **requirements** (**DEPS**), `skill.py` import (**LOAD**), and required **`env_vars`** (**ENVS**) — without running `execute()`. Uses the same skill roots as `skillware list`.
 
     skillware doctor
     skillware doctor finance/wallet_screening
@@ -305,9 +348,11 @@ Check whether skills can load in the current environment — manifest **requirem
 | `--skills-root <path>` | Override the skills directory for discovery and load |
 | `--install` | Check Python package install health (editable vs PyPI conflicts); ignores skill args |
 
-**DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
+**SCHEMA** validates the manifest against the Manifest v2 JSON Schema and tag governance policy. **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
-Exit code is non-zero when any skill fails **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
+At the end of the diagnostic table, `skillware doctor` prints a summary of compliant manifests (e.g. `27/27 skill manifests satisfy Manifest v2 specification`).
+
+Exit code is non-zero when any skill fails **SCHEMA**, **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
 
 **`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
 

@@ -93,6 +93,28 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 
 **Hybrid:** run `run_chain("sanitize_input", ...)` on untrusted input, then start the agent loop with sanitized text and a filtered `SkillContext(categories=[...])`.
 
+### Taxonomy-aware skill filtering and execution safety
+
+Manifest v2 taxonomy allows host orchestrators to strictly filter and safety-gate skills exposed to models:
+
+```python
+from skillware import SkillContext
+
+# 1. Filter skills for fully autonomous headless agents (exclude multi-step interactive workflows)
+ctx_headless = SkillContext(allowed_shapes=["atomic", "middleware"])
+
+# 2. Filter skills by domain tag
+ctx_compliance = SkillContext(tags=["aml", "compliance"])
+
+# 3. Hardware substrate safety gating:
+# Attempting to load or execute skills targeting physical hardware without explicit opt-in
+# emits a SkillwareHardwareSafetyWarning.
+ctx_safe = SkillContext(allow_hardware_execution=False)
+```
+
+- **Shape-aware routing:** Autonomous agents can filter `allowed_shapes=["atomic", "middleware"]` for pure deterministic tool calls. Human-in-the-loop orchestrators can route `shape: "workflow"` skills to interactive confirmation gates before finalizing execution.
+- **Physical safety guardrails:** When an agent runs in virtual or cloud environments without physical actuators connected, `allow_hardware_execution=False` ensures hardware-targeted skills trigger safety warnings before execution.
+
 ### Framework multi-skill examples
 
 | Pattern | Script |

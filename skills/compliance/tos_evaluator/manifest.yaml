@@ -9,6 +9,8 @@ tags:
   - legal
   - compliance
   - contracts
+  - scraping
+  - robots_txt
 description: "Evaluates whether an intended automated website action appears permissible by checking robots.txt, discovered legal pages, and optional low-cost LLM review for ambiguous policy language."
 short_description: "Evaluates whether an automated web action is permitted by site policy."
 issuer:

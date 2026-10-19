@@ -282,6 +282,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`f5942a8`](https://github.com/ARPAHLS/skillware/commit/f5942a89f01b95cbc240cdd73d7f8a6e452f2664) | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`42df736`](https://github.com/ARPAHLS/skillware/commit/42df736318a4ee8fbf4c40bcfe1d3f3f00994fbc) | Fix pdf_form_filler helper imports without mutating sys.path (#399) | 30 Sep 2026 | `0.1.1` | [@Bdysj](https://github.com/Bdysj) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

@@ -17,6 +17,7 @@ from skillware.cli import (
     cmd_paths,
     cmd_paths_submenu,
     cmd_doctor,
+    cmd_info,
     cmd_theme_picker,
     cmd_theme,
 )
@@ -1561,3 +1562,168 @@ def test_cli_docs_history_and_menu_sync():
     assert "[@blade-dancer](https://github.com/bd-c3)" in cli_md
     assert "`9` / [`evm`]" in cli_md
     assert "`10` / [`addressbook`]" in cli_md
+
+
+def test_cmd_list_filter_by_shape(tmp_path):
+    import io
+    from rich.console import Console
+
+    skill1 = tmp_path / "office" / "workflow_tool"
+    skill1.mkdir(parents=True)
+    (skill1 / "skill.py").touch()
+    (skill1 / "manifest.yaml").write_text(
+        "name: office/workflow_tool\nversion: 0.1.0\nshape: workflow\ndescription: Test workflow.\n",
+        encoding="utf-8",
+    )
+
+    skill2 = tmp_path / "creative" / "atomic_tool"
+    skill2.mkdir(parents=True)
+    (skill2 / "skill.py").touch()
+    (skill2 / "manifest.yaml").write_text(
+        "name: creative/atomic_tool\nversion: 0.1.0\nshape: atomic\ndescription: Test atomic.\n",
+        encoding="utf-8",
+    )
+
+    buf = io.StringIO()
+    cmd_list(
+        skills_root_override=tmp_path,
+        shape_filter="workflow",
+        console=Console(file=buf, force_terminal=False, width=160),
+    )
+    out = buf.getvalue()
+    assert "workflow_tool" in out
+    assert "atomic_tool" not in out
+
+
+def test_cmd_list_filter_by_target(tmp_path):
+    import io
+    from rich.console import Console
+
+    skill1 = tmp_path / "robotics" / "arm_controller"
+    skill1.mkdir(parents=True)
+    (skill1 / "skill.py").touch()
+    (skill1 / "manifest.yaml").write_text(
+        "name: robotics/arm_controller\nversion: 0.1.0\ntarget: [software, hardware]\ndescription: Test.\n",
+        encoding="utf-8",
+    )
+
+    skill2 = tmp_path / "office" / "software_only"
+    skill2.mkdir(parents=True)
+    (skill2 / "skill.py").touch()
+    (skill2 / "manifest.yaml").write_text(
+        "name: office/software_only\nversion: 0.1.0\ntarget: [software]\ndescription: Test.\n",
+        encoding="utf-8",
+    )
+
+    buf = io.StringIO()
+    cmd_list(
+        skills_root_override=tmp_path,
+        target_filter="hardware",
+        console=Console(file=buf, force_terminal=False, width=200),
+    )
+    out = buf.getvalue()
+    assert "arm_controller" in out or "arm_control" in out
+    assert "software_only" not in out
+
+
+def test_cmd_list_filter_by_tag(tmp_path):
+    import io
+    from rich.console import Console
+
+    skill1 = tmp_path / "compliance" / "aml_scanner"
+    skill1.mkdir(parents=True)
+    (skill1 / "skill.py").touch()
+    (skill1 / "manifest.yaml").write_text(
+        "name: compliance/aml_scanner\nversion: 0.1.0\ntags: [aml, sanctions]\ndescription: Test.\n",
+        encoding="utf-8",
+    )
+
+    skill2 = tmp_path / "creative" / "bg_tool"
+    skill2.mkdir(parents=True)
+    (skill2 / "skill.py").touch()
+    (skill2 / "manifest.yaml").write_text(
+        "name: creative/bg_tool\nversion: 0.1.0\ntags: [vision, segmentation]\ndescription: Test.\n",
+        encoding="utf-8",
+    )
+
+    buf = io.StringIO()
+    cmd_list(
+        skills_root_override=tmp_path,
+        tag_filter="aml",
+        console=Console(file=buf, force_terminal=False, width=160),
+    )
+    out = buf.getvalue()
+    assert "aml_scanner" in out
+    assert "bg_tool" not in out
+
+
+def test_cmd_info_renders_taxonomy_panel(tmp_path):
+    import io
+    from rich.console import Console
+
+    skill = tmp_path / "security" / "firewall"
+    skill.mkdir(parents=True)
+    (skill / "skill.py").touch()
+    (skill / "manifest.yaml").write_text(
+        "name: security/firewall\nversion: 0.2.0\nshape: middleware\ntier: core\n"
+        "target: [software]\ntags: [security, firewall]\ndescription: Security firewall.\n",
+        encoding="utf-8",
+    )
+
+    buf = io.StringIO()
+    ret = cmd_info(
+        "security/firewall",
+        skills_root_override=tmp_path,
+        console=Console(file=buf, force_terminal=False, width=120),
+    )
+    assert ret == 0
+    out = buf.getvalue()
+    assert "Taxonomy:" in out
+    assert "middleware" in out
+    assert "core" in out
+    assert "software" in out
+    assert "security, firewall" in out
+
+
+def test_cmd_info_unknown_skill(tmp_path):
+    import io
+    from rich.console import Console
+
+    buf = io.StringIO()
+    ret = cmd_info(
+        "nonexistent/skill",
+        skills_root_override=tmp_path,
+        console=Console(file=buf, force_terminal=False, width=120),
+    )
+    assert ret == 1
+    assert "not found" in buf.getvalue().lower()
+
+
+def test_cmd_doctor_schema_validation(tmp_path, monkeypatch):
+    import io
+    from rich.console import Console
+
+    skill = tmp_path / "skills" / "office" / "valid_v2"
+    skill.mkdir(parents=True)
+    (skill / "manifest.yaml").write_text(
+        "name: office/valid_v2\nversion: 0.1.0\nshape: atomic\ntier: core\n"
+        "target: [software]\ntags: [office, documents]\ndescription: Test valid v2.\n"
+        "parameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class ValidV2Skill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, width=140)
+    ret = cmd_doctor(skill_id="office/valid_v2", console=console)
+    assert ret == 0
+    out = buf.getvalue()
+    assert "SCHEMA" in out
+    assert "Manifest v2 specification" in out

@@ -281,19 +281,31 @@ Defines the tool interface, execution taxonomy, safety constitution, dependencie
 
 #### Tag policy and guidelines
 
-Every skill manifest must adhere to the catalog tag governance policy (enforced in CI):
-1. **Quantity limit:** Between 2 and 10 tags per skill (`maxItems: 10`). Never exceed 10 tags.
-2. **Character format:** Strict lowercase alphanumeric, hyphens, and underscores matching `^[a-z0-9_-]+$`. No spaces, uppercase letters, or special symbols.
+Every skill manifest must adhere to the catalog tag governance policy (enforced in CI via schema validation and `tests/test_registry_identity.py`):
+1. **Quantity limit:** Minimum 2 and maximum 10 tags per skill (`maxItems: 10`). Recommended: 3 to 6 focused tags.
+2. **Character format:** Strict lowercase alphanumeric, hyphens, and underscores matching `^[a-z0-9_-]+$`. No spaces, uppercase letters, or special characters.
 3. **No duplicates:** Every tag in a manifest must be unique. Duplicate tags cause schema validation failures.
-4. **Domain relevance:** Choose tags that reflect the specific industry vertical, protocol, regulation, file format, or technical capability. For example:
-   - Compliance: `[mica, crypto, compliance, regulation, eu]`
-   - Security: `[security, prompt_injection, firewall, safety]`
-   - Office: `[pdf, form_filling, documents, acrobat]`
-   - Finance: `[aml, sanctions, forensics, web3, compliance]`
-5. **Anti-patterns to avoid:**
-   - Do not use generic filler tags like `[tool, ai, python, skill, helper, utility]` that pollute discovery without adding domain value.
+4. **Avoid semantic duplicates and synonym stuffing:** Do not repeat synonyms or closely overlapping variants (e.g. do not include both `presentation` and `deck`, or `slides` and `slide_deck`). Select the single canonical keyword for that concept.
+5. **Domain and category guidelines:** Tags must describe specific capabilities, vertical regulations, protocols, or execution surfaces. Use the recommended seed pools below as guidance for your skill's category:
+   - **Compliance:** Regulatory frameworks, statutory acronyms, privacy standards (e.g. `[mica, crypto, compliance, regulation, eu]`, `[pii, privacy, masking, gdpr, redaction]`, `[tos, legal, compliance, contracts, scraping, robots_txt]`).
+   - **Security:** Attack surfaces, defensive layers, forensic methods (e.g. `[security, prompt_injection, firewall, safety]`, `[ui_safety, phishing, dark_patterns, vision]`, `[deepfake, audio, video, forensics, security]`).
+   - **DeFi:** Blockchain protocols, EVM actions, security audits (e.g. `[web3, evm, ethereum, rpc, blockchain]`, `[web3, evm, transaction, signing, wallet]`, `[web3, security, erc20, honeypot, token]`).
+   - **Finance:** Financial crimes, statutory filings, corporate verification (e.g. `[aml, sanctions, forensics, web3, compliance]`, `[kyc, companies_house, uk, corporate, filings]`).
+   - **Office:** Document types, productivity workflows, browser interactions (e.g. `[pdf, form_filling, documents, acrobat]`, `[email, gmail, google_workspace, draft]`, `[forms, browser, automation, mapping]`).
+   - **Creative:** Media processing, generation formats, presentation decks (e.g. `[image, segmentation, background_removal, vision]`, `[presentation, slides, pptx, powerpoint]`).
+   - **Data Engineering:** Ingestion formats, telemetry standards, data synthesis (e.g. `[telemetry, normalization, metrics, streaming, iot, sensors]`, `[clustering, novelty, embeddings, data_mining]`, `[synthetic_data, generation, testing, mock]`, `[web, scraping, semantic, proxy, markdown]`).
+   - **Monitoring:** Observability metrics, budgeting, loop control (e.g. `[kpi, metrics, evaluation, quality, gate]`, `[rate_limit, token_bucket, cost_control, quota]`).
+   - **Optimization:** Context management, token reduction, prompt refinement (e.g. `[context, token_count, llm, pruning]`, `[prompt_engineering, compression, refinement, llm]`).
+   - **Dev Tools:** Software development lifecycle, debugging, repository interaction (e.g. `[github, git, issue, debugging, agent]`).
+   - **Linguistics:** Dialects, natural language registers, localized slang (e.g. `[nlp, slang, korean, translation, linguistics]`).
+   - **Wellness:** Coaching boundaries, psychoeducation, crisis guardrails (e.g. `[wellness, coaching, mindfulness, reflection]`).
+6. **Anti-patterns to avoid:**
+   - Do not use generic filler tags like `[tool, ai, python, skill, helper, utility]` that dilute discovery.
    - Do not repeat variations of the exact same word (e.g. `[form, forms, forming]`).
-   - Do not include personal names or organization names in tags (use `issuer` for attribution).
+   - Do not include personal names or organization names in tags (use the `issuer` block instead).
+7. **Maintainer Stewardship Model:**
+   - Contributors propose baseline tags and taxonomy fields in new skill proposals.
+   - During code review and subsequent version bumps, maintainers audit and curate tags against the catalog to maintain cohesion, eliminate synonym sprawl, and keep discovery sharp.
 
 **Optional but common:**
 

@@ -6,6 +6,7 @@ target:
   - software
 tags:
   - prompt_engineering
+  - compression
   - refinement
   - llm
 description: "A powerful middleware skill that aggressively compresses massive, bloated prompts into fewer tokens while retaining 100% of the semantic meaning and instructions."

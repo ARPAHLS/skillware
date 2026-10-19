@@ -7,7 +7,7 @@ target:
 tags:
   - presentation
   - slides
-  - deck
+  - pptx
   - powerpoint
 description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
 short_description: "Assemble editable PPTX presentations from structured JSON deck specs."

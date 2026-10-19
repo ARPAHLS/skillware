@@ -9,6 +9,8 @@ tags:
   - normalization
   - metrics
   - streaming
+  - iot
+  - sensors
 description: >
   Deterministic telemetry normalizer that converts heterogeneous, noisy sensor feeds
   from robotics, IoT fleets, smart buildings, and environmental stations into canonical

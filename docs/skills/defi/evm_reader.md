@@ -234,5 +234,6 @@ Commits that touched this skill bundle or its catalog page ([`defi/evm_reader`](
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`5b20254`](https://github.com/ARPAHLS/skillware/commit/5b20254b492673288ed29b30313c15523f7cfadf) | feat(defi): add evm_reader skill v0.1.0 for read-only EVM chain queries (#367) (#394) | 29 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->

@@ -443,3 +443,11 @@ def test_mica_examples_avoid_mind_metaphor():
     ):
         text = (REPO_ROOT / "examples" / name).read_text(encoding="utf-8")
         assert "in your Mind" not in text, name
+
+
+def test_export_site_catalog_check():
+    """Verify that scripts/export_site_catalog.py runs with zero validation errors."""
+    from scripts.export_site_catalog import export_catalog
+
+    ret = export_catalog(check_only=True)
+    assert ret == 0, "export_site_catalog --check failed"

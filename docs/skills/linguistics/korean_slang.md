@@ -284,6 +284,7 @@ Commits that touched this skill bundle or its catalog page ([`linguistics/korean
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`91d8124`](https://github.com/ARPAHLS/skillware/commit/91d812478546b048590c88bc615bb4b0aaec7628) | feat(linguistics): add korean_slang offline Gen-Z pack (#34) (#369) | 19 Sep 2026 | `0.1.0` | [@bd-c3](https://github.com/bd-c3) |
 <!-- skill-history:end -->
 
