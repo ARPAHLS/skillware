@@ -47,3 +47,6 @@ desktop.ini
 
 # Maintainer issue drafts (not for commit)
 issue_drafts/
+
+# Site catalog export artifact
+site/
