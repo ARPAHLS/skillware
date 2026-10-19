@@ -68,12 +68,19 @@ def test_skill_context_directives_mode_includes_instructions():
 
 
 def test_skill_context_filter_allowed_shapes():
-    # Only atomic skills: should include prompt_rewriter, exclude wallet_screening (workflow)
+    # Only atomic skills: should include bg_remover, exclude wallet_screening (workflow)
     ctx_atomic = SkillContext(
-        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        skills=["creative/bg_remover", "finance/wallet_screening"],
         allowed_shapes=["atomic"],
     )
-    assert ctx_atomic.skill_ids == ["optimization/prompt_rewriter"]
+    assert ctx_atomic.skill_ids == ["creative/bg_remover"]
+
+    # Only middleware skills: should include prompt_rewriter, exclude wallet_screening
+    ctx_middleware = SkillContext(
+        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        allowed_shapes=["middleware"],
+    )
+    assert ctx_middleware.skill_ids == ["optimization/prompt_rewriter"]
 
     # Only workflow skills: should include wallet_screening, exclude prompt_rewriter
     ctx_workflow = SkillContext(
@@ -110,7 +117,7 @@ def test_skill_context_filter_allowed_targets():
 def test_skill_context_brief_taxonomy_badge():
     ctx = SkillContext(skill="optimization/prompt_rewriter")
     line = ctx.brief("optimization/prompt_rewriter")
-    assert "[core:atomic:software]" in line
+    assert "[core:middleware:software]" in line
 
 
 def test_skill_context_hardware_safety_warning(tmp_path, monkeypatch):
