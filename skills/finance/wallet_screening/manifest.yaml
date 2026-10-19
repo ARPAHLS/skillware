@@ -1,5 +1,15 @@
 name: finance/wallet_screening
 version: 1.1.0
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - aml
+  - sanctions
+  - forensics
+  - web3
+  - compliance
 description: |
   A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). Analyzes normal ETH, ERC-20 (tokentx), and internal (txlistinternal) history for risk.
 short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."

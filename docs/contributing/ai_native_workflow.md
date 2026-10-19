@@ -240,7 +240,8 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 ### Skills (under `skills/`)
 
 - Bundle: `manifest.yaml` (Contract), `skill.py` (Effect), `instructions.md` (Directive), `card.json` (Presentation), `test_skill.py` (Assurance), plus catalog docs
-- `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
+- `manifest.yaml` is source of truth for taxonomy (`tier`, `shape`, `target`, `tags`), schema, constitution, `requirements`, `env_vars`, and `issuer`
+- **Manifest v2 taxonomy**: all skills must declare `tier` (`core` for OSS repository skills), `shape` (`atomic`, `workflow`, `middleware`, or `stream`), `target` (non-empty list, e.g. `[software]`), and `tags` (2 to 10 unique lowercase keywords matching `^[a-z0-9_-]+$`). Tagging must be domain-specific; generic filler tags like `[tool, ai, python]` are forbidden.
 - `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and optional `org` per [Issuer org](../../CONTRIBUTING.md#issuer-org); no template placeholders in registry paths

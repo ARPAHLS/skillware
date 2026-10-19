@@ -1,5 +1,15 @@
 name: data_engineering/semantic_web_proxy
 version: 0.1.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - web
+  - scraping
+  - semantic
+  - proxy
+  - markdown
 description: >
   Deterministic semantic proxy that turns a noisy web page into a token-efficient
   payload. Fetches a public http(s) URL behind an SSRF guard (or accepts pre-fetched

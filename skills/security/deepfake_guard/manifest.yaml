@@ -1,5 +1,15 @@
 name: security/deepfake_guard
 version: 0.1.0
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - deepfake
+  - audio
+  - video
+  - forensics
+  - security
 description: |
   Air-gapped media and document authenticity guard. Performs multi-signal forensic
   analysis on images, scanned documents, and identity credentials without calling

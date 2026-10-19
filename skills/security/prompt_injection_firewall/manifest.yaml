@@ -1,5 +1,14 @@
 name: security/prompt_injection_firewall
 version: 0.2.0
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - security
+  - prompt_injection
+  - firewall
+  - safety
 description: >
   Offline deterministic pre-flight scanner that detects and sanitizes prompt injection,
   hidden HTML payloads, invisible Unicode smuggling, confusable evasion, leetspeak, ROT13,

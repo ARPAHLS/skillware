@@ -54,6 +54,7 @@ MANIFEST_SCHEMA: Dict[str, Any] = {
         "tags": {
             "type": "array",
             "items": {"type": "string", "pattern": TAG_PATTERN},
+            "maxItems": 10,
             "uniqueItems": True,
         },
         "description": {"type": "string"},
@@ -148,6 +149,12 @@ def validate_manifest_schema(
         if not isinstance(tags, list):
             errors.append(f"{prefix}Tags must be a list of lowercase string keywords.")
         else:
+            if len(tags) > 10:
+                errors.append(
+                    f"{prefix}Tags list cannot exceed 10 keywords (found {len(tags)})."
+                )
+            if len(tags) != len(set(tags)):
+                errors.append(f"{prefix}Tags list contains duplicate keywords.")
             for tag in tags:
                 if not isinstance(tag, str) or not TAG_REGEX.match(tag.strip()):
                     errors.append(
@@ -210,7 +217,7 @@ def normalize_manifest_v2(data: Mapping[str, Any]) -> Dict[str, Any]:
         for t in cleaned_tags:
             if t not in deduped_tags:
                 deduped_tags.append(t)
-        normalized["tags"] = deduped_tags
+        normalized["tags"] = deduped_tags[:10]
     else:
         normalized["tags"] = list(DEFAULT_TAGS)
 

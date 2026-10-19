@@ -1,5 +1,14 @@
 name: security/deceptive_ui_guard
 version: 0.2.0
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - ui_safety
+  - phishing
+  - dark_patterns
+  - vision
 description: >
   Offline deterministic scanner for deceptive web UI surfaces and anti-agent tricks.
   Analyzes HTML (or optional public URL fetch) with dual DOM vs visible-surface extraction,

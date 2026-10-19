@@ -1,5 +1,15 @@
 name: defi/token_security_scanner
 version: 0.2.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - web3
+  - security
+  - erc20
+  - honeypot
+  - token
 description: |
   Read-only ERC-20 / LP token security scan on supported EVM chains via GoPlus.
   Returns a stable JSON report (honeypot, taxes, ownership, proxy, mint/blacklist)

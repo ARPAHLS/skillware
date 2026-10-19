@@ -1,5 +1,14 @@
 name: "optimization/context_optimizer"
 version: "0.1.0"
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - context
+  - token_count
+  - llm
+  - pruning
 description: |
   Query-aware extractive context selection for large documents. Chunks document_text,
   scores spans against agent_goal with local fastembed embeddings, and returns only

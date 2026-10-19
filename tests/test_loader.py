@@ -677,3 +677,34 @@ def test_load_skill_normalizes_manifest_v2():
     assert skill_instance.tier == manifest["tier"]
     assert skill_instance.target == manifest["target"]
     assert skill_instance.tags == manifest["tags"]
+
+
+def test_load_skill_legacy_manifest_fallbacks(tmp_path):
+    skill_dir = tmp_path / "legacy_skill"
+    skill_dir.mkdir()
+    (skill_dir / "manifest.yaml").write_text(
+        "name: legacy_skill\nversion: 0.1.0\ndescription: A legacy skill without v2 fields.\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class LegacySkill(BaseSkill):\n"
+        "    @property\n"
+        "    def manifest(self):\n"
+        "        return {'name': 'legacy_skill'}\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    bundle = SkillLoader.load_skill(str(skill_dir))
+    manifest = bundle["manifest"]
+    assert manifest["shape"] == "atomic"
+    assert manifest["tier"] == "core"
+    assert manifest["target"] == ["software"]
+    assert manifest["tags"] == []
+
+    inst = bundle["class"]()
+    assert inst.shape == "atomic"
+    assert inst.tier == "core"
+    assert inst.target == ["software"]
+    assert inst.tags == []

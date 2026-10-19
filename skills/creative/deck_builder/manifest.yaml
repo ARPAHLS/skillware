@@ -1,5 +1,14 @@
 name: "creative/deck_builder"
 version: "0.2.0"
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - presentation
+  - slides
+  - deck
+  - powerpoint
 description: "Deterministic PowerPoint (.pptx) assembly from structured deck specs."
 short_description: "Assemble editable PPTX presentations from structured JSON deck specs."
 

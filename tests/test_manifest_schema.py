@@ -148,6 +148,26 @@ def test_validate_manifest_schema_invalid_tags():
     errors3 = validate_manifest_schema(data3)
     assert any("Tags must be a list" in err or "tags" in err for err in errors3)
 
+    # Tags exceed max 10
+    data4 = {
+        "name": "category/test_skill",
+        "version": "1.0.0",
+        "tags": [f"tag{i}" for i in range(11)],
+        "description": "Test.",
+    }
+    errors4 = validate_manifest_schema(data4)
+    assert any("cannot exceed 10 keywords" in err for err in errors4)
+
+    # Duplicate tags
+    data5 = {
+        "name": "category/test_skill",
+        "version": "1.0.0",
+        "tags": ["crypto", "web3", "crypto"],
+        "description": "Test.",
+    }
+    errors5 = validate_manifest_schema(data5)
+    assert any("duplicate keywords" in err for err in errors5)
+
 
 def test_validate_manifest_schema_missing_required_fields():
     data = {"version": "1.0.0"}

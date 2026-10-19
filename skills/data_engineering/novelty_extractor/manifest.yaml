@@ -1,5 +1,14 @@
 name: "data_engineering/novelty_extractor"
 version: "0.1.0"
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - clustering
+  - novelty
+  - embeddings
+  - data_mining
 description: "Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold."
 short_description: "Filters text datasets by semantic novelty using local embeddings."
 issuer:

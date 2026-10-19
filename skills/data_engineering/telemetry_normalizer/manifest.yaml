@@ -1,5 +1,14 @@
 name: data_engineering/telemetry_normalizer
 version: 0.1.0
+tier: core
+shape: stream
+target:
+  - software
+tags:
+  - telemetry
+  - normalization
+  - metrics
+  - streaming
 description: >
   Deterministic telemetry normalizer that converts heterogeneous, noisy sensor feeds
   from robotics, IoT fleets, smart buildings, and environmental stations into canonical

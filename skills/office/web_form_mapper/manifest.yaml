@@ -1,5 +1,14 @@
 name: office/web_form_mapper
 version: 0.1.0
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - forms
+  - browser
+  - automation
+  - mapping
 description: |
   Deterministically inspects, maps identity profiles to, previews, and submits
   web forms (HTML & SPAs) with automatic CSRF/hidden state preservation,
