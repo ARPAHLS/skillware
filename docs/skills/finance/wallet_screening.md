@@ -3,7 +3,7 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.0.2` — 14 Oct 2026
+**Version**: `1.1.0` — 17 Oct 2026
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts.
@@ -300,12 +300,12 @@ The skill returns a rich forensic report. Agents act on this data. `metadata.war
 ## Limitations
 
 - **Ethereum only**: The skill screens Ethereum (EVM) addresses exclusively. Bitcoin, Solana, or other chain addresses are not supported and will fail address validation.
-- **Etherscan transaction cap**: Normal ETH history is fetched via paginated `txlist` (1,000 txs per page, max 10 pages → **10,000 txs**). When that cap is hit, or Etherscan fails, the report includes `metadata.warnings` with codes such as `etherscan_txlist_truncated`, `etherscan_txlist_unavailable`, or `etherscan_txlist_partial`. Treat PnL and counterparty stats as incomplete when warnings are present.
+- **Etherscan transaction cap**: Normal ETH (`txlist`), ERC-20 (`tokentx`), and internal (`txlistinternal`) histories are each paginated (1,000 rows per page, max 10 pages → **10,000 rows per action**). Cap / failure warnings use prefixes `etherscan_txlist_*`, `etherscan_tokentx_*`, and `etherscan_txlistinternal_*`. Treat PnL and counterparty stats as incomplete when warnings are present.
 - **Point-in-time sanctions data**: Bundled lists are snapshots, not a live OFAC feed. `ofac_sdn_manifest.json` records the SDN.CSV sha256, download time, and source `Last-Modified`. A wallet missing from a newer snapshot was not observed in that file. That is not a delisting or legal clearance.
 - **ETH identifiers only**: Screening matches currency code `ETH` with a 40-hex address. USDT, USDC, TRON, Bitcoin, and other SDN identifiers are stored but are not Ethereum hits, even when the identifier looks like `0x`.
 - **Entity-only designations**: Aban Tether is designated without a digital-currency identifier in SDN remarks, so address screening cannot hit it.
 - **Deferred peer lists**: OpenSanctions `il_mod_crypto` (`entities.ftm.json`), FBI Lazarus, Israel NBCTF, and Uniswap TRM stay at their 22 Jul 2025 snapshots. UK OFSI, the EU 20th package, and MEW darklist had no public address file in this bundle to ingest.
-- **No ERC-20 or internal transaction coverage**: Only standard ETH transfers from the Etherscan `txlist` action are analyzed. ERC-20 token transfers, internal transactions, and NFT transfers are not included in financial flow calculations.
+- **ERC-20 and internal coverage (v1.1)**: `tokentx` and `txlistinternal` are screened against the malicious / TRM risk index. Major-token volumes (USDT, USDC, DAI, WETH) come from operator `evm.tokens` on ethereum. NFT transfers and schema v2 verdicts are still out of this release (#439 slices 2–4).
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
@@ -317,6 +317,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`8cb4996`](https://github.com/ARPAHLS/skillware/commit/8cb4996695b7b6d6a32bdaed7e45104c8f58462a) | feat(wallet_screening): ingest tokentx and txlistinternal (#439) | 17 Oct 2026 | `1.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`30b7b2e`](https://github.com/ARPAHLS/skillware/commit/30b7b2e82cdb71c8932468df57679ac45e457b20) | feat(wallet_screening): refresh OFAC SDN snapshot for Ethereum screening | 14 Oct 2026 | `1.0.2` | [@Hendobox](https://github.com/Hendobox) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `1.0.1` | [@rosspeili](https://github.com/rosspeili) |

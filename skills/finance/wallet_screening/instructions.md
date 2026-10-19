@@ -14,10 +14,11 @@ The tool returns a JSON object. You should summarize this for the user in a prof
 
 ### Key Fields to Check:
 1.  **`summary.sanctioned_entity_match` (Boolean)**: If `true`, this is CRITICAL. Report the `risk_details.sanctions_hits` immediately.
-2.  **`summary.malicious_interaction_count` (Integer)**: If > 0, the wallet has touched bad actors. List the `risk_details.malicious_interactions`.
-3.  **`financial_analysis.pnl_eth` / `pnl_usd`**: Profit and Loss. Useful for determining if it's a profitable trader or a victim.
-4.  **`network_analysis.top_10_counterparties`**: Who are they sending money to?
-5.  **`metadata.warnings` (Array, optional)**: If present, tell the user the on-chain history may be **incomplete** — e.g. `etherscan_txlist_truncated` (wallet exceeded the fetch cap), `etherscan_txlist_unavailable`, or `etherscan_txlist_partial`. Do not present PnL or interaction counts as exhaustive when warnings are set.
+2.  **`summary.malicious_interaction_count` (Integer)**: If > 0, the wallet has touched bad actors. List the `risk_details.malicious_interactions` (includes `transfer_kind`: `eth`, `erc20`, or `internal`).
+3.  **`summary.total_token_txs` / `total_internal_txs`**: ERC-20 and internal transfer counts alongside `total_transactions` (normal ETH only).
+4.  **`financial_analysis.pnl_eth` / `pnl_usd`**: Profit and Loss on ETH (+ internal ETH). Check `financial_analysis.token_flow` for major ERC-20 volumes.
+5.  **`network_analysis.top_10_counterparties`**: Who are they sending money to?
+6.  **`metadata.warnings` (Array, optional)**: Incomplete history codes — `etherscan_txlist_*`, `etherscan_tokentx_*`, `etherscan_txlistinternal_*` (`truncated` / `unavailable` / `partial`). Do not present PnL or interaction counts as exhaustive when warnings are set.
 
 ## Safety Protocol
 *   If a wallet is **Sanctioned**: severe warning. "⚠️ WARNING: This wallet appears on the following sanctions lists..."

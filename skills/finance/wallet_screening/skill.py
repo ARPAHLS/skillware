@@ -7,9 +7,12 @@ import yaml
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from skillware.core.base_skill import BaseSkill
+from skillware.core.evm_config import load_merged_evm_config, resolve_chain
 
 _ETH_ADDRESS_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
 _ZERO_WIDTH_CHARS = "\u200b\u200c\u200d\ufeff"
+# Major tokens for volume reporting; addresses come from evm.tokens / chain.weth.
+_MAJOR_TOKEN_SYMBOLS = ("usdt", "usdc", "dai", "weth")
 
 
 class WalletScreeningSkill(BaseSkill):
@@ -18,9 +21,11 @@ class WalletScreeningSkill(BaseSkill):
     against sanctions lists and malicious contract databases.
     """
 
-    # Etherscan account.txlist pagination (see api.etherscan.io docs).
+    # Etherscan account.* pagination (see api.etherscan.io docs).
     ETHERSCAN_TX_PAGE_OFFSET = 1000
-    ETHERSCAN_TX_MAX_PAGES = 10  # cap: 10_000 normal txs per screen
+    ETHERSCAN_TX_MAX_PAGES = 10  # cap: 10_000 rows per action per screen
+    ETHERSCAN_API_URL = "https://api.etherscan.io/api"
+    SCREENING_CHAIN = "ethereum"
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
@@ -44,6 +49,8 @@ class WalletScreeningSkill(BaseSkill):
         # ETH address -> tx risk records (core malicious + normalized lists)
         self._tx_risk_index: Dict[str, List[Dict]] = {}
         self._build_tx_risk_index()
+        # symbol -> {address, decimals} for ethereum major tokens (evm_config)
+        self._major_tokens = self._load_major_tokens()
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -61,8 +68,12 @@ class WalletScreeningSkill(BaseSkill):
         if not self.etherscan_api_key:
             return {"error": "Missing ETHERSCAN_API_KEY environment variable."}
 
-        # 1. Fetch Data
-        txs, fetch_warnings = self._get_eth_transactions(address)
+        # 1. Fetch Data (normal ETH, ERC-20, and internal)
+        txs, eth_warnings = self._get_eth_transactions(address)
+        token_txs, token_warnings = self._get_erc20_transactions(address)
+        internal_txs, internal_warnings = self._get_internal_transactions(address)
+        fetch_warnings = eth_warnings + token_warnings + internal_warnings
+
         eth_balance = self._get_eth_balance(address)
         eth_usd = self._get_price(self.coingecko_url_usd, "usd")
         eth_eur = self._get_price(self.coingecko_url_eur, "eur")
@@ -70,8 +81,10 @@ class WalletScreeningSkill(BaseSkill):
         # 2. Sanctions Check (FTM + additional lists via index)
         sanctions_hits = self._lookup_sanctions_hits(address)
 
-        # 3. Analyze Transactions
-        analysis = self._analyze_transactions(txs, address)
+        # 3. Analyze Transactions (ETH + ERC-20 + internal)
+        analysis = self._analyze_transactions(
+            txs, address, token_txs=token_txs, internal_txs=internal_txs
+        )
 
         # 4. Construct Rich Report
         return self._generate_report_data(
@@ -275,6 +288,41 @@ class WalletScreeningSkill(BaseSkill):
             return []
         return list(self._tx_risk_index.get(normalized, []))
 
+    def _load_major_tokens(self) -> Dict[str, Dict[str, Any]]:
+        """Resolve USDT/USDC/DAI/WETH from operator evm.tokens (ethereum)."""
+        resolved: Dict[str, Dict[str, Any]] = {}
+        try:
+            merged = load_merged_evm_config()
+            chain_tokens = merged.tokens.get(self.SCREENING_CHAIN, {})
+            if isinstance(chain_tokens, dict):
+                for symbol in _MAJOR_TOKEN_SYMBOLS:
+                    meta = chain_tokens.get(symbol)
+                    if not isinstance(meta, dict):
+                        continue
+                    addr = self.normalize_eth_address(str(meta.get("address") or ""))
+                    if not addr:
+                        continue
+                    decimals = meta.get("decimals")
+                    try:
+                        decimals_i = int(decimals) if decimals is not None else 18
+                    except (TypeError, ValueError):
+                        decimals_i = 18
+                    resolved[symbol] = {"address": addr, "decimals": decimals_i}
+            if "weth" not in resolved:
+                try:
+                    chain = resolve_chain(self.SCREENING_CHAIN, require_enabled=False)
+                    weth = self.normalize_eth_address(str(chain.get("weth") or ""))
+                    if weth:
+                        resolved["weth"] = {"address": weth, "decimals": 18}
+                except ValueError:
+                    pass
+        except Exception:
+            return resolved
+        return resolved
+
+    def _major_token_by_address(self) -> Dict[str, str]:
+        return {meta["address"]: symbol for symbol, meta in self._major_tokens.items()}
+
     def _get_price(self, url: str, currency: str) -> float:
         try:
             resp = requests.get(url, timeout=10)
@@ -283,17 +331,18 @@ class WalletScreeningSkill(BaseSkill):
         except Exception:
             return 0.0
 
-    def _get_eth_transactions(self, address: str) -> Tuple[List[Dict], List[str]]:
-        """Fetch normal ETH txs from Etherscan with pagination and warning codes."""
-        url = "https://api.etherscan.io/api"
+    def _paginate_account_action(
+        self, address: str, action: str, warning_prefix: str
+    ) -> Tuple[List[Dict], List[str]]:
+        """Paginate an Etherscan account.* list action with shared warning codes."""
         warnings: List[str] = []
-        all_txs: List[Dict] = []
+        all_rows: List[Dict] = []
         page = 1
 
         while page <= self.ETHERSCAN_TX_MAX_PAGES:
             params = {
                 "module": "account",
-                "action": "txlist",
+                "action": action,
                 "address": address,
                 "startblock": 0,
                 "endblock": 99999999,
@@ -303,13 +352,13 @@ class WalletScreeningSkill(BaseSkill):
                 "apikey": self.etherscan_api_key,
             }
             try:
-                resp = requests.get(url, params=params, timeout=15)
+                resp = requests.get(self.ETHERSCAN_API_URL, params=params, timeout=15)
                 data = resp.json()
             except Exception:
                 warnings.append(
-                    "etherscan_txlist_unavailable"
+                    f"{warning_prefix}_unavailable"
                     if page == 1
-                    else "etherscan_txlist_partial"
+                    else f"{warning_prefix}_partial"
                 )
                 break
 
@@ -318,29 +367,42 @@ class WalletScreeningSkill(BaseSkill):
                 if page == 1 and "no transactions found" in message:
                     return [], warnings
                 warnings.append(
-                    "etherscan_txlist_unavailable"
+                    f"{warning_prefix}_unavailable"
                     if page == 1
-                    else "etherscan_txlist_partial"
+                    else f"{warning_prefix}_partial"
                 )
                 break
 
             batch = data.get("result")
             if not isinstance(batch, list):
-                warnings.append("etherscan_txlist_unavailable")
+                warnings.append(f"{warning_prefix}_unavailable")
                 break
 
-            all_txs.extend(batch)
+            all_rows.extend(batch)
             if len(batch) < self.ETHERSCAN_TX_PAGE_OFFSET:
                 break
             if page >= self.ETHERSCAN_TX_MAX_PAGES:
-                warnings.append("etherscan_txlist_truncated")
+                warnings.append(f"{warning_prefix}_truncated")
                 break
             page += 1
 
-        return all_txs, warnings
+        return all_rows, warnings
+
+    def _get_eth_transactions(self, address: str) -> Tuple[List[Dict], List[str]]:
+        """Fetch normal ETH txs from Etherscan with pagination and warning codes."""
+        return self._paginate_account_action(address, "txlist", "etherscan_txlist")
+
+    def _get_erc20_transactions(self, address: str) -> Tuple[List[Dict], List[str]]:
+        """Fetch ERC-20 token transfers (account.tokentx)."""
+        return self._paginate_account_action(address, "tokentx", "etherscan_tokentx")
+
+    def _get_internal_transactions(self, address: str) -> Tuple[List[Dict], List[str]]:
+        """Fetch internal ETH transfers (account.txlistinternal)."""
+        return self._paginate_account_action(
+            address, "txlistinternal", "etherscan_txlistinternal"
+        )
 
     def _get_eth_balance(self, address: str) -> float:
-        url = "https://api.etherscan.io/api"
         params = {
             "module": "account",
             "action": "balance",
@@ -349,7 +411,7 @@ class WalletScreeningSkill(BaseSkill):
             "apikey": self.etherscan_api_key,
         }
         try:
-            resp = requests.get(url, params=params, timeout=10)
+            resp = requests.get(self.ETHERSCAN_API_URL, params=params, timeout=10)
             data = resp.json()
             if data.get("status") == "1":
                 return int(data["result"]) / 1e18
@@ -359,30 +421,94 @@ class WalletScreeningSkill(BaseSkill):
 
     # --- Logic Helpers ---
 
+    def _append_risk_interaction(
+        self,
+        bucket: List[Dict],
+        *,
+        tx: Dict,
+        wallet_addr: str,
+        from_addr: str,
+        to_addr: str,
+        transfer_kind: str,
+        value_eth: Optional[float] = None,
+        token_symbol: Optional[str] = None,
+        token_amount: Optional[float] = None,
+        contract_address: Optional[str] = None,
+    ) -> None:
+        candidates = [to_addr, from_addr]
+        if contract_address:
+            candidates.append(contract_address)
+        other_party = None
+        tx_risk_entries: List[Dict] = []
+        for candidate in candidates:
+            if not candidate:
+                continue
+            hits = self._lookup_tx_risk_entries(candidate)
+            if hits:
+                other_party = candidate
+                tx_risk_entries = hits
+                break
+        if not other_party or not tx_risk_entries:
+            return
+
+        primary = max(
+            tx_risk_entries,
+            key=lambda item: self._severity_rank(item.get("severity", "")),
+        )
+        sources = sorted(
+            {entry.get("source_file", "Unknown") for entry in tx_risk_entries}
+        )
+        entry: Dict[str, Any] = {
+            "tx_hash": tx.get("hash"),
+            "other_party": other_party,
+            "direction": "out" if from_addr == wallet_addr else "in",
+            "transfer_kind": transfer_kind,
+            "contract_name": primary.get("contract_name"),
+            "severity": primary.get("severity"),
+            "jurisdictions": primary.get("jurisdictions", []),
+            "source_file": primary.get("source_file"),
+            "sources": sources,
+        }
+        if value_eth is not None:
+            entry["value_eth"] = value_eth
+        if token_symbol is not None:
+            entry["token_symbol"] = token_symbol
+        if token_amount is not None:
+            entry["token_amount"] = token_amount
+        if contract_address:
+            entry["token_contract"] = contract_address
+        bucket.append(entry)
+
     def _analyze_transactions(
-        self, txs: List[Dict], wallet_addr: str
+        self,
+        txs: List[Dict],
+        wallet_addr: str,
+        token_txs: Optional[List[Dict]] = None,
+        internal_txs: Optional[List[Dict]] = None,
     ) -> Dict[str, Any]:
         wallet_addr = wallet_addr.lower()
+        token_txs = token_txs or []
+        internal_txs = internal_txs or []
         value_in = 0.0
         value_out = 0.0
         gas_paid = 0.0
-        counterparty_counts = {}
-        malicious_interactions = []
+        counterparty_counts: Dict[str, int] = {}
+        malicious_interactions: List[Dict] = []
+        major_by_addr = self._major_token_by_address()
+        token_volumes: Dict[str, float] = {symbol: 0.0 for symbol in self._major_tokens}
 
         for tx in txs:
-            from_addr = tx.get("from", "").lower()
-            to_addr = tx.get("to", "").lower() if tx.get("to") else ""
+            from_addr = (tx.get("from") or "").lower()
+            to_addr = (tx.get("to") or "").lower()
 
             try:
                 value_eth = int(tx.get("value", "0")) / 1e18
             except Exception:
                 value_eth = 0.0
 
-            is_error = tx.get("isError", "0") == "1"
-            if is_error:
+            if tx.get("isError", "0") == "1":
                 continue
 
-            # Gas
             if from_addr == wallet_addr:
                 try:
                     gas = (
@@ -394,41 +520,16 @@ class WalletScreeningSkill(BaseSkill):
                 except Exception:
                     pass
 
-            # Malicious Check
-            other_party = None
-            tx_risk_entries: List[Dict] = []
-            if to_addr:
-                tx_risk_entries = self._lookup_tx_risk_entries(to_addr)
-                if tx_risk_entries:
-                    other_party = to_addr
-            if not tx_risk_entries and from_addr:
-                tx_risk_entries = self._lookup_tx_risk_entries(from_addr)
-                if tx_risk_entries:
-                    other_party = from_addr
+            self._append_risk_interaction(
+                malicious_interactions,
+                tx=tx,
+                wallet_addr=wallet_addr,
+                from_addr=from_addr,
+                to_addr=to_addr,
+                transfer_kind="eth",
+                value_eth=value_eth,
+            )
 
-            if other_party and tx_risk_entries:
-                primary = max(
-                    tx_risk_entries,
-                    key=lambda item: self._severity_rank(item.get("severity", "")),
-                )
-                sources = sorted(
-                    {entry.get("source_file", "Unknown") for entry in tx_risk_entries}
-                )
-                malicious_interactions.append(
-                    {
-                        "tx_hash": tx.get("hash"),
-                        "other_party": other_party,
-                        "direction": "out" if from_addr == wallet_addr else "in",
-                        "contract_name": primary.get("contract_name"),
-                        "severity": primary.get("severity"),
-                        "jurisdictions": primary.get("jurisdictions", []),
-                        "source_file": primary.get("source_file"),
-                        "sources": sources,
-                        "value_eth": value_eth,
-                    }
-                )
-
-            # Flow
             if to_addr == wallet_addr:
                 value_in += value_eth
                 counterparty = from_addr
@@ -443,18 +544,101 @@ class WalletScreeningSkill(BaseSkill):
                     counterparty_counts.get(counterparty, 0) + 1
                 )
 
+        for tx in internal_txs:
+            from_addr = (tx.get("from") or "").lower()
+            to_addr = (tx.get("to") or "").lower()
+            if tx.get("isError", "0") == "1":
+                continue
+            try:
+                value_eth = int(tx.get("value", "0")) / 1e18
+            except Exception:
+                value_eth = 0.0
+
+            self._append_risk_interaction(
+                malicious_interactions,
+                tx=tx,
+                wallet_addr=wallet_addr,
+                from_addr=from_addr,
+                to_addr=to_addr,
+                transfer_kind="internal",
+                value_eth=value_eth,
+            )
+
+            if to_addr == wallet_addr:
+                value_in += value_eth
+                counterparty = from_addr
+            elif from_addr == wallet_addr:
+                value_out += value_eth
+                counterparty = to_addr
+            else:
+                counterparty = None
+            if counterparty:
+                counterparty_counts[counterparty] = (
+                    counterparty_counts.get(counterparty, 0) + 1
+                )
+
+        for tx in token_txs:
+            from_addr = (tx.get("from") or "").lower()
+            to_addr = (tx.get("to") or "").lower()
+            contract = self.normalize_eth_address(str(tx.get("contractAddress") or ""))
+            symbol_key = major_by_addr.get(contract or "")
+            try:
+                decimals = int(tx.get("tokenDecimal") or "18")
+            except Exception:
+                decimals = 18
+            if symbol_key and symbol_key in self._major_tokens:
+                decimals = int(self._major_tokens[symbol_key]["decimals"])
+            try:
+                amount = int(tx.get("value", "0")) / (10**decimals)
+            except Exception:
+                amount = 0.0
+
+            token_symbol = (
+                symbol_key.upper()
+                if symbol_key
+                else (tx.get("tokenSymbol") or "UNKNOWN")
+            )
+            self._append_risk_interaction(
+                malicious_interactions,
+                tx=tx,
+                wallet_addr=wallet_addr,
+                from_addr=from_addr,
+                to_addr=to_addr,
+                transfer_kind="erc20",
+                token_symbol=token_symbol,
+                token_amount=amount,
+                contract_address=contract,
+            )
+
+            if symbol_key and (from_addr == wallet_addr or to_addr == wallet_addr):
+                token_volumes[symbol_key] = token_volumes.get(symbol_key, 0.0) + amount
+
+            if to_addr == wallet_addr:
+                counterparty = from_addr
+            elif from_addr == wallet_addr:
+                counterparty = to_addr
+            else:
+                counterparty = None
+            if counterparty:
+                counterparty_counts[counterparty] = (
+                    counterparty_counts.get(counterparty, 0) + 1
+                )
+
         most_interacted = None
         if counterparty_counts:
             most_interacted = max(counterparty_counts.items(), key=lambda x: x[1])
 
         return {
             "total_txs": len(txs),
+            "total_token_txs": len(token_txs),
+            "total_internal_txs": len(internal_txs),
             "value_in": value_in,
             "value_out": value_out,
             "gas_paid": gas_paid,
             "malicious_interactions": malicious_interactions,
             "counterparty_counts": counterparty_counts,
             "most_interacted": most_interacted,
+            "token_volumes": token_volumes,
         }
 
     def _summarize_sanctions(self, hits: List[Dict]) -> List[Dict]:
@@ -515,6 +699,13 @@ class WalletScreeningSkill(BaseSkill):
         if warnings:
             metadata["warnings"] = warnings
 
+        token_volumes = analysis.get("token_volumes") or {}
+        token_flow = {
+            f"{symbol}_volume": round(float(volume), 8)
+            for symbol, volume in sorted(token_volumes.items())
+            if volume
+        }
+
         return {
             "metadata": metadata,
             "summary": {
@@ -524,7 +715,10 @@ class WalletScreeningSkill(BaseSkill):
                 "malicious_interaction_count": len(analysis["malicious_interactions"]),
                 "balance_eth": eth_balance,
                 "balance_usd": eth_balance * eth_usd,
+                # Backward-compatible: normal ETH txlist count only.
                 "total_transactions": txs_count,
+                "total_token_txs": analysis.get("total_token_txs", 0),
+                "total_internal_txs": analysis.get("total_internal_txs", 0),
             },
             "financial_analysis": {
                 "value_in_eth": analysis["value_in"],
@@ -537,6 +731,7 @@ class WalletScreeningSkill(BaseSkill):
                 "pnl_percent": pnl_pct,
                 "value_in_eur": analysis["value_in"] * eth_eur,
                 "value_out_eur": analysis["value_out"] * eth_eur,
+                "token_flow": token_flow,
             },
             "risk_details": {
                 "sanctions_hits": sanctions_summary,
