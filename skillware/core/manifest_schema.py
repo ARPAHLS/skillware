@@ -34,6 +34,11 @@ DEFAULT_TAGS: List[str] = []
 TAG_PATTERN = r"^[a-z0-9_-]+$"
 TAG_REGEX = re.compile(TAG_PATTERN)
 
+
+class SkillwareHardwareSafetyWarning(UserWarning):
+    """Emitted when an autonomous agent attempts to execute hardware or bioware skills without operator confirmation."""
+
+
 # -----------------------------------------------------------------------------
 # JSON Schema Definition for Manifest v2
 # -----------------------------------------------------------------------------
