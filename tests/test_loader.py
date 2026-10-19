@@ -657,3 +657,23 @@ def test_bedrock_tool_name_matches_openai_sanitization():
     openai_name = SkillLoader.to_openai_tool(sample_bundle)["function"]["name"]
     bedrock_name = SkillLoader.to_bedrock_tool(sample_bundle)["toolSpec"]["name"]
     assert bedrock_name == openai_name == "finance_wallet_screening"
+
+
+def test_load_skill_normalizes_manifest_v2():
+    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    manifest = bundle["manifest"]
+    assert "shape" in manifest
+    assert "tier" in manifest
+    assert "target" in manifest
+    assert "tags" in manifest
+    assert manifest["shape"] in ("atomic", "workflow", "middleware", "stream")
+    assert manifest["tier"] in ("core", "cloud", "enterprise")
+    assert isinstance(manifest["target"], list)
+    assert isinstance(manifest["tags"], list)
+
+    # BaseSkill instance properties
+    skill_instance = bundle["class"]()
+    assert skill_instance.shape == manifest["shape"]
+    assert skill_instance.tier == manifest["tier"]
+    assert skill_instance.target == manifest["target"]
+    assert skill_instance.tags == manifest["tags"]

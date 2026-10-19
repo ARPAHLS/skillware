@@ -25,6 +25,7 @@ from skillware.core.extras import (
     build_skill_module_import_error,
     check_manifest_requirements,
 )
+from skillware.core.manifest_schema import normalize_manifest_v2
 
 SKILLWARE_SKILL_PATH_ENV = _discovery.SKILLWARE_SKILL_PATH_ENV
 
@@ -230,6 +231,7 @@ class SkillLoader:
             with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest = yaml.safe_load(f) or {}
 
+        manifest = normalize_manifest_v2(manifest)
         registry_id = SkillLoader._validate_manifest_identity(resolved_path, manifest)
 
         # Check Dependencies
