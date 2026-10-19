@@ -1,7 +1,7 @@
 name: "optimization/context_optimizer"
 version: "0.1.0"
 tier: core
-shape: atomic
+shape: middleware
 target:
   - software
 tags:

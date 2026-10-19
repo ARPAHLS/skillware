@@ -304,7 +304,9 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware list --category compliance",
+    "skillware list --shape middleware",
     "skillware list --examples --category dev_tools",
+    "skillware info optimization/prompt_rewriter",
     "skillware examples compliance/tos_evaluator",
     "skillware test finance/wallet_screening",
     "skillware paths",
