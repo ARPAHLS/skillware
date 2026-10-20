@@ -3,14 +3,14 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.1.0` — 17 Oct 2026
+**Version**: `2.0.0` — 20 Oct 2026
 **Tier**: `core`
 **Shape**: `workflow`
 **Target**: `software`
 **Tags**: `aml`, `sanctions`, `forensics`, `web3`, `compliance`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
-**Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts.
+**Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts; emit schema v2 verdicts hosts can gate on.
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
 **Runtime:** Needs `ETHERSCAN_API_KEY`; CoinGecko optional.
 <!-- skill-intent:end -->
@@ -28,7 +28,7 @@ A rigorous compliance and risk assessment tool for Ethereum wallets. This skill 
     *   Calculates total Inflows/Outflows/Gas.
     *   Computes PnL (Profit and Loss) in ETH, USD, and EUR.
     *   Identifies top counterparties and "most interacted" wallets.
-*   **Risk Scoring**: Flags high-risk patterns based on transaction flow analysis.
+*   **Risk Scoring**: Deterministic tiers (`critical` / `high` / `medium` / `low`) with `ALLOW` / `REVIEW` / `DENY` verdicts, hop-1 sanctions exposure, and structured `risk_factors[]`.
 
 ## Bundle layout
 
@@ -38,8 +38,8 @@ The skill is self-contained in `skills/finance/wallet_screening/`. [Skill anatom
 
 The skill context teaches the host model to:
 *   ACT as a Senior Compliance Officer.
-*   Analyze the JSON report for boolean flags (`sanctioned`, `malicious_interactions`).
-*   Provide a verdict: "Low Risk", "Medium Risk", or "High Risk".
+*   Read `verdict.decision` / `verdict.risk_level` first, then evidence in `risk_factors` and `risk_details`.
+*   Keep `summary.risk_flag` only as a v1 compatibility alias.
 
 ### Effect (`skill.py`)
 
@@ -256,23 +256,43 @@ print(json.dumps(result, indent=2))
 ```
 ## Data Schema
 
-The skill returns a rich forensic report. Agents act on this data. `metadata.warnings` is optional — present when Etherscan history is truncated or partially unavailable (see Limitations).
+Report schema **v2** (`schema_version: "2.0"`). Hosts should gate on `verdict.decision` / `summary.risk_level`. `summary.risk_flag` and `summary.total_transactions` remain v1 aliases. `metadata.warnings` is optional — present when Etherscan history is truncated or partially unavailable (see Limitations).
+
+| Risk level | Typical trigger | Host action |
+| :--- | :--- | :--- |
+| `critical` | Direct sanctions hit on the screened address | `DENY` |
+| `high` | Malicious / mixer interaction or hop-1 sanctioned counterparty | `DENY` |
+| `medium` | Phishing / scam interaction only (no sanctions exposure) | `REVIEW` |
+| `low` | Clean record | `ALLOW` |
 
 ```json
 {
+  "schema_version": "2.0",
   "metadata": {
-    "screening_time": "2025-01-01T00:00:00",
+    "screening_time": "2026-10-20T00:00:00",
     "wallet_address": "0xd8dA...",
+    "chain": "ethereum",
+    "mode": "full_forensics",
     "data_sources_count": 3,
     "warnings": ["etherscan_txlist_truncated"]
   },
+  "verdict": {
+    "decision": "DENY",
+    "risk_level": "high",
+    "reason_code": "MALICIOUS_OR_INDIRECT_EXPOSURE",
+    "summary_statement": "Direct malicious-contract interaction or hop-1 sanctioned counterparty detected."
+  },
   "summary": {
+    "risk_level": "high",
     "risk_flag": true,
     "sanctioned_entity_match": false,
-    "malicious_interaction_count": 3,
+    "malicious_interaction_count": 1,
+    "indirect_exposure_count": 1,
     "balance_eth": 1.5,
     "balance_usd": 3000.0,
-    "total_transactions": 42
+    "total_transactions": 42,
+    "total_token_txs": 10,
+    "total_internal_txs": 2
   },
   "financial_analysis": {
     "value_in_eth": 10.0,
@@ -282,21 +302,38 @@ The skill returns a rich forensic report. Agents act on this data. `metadata.war
     "gas_paid_eth": 0.02,
     "pnl_eth": -1.52,
     "pnl_usd": -3040.0,
-    "pnl_percent": -15.2
+    "pnl_percent": -15.2,
+    "token_flow": {"usdt_volume": 2500.0}
   },
   "risk_details": {
     "sanctions_hits": [],
     "malicious_interactions": [
       {
         "tx_hash": "0xabc...",
-        "contract_name": "Tornado Cash Router",
-        "severity": "critical"
+        "contract_name": "Tornado Cash",
+        "severity": "high",
+        "transfer_kind": "erc20"
+      }
+    ],
+    "indirect_exposures": [
+      {
+        "counterparty": "0xc8fe...",
+        "tx_count": 1,
+        "label": "Sanctioned cluster"
       }
     ]
   },
+  "risk_factors": [
+    {
+      "code": "MALICIOUS_CONTRACT_INTERACTION",
+      "severity": "high",
+      "evidence": {"other_party": "0x910c..."}
+    }
+  ],
   "network_analysis": {
     "most_interacted_wallet": ["0x123...", 45],
-    "top_10_counterparties": [["0x123...", 45]]
+    "top_10_counterparties": [["0x123...", 45]],
+    "risky_counterparties": [{"address": "0xc8fe...", "tx_count": 1}]
   }
 }
 ```
@@ -309,7 +346,8 @@ The skill returns a rich forensic report. Agents act on this data. `metadata.war
 - **ETH identifiers only**: Screening matches currency code `ETH` with a 40-hex address. USDT, USDC, TRON, Bitcoin, and other SDN identifiers are stored but are not Ethereum hits, even when the identifier looks like `0x`.
 - **Entity-only designations**: Aban Tether is designated without a digital-currency identifier in SDN remarks, so address screening cannot hit it.
 - **Deferred peer lists**: OpenSanctions `il_mod_crypto` (`entities.ftm.json`), FBI Lazarus, Israel NBCTF, and Uniswap TRM stay at their 22 Jul 2025 snapshots. UK OFSI, the EU 20th package, and MEW darklist had no public address file in this bundle to ingest.
-- **ERC-20 and internal coverage (v1.1)**: `tokentx` and `txlistinternal` are screened against the malicious / TRM risk index. Major-token volumes (USDT, USDC, DAI, WETH) come from operator `evm.tokens` on ethereum. NFT transfers and schema v2 verdicts are still out of this release (#439 slices 2–4).
+- **ERC-20 and internal coverage**: `tokentx` and `txlistinternal` are screened against the malicious / TRM risk index. Major-token volumes (USDT, USDC, DAI, WETH) come from operator `evm.tokens` on ethereum. NFT transfers are still out of scope.
+- **Hop-1 only**: `indirect_exposures` screens direct counterparties against the sanctions index. Deeper graph hops, offline-direct mode, live Chainalysis/TRM, and `provenance.report_hash` remain on #439 slices 3–4.
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
@@ -321,6 +359,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(wallet_screening): schema v2 verdicts and hop-1 exposures (#439) | 20 Oct 2026 | `2.0.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`3204c82`](https://github.com/ARPAHLS/skillware/commit/3204c82249e0004ff475b8e992bfe1d0c4b6ea33) | feat(wallet_screening): ingest tokentx and txlistinternal (#439) | 17 Oct 2026 | `1.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`30b7b2e`](https://github.com/ARPAHLS/skillware/commit/30b7b2e82cdb71c8932468df57679ac45e457b20) | feat(wallet_screening): refresh OFAC SDN snapshot for Ethereum screening | 14 Oct 2026 | `1.0.2` | [@Hendobox](https://github.com/Hendobox) |

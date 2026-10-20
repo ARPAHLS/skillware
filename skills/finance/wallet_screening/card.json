@@ -13,8 +13,11 @@
     "type": "card",
     "fields": [
       {"key": "metadata.wallet_address", "label": "Address"},
+      {"key": "verdict.decision", "label": "Verdict", "type": "status_badge"},
+      {"key": "summary.risk_level", "label": "Risk Level", "type": "status_badge"},
       {"key": "summary.sanctioned_entity_match", "label": "Sanctioned", "type": "status_badge"},
       {"key": "summary.malicious_interaction_count", "label": "Risky Interactions", "type": "count"},
+      {"key": "summary.indirect_exposure_count", "label": "Hop-1 Exposures", "type": "count"},
       {"key": "financial_analysis.pnl_eth", "label": "PnL (ETH)", "type": "currency"}
     ]
   }

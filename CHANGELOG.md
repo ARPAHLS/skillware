@@ -8,6 +8,10 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Changed
+
+- **Skill (`finance/wallet_screening` v2.0.0):** Report schema v2 with `verdict` (`ALLOW` / `REVIEW` / `DENY`), deterministic `risk_level`, `risk_factors[]`, and hop-1 `indirect_exposures` / `risky_counterparties`. Dual-emits `summary.risk_flag` and `summary.total_transactions` for v1 hosts ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 2).
+
 ## [0.5.9] - 2026-10-20
 
 ### Added

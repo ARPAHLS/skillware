@@ -13,6 +13,21 @@ _ETH_ADDRESS_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
 _ZERO_WIDTH_CHARS = "\u200b\u200c\u200d\ufeff"
 # Major tokens for volume reporting; addresses come from evm.tokens / chain.weth.
 _MAJOR_TOKEN_SYMBOLS = ("usdt", "usdc", "dai", "weth")
+_REPORT_SCHEMA_VERSION = "2.0"
+_VERDICT_STATEMENTS = {
+    "DIRECT_SANCTIONS_MATCH": (
+        "Screened address matches a bundled sanctions or watchlist record."
+    ),
+    "MALICIOUS_OR_INDIRECT_EXPOSURE": (
+        "Direct malicious-contract interaction or hop-1 sanctioned counterparty detected."
+    ),
+    "PHISHING_OR_SCAM_EXPOSURE": (
+        "Interaction with a reported phishing or scam contract; no direct sanctions hit."
+    ),
+    "CLEAN_RECORD": (
+        "No direct sanctions or malicious contract interactions detected."
+    ),
+}
 
 
 class WalletScreeningSkill(BaseSkill):
@@ -660,10 +675,111 @@ class WalletScreeningSkill(BaseSkill):
                     "jurisdiction": jurisdiction,
                     "reason": reason,
                     "source_file": source_file,
-                    # 'entity': entity # simplified for AI token usage, normally full entity is heavy
                 }
             )
         return summary
+
+    def _collect_indirect_exposures(
+        self, counterparty_counts: Dict[str, int], wallet_addr: str
+    ) -> List[Dict[str, Any]]:
+        """Hop-1: screen direct counterparties against the sanctions index."""
+        wallet = (wallet_addr or "").lower()
+        exposures: List[Dict[str, Any]] = []
+        for counterparty, tx_count in sorted(
+            counterparty_counts.items(), key=lambda item: (-item[1], item[0])
+        ):
+            if not counterparty or counterparty == wallet:
+                continue
+            hits = self._lookup_sanctions_hits(counterparty)
+            if not hits:
+                continue
+            summarized = self._summarize_sanctions(hits)
+            primary = summarized[0] if summarized else {}
+            exposures.append(
+                {
+                    "counterparty": counterparty,
+                    "tx_count": tx_count,
+                    "label": primary.get("label"),
+                    "jurisdiction": primary.get("jurisdiction"),
+                    "reason": primary.get("reason"),
+                    "source_file": primary.get("source_file"),
+                    "sanctions_hits": summarized,
+                }
+            )
+        return exposures
+
+    @staticmethod
+    def compute_risk_level(
+        sanctions_hits: List[Dict],
+        malicious_interactions: List[Dict],
+        indirect_exposures: List[Dict],
+    ) -> Tuple[str, str, str]:
+        """Return ``(risk_level, decision, reason_code)`` for schema v2 verdicts."""
+        if sanctions_hits:
+            return ("critical", "DENY", "DIRECT_SANCTIONS_MATCH")
+
+        if indirect_exposures:
+            return ("high", "DENY", "MALICIOUS_OR_INDIRECT_EXPOSURE")
+
+        if malicious_interactions:
+            ranks = [
+                WalletScreeningSkill._severity_rank(item.get("severity", ""))
+                for item in malicious_interactions
+            ]
+            if any(rank >= 3 for rank in ranks):
+                return ("high", "DENY", "MALICIOUS_OR_INDIRECT_EXPOSURE")
+            return ("medium", "REVIEW", "PHISHING_OR_SCAM_EXPOSURE")
+
+        return ("low", "ALLOW", "CLEAN_RECORD")
+
+    def _build_risk_factors(
+        self,
+        sanctions_summary: List[Dict],
+        malicious_interactions: List[Dict],
+        indirect_exposures: List[Dict],
+    ) -> List[Dict[str, Any]]:
+        factors: List[Dict[str, Any]] = []
+        for hit in sanctions_summary:
+            factors.append(
+                {
+                    "code": "DIRECT_SANCTIONS_MATCH",
+                    "severity": "critical",
+                    "evidence": {
+                        "label": hit.get("label"),
+                        "source_file": hit.get("source_file"),
+                        "jurisdiction": hit.get("jurisdiction"),
+                    },
+                }
+            )
+        for exposure in indirect_exposures:
+            factors.append(
+                {
+                    "code": "HOP1_SANCTIONS_COUNTERPARTY",
+                    "severity": "high",
+                    "evidence": {
+                        "counterparty": exposure.get("counterparty"),
+                        "tx_count": exposure.get("tx_count"),
+                        "label": exposure.get("label"),
+                        "source_file": exposure.get("source_file"),
+                    },
+                }
+            )
+        for interaction in malicious_interactions:
+            severity = (interaction.get("severity") or "high").lower()
+            factors.append(
+                {
+                    "code": "MALICIOUS_CONTRACT_INTERACTION",
+                    "severity": severity,
+                    "evidence": {
+                        "other_party": interaction.get("other_party"),
+                        "transfer_kind": interaction.get("transfer_kind"),
+                        "contract_name": interaction.get("contract_name"),
+                        "tx_hash": interaction.get("tx_hash"),
+                        "source_file": interaction.get("source_file"),
+                    },
+                }
+            )
+        return factors
 
     def _generate_report_data(
         self,
@@ -682,18 +798,39 @@ class WalletScreeningSkill(BaseSkill):
             ((pnl) / analysis["value_in"] * 100) if analysis["value_in"] > 0 else 0.0
         )
 
-        # Create structured summaries
         sanctions_summary = self._summarize_sanctions(sanctions_hits)
+        malicious = analysis["malicious_interactions"]
+        indirect_exposures = self._collect_indirect_exposures(
+            analysis.get("counterparty_counts") or {}, address
+        )
+        risk_level, decision, reason_code = self.compute_risk_level(
+            sanctions_hits, malicious, indirect_exposures
+        )
+        risk_factors = self._build_risk_factors(
+            sanctions_summary, malicious, indirect_exposures
+        )
 
-        # Format Top Counterparties
         top_counterparties = sorted(
             [(k, v) for k, v in analysis.get("counterparty_counts", {}).items()],
             key=lambda x: -x[1],
         )[:10]
 
+        risky_counterparties = [
+            {
+                "address": row["counterparty"],
+                "tx_count": row["tx_count"],
+                "label": row.get("label"),
+                "reason": row.get("reason"),
+                "source_file": row.get("source_file"),
+            }
+            for row in indirect_exposures
+        ]
+
         metadata: Dict[str, Any] = {
             "screening_time": datetime.now().isoformat(),
             "wallet_address": address,
+            "chain": self.SCREENING_CHAIN,
+            "mode": "full_forensics",
             "data_sources_count": len(self.additional_datasets) + 2,
         }
         if warnings:
@@ -706,13 +843,24 @@ class WalletScreeningSkill(BaseSkill):
             if volume
         }
 
+        risk_flag = risk_level in {"critical", "high", "medium"}
+
         return {
+            "schema_version": _REPORT_SCHEMA_VERSION,
             "metadata": metadata,
+            "verdict": {
+                "decision": decision,
+                "risk_level": risk_level,
+                "reason_code": reason_code,
+                "summary_statement": _VERDICT_STATEMENTS[reason_code],
+            },
             "summary": {
-                "risk_flag": bool(sanctions_hits)
-                or bool(analysis["malicious_interactions"]),
+                "risk_level": risk_level,
+                # Backward-compatible alias for v1 hosts.
+                "risk_flag": risk_flag,
                 "sanctioned_entity_match": bool(sanctions_hits),
-                "malicious_interaction_count": len(analysis["malicious_interactions"]),
+                "malicious_interaction_count": len(malicious),
+                "indirect_exposure_count": len(indirect_exposures),
                 "balance_eth": eth_balance,
                 "balance_usd": eth_balance * eth_usd,
                 # Backward-compatible: normal ETH txlist count only.
@@ -735,10 +883,13 @@ class WalletScreeningSkill(BaseSkill):
             },
             "risk_details": {
                 "sanctions_hits": sanctions_summary,
-                "malicious_interactions": analysis["malicious_interactions"],
+                "malicious_interactions": malicious,
+                "indirect_exposures": indirect_exposures,
             },
+            "risk_factors": risk_factors,
             "network_analysis": {
                 "most_interacted_wallet": analysis["most_interacted"],
                 "top_10_counterparties": top_counterparties,
+                "risky_counterparties": risky_counterparties,
             },
         }
