@@ -326,6 +326,7 @@ Commits that touched this skill bundle or its catalog page ([`defi/token_securit
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`d7f721f`](https://github.com/ARPAHLS/skillware/commit/d7f721f0bd7519029902f65ac78b83cd64641015) | feat(token_security_scanner): operator policy and policy_action (#393) | 14 Oct 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`e90bbce`](https://github.com/ARPAHLS/skillware/commit/e90bbceadb360772cbe1f6cff16a9ec96c90a225) | feat(defi): token_security_scanner v0.1 (GoPlus read-only) (#368) | 26 Sep 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->

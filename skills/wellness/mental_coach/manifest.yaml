@@ -1,5 +1,14 @@
 name: wellness/mental_coach
 version: 0.1.1
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - wellness
+  - coaching
+  - mindfulness
+  - reflection
 description: >
   Deterministic wellness coaching firewall with crisis triage, non-clinical scope
   limits, grounded KB retrieval, and optional scope evaluation for host agents.

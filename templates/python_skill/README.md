@@ -52,6 +52,15 @@ cp -r templates/python_skill skills/<category>/<skill_name>
 ### 4. Author the Contract (`manifest.yaml`)
 * **`name`**: Full registry ID matching the directory path (`category/skill_name`). CI enforces that folder path and `name` match via `tests/test_registry_identity.py`.
 * **`version`**: Semantic version string (start at `0.1.0` for new skills).
+* **`tier`**: Deployment tier (`core`, `cloud`, or `enterprise`). Standard repository skills use `core` (zero external paid cloud API dependencies).
+* **`shape`**: Execution archetype (`atomic`, `workflow`, `middleware`, or `stream`).
+* **`target`**: List of execution substrates (`software`, `hardware`, `bioware`). Software skills use `[software]`.
+* **`tags`**: Curated list of 2 to 10 lowercase semantic and domain keywords (`^[a-z0-9_-]+$`).
+  * Max 10 tags per skill (`maxItems: 10`). Recommended: 3 to 6 focused tags.
+  * Must be unique within the manifest.
+  * Avoid duplicate meanings and synonym stuffing (e.g. do not mix `presentation` and `deck`).
+  * Must describe the specific domain, protocol, file format, or regulation (e.g. `[aml, sanctions, forensics, web3, compliance]`). See [Tag policy and guidelines in CONTRIBUTING.md](../../CONTRIBUTING.md#tag-policy-and-guidelines) for category-specific seed tag guidance.
+  * Never use generic filler tags like `[tool, ai, python, skill, helper, utility]`.
 * **`issuer`**: Real author attribution (`name` and `email` are required; `github` and `org` are optional). Replace placeholders (`Your Name`, `you@example.com`) before submitting. See [CONTRIBUTING.md#issuer-attribution](../../CONTRIBUTING.md#issuer-attribution).
 * **`short_description`**: One-line summary (~80 chars) displayed in `skillware list`.
 * **`parameters`**: Valid JSON Schema defining tool arguments for LLM tool calling.

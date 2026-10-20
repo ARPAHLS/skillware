@@ -1,5 +1,14 @@
 name: "creative/bg_remover"
 version: "0.2.0"
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - image
+  - segmentation
+  - background_removal
+  - vision
 description: "Remove image backgrounds locally using rembg."
 short_description: "Offline background removal using rembg with transparent PNG output."
 

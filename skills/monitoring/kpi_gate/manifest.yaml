@@ -1,5 +1,15 @@
 name: monitoring/kpi_gate
 version: 0.1.0
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - kpi
+  - metrics
+  - evaluation
+  - quality
+  - gate
 description: >
   Deterministic business-KPI gate. Evaluates a metrics snapshot against an
   operator-maintained policy charter and optional versioned benchmark data,

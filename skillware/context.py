@@ -9,6 +9,7 @@ import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+import warnings
 
 from skillware.core.discovery import (
     SkillRoot,
@@ -17,6 +18,7 @@ from skillware.core.discovery import (
     list_registry_skill_ids,
 )
 from skillware.core.loader import SkillLoader
+from skillware.core.manifest_schema import SkillwareHardwareSafetyWarning
 from skillware.core.secrets import SecretProvider, coerce_secret_provider
 
 ContextMode = str  # brief | tools_only | directives
@@ -78,7 +80,7 @@ def _discover_skill_ids(
     max_skills: Optional[int],
 ) -> Tuple[List[str], List[str], Dict[str, str]]:
     """Return (skill_ids, warnings, trust_tier_by_id)."""
-    warnings: List[str] = []
+    warnings_list: List[str] = []
     tier_by_id: Dict[str, str] = {}
     winner_root: Dict[str, SkillRoot] = {}
 
@@ -86,17 +88,17 @@ def _discover_skill_ids(
         sid = str(skill).strip()
         if not sid:
             return [], ["Empty skill filter"], {}
-        return [sid], warnings, {sid: "unknown"}
+        return [sid], warnings_list, {sid: "unknown"}
 
     if skills is not None:
         ids = [str(s).strip() for s in skills if str(s).strip()]
-        return ids, warnings, {sid: "unknown" for sid in ids}
+        return ids, warnings_list, {sid: "unknown" for sid in ids}
 
     category_set = _normalize_categories(categories)
     roots_list = get_skill_roots()
 
     for conflict in find_shadow_conflicts(roots_list):
-        warnings.append(
+        warnings_list.append(
             f"Shadowed {conflict.skill_id!r} in {conflict.shadowed.path} "
             f"(winner: {conflict.winner.path})"
         )
@@ -120,9 +122,11 @@ def _discover_skill_ids(
     if max_skills is not None and len(ids) > max_skills:
         omitted = ids[max_skills:]
         ids = ids[:max_skills]
-        warnings.append(f"max_skills={max_skills} cap omitted: {', '.join(omitted)}")
+        warnings_list.append(
+            f"max_skills={max_skills} cap omitted: {', '.join(omitted)}"
+        )
 
-    return ids, warnings, tier_by_id
+    return ids, warnings_list, tier_by_id
 
 
 def _brief_line(skill_id: str, bundle: Mapping[str, Any], tier: str) -> str:
@@ -136,7 +140,16 @@ def _brief_line(skill_id: str, bundle: Mapping[str, Any], tier: str) -> str:
     req_hint = ""
     if isinstance(reqs, list) and reqs:
         req_hint = f" deps={','.join(str(r) for r in reqs[:3])}"
-    return f"- **{name}** [{tier}]{req_hint}: {short}"
+
+    shape = manifest.get("shape", "atomic")
+    pkg_tier = manifest.get("tier", "core")
+    target_list = manifest.get("target") or ["software"]
+    if not isinstance(target_list, list):
+        target_list = [target_list]
+    target_str = ",".join(str(t) for t in target_list)
+    taxonomy = f" [{pkg_tier}:{shape}:{target_str}]"
+
+    return f"- **{name}** [{tier}]{taxonomy}{req_hint}: {short}"
 
 
 class SkillContext:
@@ -153,6 +166,11 @@ class SkillContext:
         skill: Optional[str] = None,
         skills: Optional[Sequence[str]] = None,
         categories: Optional[Sequence[str]] = None,
+        allowed_shapes: Optional[Sequence[str]] = None,
+        allowed_tiers: Optional[Sequence[str]] = None,
+        allowed_targets: Optional[Sequence[str]] = None,
+        tags: Optional[Sequence[str]] = None,
+        allow_hardware_execution: bool = False,
         roots: Optional[Union[str, Path, Sequence[Union[str, Path]]]] = None,
         exclude_roots: Optional[Sequence[str]] = None,
         max_skills: Optional[int] = None,
@@ -166,6 +184,24 @@ class SkillContext:
         self._secret_provider = coerce_secret_provider(secret_provider)
         self._max_concurrency = max_concurrency
         self._semaphore: Optional[asyncio.Semaphore] = None
+        self.allowed_shapes = (
+            {str(s).strip().lower() for s in allowed_shapes}
+            if allowed_shapes is not None
+            else None
+        )
+        self.allowed_tiers = (
+            {str(t).strip().lower() for t in allowed_tiers}
+            if allowed_tiers is not None
+            else None
+        )
+        self.allowed_targets = (
+            {str(t).strip().lower() for t in allowed_targets}
+            if allowed_targets is not None
+            else None
+        )
+        self.tags = {str(t).strip().lower() for t in tags} if tags is not None else None
+        self.allow_hardware_execution = allow_hardware_execution
+
         self.skill_ids, self.warnings, self._tier_by_id = _discover_skill_ids(
             skill=skill,
             skills=skills,
@@ -178,15 +214,48 @@ class SkillContext:
         self._instances: Dict[str, Any] = {}
         self._load_bundles()
 
+    def _matches_taxonomy_filters(self, manifest: Mapping[str, Any]) -> bool:
+        if self.allowed_shapes is not None:
+            shape = str(manifest.get("shape", "atomic")).strip().lower()
+            if shape not in self.allowed_shapes:
+                return False
+
+        if self.allowed_tiers is not None:
+            tier = str(manifest.get("tier", "core")).strip().lower()
+            if tier not in self.allowed_tiers:
+                return False
+
+        if self.allowed_targets is not None:
+            targets = manifest.get("target") or ["software"]
+            if not isinstance(targets, list):
+                targets = [targets]
+            clean_targets = {str(t).strip().lower() for t in targets}
+            if not clean_targets.issubset(self.allowed_targets):
+                return False
+
+        if self.tags is not None:
+            manifest_tags = manifest.get("tags") or []
+            if not isinstance(manifest_tags, list):
+                manifest_tags = [manifest_tags]
+            clean_tags = {str(t).strip().lower() for t in manifest_tags}
+            if not clean_tags.intersection(self.tags):
+                return False
+
+        return True
+
     def _load_bundles(self) -> None:
         execute = self.mode == "directives"
         for skill_id in self.skill_ids:
             try:
-                self._bundles[skill_id] = SkillLoader.load_skill(
+                bundle = SkillLoader.load_skill(
                     skill_id,
                     check_requirements=self._check_requirements,
                     execute_module=execute,
                 )
+                manifest = bundle.get("manifest") or {}
+                if not self._matches_taxonomy_filters(manifest):
+                    continue
+                self._bundles[skill_id] = bundle
             except Exception as exc:
                 self.warnings.append(f"Skipped {skill_id!r}: {exc}")
 
@@ -273,10 +342,27 @@ class SkillContext:
             if skill_id not in self.skill_ids:
                 self.skill_ids.append(skill_id)
         bundle = self._bundles[skill_id]
+        manifest = bundle.get("manifest") or {}
+
+        target = manifest.get("target") or ["software"]
+        if not isinstance(target, list):
+            target = [target]
+        has_physical = any(
+            str(t).strip().lower() in ("hardware", "bioware") for t in target
+        )
+        if has_physical and not self.allow_hardware_execution:
+            warnings.warn(
+                f"Skill '{skill_id}' has physical execution target {target!r}. "
+                "Executing in autonomous mode without human operator confirmation may cause physical "
+                "or biological side effects. Set allow_hardware_execution=True to acknowledge.",
+                SkillwareHardwareSafetyWarning,
+                stacklevel=2,
+            )
+
         return PreparedSkill(
             skill_id=skill_id,
             directive=str(bundle.get("instructions") or ""),
-            manifest=bundle.get("manifest") or {},
+            manifest=manifest,
             bundle=bundle,
         )
 

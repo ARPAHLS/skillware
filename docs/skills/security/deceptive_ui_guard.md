@@ -258,6 +258,7 @@ Commits that touched this skill bundle or its catalog page ([`security/deceptive
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`790787d`](https://github.com/ARPAHLS/skillware/commit/790787d0e72262ddfeb26f747f880012ca2b1ca6) | docs: five-provider Usage Examples guard and catalog loop backfill (#347) | 10 Sep 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`9d1152c`](https://github.com/ARPAHLS/skillware/commit/9d1152c049c3bcfe1b7f6b825decae1b09e104a7) | feat(security): deceptive_ui_guard v2 — render diff, zone weighting, allowlists (#314) (#327) | 3 Sep 2026 | `0.2.0` | [@tusharjamunkar](https://github.com/tusharjamunkar), [@rosspeili](https://github.com/rosspeili) |
 | [`12fbd1a`](https://github.com/ARPAHLS/skillware/commit/12fbd1a11bdf66250008afc59df7048935eafc73) | docs: adopt Skill anatomy vocabulary on catalog page (#319) | 1 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |

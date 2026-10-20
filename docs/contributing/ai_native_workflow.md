@@ -240,7 +240,8 @@ These align with [CONTRIBUTING.md](../../CONTRIBUTING.md). Violations block merg
 ### Skills (under `skills/`)
 
 - Bundle: `manifest.yaml` (Contract), `skill.py` (Effect), `instructions.md` (Directive), `card.json` (Presentation), `test_skill.py` (Assurance), plus catalog docs
-- `manifest.yaml` is source of truth for schema, constitution, `requirements`, `env_vars`, and `issuer`
+- `manifest.yaml` is source of truth for taxonomy (`tier`, `shape`, `target`, `tags`), schema, constitution, `requirements`, `env_vars`, and `issuer`
+- **Manifest v2 taxonomy**: all skills must declare `tier` (`core` for OSS repository skills), `shape` (`atomic`, `workflow`, `middleware`, or `stream`), `target` (non-empty list, e.g. `[software]`), and `tags` (2 to 10 unique lowercase keywords matching `^[a-z0-9_-]+$`). Tagging must be domain-specific; generic filler tags like `[tool, ai, python]` are forbidden.
 - `requirements` — PEP 508 strings; unpinned checks importability only; version specifiers (for example `>=2.0.0`) are validated at load time — pin when the skill is sensitive to package API versions
 - `manifest.yaml` `name` must equal `category/skill_name` (matches folder path); loader warns on mismatch for registry layout
 - `issuer.name` and `issuer.email` required; `github` and optional `org` per [Issuer org](../../CONTRIBUTING.md#issuer-org); no template placeholders in registry paths
@@ -285,7 +286,7 @@ Complete the checklist that matches your issue during Stage 5.
 ### New or updated skill
 
 - [ ] `skills/<category>/<skill_name>/` exists with full bundle
-- [ ] `manifest.yaml` (Contract): `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
+- [ ] `manifest.yaml` (Contract): Manifest v2 fields valid (`tier`: `core`/`cloud`/`enterprise`, `shape`: `atomic`/`workflow`/`middleware`/`stream`, `target`: list of `software`/`hardware`/`bioware`, `tags`: 2-10 unique lowercase keywords matching `^[a-z0-9_-]+$`, no duplicate meanings), `name` (`category/skill_name`, matches folder), `version`, `description`, `parameters`, `constitution`, real `issuer`; use `outputs:` (not `output:`) when declaring return shape
 - [ ] Optional: `short_description` field (~80 chars) for a concise one-line summary in `skillware list`
 - [ ] `skill.py` (Effect): exactly one `BaseSkill` subclass (auto-discovered as `bundle["class"]`); deterministic, JSON-serializable returns, safe error handling
 - [ ] `instructions.md` (Directive): when to use, how to interpret output, limitations

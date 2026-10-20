@@ -4,5 +4,6 @@
 """Skillware — installable agent skills framework."""
 
 from skillware.context import SkillContext
+from skillware.core.manifest_schema import SkillwareHardwareSafetyWarning
 
-__all__ = ["SkillContext"]
+__all__ = ["SkillContext", "SkillwareHardwareSafetyWarning"]

@@ -1,5 +1,15 @@
 name: defi/evm_tx_handler
 version: 0.3.0
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - web3
+  - evm
+  - transaction
+  - signing
+  - wallet
 description: |
   Operates a dedicated EVM agent wallet for structured buy/sell on Ethereum and Base:
   resolve, Uni V2 quote/preview/execute, transfer, balances, and wallet info.

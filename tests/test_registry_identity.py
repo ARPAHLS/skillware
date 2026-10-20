@@ -83,3 +83,92 @@ def test_registry_manifest_names_are_globally_unique():
     assert (
         not duplicates
     ), f"duplicate manifest.name across registry skills: {dict(duplicates)}"
+
+
+def test_registry_manifests_satisfy_v2_schema():
+    """All bundled registry skills must strictly satisfy Manifest v2 schema with explicit taxonomy."""
+    from skillware.core.manifest_schema import (
+        TAG_REGEX,
+        VALID_SHAPES,
+        VALID_TARGETS,
+        VALID_TIERS,
+        validate_manifest_schema,
+    )
+
+    skill_dirs = _discover_skill_dirs()
+    assert skill_dirs, "expected at least one skill under skills/"
+
+    schema_errors = []
+    for skill_dir in skill_dirs:
+        expected = _expected_registry_id(skill_dir)
+        if expected is None:
+            continue
+
+        manifest = _load_manifest(skill_dir)
+        rel_path = skill_dir.relative_to(REPO_ROOT).as_posix()
+
+        # 1. Full schema validation
+        errs = validate_manifest_schema(manifest, skill_id=expected)
+        if errs:
+            schema_errors.extend(errs)
+            continue
+
+        # 2. Strict explicit declaration requirement for first-party catalog
+        if "shape" not in manifest or manifest["shape"] not in VALID_SHAPES:
+            schema_errors.append(
+                f"{rel_path}: missing or invalid 'shape' ({manifest.get('shape')!r})"
+            )
+        if "tier" not in manifest or manifest["tier"] not in VALID_TIERS:
+            schema_errors.append(
+                f"{rel_path}: missing or invalid 'tier' ({manifest.get('tier')!r})"
+            )
+        target = manifest.get("target")
+        if (
+            not isinstance(target, list)
+            or not target
+            or not all(t in VALID_TARGETS for t in target)
+        ):
+            schema_errors.append(
+                f"{rel_path}: missing or invalid 'target' list ({target!r})"
+            )
+        tags = manifest.get("tags")
+        if (
+            not isinstance(tags, list)
+            or len(tags) < 2
+            or len(tags) > 10
+            or len(tags) != len(set(tags))
+            or not all(isinstance(t, str) and TAG_REGEX.match(t) for t in tags)
+        ):
+            schema_errors.append(
+                f"{rel_path}: invalid 'tags' list (must be 2-10 unique lowercase keywords: {tags!r})"
+            )
+
+    assert not schema_errors, "Manifest v2 catalog violations:\n  " + "\n  ".join(
+        schema_errors
+    )
+
+
+def test_template_manifest_satisfies_v2_schema():
+    """Starter template manifest must satisfy Manifest v2 schema."""
+    from skillware.core.manifest_schema import (
+        VALID_SHAPES,
+        VALID_TARGETS,
+        VALID_TIERS,
+        validate_manifest_schema,
+    )
+
+    template_file = REPO_ROOT / "templates" / "python_skill" / "manifest.yaml"
+    assert template_file.is_file(), f"missing template manifest: {template_file}"
+
+    with open(template_file, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    errs = validate_manifest_schema(data, skill_id="templates/python_skill")
+    assert not errs, f"template manifest schema errors: {errs}"
+
+    assert data.get("shape") in VALID_SHAPES
+    assert data.get("tier") in VALID_TIERS
+    assert isinstance(data.get("target"), list) and all(
+        t in VALID_TARGETS for t in data["target"]
+    )
+    assert isinstance(data.get("tags"), list)

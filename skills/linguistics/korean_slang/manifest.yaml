@@ -1,5 +1,15 @@
 name: linguistics/korean_slang
 version: 0.1.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - nlp
+  - slang
+  - korean
+  - translation
+  - linguistics
 description: >
   Deterministic offline Korean Gen-Z slang lexicon. Interprets modern internet
   Korean (줄임말, Konglish, jamo abbreviations), returns translation plus

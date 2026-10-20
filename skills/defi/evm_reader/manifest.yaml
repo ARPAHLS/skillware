@@ -1,5 +1,15 @@
 name: defi/evm_reader
 version: 0.1.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - web3
+  - evm
+  - ethereum
+  - rpc
+  - blockchain
 description: |
   Read-only EVM state plane: validate/normalize addresses, resolve holders from
   central address book (public_0x), query ERC-20/721 metadata and balances,

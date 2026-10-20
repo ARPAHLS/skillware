@@ -126,12 +126,23 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         [
             ("skillware list", "discover installed registry skills"),
             ("skillware list --category <n>", "filter by category"),
+            (
+                "skillware list --shape <s>",
+                "filter by shape (atomic|workflow|middleware|stream)",
+            ),
+            ("skillware list --tier <t>", "filter by tier (core|cloud|enterprise)"),
+            (
+                "skillware list --target <t>",
+                "filter by substrate (software|hardware|bioware)",
+            ),
+            ("skillware list --tag <kw>", "filter by domain keyword"),
             ("skillware list --issuer <h>", "filter by issuer"),
             ("skillware list --examples", "per-skill example script counts"),
             ("skillware list --skills-root <path>", "one-shot skills root override"),
+            ("skillware info <id>", "view detailed skill taxonomy and metadata"),
             ("skillware test [id]", "run bundle tests via pytest"),
             ("skillware test --category <n>", "test all skills in a category"),
-            ("skillware doctor [id]", "check deps and skill.py import"),
+            ("skillware doctor [id]", "check schema, deps, and skill.py import"),
             ("skillware doctor --category <n>", "diagnose a category"),
             ("skillware doctor --install", "check editable vs PyPI install health"),
         ],
@@ -293,7 +304,9 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware list --category compliance",
+    "skillware list --shape middleware",
     "skillware list --examples --category dev_tools",
+    "skillware info optimization/prompt_rewriter",
     "skillware examples compliance/tos_evaluator",
     "skillware test finance/wallet_screening",
     "skillware paths",
@@ -505,6 +518,12 @@ def _discover_skills(
             seen_ids.add(skill_id)
 
             issuer = data.get("issuer") or {}
+            target_raw = data.get("target") or ["software"]
+            target = (
+                [str(t).strip().lower() for t in target_raw]
+                if isinstance(target_raw, list)
+                else [str(target_raw).strip().lower()]
+            )
 
             skills.append(
                 {
@@ -512,6 +531,14 @@ def _discover_skills(
                     "category": manifest_path.parent.parent.name,
                     "name": manifest_path.parent.name,
                     "version": data.get("version", "?").strip(),
+                    "shape": str(data.get("shape") or "atomic").strip().lower(),
+                    "tier": str(data.get("tier") or "core").strip().lower(),
+                    "target": target,
+                    "tags": [
+                        str(t).strip().lower()
+                        for t in (data.get("tags") or [])
+                        if isinstance(t, str)
+                    ],
                     "description": _short_description(data),
                     "requirements": ", ".join(data.get("requirements") or []).strip(),
                     "issuer": issuer.get("github") or issuer.get("name") or "",
@@ -612,6 +639,10 @@ def cmd_list(
     skills_root_override: Optional[Path] = None,
     category_filter: Optional[str] = None,
     issuer_filter: Optional[str] = None,
+    shape_filter: Optional[str] = None,
+    tier_filter: Optional[str] = None,
+    target_filter: Optional[str] = None,
+    tag_filter: Optional[str] = None,
     show_examples: bool = False,
     console=None,
 ) -> None:
@@ -627,6 +658,30 @@ def cmd_list(
 
     if issuer_filter:
         skills = [s for s in skills if s["issuer"] == issuer_filter]
+
+    if shape_filter:
+        shape_norm = shape_filter.strip().lower()
+        skills = [s for s in skills if s.get("shape") == shape_norm]
+
+    if tier_filter:
+        tier_norm = tier_filter.strip().lower()
+        skills = [s for s in skills if s.get("tier") == tier_norm]
+
+    if target_filter:
+        target_norm = target_filter.strip().lower()
+        skills = [
+            s
+            for s in skills
+            if target_norm in [str(t).lower() for t in s.get("target", [])]
+        ]
+
+    if tag_filter:
+        tag_norm = tag_filter.strip().lower()
+        skills = [
+            s
+            for s in skills
+            if any(tag_norm == t or tag_norm in t for t in s.get("tags", []))
+        ]
 
     if not skills:
         console.print("No skills found.")
@@ -653,6 +708,9 @@ def cmd_list(
 
     table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
     table.add_column("VERSION", style="dim", no_wrap=True, ratio=1)
+    table.add_column("SHAPE", style="dim", no_wrap=True, ratio=1)
+    table.add_column("TIER", style="dim", no_wrap=True, ratio=1)
+    table.add_column("TARGET", style="dim", no_wrap=True, ratio=1)
     table.add_column("CATEGORY", style=CATEGORY_STYLE, no_wrap=True, ratio=1)
     table.add_column("ISSUER", style="dim", no_wrap=True, ratio=1)
     table.add_column("DESCRIPTION", ratio=3)
@@ -661,9 +719,16 @@ def cmd_list(
         table.add_column("EXAMPLES", style="dim", no_wrap=True, ratio=1)
 
     for skill in skills:
+        target_val = skill.get("target") or ["software"]
+        target_str = (
+            "+".join(target_val) if isinstance(target_val, list) else str(target_val)
+        )
         row = [
             skill["id"],
             skill["version"],
+            skill.get("shape", "atomic"),
+            skill.get("tier", "core"),
+            target_str,
             skill["category"],
             skill["issuer"],
             skill["description"],
@@ -679,6 +744,74 @@ def cmd_list(
         "Optional runtime deps: see docs/usage/install_extras.md",
         style="dim",
     )
+
+
+def cmd_info(
+    skill_id: str,
+    skills_root_override: Optional[Path] = None,
+    console=None,
+) -> int:
+    """Print detailed metadata and taxonomy panel for a skill."""
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+
+    skills = _discover_skills(skills_root_override)
+    skill = next((s for s in skills if s["id"] == skill_id), None)
+    if not skill:
+        console.print(f"Skill '{skill_id}' not found.", style=ERROR_STYLE)
+        return 1
+
+    from rich.panel import Panel
+
+    shape = skill.get("shape", "atomic")
+    tier = skill.get("tier", "core")
+    target_list = skill.get("target") or ["software"]
+    target_str = (
+        ", ".join(target_list) if isinstance(target_list, list) else str(target_list)
+    )
+    tags_list = skill.get("tags") or []
+    tags_str = ", ".join(tags_list) if tags_list else "—"
+
+    shape_descriptions = {
+        "atomic": "Single-step tool execution returning a deterministic output",
+        "workflow": "Multi-step interactive flow with preview/confirmation",
+        "middleware": "Interceptor inspecting, sanitizing, or gating inputs/outputs",
+        "stream": "Continuous or chunked streaming event processor",
+    }
+    shape_desc = shape_descriptions.get(shape, "")
+    shape_line = f"{shape} ({shape_desc})" if shape_desc else shape
+
+    tier_descriptions = {
+        "core": "Bundled open-source, local offline execution",
+        "cloud": "Cloud API endpoints or hosted models",
+        "enterprise": "Requires enterprise credentials or infrastructure",
+    }
+    tier_desc = tier_descriptions.get(tier, "")
+    tier_line = f"{tier} ({tier_desc})" if tier_desc else tier
+
+    content = (
+        f"[bold]ID:[/bold] {skill['id']}\n"
+        f"[bold]Version:[/bold] {skill['version']}\n"
+        f"[bold]Category:[/bold] {skill['category']}\n"
+        f"[bold]Issuer:[/bold] {skill['issuer'] or '—'}\n"
+        f"[bold]Description:[/bold] {skill['description']}\n"
+        f"[bold]Requirements:[/bold] {skill['requirements'] or '—'}\n\n"
+        f"[bold cyan]Taxonomy:[/bold cyan]\n"
+        f"  [bold]Shape:[/bold]  {shape_line}\n"
+        f"  [bold]Tier:[/bold]   {tier_line}\n"
+        f"  [bold]Target:[/bold] {target_str}\n"
+        f"  [bold]Tags:[/bold]   {tags_str}"
+    )
+
+    panel = Panel(
+        content,
+        title=f"Skill Info: {skill_id}",
+        border_style=BORDER_STYLE,
+        expand=False,
+    )
+    console.print(panel)
+    return 0
 
 
 def cmd_examples(
@@ -1629,10 +1762,12 @@ def _resolve_doctor_skill_ids(
 def _diagnose_skill(
     skill_id: str,
     skills_root_override: Optional[Path] = None,
-) -> Tuple[str, str, str, str]:
-    """Return (deps_status, load_status, envs_status, detail)."""
+) -> Tuple[str, str, str, str, str]:
+    """Return (schema_status, deps_status, load_status, envs_status, detail)."""
     load_target = _doctor_load_target(skill_id, skills_root_override)
     bundle: Optional[Dict[str, Any]] = None
+
+    from skillware.core.manifest_schema import validate_manifest_schema
 
     try:
         bundle = SkillLoader.load_skill(
@@ -1643,11 +1778,15 @@ def _diagnose_skill(
         deps_status = "ok"
     except ImportError as exc:
         detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
-        return "fail", "skip", "—", detail
+        return "skip", "fail", "skip", "—", detail
+
+    manifest = (bundle or {}).get("manifest") or {}
+    schema_errors = validate_manifest_schema(manifest, skill_id=skill_id)
+    schema_status = "ok" if not schema_errors else "fail"
+    schema_detail = "; ".join(schema_errors) if schema_errors else ""
 
     from skillware.core.secrets import audit_manifest_env_vars
 
-    manifest = (bundle or {}).get("manifest") or {}
     envs_status, envs_detail = audit_manifest_env_vars(manifest)
 
     try:
@@ -1656,12 +1795,18 @@ def _diagnose_skill(
             execute_module=True,
             check_requirements=False,
         )
-        return deps_status, "ok", envs_status, envs_detail
+        combined_detail = ""
+        if schema_detail:
+            combined_detail = schema_detail
+        if envs_detail:
+            combined_detail = (
+                f"{combined_detail}; {envs_detail}" if combined_detail else envs_detail
+            )
+        return schema_status, deps_status, "ok", envs_status, combined_detail
     except ImportError as exc:
         detail = _flatten_table_cell(str(exc).splitlines()[0], 72)
-        if envs_detail:
-            detail = f"{envs_detail}; {detail}" if detail else envs_detail
-        return deps_status, "fail", envs_status, detail
+        parts = [p for p in [schema_detail, envs_detail, detail] if p]
+        return schema_status, deps_status, "fail", envs_status, "; ".join(parts)
 
 
 def cmd_doctor(
@@ -1691,13 +1836,14 @@ def cmd_doctor(
         expand=True,
     )
     table.add_column("ID", style=ID_STYLE, no_wrap=True, ratio=2)
+    table.add_column("SCHEMA", no_wrap=True, ratio=1)
     table.add_column("DEPS", no_wrap=True, ratio=1)
     table.add_column("LOAD", no_wrap=True, ratio=1)
     table.add_column("ENVS", no_wrap=True, ratio=1)
     table.add_column("DETAIL", style="dim", ratio=4)
 
     failures = 0
-    rows: List[Tuple[str, Text, Text, Text, str]] = []
+    rows: List[Tuple[str, Text, Text, Text, Text, str]] = []
     spinner_label = (
         f"Diagnosing {len(skill_ids)} skill(s)…"
         if len(skill_ids) != 1
@@ -1706,15 +1852,34 @@ def cmd_doctor(
     with Status(spinner_label, console=console, spinner="dots"):
         for sid in sorted(skill_ids):
             try:
-                deps_status, load_status, envs_status, detail = _diagnose_skill(
-                    sid, skills_root_override=skills_root_override
-                )
+                (
+                    schema_status,
+                    deps_status,
+                    load_status,
+                    envs_status,
+                    detail,
+                ) = _diagnose_skill(sid, skills_root_override=skills_root_override)
             except FileNotFoundError as exc:
                 console.print(str(exc), style=ERROR_STYLE)
                 return 1
 
-            if deps_status != "ok" or load_status == "fail" or envs_status == "fail":
+            if (
+                schema_status == "fail"
+                or deps_status != "ok"
+                or load_status == "fail"
+                or envs_status == "fail"
+            ):
                 failures += 1
+
+            schema_cell = (
+                Text(schema_status, style=ID_STYLE)
+                if schema_status == "ok"
+                else (
+                    Text("—", style="dim")
+                    if schema_status == "skip"
+                    else Text(schema_status, style=ERROR_STYLE)
+                )
+            )
 
             deps_cell = Text(
                 deps_status,
@@ -1734,15 +1899,22 @@ def cmd_doctor(
             else:
                 envs_cell = Text(envs_status, style=ERROR_STYLE)
 
-            rows.append((sid, deps_cell, load_cell, envs_cell, detail or "—"))
+            rows.append(
+                (sid, schema_cell, deps_cell, load_cell, envs_cell, detail or "—")
+            )
 
-    for sid, deps_cell, load_cell, envs_cell, detail in rows:
-        table.add_row(sid, deps_cell, load_cell, envs_cell, detail)
+    for sid, schema_cell, deps_cell, load_cell, envs_cell, detail in rows:
+        table.add_row(sid, schema_cell, deps_cell, load_cell, envs_cell, detail)
 
+    valid_schema_count = sum(1 for s in rows if s[1].plain == "ok")
     console.print(table)
     console.print(
-        "DEPS = manifest requirements; LOAD = skill.py import; "
-        "ENVS = required manifest env_vars (via EnvSecretProvider). "
+        f"{valid_schema_count}/{len(rows)} skill manifests satisfy Manifest v2 specification",
+        style="dim",
+    )
+    console.print(
+        "SCHEMA = manifest v2 schema validity; DEPS = manifest requirements; "
+        "LOAD = skill.py import; ENVS = required manifest env_vars (via EnvSecretProvider). "
         "See docs/usage/install_extras.md and docs/usage/api_keys.md",
         style="dim",
     )
@@ -2039,9 +2211,47 @@ def main() -> None:
         help="Filter skills by issuer GitHub handle or name.",
     )
     list_parser.add_argument(
+        "--shape",
+        choices=["atomic", "workflow", "middleware", "stream"],
+        default=None,
+        help="Filter skills by execution shape (atomic, workflow, middleware, stream).",
+    )
+    list_parser.add_argument(
+        "--tier",
+        choices=["core", "cloud", "enterprise"],
+        default=None,
+        help="Filter skills by deployment tier (core, cloud, enterprise).",
+    )
+    list_parser.add_argument(
+        "--target",
+        choices=["software", "hardware", "bioware"],
+        default=None,
+        help="Filter skills by target substrate (software, hardware, bioware).",
+    )
+    list_parser.add_argument(
+        "--tag",
+        default=None,
+        help="Filter skills by domain keyword or semantic tag.",
+    )
+    list_parser.add_argument(
         "--examples",
         action="store_true",
         help="Add EXAMPLES column with indexed script count per skill.",
+    )
+
+    info_parser = subparsers.add_parser(
+        "info",
+        help="View detailed skill metadata and taxonomy badge panel.",
+    )
+    info_parser.add_argument(
+        "skill_id",
+        help="Registry skill ID (category/skill_name).",
+    )
+    info_parser.add_argument(
+        "--skills-root",
+        type=Path,
+        default=None,
+        help="Override the skills directory path.",
     )
 
     examples_parser = subparsers.add_parser(
@@ -2516,7 +2726,18 @@ def main() -> None:
             skills_root_override=args.skills_root,
             category_filter=args.category,
             issuer_filter=args.issuer,
+            shape_filter=args.shape,
+            tier_filter=args.tier,
+            target_filter=args.target,
+            tag_filter=args.tag,
             show_examples=args.examples,
+        )
+    elif args.command == "info":
+        raise SystemExit(
+            cmd_info(
+                skill_id=args.skill_id,
+                skills_root_override=args.skills_root,
+            )
         )
     elif args.command == "examples":
         raise SystemExit(cmd_examples(skill_id=args.skill_id))

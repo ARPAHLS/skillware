@@ -6,11 +6,18 @@ import os
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import jsonschema
 from jsonschema import ValidationError
 import yaml
+
+from skillware.core.manifest_schema import (
+    DEFAULT_SHAPE,
+    DEFAULT_TAGS,
+    DEFAULT_TARGET,
+    DEFAULT_TIER,
+)
 
 
 class SkillwareParamValidationError(ValueError):
@@ -81,6 +88,34 @@ class BaseSkill(ABC):
         description, inputs, and outputs.
         """
         pass
+
+    @property
+    def shape(self) -> str:
+        """Return execution shape: atomic, workflow, middleware, or stream."""
+        val = self.manifest.get("shape")
+        return str(val or DEFAULT_SHAPE).strip().lower()
+
+    @property
+    def tier(self) -> str:
+        """Return deployment tier: core, cloud, or enterprise."""
+        val = self.manifest.get("tier")
+        return str(val or DEFAULT_TIER).strip().lower()
+
+    @property
+    def target(self) -> List[str]:
+        """Return physical/execution targets: software, hardware, bioware."""
+        val = self.manifest.get("target")
+        if isinstance(val, list) and val:
+            return [str(item).strip().lower() for item in val]
+        return list(DEFAULT_TARGET)
+
+    @property
+    def tags(self) -> List[str]:
+        """Return semantic and application discovery tags."""
+        val = self.manifest.get("tags")
+        if isinstance(val, list):
+            return [str(item).strip().lower() for item in val]
+        return list(DEFAULT_TAGS)
 
     def execute(self, params: Dict[str, Any]) -> Any:
         """

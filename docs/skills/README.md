@@ -6,6 +6,26 @@ Browse by category below, or run `skillware list` after `pip install skillware` 
 
 Each category has a dedicated hub at `docs/skills/<category>/README.md`. Skill catalog pages live beside that hub (`docs/skills/<category>/<skill_name>.md`). Runtime IDs stay in registry form under `skills/` — the folder layout used by `SkillLoader` is unchanged. Full crawl map: [documentation sitemap](../sitemap.md).
 
+## Universal Skill Taxonomy (Manifest v2)
+
+Every skill in the library adheres to the Manifest v2 taxonomy to provide deterministic discovery, runtime filtering, and safety-gated execution:
+
+* **Shape (Execution Geometry):**
+  * `atomic`: Single-step tool execution returning a deterministic output.
+  * `workflow`: Multi-step interactive flow with distinct internal stages (e.g. preview, verification, confirmation gates).
+  * `middleware`: Interceptor that inspects, sanitizes, or gates inputs/outputs before reaching models or tools.
+  * `stream`: Streaming event processor handling continuous or chunked metrics and sensor telemetry feeds.
+* **Tier (Deployment Model):**
+  * `core`: Open-source, local offline compute with zero external paid cloud API dependencies. All bundled repository skills are `tier: core`.
+  * `cloud`: Uses remote cloud API endpoints or hosted models.
+  * `enterprise`: Requires enterprise infrastructure, specialized credentials, or KMS.
+* **Target (Execution Substrate):**
+  * `software`: Standard software environments.
+  * `hardware`: Physical actuators, robotics, IoT fleets, or sensor buses (gated by `allow_hardware_execution` in `SkillContext`).
+  * `bioware`: Biosensors, neural telemetry, or brain-computer interfaces.
+* **Tags (Domain Keywords):**
+  * Curated domain and protocol keywords (2 to 10 unique lowercase keywords matching `^[a-z0-9_-]+$`). Filtering available via `skillware list --tag <keyword>`.
+
 ## Office
 Skills for document processing, email automation, and productivity.
 

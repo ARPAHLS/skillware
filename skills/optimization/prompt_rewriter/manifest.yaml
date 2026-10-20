@@ -1,5 +1,14 @@
 name: "optimization/prompt_rewriter"
 version: "0.1.0"
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - prompt_engineering
+  - compression
+  - refinement
+  - llm
 description: "A powerful middleware skill that aggressively compresses massive, bloated prompts into fewer tokens while retaining 100% of the semantic meaning and instructions."
 short_description: "Compresses bloated prompts into fewer tokens without losing meaning."
 issuer:

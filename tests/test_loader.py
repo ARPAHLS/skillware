@@ -657,3 +657,54 @@ def test_bedrock_tool_name_matches_openai_sanitization():
     openai_name = SkillLoader.to_openai_tool(sample_bundle)["function"]["name"]
     bedrock_name = SkillLoader.to_bedrock_tool(sample_bundle)["toolSpec"]["name"]
     assert bedrock_name == openai_name == "finance_wallet_screening"
+
+
+def test_load_skill_normalizes_manifest_v2():
+    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    manifest = bundle["manifest"]
+    assert "shape" in manifest
+    assert "tier" in manifest
+    assert "target" in manifest
+    assert "tags" in manifest
+    assert manifest["shape"] in ("atomic", "workflow", "middleware", "stream")
+    assert manifest["tier"] in ("core", "cloud", "enterprise")
+    assert isinstance(manifest["target"], list)
+    assert isinstance(manifest["tags"], list)
+
+    # BaseSkill instance properties
+    skill_instance = bundle["class"]()
+    assert skill_instance.shape == manifest["shape"]
+    assert skill_instance.tier == manifest["tier"]
+    assert skill_instance.target == manifest["target"]
+    assert skill_instance.tags == manifest["tags"]
+
+
+def test_load_skill_legacy_manifest_fallbacks(tmp_path):
+    skill_dir = tmp_path / "legacy_skill"
+    skill_dir.mkdir()
+    (skill_dir / "manifest.yaml").write_text(
+        "name: legacy_skill\nversion: 0.1.0\ndescription: A legacy skill without v2 fields.\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class LegacySkill(BaseSkill):\n"
+        "    @property\n"
+        "    def manifest(self):\n"
+        "        return {'name': 'legacy_skill'}\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    bundle = SkillLoader.load_skill(str(skill_dir))
+    manifest = bundle["manifest"]
+    assert manifest["shape"] == "atomic"
+    assert manifest["tier"] == "core"
+    assert manifest["target"] == ["software"]
+    assert manifest["tags"] == []
+
+    inst = bundle["class"]()
+    assert inst.shape == "atomic"
+    assert inst.tier == "core"
+    assert inst.target == ["software"]
+    assert inst.tags == []

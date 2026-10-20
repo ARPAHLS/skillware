@@ -300,6 +300,7 @@ Commits that touched this skill bundle or its catalog page ([`optimization/conte
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`0ab59cc`](https://github.com/ARPAHLS/skillware/commit/0ab59ccfa5b2fabd438114980aba063367418f0d) | feat(optimization): add context_optimizer for query-aware extractive selection (#44) (#357) | 16 Sep 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 

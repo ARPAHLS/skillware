@@ -278,6 +278,7 @@ Commits that touched this skill bundle or its catalog page ([`security/deepfake_
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`4692d22`](https://github.com/ARPAHLS/skillware/commit/4692d2262c1e4549ed3979accab9487822cbd331) | feat(security): add deepfake_guard — air-gapped media & document authenticity guard (#48) (#418) | 07 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 

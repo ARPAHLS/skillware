@@ -1,5 +1,14 @@
 name: office/gmail_handler
 version: 0.2.0
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - email
+  - gmail
+  - google_workspace
+  - draft
 description: |
   Deterministic Gmail IMAP/SMTP handler for agent mail workflows. Provides
   structured actions for recipient resolution, inbox search, read, preview/send,

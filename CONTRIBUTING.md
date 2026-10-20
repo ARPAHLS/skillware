@@ -259,28 +259,72 @@ Checklists below use **file names**; each file implements a **role**. The [READM
 
 ### 1. `manifest.yaml` (Contract)
 
-Defines the tool interface, safety constitution, dependencies, and issuer attribution.
+Defines the tool interface, execution taxonomy, safety constitution, dependencies, and issuer attribution.
 
 **Required fields and sections:**
 
 - `name` — registry skill ID in `category/skill_name` form; **must match** the folder path under `skills/` (same string as `SkillLoader.load_skill(...)` and the CLI `ID` column). Do not use a short name alone (for example `pdf_form_filler` without the `office/` prefix). The loader emits `SkillwareIdentityWarning` when a registry-layout skill (`<skill_root>/<category>/<skill_name>/`) has a missing or mismatched `name` (warn-only in v1; may become an error later). Flat private layouts (`<skill_root>/<skill_name>/`) skip this check. Enforced in CI via `tests/test_registry_identity.py` — mismatched or duplicate `manifest.name` blocks merge (#280).
 - `version`, `description`
+- `tier` — deployment tier: `core` (zero external paid cloud API dependencies; local compute), `cloud` (uses cloud API endpoints or hosted models), or `enterprise` (requires enterprise credentials, on-prem infrastructure, or KMS). All bundled OSS repository skills are `tier: core`.
+- `shape` — execution archetype:
+  - `atomic`: single-step tool execution returning a deterministic output.
+  - `workflow`: multi-step orchestrated pipeline with distinct internal stages.
+  - `middleware`: interceptor that inspects, sanitizes, or gates inputs/outputs before reaching models or tools.
+  - `stream`: streaming event processor handling continuous or chunked metrics/telemetry.
+- `target` — list of execution substrates (`software`, `hardware`, `bioware`). Pure software skills specify `[software]`. Robotics, edge devices, or sensor skills include `hardware`. Wetware or biosensor skills include `bioware`.
+- `tags` — curated semantic and domain discovery keywords (see [Tag policy and guidelines](#tag-policy-and-guidelines) below).
 - `issuer` — see [Issuer attribution](#issuer-attribution); `name` and `email` required, `github` and `org` optional
 - `short_description` — optional one-line summary (~80 chars) shown in `skillware list` when present. Keep it accurate and searchable (the problem the skill solves); do not keyword-stuff.
 - `parameters` — valid JSON Schema for LLM tool calling
 - `constitution` — safety boundaries enforced at the prompt level
 - `requirements` — when external packages are needed (for example `requests`, `pandas`). Use PEP 508 strings; add version specifiers (for example `web3>=6.0.0`) when the skill depends on a minimum package version — `SkillLoader.load_skill()` validates pins at load time (see [Install extras](docs/usage/install_extras.md#loader-behavior)).
 
+#### Tag policy and guidelines
+
+Every skill manifest must adhere to the catalog tag governance policy (enforced in CI via schema validation and `tests/test_registry_identity.py`):
+1. **Quantity limit:** Minimum 2 and maximum 10 tags per skill (`maxItems: 10`). Recommended: 3 to 6 focused tags.
+2. **Character format:** Strict lowercase alphanumeric, hyphens, and underscores matching `^[a-z0-9_-]+$`. No spaces, uppercase letters, or special characters.
+3. **No duplicates:** Every tag in a manifest must be unique. Duplicate tags cause schema validation failures.
+4. **Avoid semantic duplicates and synonym stuffing:** Do not repeat synonyms or closely overlapping variants (e.g. do not include both `presentation` and `deck`, or `slides` and `slide_deck`). Select the single canonical keyword for that concept.
+5. **Domain and category guidelines:** Tags must describe specific capabilities, vertical regulations, protocols, or execution surfaces. Use the recommended seed pools below as guidance for your skill's category:
+   - **Compliance:** Regulatory frameworks, statutory acronyms, privacy standards (e.g. `[mica, crypto, compliance, regulation, eu]`, `[pii, privacy, masking, gdpr, redaction]`, `[tos, legal, compliance, contracts, scraping, robots_txt]`).
+   - **Security:** Attack surfaces, defensive layers, forensic methods (e.g. `[security, prompt_injection, firewall, safety]`, `[ui_safety, phishing, dark_patterns, vision]`, `[deepfake, audio, video, forensics, security]`).
+   - **DeFi:** Blockchain protocols, EVM actions, security audits (e.g. `[web3, evm, ethereum, rpc, blockchain]`, `[web3, evm, transaction, signing, wallet]`, `[web3, security, erc20, honeypot, token]`).
+   - **Finance:** Financial crimes, statutory filings, corporate verification (e.g. `[aml, sanctions, forensics, web3, compliance]`, `[kyc, companies_house, uk, corporate, filings]`).
+   - **Office:** Document types, productivity workflows, browser interactions (e.g. `[pdf, form_filling, documents, acrobat]`, `[email, gmail, google_workspace, draft]`, `[forms, browser, automation, mapping]`).
+   - **Creative:** Media processing, generation formats, presentation decks (e.g. `[image, segmentation, background_removal, vision]`, `[presentation, slides, pptx, powerpoint]`).
+   - **Data Engineering:** Ingestion formats, telemetry standards, data synthesis (e.g. `[telemetry, normalization, metrics, streaming, iot, sensors]`, `[clustering, novelty, embeddings, data_mining]`, `[synthetic_data, generation, testing, mock]`, `[web, scraping, semantic, proxy, markdown]`).
+   - **Monitoring:** Observability metrics, budgeting, loop control (e.g. `[kpi, metrics, evaluation, quality, gate]`, `[rate_limit, token_bucket, cost_control, quota]`).
+   - **Optimization:** Context management, token reduction, prompt refinement (e.g. `[context, token_count, llm, pruning]`, `[prompt_engineering, compression, refinement, llm]`).
+   - **Dev Tools:** Software development lifecycle, debugging, repository interaction (e.g. `[github, git, issue, debugging, agent]`).
+   - **Linguistics:** Dialects, natural language registers, localized slang (e.g. `[nlp, slang, korean, translation, linguistics]`).
+   - **Wellness:** Coaching boundaries, psychoeducation, crisis guardrails (e.g. `[wellness, coaching, mindfulness, reflection]`).
+6. **Anti-patterns to avoid:**
+   - Do not use generic filler tags like `[tool, ai, python, skill, helper, utility]` that dilute discovery.
+   - Do not repeat variations of the exact same word (e.g. `[form, forms, forming]`).
+   - Do not include personal names or organization names in tags (use the `issuer` block instead).
+7. **Maintainer Stewardship Model:**
+   - Contributors propose baseline tags and taxonomy fields in new skill proposals.
+   - During code review and subsequent version bumps, maintainers audit and curate tags against the catalog to maintain cohesion, eliminate synonym sprawl, and keep discovery sharp.
+
 **Optional but common:**
 
 - `env_vars` — API keys and configuration (never hardcode secrets in `skill.py`); read them with `self.credential(name)` (config first, then env); document names on the catalog page and link to [API keys for skills](docs/usage/api_keys.md)
 - `category`, `outputs`, `presentation` — when they clarify the skill contract. Use **`outputs:`** with named keys (never legacy singular **`output:`**).
 
-**Example:**
+**Example (Manifest v2):**
 
 ```yaml
 name: category/generic_hello
 version: 1.0.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - greeting
+  - localized
+  - text
 description: A friendly greeting skill.
 issuer:
   name: Your Name
