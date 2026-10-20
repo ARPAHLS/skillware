@@ -656,7 +656,9 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20b08) | feat(core): standardize SPDX license identifiers and copyright headers (#416) (#422) | 11 Oct 2026 | `0.5.8` | [@blade-dancer](https://github.com/bd-c3) |
+| [`6d175e6`](https://github.com/ARPAHLS/skillware/commit/6d175e6a80) | feat(cli,docs): implement Manifest v2 discovery flags, info command, doctor schema checks, and catalog exporter (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`cdd258f`](https://github.com/ARPAHLS/skillware/commit/cdd258ff63) | docs(cli): sync interactive menu options and introduce CLI history table (#433) | 14 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20b08) | feat(core): standardize SPDX license identifiers and copyright headers (#416) (#422) | 11 Oct 2026 | `0.5.9` | [@blade-dancer](https://github.com/bd-c3) |
 | [`f079bf3`](https://github.com/ARPAHLS/skillware/commit/f079bf3594) | fix(cli): detect editable/PyPI overlap and harden version display (#333) (#388) | 25 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
 | [`85d29f4`](https://github.com/ARPAHLS/skillware/commit/85d29f48bb) | docs: addressbook guide, evm tokens list, and example polish (#373, #374) | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |
 | [`30234c9`](https://github.com/ARPAHLS/skillware/commit/30234c9e0e) | feat(evm): add token add CLI, live integration tests, and card v0.3.0 ripples | 23 Sep 2026 | `0.5.7` | [@rosspeili](https://github.com/rosspeili) |

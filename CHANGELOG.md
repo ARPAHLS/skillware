@@ -8,6 +8,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-10-20
+
 ### Added
 
 - **Core / Taxonomy (Manifest v2 — Universal Taxonomy):** Implemented Manifest v2 core schema specification defining execution `shape` (`atomic`, `workflow`, `middleware`, `stream`), deployment `tier` (`core`, `cloud`, `enterprise`), target substrate `target` (`software`, `hardware`, `bioware`), and semantic domain `tags` with strict governance (`maxItems: 10`, lowercase, unique, domain-specific). Includes `validate_manifest_schema()` and `normalize_manifest_v2()` in `skillware.core.manifest_schema`, backward-compatible `SkillLoader` normalizer, and taxonomy-aware `SkillContext` filtering (`allowed_shapes`, `allowed_tiers`, `allowed_targets`, `tags`) with physical hardware execution safety guards (`SkillwareHardwareSafetyWarning`) ([#440](https://github.com/ARPAHLS/skillware/issues/440)).
@@ -19,6 +21,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Catalog / Docs:** Added `Shape` execution geometry column across all 12 category tables in the central skill library index (`docs/skills/README.md`), embedded Manifest v2 taxonomy metadata blocks (`Version`, `Tier`, `Shape`, `Target`, `Tags`) across all 27 skill catalog pages, and added automated test assertion in `tests/test_registry_docs.py` to prevent doc/manifest taxonomy drift ([#446](https://github.com/ARPAHLS/skillware/pull/446)).
 - **Skill (`finance/wallet_screening` v1.1.0):** Paginated Etherscan `tokentx` and `txlistinternal` ingestion. ERC-20 and internal transfers are screened against the malicious / TRM risk index; major-token volumes (USDT, USDC, DAI, WETH) resolve from operator `evm.tokens` ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 1).
 - **Skill (`office/pdf_form_filler` v0.1.2):** Refactored into a host-agnostic deterministic AcroForm inspection, validation, and filling engine with multi-action dispatch (`inspect`, `validate`, `fill`). Removed runtime Anthropic dependency and API key requirement in favor of discrete actions. Added dynamic XFA form detection guard (`unsupported_xfa_form`), radio button group normalization (`options` with export values and nearby text extraction), human confirmation safety gate (`confirmed: true` required before disk mutations), and permanent vector page flattening (`flatten: true` via PyMuPDF `doc.bake()`) ([#403](https://github.com/ARPAHLS/skillware/issues/403)).
 - **Skill (`finance/uk_companies_house_handler` v1.4.0):** Document API discover/pick/download flow — `list_downloadable_documents`, `get_document_metadata`, and `fetch_document` with bounded in-memory base64 payloads (default 5 MB, hard ceiling 10 MB), Authorization dropped on redirects to external storage, structured `document_too_large` / `rate_limited` (Retry-After in `agent_hint`) envelopes, `run_pipeline` support, and mocked demo [`examples/uk_companies_house_document_flow_demo.py`](examples/uk_companies_house_document_flow_demo.py) ([#421](https://github.com/ARPAHLS/skillware/issues/421)).
