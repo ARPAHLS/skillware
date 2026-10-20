@@ -5,6 +5,10 @@
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 29 Aug 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `kpi`, `metrics`, `evaluation`, `quality`, `gate`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Fail-closed business-KPI evaluation of a metrics snapshot against a policy charter.

@@ -4,6 +4,10 @@
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.2` — 16 Oct 2026
+**Tier**: `core`
+**Shape**: `workflow`
+**Target**: `software`
+**Tags**: `pdf`, `form_filling`, `documents`, `acrobat`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Inspect, validate, and fill AcroForm PDFs deterministically with XFA guards, radio group handling, and vector flattening.

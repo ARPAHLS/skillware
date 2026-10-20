@@ -4,6 +4,10 @@
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 20 Jul 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `pii`, `privacy`, `masking`, `gdpr`, `redaction`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Detect and redact personally identifiable information locally before text reaches an external model.

@@ -5,6 +5,10 @@
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 6 Oct 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `deepfake`, `audio`, `video`, `forensics`, `security`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Deterministic offline forensic verification of media and KYC documents for AI generation, digital tampering, C2PA provenance, and ICAO 9303 MRZ forgery.

@@ -3,7 +3,11 @@
 **ID**: `office/web_form_mapper`  
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 04 Oct 2026  
+**Version**: `0.1.0` — 04 Oct 2026
+**Tier**: `core`
+**Shape**: `workflow`
+**Target**: `software`
+**Tags**: `forms`, `browser`, `automation`, `mapping`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Maps operator and client entity identities onto HTML web forms with CSRF preservation and safety gates.  

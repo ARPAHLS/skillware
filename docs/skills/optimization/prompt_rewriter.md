@@ -5,6 +5,10 @@
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 16 Jul 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `prompt_engineering`, `compression`, `refinement`, `llm`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Compress oversized prompts and conversation histories while retaining meaning so host agents spend fewer tokens.

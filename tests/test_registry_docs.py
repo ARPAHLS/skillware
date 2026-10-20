@@ -247,6 +247,10 @@ def test_catalog_pages_have_version_and_history_blocks(
         checks = [
             ("<!-- skill-doc-meta:begin -->", "version metadata begin marker"),
             ("**Version**:", "version header"),
+            ("**Tier**:", "tier header"),
+            ("**Shape**:", "shape header"),
+            ("**Target**:", "target header"),
+            ("**Tags**:", "tags header"),
             ("<!-- skill-doc-meta:end -->", "version metadata end marker"),
             ("<!-- skill-intent:begin -->", "intent begin marker"),
             ("**Solves:**", "intent problem line"),
@@ -266,25 +270,54 @@ def test_catalog_pages_have_version_and_history_blocks(
     )
 
 
-def test_skill_library_index_has_version_column():
-    """Skill library tables include a Version column with manifest values."""
+def test_catalog_pages_taxonomy_matches_manifests(
+    manifested_skills: set[str],
+):
+    """Catalog page taxonomy metadata matches manifest.yaml values."""
+    missing = []
+    for skill_id in sorted(manifested_skills):
+        page = catalog_page_for(skill_id)
+        content = page.read_text(encoding="utf-8")
+        manifest_path = REPO_ROOT / "skills" / skill_id / "manifest.yaml"
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+        rel = page.relative_to(REPO_ROOT).as_posix()
+
+        tier_needle = f"**Tier**: `{manifest['tier']}`"
+        shape_needle = f"**Shape**: `{manifest['shape']}`"
+        if tier_needle not in content:
+            missing.append(f"{rel}: missing {tier_needle}")
+        if shape_needle not in content:
+            missing.append(f"{rel}: missing {shape_needle}")
+
+    assert not missing, "Taxonomy mismatch between docs and manifests:\n" + "\n".join(
+        f"  - {item}" for item in missing
+    )
+
+
+def test_skill_library_index_has_version_and_shape_columns():
+    """Skill library tables include Shape and Version columns with manifest values."""
     readme = (REPO_ROOT / "docs" / "skills" / "README.md").read_text(encoding="utf-8")
-    assert "| Skill | ID | Version | Issuer | Description |" in readme
-    assert "| :--- | :--- | :--- | :--- | :--- |" in readme
+    assert "| Skill | ID | Shape | Version | Issuer | Description |" in readme
+    assert "| :--- | :--- | :--- | :--- | :--- | :--- |" in readme
 
     missing = []
     for manifest_path in (REPO_ROOT / "skills").rglob("manifest.yaml"):
         with open(manifest_path, encoding="utf-8") as f:
             manifest = yaml.safe_load(f)
-        if isinstance(manifest, dict) and "version" in manifest:
+        if isinstance(manifest, dict):
             skill_id = manifest_path.parent.relative_to(REPO_ROOT / "skills").as_posix()
-            expected = f"`{manifest['version']}`"
-            if expected not in readme:
-                missing.append(f"{skill_id}: missing {expected}")
+            if "version" in manifest:
+                expected_ver = f"`{manifest['version']}`"
+                if expected_ver not in readme:
+                    missing.append(f"{skill_id}: missing version {expected_ver}")
+            if "shape" in manifest:
+                expected_shape = f"`{manifest['shape']}`"
+                if expected_shape not in readme:
+                    missing.append(f"{skill_id}: missing shape {expected_shape}")
 
     assert (
         not missing
-    ), "Missing manifest versions in docs/skills/README.md:\n" + "\n".join(
+    ), "Missing manifest versions or shapes in docs/skills/README.md:\n" + "\n".join(
         f"  - {item}" for item in missing
     )
 

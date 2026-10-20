@@ -4,6 +4,10 @@
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.2` — 5 Oct 2026
+**Tier**: `core`
+**Shape**: `atomic`
+**Target**: `software`
+**Tags**: `mica`, `crypto`, `compliance`, `regulation`, `eu`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Local MiCA policy enforcement and RAG over a bundled crypto-asset regulation corpus.
