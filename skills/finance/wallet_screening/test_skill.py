@@ -27,7 +27,7 @@ def manifest():
 def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
-    assert skill_manifest["version"] == manifest["version"] == "1.1.0"
+    assert skill_manifest["version"] == manifest["version"] == "2.0.0"
 
 
 def test_invalid_address(skill):
@@ -142,11 +142,19 @@ def test_execute_success(mock_get, skill):
     result = skill.execute({"address": WALLET})
 
     assert "error" not in result
+    assert result["schema_version"] == "2.0"
     assert "summary" in result
     assert result["summary"]["balance_eth"] == 1.0
     assert result["summary"]["balance_usd"] == 2000.0
     assert result["summary"]["total_token_txs"] == 0
     assert result["summary"]["total_internal_txs"] == 0
+    assert result["summary"]["risk_level"] == "low"
+    assert result["summary"]["risk_flag"] is False
+    assert result["verdict"]["decision"] == "ALLOW"
+    assert result["verdict"]["reason_code"] == "CLEAN_RECORD"
+    assert result["summary"]["indirect_exposure_count"] == 0
+    assert result["risk_details"]["indirect_exposures"] == []
+    assert result["network_analysis"]["risky_counterparties"] == []
 
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
@@ -280,6 +288,9 @@ def test_tokentx_usdt_to_tornado_is_flagged(mock_get, skill):
 
     assert result["summary"]["total_token_txs"] == 1
     assert result["summary"]["risk_flag"] is True
+    assert result["summary"]["risk_level"] == "high"
+    assert result["verdict"]["decision"] == "DENY"
+    assert result["verdict"]["reason_code"] == "MALICIOUS_OR_INDIRECT_EXPOSURE"
     assert result["summary"]["malicious_interaction_count"] == 1
     hit = result["risk_details"]["malicious_interactions"][0]
     assert hit["transfer_kind"] == "erc20"
@@ -287,6 +298,9 @@ def test_tokentx_usdt_to_tornado_is_flagged(mock_get, skill):
     assert hit["token_symbol"] == "USDT"
     assert hit["token_amount"] == 2500.0
     assert result["financial_analysis"]["token_flow"]["usdt_volume"] == 2500.0
+    assert any(
+        f["code"] == "MALICIOUS_CONTRACT_INTERACTION" for f in result["risk_factors"]
+    )
 
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
@@ -316,6 +330,8 @@ def test_internal_tx_to_tornado_is_flagged(mock_get, skill):
 
     assert result["summary"]["total_internal_txs"] == 1
     assert result["summary"]["risk_flag"] is True
+    assert result["summary"]["risk_level"] == "high"
+    assert result["verdict"]["decision"] == "DENY"
     hit = result["risk_details"]["malicious_interactions"][0]
     assert hit["transfer_kind"] == "internal"
     assert hit["other_party"] == TORNADO
@@ -357,3 +373,94 @@ def test_tokentx_truncation_warning(mock_get, skill, monkeypatch):
     result = skill.execute({"address": WALLET})
     assert "etherscan_tokentx_truncated" in result["metadata"]["warnings"]
     assert result["summary"]["total_token_txs"] == 2
+
+
+SANCTIONED_COUNTERPARTY = "0xc8fe1c81e927540fcc99ebb3c880a840082293da"
+
+
+def test_compute_risk_level_matrix():
+    assert WalletScreeningSkill.compute_risk_level([{"id": 1}], [], []) == (
+        "critical",
+        "DENY",
+        "DIRECT_SANCTIONS_MATCH",
+    )
+    assert WalletScreeningSkill.compute_risk_level(
+        [], [], [{"counterparty": SANCTIONED_COUNTERPARTY}]
+    ) == ("high", "DENY", "MALICIOUS_OR_INDIRECT_EXPOSURE")
+    assert WalletScreeningSkill.compute_risk_level([], [{"severity": "high"}], []) == (
+        "high",
+        "DENY",
+        "MALICIOUS_OR_INDIRECT_EXPOSURE",
+    )
+    assert WalletScreeningSkill.compute_risk_level(
+        [], [{"severity": "medium"}], []
+    ) == ("medium", "REVIEW", "PHISHING_OR_SCAM_EXPOSURE")
+    assert WalletScreeningSkill.compute_risk_level([], [], []) == (
+        "low",
+        "ALLOW",
+        "CLEAN_RECORD",
+    )
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+def test_direct_sanctions_hit_is_critical_deny(mock_get, skill):
+    skill.etherscan_api_key = "placeholder_key"
+    mock_get.side_effect = _mock_price_and_balance_side_effect()
+
+    result = skill.execute({"address": SANCTIONED_COUNTERPARTY})
+
+    assert result["schema_version"] == "2.0"
+    assert result["summary"]["sanctioned_entity_match"] is True
+    assert result["summary"]["risk_level"] == "critical"
+    assert result["summary"]["risk_flag"] is True
+    assert result["verdict"]["decision"] == "DENY"
+    assert result["verdict"]["reason_code"] == "DIRECT_SANCTIONS_MATCH"
+    assert any(f["code"] == "DIRECT_SANCTIONS_MATCH" for f in result["risk_factors"])
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+def test_hop1_sanctioned_counterparty_is_high_deny(mock_get, skill):
+    skill.etherscan_api_key = "placeholder_key"
+    base = _mock_price_and_balance_side_effect()
+
+    def side_effect(url, **kwargs):
+        params = kwargs.get("params") or {}
+        action = params.get("action")
+        if action == "txlist":
+            return MagicMock(
+                json=lambda: {
+                    "status": "1",
+                    "result": [
+                        {
+                            "from": SANCTIONED_COUNTERPARTY,
+                            "to": WALLET_L,
+                            "value": "1000000000000000000",
+                            "isError": "0",
+                            "gasUsed": "21000",
+                            "gasPrice": "1000000000",
+                            "hash": "0x" + "e" * 64,
+                        }
+                    ],
+                }
+            )
+        if action in {"tokentx", "txlistinternal"}:
+            return _empty_list_response()
+        return base(url, **kwargs)
+
+    mock_get.side_effect = side_effect
+    result = skill.execute({"address": WALLET})
+
+    assert result["summary"]["sanctioned_entity_match"] is False
+    assert result["summary"]["indirect_exposure_count"] >= 1
+    assert result["summary"]["risk_level"] == "high"
+    assert result["summary"]["risk_flag"] is True
+    assert result["verdict"]["decision"] == "DENY"
+    assert result["verdict"]["reason_code"] == "MALICIOUS_OR_INDIRECT_EXPOSURE"
+    exposure = result["risk_details"]["indirect_exposures"][0]
+    assert exposure["counterparty"] == SANCTIONED_COUNTERPARTY
+    assert result["network_analysis"]["risky_counterparties"][0]["address"] == (
+        SANCTIONED_COUNTERPARTY
+    )
+    assert any(
+        f["code"] == "HOP1_SANCTIONS_COUNTERPARTY" for f in result["risk_factors"]
+    )
