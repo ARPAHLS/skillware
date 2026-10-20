@@ -5,6 +5,10 @@
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0` — 16 Sep 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `context`, `token_count`, `llm`, `pruning`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Select query-relevant document spans with local embeddings so host agents stay inside the context window.

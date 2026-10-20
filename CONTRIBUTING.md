@@ -413,7 +413,7 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<category>/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md) and the category hub `docs/skills/<category>/README.md`.
-- Include **ID**, **Issuer**, **Version** (from `manifest.yaml`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, the Manifest v2 metadata block (**Version**, **Tier**, **Shape**, **Target**, **Tags** inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Include the **intent** block (`<!-- skill-intent:begin -->`) with **Solves**, **Works with**, and **Runtime** lines so search and GitHub can match operator queries. Keep wording accurate; do not stuff keywords.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
@@ -425,7 +425,7 @@ Do **not** add `skills/<category>/README.md` inside the runtime registry. Catego
 
 ### 7. Registry index row
 
-- Add or update the skill table in `docs/skills/<category>/README.md` **and** [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
+- Add or update the skill table in `docs/skills/<category>/README.md` (Skill, ID, Version, Issuer, Description) **and** [docs/skills/README.md](docs/skills/README.md) (Skill, ID, Shape, Version, Issuer, Description). Set **Version** to `` `x.y.z` (DD Mon YYYY) `` from the manifest and the release/merge date.
 - Add the catalog page and hub to [docs/sitemap.md](docs/sitemap.md).
 - New top-level category: also add a row to the root README category table and a hub at `docs/skills/<category>/README.md`.
 

@@ -4,6 +4,10 @@
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `1.4.0` — 15 Oct 2026
+**Tier**: `core`
+**Shape**: `workflow`
+**Target**: `software`
+**Tags**: `kyc`, `companies_house`, `uk`, `corporate`, `filings`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Deterministic UK Companies House search, officers, PSC, filing history, and Document API download for compliance agents.

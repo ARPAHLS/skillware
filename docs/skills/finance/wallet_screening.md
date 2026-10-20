@@ -4,6 +4,10 @@
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `1.1.0` — 17 Oct 2026
+**Tier**: `core`
+**Shape**: `workflow`
+**Target**: `software`
+**Tags**: `aml`, `sanctions`, `forensics`, `web3`, `compliance`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts.

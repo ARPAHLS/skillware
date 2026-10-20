@@ -4,6 +4,10 @@
 **Issuer**: [@rin-katsuragi](https://github.com/rin-katsuragi) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
 **Version**: `0.1.0`
+**Tier**: `core`
+**Shape**: `stream`
+**Target**: `software`
+**Tags**: `telemetry`, `normalization`, `metrics`, `streaming`, `iot`, `sensors`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Standardize noisy heterogeneous sensor telemetry from robotics, IoT, and facilities into canonical SI units and W3C SOSA/SSN semantic observations.

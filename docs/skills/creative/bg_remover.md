@@ -4,6 +4,10 @@
 **Issuer**: [@AyushSrivastava1818](https://github.com/AyushSrivastava1818) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.2.0` — 2 Aug 2026
+**Tier**: `core`
+**Shape**: `atomic`
+**Target**: `software`
+**Tags**: `image`, `segmentation`, `background_removal`, `vision`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Remove image backgrounds locally and return transparent PNGs for creative and deck pipelines.

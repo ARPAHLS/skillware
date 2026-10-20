@@ -4,6 +4,10 @@
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 **Version**: `0.2.0`
+**Tier**: `core`
+**Shape**: `atomic`
+**Target**: `software`
+**Tags**: `web3`, `security`, `erc20`, `honeypot`, `token`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Vet an ERC-20 / LP contract for honeypot, tax, ownership, and related risk before an agent trades.

@@ -4,6 +4,10 @@
 **Issuer**: [@tusharjamunkar](https://github.com/tusharjamunkar) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
 **Version**: `0.2.0` — 16 Sep 2026
+**Tier**: `core`
+**Shape**: `workflow`
+**Target**: `software`
+**Tags**: `presentation`, `slides`, `pptx`, `powerpoint`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Assemble editable PPTX decks from structured JSON specs with lint and outline helpers.

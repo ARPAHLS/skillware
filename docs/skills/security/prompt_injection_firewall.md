@@ -5,6 +5,10 @@
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([@ARPAHLS](https://github.com/ARPAHLS)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
 **Version**: `0.2.0` — 21 Sep 2026
+**Tier**: `core`
+**Shape**: `middleware`
+**Target**: `software`
+**Tags**: `security`, `prompt_injection`, `firewall`, `safety`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Scan and sanitize untrusted text for prompt injection, encoding smuggling, and instruction-override attacks before LLM context.
