@@ -274,8 +274,6 @@ warn_unused_configs = true
 module = [
     "skillware.cli",
     "skillware.core.loader",
-    "skillware.core.config",
-    "skillware.core.mail_config",
 ]
 ignore_errors = true
 
