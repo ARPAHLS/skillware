@@ -16,8 +16,6 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Mapping, Optional
 
-from jsonschema import Draft7Validator
-
 # -----------------------------------------------------------------------------
 # Universal Taxonomy Primitives
 # -----------------------------------------------------------------------------
@@ -93,7 +91,24 @@ MANIFEST_SCHEMA: Dict[str, Any] = {
     "required": ["name", "version", "description"],
 }
 
-_MANIFEST_VALIDATOR = Draft7Validator(MANIFEST_SCHEMA)
+_MANIFEST_VALIDATOR: Optional[Any] = None
+
+
+def _get_manifest_validator() -> Any:
+    """Lazily instantiate Draft7Validator to avoid loading Lark/RFC3987 at module import."""
+    global _MANIFEST_VALIDATOR
+    if _MANIFEST_VALIDATOR is None:
+        from jsonschema import Draft7Validator
+
+        _MANIFEST_VALIDATOR = Draft7Validator(MANIFEST_SCHEMA)
+    return _MANIFEST_VALIDATOR
+
+
+def __getattr__(name: str) -> Any:
+    """Provide backward compatibility for external callers accessing _MANIFEST_VALIDATOR."""
+    if name == "_MANIFEST_VALIDATOR":
+        return _get_manifest_validator()
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
 def validate_manifest_schema(
@@ -115,7 +130,8 @@ def validate_manifest_schema(
     prefix = f"Skill '{skill_id}': " if skill_id else ""
 
     # 1. Structural validation via jsonschema
-    for err in sorted(_MANIFEST_VALIDATOR.iter_errors(data), key=lambda e: str(e.path)):
+    validator = _get_manifest_validator()
+    for err in sorted(validator.iter_errors(data), key=lambda e: str(e.path)):
         path = ".".join(str(p) for p in err.absolute_path) or "(root)"
         errors.append(f"{prefix}Schema error at '{path}': {err.message}")
 

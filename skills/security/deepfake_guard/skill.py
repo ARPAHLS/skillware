@@ -10,7 +10,7 @@ from skillware.core.base_skill import BaseSkill
 try:
     from .document import parse_and_validate_mrz
     from .forensics import load_image
-    from .guard import analyze_asset
+    from .deepfake_engine import analyze_asset
     from .provenance import extract_metadata_and_provenance
 except (ImportError, ValueError):
     import sys
@@ -20,7 +20,7 @@ except (ImportError, ValueError):
         sys.path.insert(0, _pkg_dir)
     from document import parse_and_validate_mrz
     from forensics import load_image
-    from guard import analyze_asset
+    from deepfake_engine import analyze_asset
     from provenance import extract_metadata_and_provenance
 
 

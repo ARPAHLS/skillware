@@ -11,8 +11,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple, Union
 
-import requests
-
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
@@ -67,6 +65,15 @@ from skillware.version_policy import (
     format_install_health_report,
     get_package_version_display,
 )
+
+
+def __getattr__(name: str) -> Any:
+    """Lazily load requests to prevent importing urllib3 and certifi during CLI startup."""
+    if name == "requests":
+        import requests
+
+        return requests
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
 def _active_theme() -> ThemePalette:
@@ -393,6 +400,8 @@ def _examples_readme_path() -> Optional[Path]:
 
 def _fetch_examples_readme_from_github() -> Optional[str]:
     """Download examples/README.md from the canonical repo on GitHub."""
+    import requests
+
     try:
         response = requests.get(_EXAMPLES_README_RAW_URL, timeout=10)
         response.raise_for_status()
@@ -1842,7 +1851,8 @@ def cmd_doctor(
     table.add_column("ENVS", no_wrap=True, ratio=1)
     table.add_column("DETAIL", style="dim", ratio=4)
 
-    failures = 0
+    fatal_failures = 0
+    missing_envs_count = 0
     rows: List[Tuple[str, Text, Text, Text, Text, str]] = []
     spinner_label = (
         f"Diagnosing {len(skill_ids)} skill(s)…"
@@ -1863,13 +1873,11 @@ def cmd_doctor(
                 console.print(str(exc), style=ERROR_STYLE)
                 return 1
 
-            if (
-                schema_status == "fail"
-                or deps_status != "ok"
-                or load_status == "fail"
-                or envs_status == "fail"
-            ):
-                failures += 1
+            if schema_status == "fail" or deps_status != "ok" or load_status == "fail":
+                fatal_failures += 1
+
+            if envs_status == "fail":
+                missing_envs_count += 1
 
             schema_cell = (
                 Text(schema_status, style=ID_STYLE)
@@ -1897,7 +1905,7 @@ def cmd_doctor(
             elif envs_status == "ok":
                 envs_cell = Text(envs_status, style=ID_STYLE)
             else:
-                envs_cell = Text(envs_status, style=ERROR_STYLE)
+                envs_cell = Text(envs_status, style=CATEGORY_STYLE)
 
             rows.append(
                 (sid, schema_cell, deps_cell, load_cell, envs_cell, detail or "—")
@@ -1918,7 +1926,19 @@ def cmd_doctor(
         "See docs/usage/install_extras.md and docs/usage/api_keys.md",
         style="dim",
     )
-    return 1 if failures else 0
+    if missing_envs_count > 0:
+        console.print(
+            (
+                f"Notice: {missing_envs_count} skill(s) declare required environment "
+                "variables not set in this environment."
+            ),
+            style=CATEGORY_STYLE,
+        )
+        console.print(
+            "Configure required keys before executing these skills (see docs/usage/api_keys.md).",
+            style="dim",
+        )
+    return 1 if fatal_failures else 0
 
 
 def cmd_doctor_install(console=None) -> int:
@@ -2138,7 +2158,7 @@ def cmd_interactive(console=None, parser=None) -> None:
             rc = cmd_doctor(console=console)
             if rc:
                 console.print(
-                    f"  doctor exited with status {rc}", style=ERROR_DIM_STYLE
+                    f"  doctor detected issues (exit code {rc})", style=ERROR_DIM_STYLE
                 )
         elif command == "mail":
             mail_nav = cmd_mail_submenu(console=console)

@@ -8,6 +8,15 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ## [Unreleased]
 
+### Added
+
+- **CLI / Performance:** Lazy `Draft7Validator` schema validator initialization in `skillware.core.manifest_schema` (eliminates 4.8s Lark/RFC 3987 compilation on import), targeted `sys.path` distribution discovery in `skillware.version_policy` (eliminates linear metadata scans across all installed packages on startup), and memoized CLI version resolution.
+- **CLI / Doctor:** Distinguish hard code integrity failures (`SCHEMA`, `DEPS`, `LOAD`) from missing runtime environment variables (`ENVS`). Missing API keys now print an informational advisory and return exit code 0 rather than terminating with exit code 1.
+
+### Fixed
+
+- **Skill (`security/deepfake_guard`):** Renamed internal helper `guard.py` to `deepfake_engine.py` to resolve `sys.modules["guard"]` namespace collision with `security/deceptive_ui_guard` during sequential dynamic skill loading in `skillware doctor`.
+
 ### Changed
 
 - **Skill (`finance/wallet_screening` v2.0.0):** Report schema v2 with `verdict` (`ALLOW` / `REVIEW` / `DENY`), deterministic `risk_level`, `risk_factors[]`, and hop-1 `indirect_exposures` / `risky_counterparties`. Dual-emits `summary.risk_flag` and `summary.total_transactions` for v1 hosts ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 2).

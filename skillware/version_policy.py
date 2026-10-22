@@ -66,13 +66,42 @@ def _is_invalid_version_string(raw: Optional[str]) -> bool:
 
 
 def iter_skillware_distributions() -> Iterable[metadata.Distribution]:
-    for dist in metadata.distributions():
+    """
+    Yield installed distributions for ``skillware`` without scanning all packages on sys.path.
+
+    Targets ``skillware*.dist-info`` and ``skillware*.egg-info`` directories directly across
+    ``sys.path``, avoiding reading thousands of unrelated metadata records on startup.
+    Falls back to ``metadata.distribution()`` if targeted filesystem matching yields nothing.
+    """
+    seen_paths = set()
+    found_any = False
+    for sp in sys.path:
         try:
-            name = (cast(Any, dist.metadata).get("Name") or "").strip()
+            p = Path(sp)
+            if not p.is_dir():
+                continue
+            for d in p.glob(f"{PACKAGE_NAME}*"):
+                if d.suffix in (".dist-info", ".egg-info"):
+                    norm = str(d).lower()
+                    if norm in seen_paths:
+                        continue
+                    seen_paths.add(norm)
+                    try:
+                        dist = metadata.PathDistribution(d)
+                        name = (cast(Any, dist.metadata).get("Name") or "").strip()
+                        if name.lower() == PACKAGE_NAME:
+                            found_any = True
+                            yield dist
+                    except Exception:
+                        pass
         except Exception:
             continue
-        if name.lower() == PACKAGE_NAME:
-            yield dist
+
+    if not found_any:
+        try:
+            yield metadata.distribution(PACKAGE_NAME)
+        except Exception:
+            pass
 
 
 def _distribution_dist_info_dir(dist: metadata.Distribution) -> Optional[Path]:
