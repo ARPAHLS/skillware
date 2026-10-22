@@ -249,7 +249,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
 
     mail = merge_mail_settings(mail_layers)
     evm = merge_evm_settings(evm_layers)
-    chains, chains_legacy = merge_chain_layers(layer.data for layer in layers)
+    chains, chains_legacy = merge_chain_layers([layer.data for layer in layers])
     if chains_legacy:
         extra = {**extra, "chains": chains_legacy}
 
