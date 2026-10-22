@@ -857,7 +857,7 @@ def validate_addressbook_data(data: Mapping[str, Any]) -> List[str]:
             )
             continue
 
-        if has_email:
+        if has_email and isinstance(emails, list):
             valid_email = False
             for entry in emails:
                 if not isinstance(entry, str) or not _EMAIL_RE.match(entry.strip()):
@@ -1087,7 +1087,7 @@ def clear_mail_signature_settings() -> List[Path]:
     for target in (project_config_write_path(), global_config_path()):
         if not target.is_file():
             continue
-        document = _read_yaml(target)
+        document = dict(_read_yaml(target))
         mail_block = document.get("mail")
         if not isinstance(mail_block, dict):
             continue
