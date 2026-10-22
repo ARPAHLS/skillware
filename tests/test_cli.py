@@ -1071,11 +1071,12 @@ def test_cmd_doctor_reports_missing_env_vars(tmp_path, monkeypatch):
 
     buf = io.StringIO()
     console = Console(file=buf, force_terminal=False, width=120)
-    assert cmd_doctor(skill_id="finance/needs_key", console=console) == 1
+    assert cmd_doctor(skill_id="finance/needs_key", console=console) == 0
 
     output = buf.getvalue()
     assert "finance/needs_key" in output
     assert "ETHERSCAN_API_KEY" in output
+    assert "Notice" in output
 
 
 def test_cmd_doctor_reports_missing_deps(tmp_path, monkeypatch):

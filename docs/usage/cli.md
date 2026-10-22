@@ -352,7 +352,7 @@ Check whether skills are valid and can load in the current environment — Manif
 
 At the end of the diagnostic table, `skillware doctor` prints a summary of compliant manifests (e.g. `27/27 skill manifests satisfy Manifest v2 specification`).
 
-Exit code is non-zero when any skill fails **SCHEMA**, **DEPS**, **LOAD**, or **ENVS**. For full bundle behavior, use `skillware test`.
+Exit code is non-zero (`1`) when any skill fails hard integrity checks (**SCHEMA**, **DEPS**, or **LOAD**). Missing **ENVS** produces an informational notice advising which keys are required before executing those skills, returning exit code `0` so offline health audits succeed without requiring full sets of third-party API keys. For full bundle behavior, use `skillware test`.
 
 **`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
 
@@ -656,6 +656,8 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`f522b17`](https://github.com/ARPAHLS/skillware/commit/f522b17c0d) | chore(release): cut v0.5.9 with Manifest v2 Universal Taxonomy, telemetry_normalizer, AcroForm engine, and SPDX licensing | 20 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
+| [`831856d`](https://github.com/ARPAHLS/skillware/commit/831856d8c6) | fix(catalog,cli): set optimization skills shape to middleware, restore CHANGELOG Added header, and expand cli usage examples (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`6d175e6`](https://github.com/ARPAHLS/skillware/commit/6d175e6a80) | feat(cli,docs): implement Manifest v2 discovery flags, info command, doctor schema checks, and catalog exporter (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`cdd258f`](https://github.com/ARPAHLS/skillware/commit/cdd258ff63) | docs(cli): sync interactive menu options and introduce CLI history table (#433) | 14 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`2f20e20`](https://github.com/ARPAHLS/skillware/commit/2f20e20b08) | feat(core): standardize SPDX license identifiers and copyright headers (#416) (#422) | 11 Oct 2026 | `0.5.9` | [@blade-dancer](https://github.com/bd-c3) |
