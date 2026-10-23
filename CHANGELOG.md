@@ -20,6 +20,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Changed
 
 - **Skill (`finance/wallet_screening` v2.0.0):** Report schema v2 with `verdict` (`ALLOW` / `REVIEW` / `DENY`), deterministic `risk_level`, `risk_factors[]`, and hop-1 `indirect_exposures` / `risky_counterparties`. Dual-emits `summary.risk_flag` and `summary.total_transactions` for v1 hosts ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 2).
+- **Typing:** `skillware/core/config.py` and `skillware/core/mail_config.py` are now type-clean and removed from the `[[tool.mypy.overrides]]` list, so `mypy skillware` checks them in CI (#415, Phase 2).
 
 ## [0.5.9] - 2026-10-20
 
