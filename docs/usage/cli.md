@@ -656,6 +656,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`e8bf3bf`](https://github.com/ARPAHLS/skillware/commit/e8bf3bf940) | perf(cli): resolve startup latency, scope distribution checks, and doctor env handling (#451) | 24 Oct 2026 | `0.6.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`f522b17`](https://github.com/ARPAHLS/skillware/commit/f522b17c0d) | chore(release): cut v0.5.9 with Manifest v2 Universal Taxonomy, telemetry_normalizer, AcroForm engine, and SPDX licensing | 20 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`831856d`](https://github.com/ARPAHLS/skillware/commit/831856d8c6) | fix(catalog,cli): set optimization skills shape to middleware, restore CHANGELOG Added header, and expand cli usage examples (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`6d175e6`](https://github.com/ARPAHLS/skillware/commit/6d175e6a80) | feat(cli,docs): implement Manifest v2 discovery flags, info command, doctor schema checks, and catalog exporter (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |

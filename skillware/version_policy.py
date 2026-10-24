@@ -15,9 +15,9 @@ from typing import Any, Iterable, List, Optional, Sequence, cast
 from packaging.version import InvalidVersion, Version
 
 PACKAGE_NAME = "skillware"
-MIN_SECURITY_SUPPORTED = Version("0.5.9")
+MIN_SECURITY_SUPPORTED = Version("0.6.0")
 MIN_UNSUPPORTED = Version("0.4.6")
-UPGRADE_TARGET = "0.5.9"
+UPGRADE_TARGET = "0.6.0"
 
 
 @dataclass(frozen=True)

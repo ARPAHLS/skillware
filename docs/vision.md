@@ -44,8 +44,8 @@ Multi-layer screening runs locally in one `execute()` call. No generated scraper
 
 Skillware is designed so agents and their operators can discover, vet, and integrate capabilities without reinventing the wheel.
 
-- **Manifests** declare inputs, outputs, dependencies, and constitution in `manifest.yaml`.
-- **`skillware list`**, **`skillware paths`**, **`skillware config show`**, **`skillware doctor`**, **`skillware examples`** / **`skillware list --examples`**, and **`skillware test`** (CLI) surface the local registry, path tiers, merged config, load readiness, the runnable example index, and bundle tests.
+- **Manifests** declare inputs, outputs, dependencies, execution geometry (shape), deployment tier, substrate target, domain tags, and constitution in `manifest.yaml` (governed by the Manifest v2 Universal Taxonomy).
+- **`skillware list`**, **`skillware info`**, **`skillware paths`**, **`skillware config show`**, **`skillware doctor`**, **`skillware examples`** / **`skillware list --examples`**, **`skillware test`**, **`skillware chain`**, **`skillware addressbook`**, and **`skillware evm`** (CLI) surface the local registry, taxonomy filters (`--shape`, `--tier`, `--target`, `--tag`), path tiers, merged config, load readiness, the runnable example index, and bundle tests.
 - **[Examples index](../examples/README.md)** maps runnable provider scripts to skills.
 - **[Usage guides](usage/README.md)** show the same load / tool-call / execute loop for Gemini, Claude, OpenAI, DeepSeek, and Ollama.
 - **[Agent contribution workflow](contributing/ai_native_workflow.md)** documents how supervised agents propose scoped changes and open PRs.
@@ -64,9 +64,9 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **Self-contained, deterministic skills for any LLM or agent**
 
-**In short:** A public registry, a stable loader, model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.4.x).
+**In short:** A public registry of 28 skills across 13 categories, Manifest v2 Universal Taxonomy, a stable loader, multi-provider model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.6.x).
 
-**Example:** Your agent runs `pip install skillware`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
+**Example:** Your agent runs `pip install "skillware[compliance_tos_evaluator]"`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
 
 ---
 
@@ -74,9 +74,9 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **Partner-grade bundles with verified data and shared maintenance**
 
-**In short:** Co-develop deeper skills with industry partners in compliance, finance, supply chain & logistics, manufacturing, among other domains. Higher-assurance datasets, SLAs, and production ownership beyond community contributions alone.
+**In short:** Co-develop deeper skills with industry partners in compliance, finance, computational biology, supply chain & logistics, and manufacturing. Higher-assurance datasets, SLAs, and production ownership beyond community contributions alone.
 
-**Example:** An OEM and a plant operator co-maintain a skill chain for production lines: ingest IoT telemetry, normalize units, flag anomalies, and alert on silo levels, line stoppages, and vendor price shifts. Live feeds, audit logs, and signed releases ship inside the bundle. The same skill ids run in staging and on the floor. Effect, Contract, and data provenance stay aligned because the bundle is the contract, not a patchwork of prompts and ad-hoc integrations.
+**Example:** An OEM and a plant operator co-maintain a skill chain for production lines: ingest IoT telemetry (`data_engineering/telemetry_normalizer`), normalize units, flag anomalies, and alert on silo levels, line stoppages, and vendor price shifts. Live feeds, audit logs, and signed releases ship inside the bundle. The same skill ids run in staging and on the floor. Effect, Contract, and data provenance stay aligned because the bundle is the contract, not a patchwork of prompts and ad-hoc integrations.
 
 ---
 
@@ -84,7 +84,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **Skills for robots, UAVs and drones, appliances, and the physical world**
 
-**In short:** Extend the bundle model beyond Python-in-a-process. A skill becomes a portable contract between an agent and a device, sensor mesh, or simulation.
+**In short:** Extend the bundle model beyond Python-in-a-process. A skill becomes a portable contract between an agent and a device, sensor mesh, or simulation, guarded by Manifest v2 `target: [hardware]` safety checks and execution policies.
 
 **Example:** At home, a fridge skill uses vision to notice you are low on milk, checks vendor skills for a three-day discount at store X, and suggests pickup after your gym slot tomorrow. A drone skill inspects a roof or field boundary from a live feed. Same installable idea, different surfaces and devices.
 
@@ -94,19 +94,20 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **Procedural delivery at the edge of human-machine interfaces**
 
-**In short:** Long-term research and partnership territory. Deliver practice, language, and job skills through interfaces where cognition and execution meet, not only through chat or APIs.
+**In short:** Long-term research and partnership territory. Deliver practice, language, and in-silico biological and cognitive skills through interfaces where cognition and execution meet, guarded by Manifest v2 `target: [bioware]` safety boundaries.
 
-**Example:** A learner installs a language or trade skill and receives structured procedural capability: pronunciation drills, safety checks on a lathe, or clinical triage steps under supervision. Decades of practice compressed into a governed bundle the interface can invoke step by step. Same modular philosophy as v0, a different execution surface.
+**Example:** A learner installs a language or trade skill and receives structured procedural capability: pronunciation drills, safety checks on a lathe, or in-silico genetic protocol validations under supervision. Decades of practice compressed into a governed bundle the interface can invoke step by step. Same modular philosophy as v0, a different execution surface.
 
 ---
 
 ## Where we are today
 
-Honest snapshot for **v0** (current v0.4.x line):
+Honest snapshot for **v0** (current v0.6.x line):
 
-- **Registry**: Skills under `skills/` with category hubs and catalog pages in [docs/skills/](skills/README.md) (`docs/skills/<category>/`).
-- **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats.
-- **CLI**: `skillware list`, `skillware paths`, `skillware config show`, `skillware doctor`, `skillware test`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external → project → bundled); with `.skillware.yaml`, default order is project → external → bundled — bundled registry skills are always on, even with no local `skills/` folder. Use `skillware list --examples` and `skillware examples` to browse the runnable script index from the terminal.
+- **Registry**: 28 skills across 13 categories (`bio`, `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `linguistics`, `monitoring`, `office`, `optimization`, `security`, `wellness`) under `skills/` with category hubs and catalog pages in [docs/skills/](skills/README.md) (`docs/skills/<category>/`).
+- **Taxonomy**: Manifest v2 Universal Taxonomy governing execution `shape` (`atomic`, `workflow`, `middleware`, `stream`), deployment `tier` (`core`, `cloud`, `enterprise`), substrate `target` (`software`, `hardware`, `bioware`), and domain `tags` with `SkillContext` safety filtering.
+- **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats (Gemini, Claude, OpenAI, DeepSeek, Ollama).
+- **CLI**: `skillware list` (with `--shape`, `--tier`, `--target`, `--tag` taxonomy filters and `--examples`), `skillware info <skill_id>`, `skillware paths`, `skillware config show`, `skillware doctor` (sub-200ms cold startup, schema checks, and separate env advisories), `skillware test`, `skillware chain`, `skillware addressbook`, `skillware evm`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external -> project -> bundled); with `.skillware.yaml`, default order is project -> external -> bundled — bundled registry skills are always on, even with no local `skills/` folder.
 - **Active work**: Contributor docs, registry integrity guards, and good first issues across docs and framework.
 
 Browse [open good first issues](https://github.com/ARPAHLS/skillware/issues?q=is%3Aopen+label%3A%22good+first+issue%22) if you want a low-risk entry point.
