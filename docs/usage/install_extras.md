@@ -68,6 +68,7 @@ Union of non-core `requirements` from every skill in the category.
 
 | Extra | Skills | Packages installed |
 | :--- | :--- | :--- |
+| `bio` | `bio/sequence_ops` | `biopython>=1.83` |
 | `compliance` | `compliance/mica_module`, `compliance/pii_masker`, `compliance/tos_evaluator` | `google-genai` |
 | `creative` | `creative/bg_remover`, `creative/deck_builder` | `onnxruntime`, `pillow`, `python-pptx>=1.0.0`, `rembg>=2.0.0` |
 | `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator`, `data_engineering/telemetry_normalizer` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
@@ -93,6 +94,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 
 | Extra | Registry ID | Packages | Notes |
 | :--- | :--- | :--- | :--- |
+| `bio_sequence_ops` | `bio/sequence_ops` | `biopython>=1.83` | |
 | `compliance_mica_module` | `compliance/mica_module` | `google-genai` | |
 | `compliance_pii_masker` | `compliance/pii_masker` | *(none today)* | Use this extra in docs and installs |
 | `compliance_tos_evaluator` | `compliance/tos_evaluator` | *(none today)* | Use this extra in docs and installs |
@@ -133,7 +135,7 @@ Empty extras (`[]`) are intentional — always use the per-skill extra in docume
 
 | Extra | Purpose | Packages |
 | :--- | :--- | :--- |
-| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
+| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `biopython>=1.83`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
 | `agents` | Union of all agent SDK extras | `google-genai`, `anthropic`, `openai` |
 | `dev` | Clone-repo lint, test, typecheck, and security tools | `pytest`, `pytest-mock`, `pytest-asyncio`, `flake8`, `black`, `ruff`, `bandit`, `pip-audit`, `mypy` |
 
