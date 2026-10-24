@@ -30,6 +30,7 @@ body:
       label: Category
       description: Pick an existing category or propose a new one in the description
       options:
+        - bio
         - compliance
         - creative
         - data_engineering

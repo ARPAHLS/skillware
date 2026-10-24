@@ -1,0 +1,11 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "action": "revcom",
+      "molecule_type": "dna",
+      "output_sequence": "TTGAC",
+      "message": "Reverse complement generated successfully."
+    }
+  ]
+}

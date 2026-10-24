@@ -85,6 +85,11 @@
         "description": "This will not be worked on."
     },
     {
+        "name": "cat: bio",
+        "color": "E6D9F5",
+        "description": "Registry skill category — bio (`skills/bio/`)."
+    },
+    {
         "name": "cat: compliance",
         "color": "E6D9F5",
         "description": "Registry skill category — compliance (`skills/compliance/`)."
