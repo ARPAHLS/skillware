@@ -259,7 +259,7 @@ Commits that touched this skill bundle or its catalog page ([`bio/sequence_ops`]
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `d48d59a` | feat(bio): introduce foundational bio category and sequence_ops skill (#427) | 24 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`bac5e8c`](https://github.com/ARPAHLS/skillware/commit/bac5e8c0cb) | feat(bio): add sequence_ops foundational skill and bio category (#427) (#453) | 24 Oct 2026 | `0.1.0` | [@rosspeili](https://github.com/rosspeili) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
