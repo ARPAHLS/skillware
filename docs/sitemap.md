@@ -25,6 +25,11 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
 ## Skill category hubs
 
+### Bio
+
+- [Bio hub](skills/bio/README.md)
+- [`bio/sequence_ops`](skills/bio/sequence_ops.md)
+
 ### Compliance
 
 - [Compliance hub](skills/compliance/README.md)

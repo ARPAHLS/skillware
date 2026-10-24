@@ -1,0 +1,37 @@
+{
+    "name": "Sequence Operations",
+    "description": "Deterministic in-silico operations on DNA, RNA, and protein sequence strings.",
+    "issuer": {
+        "name": "Ross Peili",
+        "email": "vpeilivanidis@gmail.com",
+        "github": "rosspeili",
+        "org": "ARPAHLS"
+    },
+    "icon": "dna",
+    "color": "#06b6d4",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "action",
+                "label": "Action"
+            },
+            {
+                "key": "molecule_type",
+                "label": "Molecule Type"
+            },
+            {
+                "key": "output_sequence",
+                "label": "Output Sequence"
+            },
+            {
+                "key": "message",
+                "label": "Message"
+            }
+        ]
+    }
+}

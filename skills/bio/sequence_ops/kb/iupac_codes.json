@@ -1,0 +1,150 @@
+{
+  "nucleotides": {
+    "A": {
+      "name": "Adenine",
+      "bases": ["A"],
+      "complement": "T",
+      "rna_complement": "U",
+      "type": "standard"
+    },
+    "C": {
+      "name": "Cytosine",
+      "bases": ["C"],
+      "complement": "G",
+      "rna_complement": "G",
+      "type": "standard"
+    },
+    "G": {
+      "name": "Guanine",
+      "bases": ["G"],
+      "complement": "C",
+      "rna_complement": "C",
+      "type": "standard"
+    },
+    "T": {
+      "name": "Thymine",
+      "bases": ["T"],
+      "complement": "A",
+      "rna_complement": "A",
+      "type": "standard"
+    },
+    "U": {
+      "name": "Uracil",
+      "bases": ["U"],
+      "complement": "A",
+      "rna_complement": "A",
+      "type": "standard"
+    },
+    "R": {
+      "name": "puRine (A or G)",
+      "bases": ["A", "G"],
+      "complement": "Y",
+      "rna_complement": "Y",
+      "type": "ambiguous"
+    },
+    "Y": {
+      "name": "pYrimidine (C or T/U)",
+      "bases": ["C", "T"],
+      "complement": "R",
+      "rna_complement": "R",
+      "type": "ambiguous"
+    },
+    "S": {
+      "name": "Strong (G or C)",
+      "bases": ["C", "G"],
+      "complement": "S",
+      "rna_complement": "S",
+      "type": "ambiguous"
+    },
+    "W": {
+      "name": "Weak (A or T/U)",
+      "bases": ["A", "T"],
+      "complement": "W",
+      "rna_complement": "W",
+      "type": "ambiguous"
+    },
+    "K": {
+      "name": "Keto (G or T/U)",
+      "bases": ["G", "T"],
+      "complement": "M",
+      "rna_complement": "M",
+      "type": "ambiguous"
+    },
+    "M": {
+      "name": "aMino (A or C)",
+      "bases": ["A", "C"],
+      "complement": "K",
+      "rna_complement": "K",
+      "type": "ambiguous"
+    },
+    "B": {
+      "name": "not A (C, G, or T/U)",
+      "bases": ["C", "G", "T"],
+      "complement": "V",
+      "rna_complement": "V",
+      "type": "ambiguous"
+    },
+    "D": {
+      "name": "not C (A, G, or T/U)",
+      "bases": ["A", "G", "T"],
+      "complement": "H",
+      "rna_complement": "H",
+      "type": "ambiguous"
+    },
+    "H": {
+      "name": "not G (A, C, or T/U)",
+      "bases": ["A", "C", "T"],
+      "complement": "D",
+      "rna_complement": "D",
+      "type": "ambiguous"
+    },
+    "V": {
+      "name": "not T/U (A, C, or G)",
+      "bases": ["A", "C", "G"],
+      "complement": "B",
+      "rna_complement": "B",
+      "type": "ambiguous"
+    },
+    "N": {
+      "name": "aNy (A, C, G, or T/U)",
+      "bases": ["A", "C", "G", "T"],
+      "complement": "N",
+      "rna_complement": "N",
+      "type": "ambiguous"
+    },
+    "-": {
+      "name": "Gap",
+      "bases": [],
+      "complement": "-",
+      "rna_complement": "-",
+      "type": "gap"
+    }
+  },
+  "amino_acids": {
+    "A": {"code3": "Ala", "name": "Alanine"},
+    "C": {"code3": "Cys", "name": "Cysteine"},
+    "D": {"code3": "Asp", "name": "Aspartate"},
+    "E": {"code3": "Glu", "name": "Glutamate"},
+    "F": {"code3": "Phe", "name": "Phenylalanine"},
+    "G": {"code3": "Gly", "name": "Glycine"},
+    "H": {"code3": "His", "name": "Histidine"},
+    "I": {"code3": "Ile", "name": "Isoleucine"},
+    "K": {"code3": "Lys", "name": "Lysine"},
+    "L": {"code3": "Leu", "name": "Leucine"},
+    "M": {"code3": "Met", "name": "Methionine"},
+    "N": {"code3": "Asn", "name": "Asparagine"},
+    "P": {"code3": "Pro", "name": "Proline"},
+    "Q": {"code3": "Gln", "name": "Glutamine"},
+    "R": {"code3": "Arg", "name": "Arginine"},
+    "S": {"code3": "Ser", "name": "Serine"},
+    "T": {"code3": "Thr", "name": "Threonine"},
+    "V": {"code3": "Val", "name": "Valine"},
+    "W": {"code3": "Trp", "name": "Tryptophan"},
+    "Y": {"code3": "Tyr", "name": "Tyrosine"},
+    "B": {"code3": "Asx", "name": "Aspartate or Asparagine (Ambiguous)"},
+    "Z": {"code3": "Glx", "name": "Glutamate or Glutamine (Ambiguous)"},
+    "J": {"code3": "Xle", "name": "Leucine or Isoleucine (Ambiguous)"},
+    "X": {"code3": "Xaa", "name": "Any Amino Acid (Ambiguous)"},
+    "*": {"code3": "Stop", "name": "Translation Stop"}
+  }
+}

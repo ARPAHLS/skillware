@@ -233,6 +233,17 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Telemetry normalizer demo completed successfully.",
         ],
     ),
+    (
+        "bio_sequence_ops_demo.py",
+        [
+            "bio/sequence_ops",
+            "In-Silico Demo",
+            "mRNA transcript",
+            "Translated peptide",
+            "Trinucleotide K-mer Profiling",
+            "Bio sequence operations demo completed successfully.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

@@ -131,6 +131,15 @@ Language adapters: curated lexicons so host agents can interpret and produce inf
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **[Korean Slang](linguistics/korean_slang.md)** | `linguistics/korean_slang` | `atomic` | `0.1.0` (19 Sep 2026) | [@bd-c3](https://github.com/bd-c3) ([@ARPAHLS](https://github.com/ARPAHLS)) | Offline Korean Gen-Z slang interpreter and peer-register generator (September 2026 pack). |
 
+## Bio
+Skills for life sciences, bioinformatics, genomics, and biotechnology.
+
+**Category hub:** [Bio agent skills](bio/README.md).
+
+| Skill | ID | Shape | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[Sequence Operations](bio/sequence_ops.md)** | `bio/sequence_ops` | `atomic` | `0.1.0` (24 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic in-silico operations on DNA, RNA, and protein sequence strings. |
+
 ---
 
 ## Installing Skills

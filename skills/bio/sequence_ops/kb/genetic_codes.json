@@ -1,0 +1,33 @@
+{
+  "tables": {
+    "1": {
+      "id": 1,
+      "name": "Standard Genetic Code",
+      "description": "Standard nuclear code for eukaryotes and most organisms.",
+      "start_codons": ["ATG", "AUG"],
+      "stop_codons": ["TAA", "TAG", "TGA", "UAA", "UAG", "UGA"],
+      "differences_from_standard": {}
+    },
+    "2": {
+      "id": 2,
+      "name": "Vertebrate Mitochondrial Code",
+      "description": "Vertebrate mitochondrial DNA translation code.",
+      "start_codons": ["ATG", "AUG", "ATA", "AUA", "ATT", "AUU", "ATC", "AUC", "GTG", "GUG"],
+      "stop_codons": ["TAA", "TAG", "AGA", "AGG", "UAA", "UAG"],
+      "differences_from_standard": {
+        "AGA": "*",
+        "AGG": "*",
+        "ATA": "M",
+        "TGA": "W"
+      }
+    },
+    "11": {
+      "id": 11,
+      "name": "Bacterial, Archaeal, and Plant Plastid Code",
+      "description": "Translation code for eubacteria, archaea, and chloroplast plastids.",
+      "start_codons": ["ATG", "AUG", "GTG", "GUG", "TTG", "UUG"],
+      "stop_codons": ["TAA", "TAG", "TGA", "UAA", "UAG", "UGA"],
+      "differences_from_standard": {}
+    }
+  }
+}

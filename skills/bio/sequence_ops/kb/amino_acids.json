@@ -1,0 +1,231 @@
+{
+  "standard_amino_acids": {
+    "A": {
+      "code3": "Ala",
+      "name": "Alanine",
+      "formula": "C3H7NO2",
+      "monoisotopic_mass": 71.03711,
+      "molecular_weight": 89.09,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.34,
+      "pka_nh3": 9.69,
+      "isoelectric_point": 6.00
+    },
+    "C": {
+      "code3": "Cys",
+      "name": "Cysteine",
+      "formula": "C3H7NO2S",
+      "monoisotopic_mass": 103.00919,
+      "molecular_weight": 121.16,
+      "category": "polar_uncharged",
+      "pka_cooh": 1.96,
+      "pka_nh3": 10.28,
+      "pka_sidechain": 8.18,
+      "isoelectric_point": 5.07
+    },
+    "D": {
+      "code3": "Asp",
+      "name": "Aspartate",
+      "formula": "C4H7NO4",
+      "monoisotopic_mass": 115.02694,
+      "molecular_weight": 133.10,
+      "category": "acidic_negatively_charged",
+      "pka_cooh": 1.88,
+      "pka_nh3": 9.60,
+      "pka_sidechain": 3.65,
+      "isoelectric_point": 2.77
+    },
+    "E": {
+      "code3": "Glu",
+      "name": "Glutamate",
+      "formula": "C5H9NO4",
+      "monoisotopic_mass": 129.04259,
+      "molecular_weight": 147.13,
+      "category": "acidic_negatively_charged",
+      "pka_cooh": 2.19,
+      "pka_nh3": 9.67,
+      "pka_sidechain": 4.25,
+      "isoelectric_point": 3.22
+    },
+    "F": {
+      "code3": "Phe",
+      "name": "Phenylalanine",
+      "formula": "C9H11NO2",
+      "monoisotopic_mass": 147.06841,
+      "molecular_weight": 165.19,
+      "category": "aromatic",
+      "pka_cooh": 1.83,
+      "pka_nh3": 9.13,
+      "isoelectric_point": 5.48
+    },
+    "G": {
+      "code3": "Gly",
+      "name": "Glycine",
+      "formula": "C2H5NO2",
+      "monoisotopic_mass": 57.02146,
+      "molecular_weight": 75.07,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.34,
+      "pka_nh3": 9.60,
+      "isoelectric_point": 5.97
+    },
+    "H": {
+      "code3": "His",
+      "name": "Histidine",
+      "formula": "C6H9N3O2",
+      "monoisotopic_mass": 137.05891,
+      "molecular_weight": 155.16,
+      "category": "basic_positively_charged",
+      "pka_cooh": 1.82,
+      "pka_nh3": 9.17,
+      "pka_sidechain": 6.00,
+      "isoelectric_point": 7.59
+    },
+    "I": {
+      "code3": "Ile",
+      "name": "Isoleucine",
+      "formula": "C6H13NO2",
+      "monoisotopic_mass": 113.08406,
+      "molecular_weight": 131.17,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.36,
+      "pka_nh3": 9.68,
+      "isoelectric_point": 6.02
+    },
+    "K": {
+      "code3": "Lys",
+      "name": "Lysine",
+      "formula": "C6H14N2O2",
+      "monoisotopic_mass": 128.09496,
+      "molecular_weight": 146.19,
+      "category": "basic_positively_charged",
+      "pka_cooh": 2.18,
+      "pka_nh3": 8.95,
+      "pka_sidechain": 10.53,
+      "isoelectric_point": 9.74
+    },
+    "L": {
+      "code3": "Leu",
+      "name": "Leucine",
+      "formula": "C6H13NO2",
+      "monoisotopic_mass": 113.08406,
+      "molecular_weight": 131.17,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.36,
+      "pka_nh3": 9.60,
+      "isoelectric_point": 5.98
+    },
+    "M": {
+      "code3": "Met",
+      "name": "Methionine",
+      "formula": "C5H11NO2S",
+      "monoisotopic_mass": 131.04049,
+      "molecular_weight": 149.21,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.28,
+      "pka_nh3": 9.21,
+      "isoelectric_point": 5.74
+    },
+    "N": {
+      "code3": "Asn",
+      "name": "Asparagine",
+      "formula": "C4H8N2O3",
+      "monoisotopic_mass": 114.04293,
+      "molecular_weight": 132.12,
+      "category": "polar_uncharged",
+      "pka_cooh": 2.02,
+      "pka_nh3": 8.80,
+      "isoelectric_point": 5.41
+    },
+    "P": {
+      "code3": "Pro",
+      "name": "Proline",
+      "formula": "C5H9NO2",
+      "monoisotopic_mass": 97.05276,
+      "molecular_weight": 115.13,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 1.99,
+      "pka_nh3": 10.96,
+      "isoelectric_point": 6.30
+    },
+    "Q": {
+      "code3": "Gln",
+      "name": "Glutamine",
+      "formula": "C5H10N2O3",
+      "monoisotopic_mass": 128.05858,
+      "molecular_weight": 146.15,
+      "category": "polar_uncharged",
+      "pka_cooh": 2.17,
+      "pka_nh3": 9.13,
+      "isoelectric_point": 5.65
+    },
+    "R": {
+      "code3": "Arg",
+      "name": "Arginine",
+      "formula": "C6H14N4O2",
+      "monoisotopic_mass": 156.10111,
+      "molecular_weight": 174.20,
+      "category": "basic_positively_charged",
+      "pka_cooh": 2.17,
+      "pka_nh3": 9.04,
+      "pka_sidechain": 12.48,
+      "isoelectric_point": 10.76
+    },
+    "S": {
+      "code3": "Ser",
+      "name": "Serine",
+      "formula": "C3H7NO3",
+      "monoisotopic_mass": 87.03203,
+      "molecular_weight": 105.09,
+      "category": "polar_uncharged",
+      "pka_cooh": 2.21,
+      "pka_nh3": 9.15,
+      "isoelectric_point": 5.68
+    },
+    "T": {
+      "code3": "Thr",
+      "name": "Threonine",
+      "formula": "C4H9NO3",
+      "monoisotopic_mass": 101.04768,
+      "molecular_weight": 119.12,
+      "category": "polar_uncharged",
+      "pka_cooh": 2.09,
+      "pka_nh3": 9.10,
+      "isoelectric_point": 5.60
+    },
+    "V": {
+      "code3": "Val",
+      "name": "Valine",
+      "formula": "C5H11NO2",
+      "monoisotopic_mass": 99.06841,
+      "molecular_weight": 117.15,
+      "category": "hydrophobic_aliphatic",
+      "pka_cooh": 2.32,
+      "pka_nh3": 9.62,
+      "isoelectric_point": 5.96
+    },
+    "W": {
+      "code3": "Trp",
+      "name": "Tryptophan",
+      "formula": "C11H12N2O2",
+      "monoisotopic_mass": 186.07931,
+      "molecular_weight": 204.23,
+      "category": "aromatic",
+      "pka_cooh": 2.38,
+      "pka_nh3": 9.39,
+      "isoelectric_point": 5.89
+    },
+    "Y": {
+      "code3": "Tyr",
+      "name": "Tyrosine",
+      "formula": "C9H11NO3",
+      "monoisotopic_mass": 163.06333,
+      "molecular_weight": 181.19,
+      "category": "aromatic",
+      "pka_cooh": 2.20,
+      "pka_nh3": 9.11,
+      "pka_sidechain": 10.07,
+      "isoelectric_point": 5.66
+    }
+  }
+}

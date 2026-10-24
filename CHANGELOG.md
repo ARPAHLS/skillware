@@ -10,6 +10,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Category (`bio`):** Introduced new `bio` life-sciences category (`skills/bio/`), category documentation hub (`docs/skills/bio/README.md`), `cat: bio` issue/PR label, and category dropdown option in the skill proposal template ([#427](https://github.com/ARPAHLS/skillware/issues/427)).
+- **Skill (`bio/sequence_ops` v0.1.0):** Foundational, deterministic in-silico biological sequence operations engine for DNA, RNA, and protein sequences. Provides sequence type detection (`detect_type`), strict alphabet and length validation (`validate`), Watson-Crick reverse complement (`revcom`), transcription (`transcribe`), reading-frame translation (`translate`), Needleman-Wunsch/Smith-Waterman pairwise alignment (`pairwise_align`), structural variant diffing (`variant_diff`), k-mer frequency and Shannon entropy profiling (`kmer_profile`), and seeded reproducible pseudo-random sequence generation (`generate`) with Biopython ([#427](https://github.com/ARPAHLS/skillware/issues/427)).
+- **Core / Dependencies:** Added `biopython` -> `Bio` import module mapping in `skillware.core.extras` to properly resolve manifest requirement presence pre-flight checks.
 - **CLI / Performance:** Lazy `Draft7Validator` schema validator initialization in `skillware.core.manifest_schema` (eliminates 4.8s Lark/RFC 3987 compilation on import), targeted `sys.path` distribution discovery in `skillware.version_policy` (eliminates linear metadata scans across all installed packages on startup), and memoized CLI version resolution.
 - **CLI / Doctor:** Distinguish hard code integrity failures (`SCHEMA`, `DEPS`, `LOAD`) from missing runtime environment variables (`ENVS`). Missing API keys now print an informational advisory and return exit code 0 rather than terminating with exit code 1.
 

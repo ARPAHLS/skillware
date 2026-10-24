@@ -1,0 +1,203 @@
+name: bio/sequence_ops
+version: 0.1.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - dna
+  - rna
+  - protein
+  - bioinformatics
+  - in_silico
+  - alignment
+  - translation
+  - transcription
+  - genomics
+  - fasta
+description: >
+  Deterministic in-silico operations on DNA, RNA, and protein sequence strings.
+  Provides sequence type detection, alphabet validation, molecular transforms (reverse
+  complement, transcription, translation), pairwise alignment, variant difference detection,
+  k-mer frequency profiling, and reproducible seeded pseudo-random sequence generation.
+short_description: "Deterministic in-silico sequence operations, validation, alignment, and translation."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: bio
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: In-silico operation to perform.
+      enum:
+        - detect_type
+        - validate
+        - revcom
+        - transcribe
+        - translate
+        - pairwise_align
+        - variant_diff
+        - kmer_profile
+        - generate
+        - find_orfs
+        - format_fasta
+        - list_tables
+        - lookup_iupac
+      default: detect_type
+    code:
+      type: string
+      description: Single-letter IUPAC nucleotide or amino acid code to inspect in lookup_iupac.
+    sequence:
+      type: string
+      description: Primary input sequence string (DNA, RNA, or protein). Also accepts alias 'reference'.
+    sequence_b:
+      type: string
+      description: Secondary sequence string for pairwise alignment or variant calling. Also accepts alias 'query'.
+    molecule_type:
+      type: string
+      description: Explicit molecule type ('dna', 'rna', 'protein'). Inferred automatically if omitted.
+      enum:
+        - dna
+        - rna
+        - protein
+    mode:
+      type: string
+      description: Alignment mode for pairwise_align ('global' or 'local').
+      enum:
+        - global
+        - local
+      default: global
+    min_length:
+      type: integer
+      description: Minimum sequence length for validation.
+      default: 1
+    max_length:
+      type: integer
+      description: Maximum sequence length for validation or generation.
+      default: 1000000
+    allow_ambiguous:
+      type: boolean
+      description: Whether to accept IUPAC ambiguity codes during validation.
+      default: true
+    reading_frame:
+      type: integer
+      description: Reading frame offset for translation (0, 1, or 2).
+      enum: [0, 1, 2]
+      default: 0
+    to_stop:
+      type: boolean
+      description: Whether translation terminates at the first encountered stop codon (*).
+      default: false
+    table_id:
+      type: integer
+      description: NCBI genetic code table ID (1=Standard, 2=Vertebrate Mitochondrial, 11=Bacterial/Plastid).
+      default: 1
+    min_protein_length:
+      type: integer
+      description: Minimum amino acid length for candidate Open Reading Frames in find_orfs.
+      default: 30
+    strand:
+      type: string
+      description: Strand orientation to scan in find_orfs ('both', 'forward', 'reverse').
+      enum:
+        - both
+        - forward
+        - reverse
+      default: both
+    header:
+      type: string
+      description: Header identifier for format_fasta output.
+      default: sequence
+    line_width:
+      type: integer
+      description: Maximum character width per line for formatted FASTA output.
+      default: 60
+    k:
+      type: integer
+      description: K-mer window size for kmer_profile.
+      default: 3
+    top_n:
+      type: integer
+      description: Number of top frequent k-mers to return.
+      default: 10
+    seed:
+      type: integer
+      description: Random seed for deterministic sequence generation.
+      default: 42
+    length:
+      type: integer
+      description: Desired sequence length for generate action.
+      default: 100
+    gc_content:
+      type: number
+      description: Target GC-content ratio (0.0 to 1.0) for nucleotide generation.
+  required: []
+outputs:
+  status:
+    type: string
+    description: Execution status ('ready' or 'error').
+  action:
+    type: string
+    description: Executed action name.
+  molecule_type:
+    type: string
+    description: Detected or processed molecule type ('dna', 'rna', 'protein', 'unknown').
+  valid:
+    type: boolean
+    description: Boolean outcome for validation action.
+  sequence:
+    type: string
+    description: Generated or processed sequence string.
+  output_sequence:
+    type: string
+    description: Result sequence from transformation (revcom, transcribe, translate).
+  orfs:
+    type: array
+    description: Detected candidate Open Reading Frames with coordinates, frame, strand, and protein translation.
+  orfs_count:
+    type: integer
+    description: Total number of identified Open Reading Frames.
+  fasta:
+    type: string
+    description: Standard multi-line formatted FASTA representation.
+  identity_percent:
+    type: number
+    description: Pairwise alignment identity percentage.
+  matches:
+    type: integer
+    description: Number of matching aligned bases.
+  mismatches:
+    type: integer
+    description: Number of mismatching aligned bases.
+  gaps:
+    type: integer
+    description: Number of insertion/deletion gaps in alignment.
+  mutations:
+    type: array
+    description: List of detected substitutions, insertions, and deletions in variant diffing.
+  top_kmers:
+    type: array
+    description: Most frequent k-mers with occurrence counts and frequencies.
+  entropy:
+    type: number
+    description: Shannon entropy of k-mer frequency distribution.
+  reason_codes:
+    type: array
+    description: Typed error code strings when status is error.
+  message:
+    type: string
+    description: Human-readable error description or status message.
+requirements:
+  - "biopython>=1.83"
+constitution: |
+  1. IN-SILICO COMPUTATION ONLY: All outputs represent computational model evaluations and string operations, not physical laboratory assays or validated medical/therapeutic findings.
+  2. STRICT DETERMINISM: All operations (transforms, alignments, variant calling, seeded pseudo-random generation) yield bitwise-identical results across platforms.
+  3. AIR-GAPPED INTEGRITY: Never invoke external network endpoints, cloud APIs, or proprietary servers. All operations execute purely in-memory.
+  4. NO HALLUCINATED BASES: Never fabricate, invent, or hallucinate nucleotide or amino acid sequences. Report alphabet violations and ambiguous positions explicitly.
+presentation:
+  icon: "dna"
+  color: "#06b6d4"
