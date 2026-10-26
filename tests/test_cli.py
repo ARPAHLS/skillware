@@ -233,7 +233,7 @@ def test_cmd_interactive_unknown_command(monkeypatch):
 
 
 def test_cmd_interactive_list_dispatch(tmp_path, monkeypatch):
-    """Entering 1 or list should dispatch to cmd_list."""
+    """Entering 2 or list should dispatch to cmd_list."""
     import io
     from rich.console import Console
 
@@ -245,7 +245,7 @@ def test_cmd_interactive_list_dispatch(tmp_path, monkeypatch):
         "short_description: Test skill.\n"
     )
 
-    responses = iter(["1", "q"])
+    responses = iter(["2", "q"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
     monkeypatch.chdir(tmp_path)
 
@@ -283,11 +283,11 @@ def test_cmd_help_includes_list_examples(capsys):
 
 
 def test_interactive_help_dispatches_to_cmd_help(monkeypatch):
-    """Interactive menu option 6 / help opens topic submenu."""
+    """Interactive menu option 7 / help opens topic submenu."""
     import io
     from rich.console import Console
 
-    responses = iter(["6", "1", "", "b", "0"])
+    responses = iter(["7", "1", "", "b", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -427,7 +427,7 @@ def test_interactive_theme_dispatches_and_refreshes(
     import skillware.cli as cli
 
     _repo, config_dir = isolated_theme_environment
-    responses = iter(["8", "3", "q"])
+    responses = iter(["4", "2", "3", "b", "q"])
     monkeypatch.setattr("builtins.input", lambda _prompt: next(responses))
     buf = io.StringIO()
 
@@ -622,7 +622,7 @@ def test_main_test_subcommand_exits_with_cmd_test_code(monkeypatch):
 
 
 def test_interactive_test_dispatch(tmp_path, monkeypatch):
-    """Entering 3 or test should dispatch to cmd_test."""
+    """Entering 5 or test should dispatch to cmd_test."""
     import io
     from rich.console import Console
 
@@ -635,7 +635,7 @@ def test_interactive_test_dispatch(tmp_path, monkeypatch):
 
     monkeypatch.setattr("skillware.cli.cmd_test", fake_test)
 
-    responses = iter(["test", "q"])
+    responses = iter(["5", "q"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -657,7 +657,7 @@ def test_interactive_examples_dispatch(examples_readme, monkeypatch):
 
     monkeypatch.setattr("skillware.cli.cmd_examples", fake_examples)
 
-    responses = iter(["examples", "", "0"])
+    responses = iter(["3", "", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -921,7 +921,7 @@ def test_interactive_paths_dispatches(monkeypatch):
     import io
     from rich.console import Console
 
-    responses = iter(["4", "1", "b", "0"])
+    responses = iter(["4", "1", "1", "b", "b", "0"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -1004,7 +1004,7 @@ def test_interactive_doctor_dispatches(monkeypatch):
     import io
     from rich.console import Console
 
-    responses = iter(["5", "q"])
+    responses = iter(["6", "q"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -1194,7 +1194,7 @@ def test_interactive_mail_dispatches(monkeypatch):
 
     from skillware.cli import cmd_interactive
 
-    responses = iter(["7", "1", "q"])
+    responses = iter(["4", "4", "1", "q"])
     monkeypatch.setattr("builtins.input", lambda _: next(responses))
 
     buf = io.StringIO()
@@ -1523,7 +1523,7 @@ def test_cmd_help_brief_and_submenu_mapping():
     assert "Topics" in out
     assert "evm" in out
     assert "addressbook" in out
-    assert "menu 1-10; help topic drill-down via 6" in out
+    assert "menu 1-7; help topic drill-down via 7" in out
 
 
 def test_cmd_help_submenu_navigation_evm_and_addressbook():
@@ -1561,8 +1561,171 @@ def test_cli_docs_history_and_menu_sync():
     assert "14 Jun 2026" in cli_md
     assert "[@rizzoMartin](https://github.com/rizzoMartin)" in cli_md
     assert "[@blade-dancer](https://github.com/bd-c3)" in cli_md
-    assert "`9` / [`evm`]" in cli_md
-    assert "`10` / [`addressbook`]" in cli_md
+    assert "`4` / [`config`]" in cli_md
+    assert "`3` / `evm`" in cli_md
+    assert "`5` / `addressbook`" in cli_md
+
+
+@pytest.mark.parametrize(
+    "number,name,handler",
+    [
+        ("1", "paths", "cmd_paths_submenu"),
+        ("2", "theme", "cmd_theme_picker"),
+        ("3", "evm", "cmd_evm_submenu"),
+        ("4", "mail", "cmd_mail_submenu"),
+        ("5", "addressbook", "cmd_addressbook_interactive"),
+        ("6", "show", "cmd_config_show"),
+        ("7", "open", "cmd_config_open"),
+    ],
+)
+def test_config_submenu_dispatches_number_and_name(monkeypatch, number, name, handler):
+    import io
+    from rich.console import Console
+    import skillware.cli as cli
+
+    calls = []
+    monkeypatch.setattr(cli, handler, lambda **kwargs: calls.append(kwargs))
+    responses = iter([number, name.upper(), "b"])
+    console = Console(file=io.StringIO(), force_terminal=False)
+    assert (
+        cli.cmd_config_submenu(console=console, input_fn=lambda _: next(responses))
+        is None
+    )
+    assert len(calls) == 2
+    assert all(call["console"] is console for call in calls)
+    if name == "theme":
+        assert all(call["show_back"] for call in calls)
+
+
+@pytest.mark.parametrize("ending", ["0", "q", "quit", "exit"])
+def test_interactive_config_exit_ends_session(monkeypatch, ending):
+    import io
+    from rich.console import Console
+
+    responses = iter(["4", ending])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert buf.getvalue().count("Bye.") == 1
+
+
+def test_config_back_returns_to_main_and_recovers_invalid_input(monkeypatch):
+    import io
+    from rich.console import Console
+    import skillware.cli as cli
+
+    calls = []
+    monkeypatch.setattr(cli, "cmd_list", lambda **_: calls.append("list"))
+    responses = iter(["config", "", "invalid", "back", "2", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert calls == ["list"]
+    assert "Unknown config choice" in buf.getvalue()
+
+
+@pytest.mark.parametrize("exception", [EOFError, KeyboardInterrupt])
+def test_config_submenu_stops_on_closed_input(exception):
+    import io
+    from rich.console import Console
+    from skillware.cli import cmd_config_submenu
+
+    def closed_input(_):
+        raise exception
+
+    assert (
+        cmd_config_submenu(
+            console=Console(file=io.StringIO(), force_terminal=False),
+            input_fn=closed_input,
+        )
+        is None
+    )
+
+
+@pytest.mark.parametrize("alias", ["paths", "theme", "evm", "mail", "addressbook"])
+def test_main_menu_preserves_configuration_shortcuts(monkeypatch, alias):
+    import io
+    from rich.console import Console
+    import skillware.cli as cli
+
+    handler = {
+        "paths": "cmd_paths_submenu",
+        "theme": "cmd_theme_picker",
+        "evm": "cmd_evm_submenu",
+        "mail": "cmd_mail_submenu",
+        "addressbook": "cmd_addressbook_interactive",
+    }[alias]
+    calls = []
+    monkeypatch.setattr(cli, handler, lambda **_: calls.append(alias))
+    responses = iter([alias, "0"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    cmd_interactive(console=Console(file=io.StringIO(), force_terminal=False))
+    assert calls == [alias]
+
+
+@pytest.mark.parametrize("child", ["paths", "theme", "evm", "mail", "addressbook"])
+@pytest.mark.parametrize("through_config", [False, True])
+def test_config_child_exit_propagates(monkeypatch, child, through_config):
+    import io
+    from rich.console import Console
+
+    responses = iter((["4"] if through_config else []) + [child, "0"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert buf.getvalue().count("Bye.") == 1
+
+
+@pytest.mark.parametrize("child", ["paths", "theme", "evm", "mail", "addressbook"])
+def test_config_child_back_returns_to_config(monkeypatch, child):
+    import io
+    from rich.console import Console
+
+    responses = iter(["4", child, "b", "b", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cmd_interactive(console=Console(file=buf, force_terminal=False))
+    assert buf.getvalue().count("Bye.") == 1
+
+
+def test_config_show_and_open_use_existing_configuration_handlers(monkeypatch):
+    import io
+    from rich.console import Console
+    from skillware.cli import cmd_config_submenu
+    from skillware.core.config import global_config_dir, global_config_path
+
+    opened = []
+    monkeypatch.setattr(
+        "skillware.cli_addressbook.open_path_in_os",
+        lambda target, **kwargs: opened.append(target),
+    )
+    responses = iter(["show", "open", "b"])
+    buf = io.StringIO()
+    assert (
+        cmd_config_submenu(
+            console=Console(file=buf, force_terminal=False),
+            input_fn=lambda _: next(responses),
+        )
+        is None
+    )
+    assert "Skillware config" in buf.getvalue()
+    assert opened == [global_config_dir()]
+    assert not global_config_path().is_file()
+
+
+@pytest.mark.parametrize("ending", ["b", "0", "q"])
+def test_direct_addressbook_preserves_exit_status(ending):
+    import io
+    from rich.console import Console
+    from skillware.cli_addressbook import cmd_addressbook_interactive
+
+    assert (
+        cmd_addressbook_interactive(
+            console=Console(file=io.StringIO(), force_terminal=False),
+            input_fn=lambda _: ending,
+        )
+        == 0
+    )
 
 
 def test_cmd_list_filter_by_shape(tmp_path):

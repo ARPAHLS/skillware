@@ -10,9 +10,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
-- **CLI / Discovery (`skillware find`):** Added semantic task-intent and keyword discovery engine (`SkillMatcher` in `skillware.core.matcher`) with multi-field weighted scoring, token-overlap, action matching, and Manifest v2 taxonomy filtering (`--shape`, `--tier`, `--target`, `--tag`, `--category`, `--ready-only`, `--top`, `--min-confidence`, `--json`, `--inspect`). Exposes programmatic `find_skills()` and `inspect_skill()` public APIs and interactive menu option `[11] find`.
+- **CLI / Discovery (`skillware find`):** Added semantic task-intent and keyword discovery engine (`SkillMatcher` in `skillware.core.matcher`) with multi-field weighted scoring, token-overlap, action matching, and Manifest v2 taxonomy filtering (`--shape`, `--tier`, `--target`, `--tag`, `--category`, `--ready-only`, `--top`, `--min-confidence`, `--json`, `--inspect`). Exposes programmatic `find_skills()` and `inspect_skill()` public APIs and interactive menu option `[1] find`.
 
 ### Changed
+
+- **CLI / Interactive menu:** Prioritize `find` at option 1 and consolidate setup actions under option 4, `config`, in a seven-item main menu. The config submenu includes paths, theme, EVM, mail, addressbook, show and open. Named setup shortcuts and direct CLI commands remain available (#455).
 
 ### Fixed
 

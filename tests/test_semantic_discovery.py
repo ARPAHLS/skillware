@@ -18,6 +18,21 @@ from skillware import (
 )
 
 
+@pytest.mark.parametrize("entry", ["1", "find", "search"])
+def test_interactive_find_option_in_menu(monkeypatch, entry):
+    import skillware.cli as cli
+
+    calls = []
+    monkeypatch.setattr(cli, "cmd_find", lambda **kwargs: calls.append(kwargs["query"]))
+    responses = iter([entry, "send email", "q"])
+    monkeypatch.setattr("builtins.input", lambda _: next(responses))
+    buf = io.StringIO()
+    cli.cmd_interactive(console=Console(file=buf, force_terminal=False, width=120))
+    assert calls == ["send email"]
+    assert "[1] find" in buf.getvalue()
+    assert "[11]" not in buf.getvalue()
+
+
 def _setup_mock_skills(root: Path) -> None:
     # 1. office/gmail_handler (workflow, core, email)
     s1 = root / "office" / "gmail_handler"
