@@ -97,12 +97,12 @@ interactive numbered menu:
 
     skillware
 
-![Skillware interactive menu — splash and skillware list output](../../assets/skillware%20list.png)
+![Earlier Skillware splash and list output; current menu options are listed below](../../assets/skillware%20list.png)
 
 The splash shows a gradient-styled **SKILLWARE** ASCII logo, a tagline in the
 form `Skillware v{version} — Skill Management Framework` (same version string
 as `skillware --version`), and dim footer links to the project site and
-repository. The menu accepts both number input (`1`) and command name (`list`).
+repository. The menu accepts both number input (`1`) and command name (`find`).
 After each command completes, the menu re-prints automatically.
 
 **Navigation (all menu levels):**
@@ -118,21 +118,37 @@ Available commands:
 
 | Input | Command | Status |
 | :--- | :--- | :--- |
-| `1` / [`list`](#skillware-list) | List all locally installed skills | Available |
-| `2` / [`examples`](#skillware-examples) | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
-| `3` / [`test`](#skillware-test) | Run bundle tests (`test_skill.py`) for one or all skills | Available |
-| `4` / [`paths`](#skillware-paths) | Paths submenu — view roots, edit project/external paths, shadowing, flat-layout diagnose | Available |
-| `5` / [`doctor`](#skillware-doctor) | Check manifest deps and skill.py import readiness | Available |
-| `6` / [`help`](#grouped-help) | Grouped help (Skills, Examples, Paths, Config, Context, Chains, Theme, Mail, EVM, Addressbook, General) with doc links | Available |
-| `7` / [`mail`](#skillware-mail) | Mail submenu — address book and signature setup for `office/gmail_handler` | Available |
-| `8` / [`theme`](#skillware-theme) | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
-| `9` / [`evm`](#skillware-evm) | EVM submenu — EVM chains and RPC config for defi skills | Available |
-| `10` / [`addressbook`](#skillware-addressbook) | Addressbook submenu — shared contacts and EVM wallets | Available |
-| `11` / [`find`](#skillware-find) | Search and rank skills by intent, action, or keywords | Available |
+| `1` / [`find`](#skillware-find) | Search and rank skills by intent, action, or keywords | Available |
+| `2` / [`list`](#skillware-list) | List all locally installed skills | Available |
+| `3` / [`examples`](#skillware-examples) | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
+| `4` / [`config`](#interactive-config-submenu) | Configure paths, theme, EVM, mail and shared contacts; show or open configuration | Available |
+| `5` / [`test`](#skillware-test) | Run bundle tests (`test_skill.py`) for one or all skills | Available |
+| `6` / [`doctor`](#skillware-doctor) | Check manifest deps and skill.py import readiness | Available |
+| `7` / [`help`](#grouped-help) | Grouped help topics and doc links | Available |
+
+### Interactive config submenu
+
+Choose `4` / `config` to open the configuration menu:
+
+| Input | Action |
+| :--- | :--- |
+| `1` / `paths` | View, edit and diagnose skill roots and shadowing |
+| `2` / `theme` | Choose and save `pastel`, `ocean` or `mono` |
+| `3` / `evm` | Configure EVM chains, RPC endpoints and tokens |
+| `4` / `mail` | Configure the mail address book and signature |
+| `5` / `addressbook` | Manage shared contacts and EVM wallets |
+| `6` / `show` | Print merged global and project YAML configuration |
+| `7` / `open` | Open the configuration file or directory in the OS file manager |
+
+Use `b` / `back` to return to the main menu, or `0` / `q` to exit Skillware.
+Returning from a nested setup menu brings you back to config. Typing `paths`,
+`theme`, `evm`, `mail` or `addressbook` directly at the main prompt remains a
+shortcut to the corresponding submenu. Direct CLI commands are unchanged,
+including `skillware config show` and `skillware config open`.
 
 ## Grouped help
 
-`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`6` / `help`**, then pick a topic:
+`skillware --help` prints a **compact topic index**, **CLI usage examples**, and pointers to install/docs. For full command details per topic, run `skillware` and choose **`7` / `help`**, then pick a topic:
 
 | Input | Topic |
 | :--- | :--- |
@@ -151,7 +167,7 @@ Available commands:
 | `13` / `docs` | link to this CLI guide |
 | `14` / `interactive` | numbered splash menu |
 
-Brief `--help` topic index matches the table above. Each topic expands to the command groups below when you choose **`6` / `help`** in the interactive menu:
+Brief `--help` topic index matches the table above. Each topic expands to the command groups below when you choose **`7` / `help`** in the interactive menu:
 
 | Group | Topics |
 | :--- | :--- |
@@ -161,7 +177,7 @@ Brief `--help` topic index matches the table above. Each topic expands to the co
 | **[Config](#skillware-config)** | `config show` |
 | **[Context](#skillware-context)** | `context show` — registry brief (SkillContext) |
 | **[Chains](#skillware-chain)** | `chain list`, `chain show`, `chain validate`, `chain run`, `chain dry-run` |
-| **[Theme](#skillware-theme)** | `theme`, interactive menu `8`, direct `theme <name>` |
+| **[Theme](#skillware-theme)** | `theme`, interactive `config -> theme`, direct `theme <name>` |
 | **[Mail](#skillware-mail)** | `mail`, interactive mail submenu |
 | **[EVM](#skillware-evm)** | `evm`, `evm init`, `evm chains list`, `evm chain add`, `evm tokens list`, `evm token add`, `evm rpc enable`, `evm validate`, `evm open` |
 | **[Addressbook](#skillware-addressbook)** | `addressbook list`, `addressbook add`, `addressbook edit`, `addressbook set-wallet`, `addressbook open` |
@@ -314,7 +330,7 @@ Columns: Script, Skill ID(s), Provider, Required extra (pip extra name), and **G
 
 Unknown skill IDs exit with a helpful message and non-zero status.
 
-In the interactive menu, choose **`2` / `examples`**, optionally enter a skill ID, then browse the same table with GitHub links.
+In the interactive menu, choose **`3` / `examples`**, optionally enter a skill ID, then browse the same table with GitHub links.
 
 ### skillware test
 
@@ -359,7 +375,7 @@ are skipped, and bundled skills from `pip install skillware` remain available.
 | :--- | :--- |
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
 
-Non-interactive `skillware paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (menu **`4` / `paths`**) or edit `.skillware.yaml` manually.
+Non-interactive `skillware paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (`config -> paths`, or the `paths` shortcut) or edit `.skillware.yaml` manually.
 
 #### Interactive paths submenu (menu `4`)
 
@@ -529,7 +545,7 @@ Shared operator **identity directory** for mail and defi skills (`public_0x` EVM
     skillware addressbook open
     skillware addressbook open --dir
 
-Interactive menu: **`10` / `addressbook`**. Full operator guide: [Address book operator config](addressbook_operator_config.md). See also [EVM operator config](evm_operator_config.md) (tokens vs people).
+Interactive menu: **`config -> addressbook`**, or the **`addressbook`** shortcut. Full operator guide: [Address book operator config](addressbook_operator_config.md). See also [EVM operator config](evm_operator_config.md) (tokens vs people).
 
 ### skillware config open
 
@@ -557,7 +573,7 @@ Operator UX for **EVM chain and RPC settings** shared by defi skills. **Full ope
     skillware evm open
     skillware evm open --dir
 
-Interactive menu: **`9` / `evm`**. RPC secrets: [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config).
+Interactive menu: **`config -> evm`**, or the **`evm`** shortcut. RPC secrets: [API keys — EVM RPC](api_keys.md#evm-rpc-and-operator-config).
 
 ### skillware context
 
@@ -650,7 +666,7 @@ Choose or set the CLI presentation theme (`pastel`, `ocean`, `mono`):
     skillware theme
     skillware theme ocean
 
-Without a theme name, `skillware theme` opens the same interactive picker as splash menu **`8` / `theme`**. With a name, it saves globally immediately and prints a notice when project config overrides the effective theme in the current directory.
+Without a theme name, `skillware theme` opens the same interactive picker as `config -> theme` (also available via the `theme` shortcut). With a name, it saves globally immediately and prints a notice when project config overrides the effective theme in the current directory.
 
 The selected theme is applied to tables, headings, categories, skill IDs,
 menus, links, statuses, errors, and the splash gradient.

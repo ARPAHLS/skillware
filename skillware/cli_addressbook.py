@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from rich import box
 from rich.console import Console
@@ -359,7 +359,10 @@ def cmd_addressbook(console: Optional[Console] = None) -> int:
 def cmd_addressbook_interactive(
     console: Optional[Console] = None,
     input_fn: ReadLineFn = None,
-) -> int:
+    *,
+    return_navigation: bool = False,
+) -> Union[int, str]:
+    """Keep CLI status codes by default; optionally propagate a parent-menu exit."""
     _apply_active_theme()
     console = console or Console()
     commands = {
@@ -390,7 +393,7 @@ def cmd_addressbook_interactive(
         raw = _read_line("  addressbook> ", input_fn)
         choice, nav = _parse_nav(raw)
         if nav == _NAV_EXIT:
-            return 0
+            return _NAV_EXIT if return_navigation else 0
         if nav == _NAV_BACK:
             return 0
         command = commands.get(choice.lower())

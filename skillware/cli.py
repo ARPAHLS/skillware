@@ -182,7 +182,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware paths", "show resolution order, tiers, and shadowing"),
             ("skillware paths --skills-root <path>", "one-shot root override"),
             (
-                "skillware (menu 4 / paths)",
+                "skillware (config -> paths)",
                 "interactive paths submenu — view, edit, diagnose",
             ),
         ],
@@ -224,7 +224,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         [
             ("skillware theme", "interactive theme picker"),
             ("skillware theme <pastel|ocean|mono>", "set global CLI theme"),
-            ("skillware (menu 8 / theme)", "same picker from splash menu"),
+            ("skillware (config -> theme)", "same picker from splash menu"),
         ],
         _DOCS_CLI_THEME,
     ),
@@ -241,7 +241,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
                 "skillware mail signature init",
                 "default plain + HTML signature with logo",
             ),
-            ("skillware (menu 7 / mail)", "interactive mail submenu"),
+            ("skillware (config -> mail)", "interactive mail submenu"),
         ],
         _DOCS_CLI_MAIL,
     ),
@@ -257,7 +257,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware evm rpc enable <chain>", "enable a chain in evm.yaml"),
             ("skillware evm validate", "schema and checksum validation"),
             ("skillware evm open [--dir]", "open evm.yaml in OS file manager"),
-            ("skillware (menu 9 / evm)", "interactive evm submenu"),
+            ("skillware (config -> evm)", "interactive evm submenu"),
         ],
         _DOCS_CLI_EVM,
     ),
@@ -271,7 +271,7 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware addressbook open [--dir]", "open addressbook.yaml in OS"),
             ("skillware config open [--dir]", "open config folder in OS"),
             ("skillware mail addressbook …", "backward-compatible alias"),
-            ("skillware (menu 10 / addressbook)", "interactive addressbook submenu"),
+            ("skillware (config -> addressbook)", "interactive addressbook submenu"),
         ],
         _DOCS_CLI_ADDRESSBOOK,
     ),
@@ -1445,7 +1445,7 @@ def cmd_paths_submenu(
     console=None,
     input_fn=None,
 ) -> Optional[str]:
-    """Interactive paths submenu (menu option 4). Returns _NAV_EXIT to quit Skillware."""
+    """Interactive config -> paths submenu. Returns _NAV_EXIT to quit Skillware."""
     _apply_active_theme()
     if console is None:
         console = Console()
@@ -2193,6 +2193,62 @@ def cmd_doctor_install(console=None) -> int:
     return 0 if report.ok else 1
 
 
+def cmd_config_submenu(console=None, input_fn=None) -> Optional[str]:
+    """Run configuration actions; return _NAV_EXIT only for a session exit."""
+    if console is None:
+        console = Console()
+    menu = [
+        ("1", "paths", "view, edit, and diagnose skill roots and shadowing"),
+        ("2", "theme", "choose and save the CLI color theme"),
+        ("3", "evm", "EVM chains, RPC endpoints, and tokens"),
+        ("4", "mail", "address book and signature setup"),
+        ("5", "addressbook", "shared contacts and EVM wallets"),
+        ("6", "show", "print merged global and project configuration"),
+        ("7", "open", "open configuration in the OS file manager"),
+    ]
+    commands = {number: name for number, name, _ in menu}
+    commands.update({name: name for _, name, _ in menu})
+
+    while True:
+        _apply_active_theme()
+        console.print(Text("Config", style=TABLE_STYLE))
+        for number, name, description in menu:
+            console.print(f"    [{number}] {name:<20}— {description}", style=MENU_STYLE)
+        _print_nav_footer(console)
+        choice, nav = _parse_nav(_read_line("  config> ", input_fn))
+        if nav == _NAV_EXIT:
+            return _NAV_EXIT
+        if nav == _NAV_BACK:
+            return None
+        if not choice:
+            continue
+        command = commands.get(choice.lower())
+        child_nav = None
+        if command == "paths":
+            child_nav = cmd_paths_submenu(console=console, input_fn=input_fn)
+        elif command == "theme":
+            child_nav = cmd_theme_picker(
+                console=console, input_fn=input_fn, show_back=True
+            )
+        elif command == "evm":
+            child_nav = cmd_evm_submenu(console=console, input_fn=input_fn)
+        elif command == "mail":
+            child_nav = cmd_mail_submenu(console=console, input_fn=input_fn)
+        elif command == "addressbook":
+            child_nav = cmd_addressbook_interactive(
+                console=console, input_fn=input_fn, return_navigation=True
+            )
+        elif command == "show":
+            cmd_config_show(console=console)
+        elif command == "open":
+            cmd_config_open(console=console)
+        else:
+            console.print(f"  Unknown config choice: '{choice}'", style=ERROR_DIM_STYLE)
+        if child_nav == _NAV_EXIT:
+            return _NAV_EXIT
+        console.print()
+
+
 def _prompt_examples_skill_id(
     console, input_fn=None
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -2264,7 +2320,7 @@ def cmd_help(console=None, *, brief: bool = True) -> None:
         console.print()
         console.print(Text("Interactive mode", style=TABLE_STYLE))
         console.print(
-            "  skillware — menu 1-10; help topic drill-down via 6", style="dim"
+            "  skillware — menu 1-7; help topic drill-down via 7", style="dim"
         )
         console.print("  0 — exit from any menu level", style="dim")
         console.print()
@@ -2342,41 +2398,34 @@ def cmd_interactive(console=None, parser=None) -> None:
     )
 
     menu = [
-        ("1", "list", "discover and display all locally installed skills"),
-        ("2", "examples", "browse runnable scripts from examples/README.md"),
-        ("3", "test", "run bundle tests (test_skill.py) for one or all skills"),
-        ("4", "paths", "paths submenu — view, edit, and diagnose skill roots"),
-        ("5", "doctor", "check manifest deps and skill.py import readiness"),
-        ("6", "help", "grouped help topics and doc links"),
-        ("7", "mail", "address book and signature for office/gmail_handler"),
-        ("8", "theme", "choose and save the CLI color theme"),
-        ("9", "evm", "EVM chains and RPC config for defi skills"),
-        ("10", "addressbook", "shared contacts and EVM wallets"),
-        ("11", "find", "search and rank skills by intent, action, or keywords"),
+        ("1", "find", "search and rank skills by intent, action, or keywords"),
+        ("2", "list", "discover and display all locally installed skills"),
+        ("3", "examples", "browse runnable scripts from examples/README.md"),
+        ("4", "config", "configure paths, theme, evm, mail, and addressbook"),
+        ("5", "test", "run bundle tests (test_skill.py) for one or all skills"),
+        ("6", "doctor", "check manifest deps and skill.py import readiness"),
+        ("7", "help", "grouped help topics and doc links"),
     ]
 
     commands = {
-        "1": "list",
+        "1": "find",
         "list": "list",
-        "2": "examples",
+        "2": "list",
         "examples": "examples",
-        "3": "test",
+        "3": "examples",
         "test": "test",
-        "4": "paths",
+        "4": "config",
+        "config": "config",
         "paths": "paths",
-        "5": "doctor",
+        "5": "test",
         "doctor": "doctor",
-        "6": "help",
+        "6": "doctor",
         "help": "help",
-        "7": "mail",
+        "7": "help",
         "mail": "mail",
-        "8": "theme",
         "theme": "theme",
-        "9": "evm",
         "evm": "evm",
-        "10": "addressbook",
         "addressbook": "addressbook",
-        "11": "find",
         "find": "find",
         "search": "find",
     }
@@ -2426,6 +2475,11 @@ def cmd_interactive(console=None, parser=None) -> None:
         elif command == "test":
             console.print("  Running bundle tests (pytest)…", style="dim")
             cmd_test(console=console)
+        elif command == "config":
+            config_nav = cmd_config_submenu(console=console)
+            if config_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         elif command == "paths":
             paths_nav = cmd_paths_submenu(console=console)
             if paths_nav == _NAV_EXIT:
@@ -2458,7 +2512,12 @@ def cmd_interactive(console=None, parser=None) -> None:
                 console.print("  Bye.", style="dim")
                 return
         elif command == "addressbook":
-            cmd_addressbook_interactive(console=console)
+            addressbook_nav = cmd_addressbook_interactive(
+                console=console, return_navigation=True
+            )
+            if addressbook_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
         else:
             console.print(f"  Unknown command: '{choice}'", style=ERROR_DIM_STYLE)
 
