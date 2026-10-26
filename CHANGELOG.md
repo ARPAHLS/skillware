@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **CLI / Discovery (`skillware find`):** Added semantic task-intent and keyword discovery engine (`SkillMatcher` in `skillware.core.matcher`) with multi-field weighted scoring, token-overlap, action matching, and Manifest v2 taxonomy filtering (`--shape`, `--tier`, `--target`, `--tag`, `--category`, `--ready-only`, `--top`, `--min-confidence`, `--json`, `--inspect`). Exposes programmatic `find_skills()` and `inspect_skill()` public APIs and interactive menu option `[11] find`.
+
 ### Changed
 
 ### Fixed

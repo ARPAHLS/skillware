@@ -128,6 +128,7 @@ Available commands:
 | `8` / [`theme`](#skillware-theme) | Choose `pastel`, `ocean`, or `mono` and save it to global config | Available |
 | `9` / [`evm`](#skillware-evm) | EVM submenu — EVM chains and RPC config for defi skills | Available |
 | `10` / [`addressbook`](#skillware-addressbook) | Addressbook submenu — shared contacts and EVM wallets | Available |
+| `11` / [`find`](#skillware-find) | Search and rank skills by intent, action, or keywords | Available |
 
 ## Grouped help
 
@@ -247,6 +248,52 @@ Sample output:
     |   Target: software                                                          |
     |   Tags:   aml, sanctions, forensics, web3, compliance                       |
     +-----------------------------------------------------------------------------+
+
+### skillware find
+
+Search, score, and rank registry skills by task intent, supported actions, taxonomy tags, or natural language query. Designed for both interactive human inspection and automated agent tool discovery.
+
+```bash
+skillware find "transcribe dna to rna"
+skillware find "honeypot screening" --shape workflow
+skillware find "send email" --ready-only
+skillware find "deepfake" --json
+skillware find "align" --inspect
+```
+
+#### Discovery Options
+
+| Flag | Type | Description |
+| :--- | :--- | :--- |
+| `query` | positional | Natural language query, task intent, or keywords |
+| `-n`, `--top` | int | Maximum number of skills to return (default: `5`) |
+| `-c`, `--category` | string | Filter skills by category (e.g. `bio`, `finance`) |
+| `-r`, `--ready-only` | flag | Filter to skills with all dependencies and prerequisites met |
+| `--shape` | enum | Filter by shape (`atomic`, `workflow`, `middleware`, `stream`) |
+| `--tier` | enum | Filter by tier (`core`, `cloud`, `enterprise`) |
+| `--target` | enum | Filter by target substrate (`software`, `hardware`, `bioware`) |
+| `--tag` | string | Filter by domain keyword or semantic tag |
+| `--min-confidence` | int | Minimum confidence percentage threshold (default: `15`) |
+| `--json` | flag | Emit machine-readable JSON array with agent hints |
+| `--inspect [SKILL_ID]` | flag/str | Deep-inspect actions, parameters, and examples for top match or given skill |
+
+#### Agent Discovery API
+
+In addition to the CLI, Python agents can discover skills programmatically:
+
+```python
+from skillware import find_skills, inspect_skill
+
+# Find matching skills ranked by confidence
+matches = find_skills("transcribe dna to rna", ready_only=True)
+for match in matches:
+    print(f"{match.skill_id} ({match.confidence_pct}%): {match.summary}")
+    print(f"Agent hint: {match.agent_hint}")
+
+# Inspect skill actions and parameters
+info = inspect_skill("bio/sequence_ops")
+print(info["actions"])
+```
 
 ### skillware examples
 
@@ -656,6 +703,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`d2a306c`](https://github.com/ARPAHLS/skillware/commit/d2a306cffc) | chore(release): cut v0.6.0 with bio category, sequence_ops foundational engine, wallet_screening v2, and 4.8s startup optimizations (#454) | 24 Oct 2026 | `0.6.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`e8bf3bf`](https://github.com/ARPAHLS/skillware/commit/e8bf3bf940) | perf(cli): resolve startup latency, scope distribution checks, and doctor env handling (#451) | 24 Oct 2026 | `0.6.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`f522b17`](https://github.com/ARPAHLS/skillware/commit/f522b17c0d) | chore(release): cut v0.5.9 with Manifest v2 Universal Taxonomy, telemetry_normalizer, AcroForm engine, and SPDX licensing | 20 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |
 | [`831856d`](https://github.com/ARPAHLS/skillware/commit/831856d8c6) | fix(catalog,cli): set optimization skills shape to middleware, restore CHANGELOG Added header, and expand cli usage examples (#440) | 19 Oct 2026 | `0.5.9` | [@rosspeili](https://github.com/rosspeili) |

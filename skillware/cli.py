@@ -18,6 +18,7 @@ from rich.status import Status
 from rich import box
 
 from skillware.core.loader import SkillLoader
+from skillware.core.matcher import SkillMatcher
 from skillware.context import SkillContext
 from skillware.chains import (
     ChainValidationError,
@@ -152,6 +153,18 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
             ("skillware doctor [id]", "check schema, deps, and skill.py import"),
             ("skillware doctor --category <n>", "diagnose a category"),
             ("skillware doctor --install", "check editable vs PyPI install health"),
+            (
+                "skillware find <query>",
+                "find and rank skills by intent, action, or keywords",
+            ),
+            (
+                "skillware find <query> --inspect",
+                "deep-inspect matched skill actions and parameters",
+            ),
+            (
+                "skillware inspect <id>",
+                "deep-inspect actions, parameters, and examples for a skill",
+            ),
         ],
         _DOCS_CLI_LIST,
     ),
@@ -293,7 +306,7 @@ _NAV_BACK = "back"
 
 # Interactive help topics: (key, slug, summary, HELP_GROUPS index or special tag)
 _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
-    ("1", "skills", "list, test, doctor", 0),
+    ("1", "skills", "list, find, test, doctor", 0),
     ("2", "examples", "indexed runnable scripts", 1),
     ("3", "paths", "resolution and path editor", 2),
     ("4", "config", "merged YAML settings", 3),
@@ -314,6 +327,8 @@ _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware list --shape middleware",
     "skillware list --examples --category dev_tools",
     "skillware info optimization/prompt_rewriter",
+    'skillware find "send email with attachments"',
+    'skillware find "verify deepfake" --inspect',
     "skillware examples compliance/tos_evaluator",
     "skillware test finance/wallet_screening",
     "skillware paths",
@@ -816,6 +831,232 @@ def cmd_info(
     panel = Panel(
         content,
         title=f"Skill Info: {skill_id}",
+        border_style=BORDER_STYLE,
+        expand=False,
+    )
+    console.print(panel)
+    return 0
+
+
+def cmd_find(
+    query: str,
+    skills_root_override: Optional[Path] = None,
+    top_k: int = 5,
+    category: Optional[str] = None,
+    ready_only: bool = False,
+    shape: Optional[str] = None,
+    tier: Optional[str] = None,
+    target: Optional[str] = None,
+    tag: Optional[str] = None,
+    min_confidence: int = 15,
+    json_output: bool = False,
+    inspect_target: Optional[str] = None,
+    console=None,
+    as_json: bool = False,
+    inspect: Any = None,
+    min_score: Optional[int] = None,
+    limit: Optional[int] = None,
+) -> int:
+    """Find and rank skills by intent, action, or keywords."""
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+
+    if as_json:
+        json_output = True
+    if min_score is not None:
+        min_confidence = min_score
+    if limit is not None:
+        top_k = limit
+    if inspect_target is None and inspect is not None:
+        inspect_target = inspect if isinstance(inspect, str) else ""
+
+    roots = [skills_root_override] if skills_root_override else None
+    matcher = SkillMatcher(roots=roots)
+
+    if inspect_target is not None:
+        target_id = inspect_target.strip()
+        if not target_id:
+            results = matcher.search(
+                query,
+                top_k=1,
+                category=category,
+                ready_only=ready_only,
+                shape=shape,
+                tier=tier,
+                target=target,
+                tag=tag,
+                min_confidence=min_confidence,
+            )
+            if not results:
+                console.print(
+                    f"No skills found matching '{query}' to inspect.",
+                    style=ERROR_STYLE,
+                )
+                return 1
+            target_id = results[0].skill_id
+
+        return _render_find_inspection(matcher, target_id, console=console)
+
+    results = matcher.search(
+        query,
+        top_k=top_k,
+        category=category,
+        ready_only=ready_only,
+        shape=shape,
+        tier=tier,
+        target=target,
+        tag=tag,
+        min_confidence=min_confidence,
+    )
+
+    if json_output:
+        import json
+
+        payload = [r.to_dict() for r in results]
+        console.print(json.dumps(payload, indent=2), soft_wrap=True)
+        return 0
+
+    if not results:
+        console.print(f"No skills found matching '{query}'.", style=CATEGORY_STYLE)
+        console.print(
+            "Try broader keywords or browse all categories with 'skillware list'.",
+            style="dim",
+        )
+        return 0
+
+    table = Table(
+        box=box.SIMPLE_HEAVY,
+        border_style=BORDER_STYLE,
+        header_style=TABLE_STYLE,
+        expand=False,
+    )
+
+    table.add_column("MATCH", no_wrap=True)
+    table.add_column("ID", style=ID_STYLE, no_wrap=True)
+    table.add_column("CATEGORY", style=CATEGORY_STYLE, no_wrap=True)
+    table.add_column("SUMMARY")
+    table.add_column("FRESHNESS", style="dim", no_wrap=True)
+    table.add_column("STATUS", no_wrap=True)
+
+    for r in results:
+        if r.confidence_pct >= 80:
+            match_style = f"bold {ID_STYLE}"
+        elif r.confidence_pct >= 50:
+            match_style = CATEGORY_STYLE
+        else:
+            match_style = "dim"
+        match_cell = Text(f"{r.confidence_pct}%", style=match_style)
+
+        if r.is_ready:
+            status_cell = Text("Ready", style=ID_STYLE)
+        else:
+            missing_text = f"Missing: {', '.join(r.missing_prerequisites)}"
+            status_cell = Text(
+                _flatten_table_cell(missing_text, 36), style=CATEGORY_STYLE
+            )
+
+        table.add_row(
+            match_cell,
+            r.skill_id,
+            r.category,
+            r.summary,
+            r.last_updated,
+            status_cell,
+        )
+
+    console.print(table)
+    console.print(
+        f"Found {len(results)} skill(s) matching '{query}'.",
+        style="dim",
+    )
+    console.print(
+        "Tip: Run 'skillware info <skill_id>' for taxonomy details or "
+        "'skillware doctor <skill_id>' to check prerequisites.",
+        style="dim",
+    )
+    return 0
+
+
+def _render_find_inspection(
+    matcher: SkillMatcher,
+    skill_id: str,
+    console=None,
+) -> int:
+    """Render deep-inspection panel for a skill discovered via find."""
+    _apply_active_theme()
+    if console is None:
+        console = Console()
+
+    info = matcher.inspect(skill_id)
+    if not info:
+        console.print(f"Skill '{skill_id}' not found in registry.", style=ERROR_STYLE)
+        return 1
+
+    from rich.panel import Panel
+
+    shape = info.get("shape", "atomic")
+    tier = info.get("tier", "core")
+    target_list = info.get("target") or ["software"]
+    target_str = (
+        ", ".join(target_list) if isinstance(target_list, list) else str(target_list)
+    )
+    tags_list = info.get("tags") or []
+    tags_str = ", ".join(tags_list) if tags_list else "-"
+
+    if info["is_ready"]:
+        readiness_line = f"[{ID_STYLE}]Ready (all prerequisites met)[/{ID_STYLE}]"
+    else:
+        missing_str = ", ".join(info["missing_prerequisites"])
+        readiness_line = (
+            f"[{CATEGORY_STYLE}]Missing prerequisites: {missing_str}[/{CATEGORY_STYLE}]"
+        )
+
+    actions_dict = info.get("actions") or {}
+    if actions_dict:
+        act_lines = []
+        for a_name, a_desc in actions_dict.items():
+            desc_part = f" - {a_desc}" if a_desc else ""
+            act_lines.append(f"  - [bold]{a_name}[/bold]{desc_part}")
+        actions_str = "\n".join(act_lines[:8])
+        if len(actions_dict) > 8:
+            actions_str += f"\n  - ... and {len(actions_dict) - 8} more action(s)"
+    else:
+        actions_str = "  -"
+
+    params_list = info.get("parameters") or []
+    params_str = ", ".join(params_list[:12]) if params_list else "-"
+    if len(params_list) > 12:
+        params_str += f", ... (+{len(params_list) - 12} more)"
+
+    examples_list = info.get("examples") or []
+    examples_str = (
+        "\n".join(f"  - {ex}" for ex in examples_list) if examples_list else "  -"
+    )
+
+    content = (
+        f"[bold]ID:[/bold] {info['skill_id']}\n"
+        f"[bold]Version:[/bold] {info['version']}\n"
+        f"[bold]Category:[/bold] {info['category']}\n"
+        f"[bold]Issuer:[/bold] {info['issuer'] or '-'}\n"
+        f"[bold]Freshness:[/bold] {info['last_updated']}\n"
+        f"[bold]Status:[/bold] {readiness_line}\n"
+        f"[bold]Summary:[/bold] {info['summary']}\n\n"
+        f"[bold cyan]Taxonomy:[/bold cyan]\n"
+        f"  [bold]Shape:[/bold]  {shape}\n"
+        f"  [bold]Tier:[/bold]   {tier}\n"
+        f"  [bold]Target:[/bold] {target_str}\n"
+        f"  [bold]Tags:[/bold]   {tags_str}\n\n"
+        f"[bold cyan]Supported Actions:[/bold cyan]\n"
+        f"{actions_str}\n\n"
+        f"[bold cyan]Parameters:[/bold cyan] {params_str}\n\n"
+        f"[bold cyan]Runnable Examples:[/bold cyan]\n"
+        f"{examples_str}"
+    )
+
+    panel = Panel(
+        content,
+        title=f"Skill Inspection: {skill_id}",
         border_style=BORDER_STYLE,
         expand=False,
     )
@@ -1980,6 +2221,23 @@ def _prompt_examples_skill_id(
     return choice, None
 
 
+def _prompt_find_query(console, input_fn=None) -> Tuple[Optional[str], Optional[str]]:
+    """Return (query_string, nav)."""
+    console.print(
+        "  Search query or keywords (e.g. 'honeypot check', 'send email'):",
+        style="dim",
+    )
+    raw = _read_line("  find> ", input_fn)
+    choice, nav = _parse_nav(raw if raw is not None else "")
+    if nav == _NAV_EXIT:
+        return None, _NAV_EXIT
+    if nav == _NAV_BACK:
+        return None, _NAV_BACK
+    if raw is None or not choice:
+        return None, _NAV_BACK
+    return choice, None
+
+
 def _print_menu(console, menu) -> None:
     for num, name, desc in menu:
         console.print(f"    [{num}] {name:<20}— {desc}", style=MENU_STYLE)
@@ -2094,6 +2352,7 @@ def cmd_interactive(console=None, parser=None) -> None:
         ("8", "theme", "choose and save the CLI color theme"),
         ("9", "evm", "EVM chains and RPC config for defi skills"),
         ("10", "addressbook", "shared contacts and EVM wallets"),
+        ("11", "find", "search and rank skills by intent, action, or keywords"),
     ]
 
     commands = {
@@ -2117,6 +2376,9 @@ def cmd_interactive(console=None, parser=None) -> None:
         "evm": "evm",
         "10": "addressbook",
         "addressbook": "addressbook",
+        "11": "find",
+        "find": "find",
+        "search": "find",
     }
 
     _print_menu(console, menu)
@@ -2135,10 +2397,25 @@ def cmd_interactive(console=None, parser=None) -> None:
         if not choice:
             continue
 
+        # Support direct inline 'find <query>' or 'search <query>'
+        first_token = choice.lower().split()[0] if choice else ""
+        if first_token in ("find", "search") and len(choice.split()) > 1:
+            cmd_find(query=choice.split(maxsplit=1)[1].strip(), console=console)
+            console.print()
+            _print_menu(console, menu)
+            continue
+
         command = commands.get(choice.lower())
 
         if command == "list":
             cmd_list(console=console)
+        elif command == "find":
+            query_str, find_nav = _prompt_find_query(console)
+            if find_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
+            if find_nav != _NAV_BACK and query_str:
+                cmd_find(query=query_str, console=console)
         elif command == "examples":
             skill_id, ex_nav = _prompt_examples_skill_id(console)
             if ex_nav == _NAV_EXIT:
@@ -2268,6 +2545,85 @@ def main() -> None:
         help="Registry skill ID (category/skill_name).",
     )
     info_parser.add_argument(
+        "--skills-root",
+        type=Path,
+        default=None,
+        help="Override the skills directory path.",
+    )
+
+    find_parser = subparsers.add_parser(
+        "find",
+        aliases=["search"],
+        help="Find and rank skills by intent, action, or keywords.",
+    )
+    find_parser.add_argument(
+        "query",
+        help="Natural language query, task intent, or keywords.",
+    )
+    find_parser.add_argument(
+        "-n",
+        "--top",
+        type=int,
+        default=5,
+        dest="top_k",
+        help="Maximum number of skills to return (default: 5).",
+    )
+    find_parser.add_argument(
+        "-c",
+        "--category",
+        default=None,
+        help="Filter skills by category.",
+    )
+    find_parser.add_argument(
+        "-r",
+        "--ready-only",
+        action="store_true",
+        help="Filter to skills with all prerequisites met.",
+    )
+    find_parser.add_argument(
+        "--shape",
+        choices=["atomic", "workflow", "middleware", "stream"],
+        default=None,
+        help="Filter skills by execution shape.",
+    )
+    find_parser.add_argument(
+        "--tier",
+        choices=["core", "cloud", "enterprise"],
+        default=None,
+        help="Filter skills by deployment tier.",
+    )
+    find_parser.add_argument(
+        "--target",
+        choices=["software", "hardware", "bioware"],
+        default=None,
+        help="Filter skills by target substrate.",
+    )
+    find_parser.add_argument(
+        "--tag",
+        default=None,
+        help="Filter skills by domain keyword or semantic tag.",
+    )
+    find_parser.add_argument(
+        "--min-confidence",
+        type=int,
+        default=15,
+        help="Minimum confidence percentage threshold (default: 15).",
+    )
+    find_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Emit machine-readable JSON array.",
+    )
+    find_parser.add_argument(
+        "--inspect",
+        nargs="?",
+        const="",
+        default=None,
+        dest="inspect_target",
+        help="Deep-inspect actions, parameters, and examples for a skill (or top match).",
+    )
+    find_parser.add_argument(
         "--skills-root",
         type=Path,
         default=None,
@@ -2757,6 +3113,23 @@ def main() -> None:
             cmd_info(
                 skill_id=args.skill_id,
                 skills_root_override=args.skills_root,
+            )
+        )
+    elif args.command in ("find", "search"):
+        raise SystemExit(
+            cmd_find(
+                query=args.query,
+                skills_root_override=args.skills_root,
+                top_k=args.top_k,
+                category=args.category,
+                ready_only=args.ready_only,
+                shape=args.shape,
+                tier=args.tier,
+                target=args.target,
+                tag=args.tag,
+                min_confidence=args.min_confidence,
+                json_output=args.json_output,
+                inspect_target=args.inspect_target,
             )
         )
     elif args.command == "examples":
