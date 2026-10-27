@@ -15,6 +15,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Changed
 
 - **CLI / Interactive menu:** Prioritize `find` at option 1 and consolidate setup actions under option 4, `config`, in a seven-item main menu. The config submenu includes paths, theme, EVM, mail, addressbook, show and open. Named setup shortcuts and direct CLI commands remain available (#455).
+- **Typing:** `skillware/core/loader.py` is now type-clean and removed from the `[[tool.mypy.overrides]]` list, so `mypy skillware` checks it in CI (#415, Phase 3).
 
 ### Fixed
 
