@@ -282,7 +282,6 @@ warn_unused_configs = true
 [[tool.mypy.overrides]]
 module = [
     "skillware.cli",
-    "skillware.core.loader",
 ]
 ignore_errors = true
 

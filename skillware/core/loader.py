@@ -225,7 +225,7 @@ class SkillLoader:
         skill_path = str(resolved_path)
 
         # Load Manifest
-        manifest = {}
+        manifest: Dict[str, Any] = {}
         manifest_path = os.path.join(skill_path, "manifest.yaml")
         if os.path.exists(manifest_path):
             with open(manifest_path, "r", encoding="utf-8") as f:
@@ -368,11 +368,13 @@ class SkillLoader:
 
         return types.Tool(
             function_declarations=[
-                {
-                    "name": name,
-                    "description": description,
-                    "parameters": sanitize_schema(parameters),
-                }
+                types.FunctionDeclaration.model_validate(
+                    {
+                        "name": name,
+                        "description": description,
+                        "parameters": sanitize_schema(parameters),
+                    }
+                )
             ]
         )
 
