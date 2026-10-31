@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -14,10 +15,13 @@ _ZERO_WIDTH_CHARS = "\u200b\u200c\u200d\ufeff"
 # Major tokens for volume reporting; addresses come from evm.tokens / chain.weth.
 _MAJOR_TOKEN_SYMBOLS = ("usdt", "usdc", "dai", "weth")
 _REPORT_SCHEMA_VERSION = "2.0"
+_CHAINALYSIS_PUBLIC_URL = "https://public.chainalysis.com/api/v1/address/{address}"
+_TRM_SANCTIONS_URL = "https://api.trmlabs.com/public/v1/sanctions/screening"
 _VERDICT_STATEMENTS = {
     "DIRECT_SANCTIONS_MATCH": (
         "Screened address matches a bundled sanctions or watchlist record."
     ),
+    "LIVE_SANCTIONS_MATCH": ("A live sanctions provider flagged the screened address."),
     "MALICIOUS_OR_INDIRECT_EXPOSURE": (
         "Direct malicious-contract interaction or hop-1 sanctioned counterparty detected."
     ),
@@ -45,6 +49,8 @@ class WalletScreeningSkill(BaseSkill):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
         self.etherscan_api_key = self.credential("ETHERSCAN_API_KEY")
+        self.chainalysis_api_key = self.credential("CHAINALYSIS_API_KEY")
+        self.trm_sanctions_api_key = self.credential("TRM_SANCTIONS_API_KEY")
 
         # Config
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -80,8 +86,26 @@ class WalletScreeningSkill(BaseSkill):
         if not address:
             return {"error": "Invalid Ethereum address provided."}
 
+        # Offline-direct: bundled lists only when Etherscan is unavailable.
         if not self.etherscan_api_key:
-            return {"error": "Missing ETHERSCAN_API_KEY environment variable."}
+            sanctions_hits = self._lookup_sanctions_hits(address)
+            analysis = self._empty_analysis()
+            analysis["malicious_interactions"] = self._direct_entity_risk_rows(address)
+            warnings = ["offline_direct_only_no_tx_history"]
+            live_verification, live_warnings = self._run_live_verification(address)
+            warnings.extend(live_warnings)
+            return self._generate_report_data(
+                address=address,
+                analysis=analysis,
+                sanctions_hits=sanctions_hits,
+                eth_balance=0.0,
+                eth_usd=0.0,
+                eth_eur=0.0,
+                txs_count=0,
+                warnings=warnings,
+                mode="offline_direct_only",
+                live_verification=live_verification,
+            )
 
         # 1. Fetch Data (normal ETH, ERC-20, and internal)
         txs, eth_warnings = self._get_eth_transactions(address)
@@ -101,6 +125,9 @@ class WalletScreeningSkill(BaseSkill):
             txs, address, token_txs=token_txs, internal_txs=internal_txs
         )
 
+        live_verification, live_warnings = self._run_live_verification(address)
+        fetch_warnings.extend(live_warnings)
+
         # 4. Construct Rich Report
         return self._generate_report_data(
             address=address,
@@ -111,6 +138,196 @@ class WalletScreeningSkill(BaseSkill):
             eth_eur=eth_eur,
             txs_count=len(txs),
             warnings=fetch_warnings,
+            mode="full_forensics",
+            live_verification=live_verification,
+        )
+
+    @staticmethod
+    def _empty_analysis() -> Dict[str, Any]:
+        return {
+            "total_txs": 0,
+            "total_token_txs": 0,
+            "total_internal_txs": 0,
+            "value_in": 0.0,
+            "value_out": 0.0,
+            "gas_paid": 0.0,
+            "malicious_interactions": [],
+            "counterparty_counts": {},
+            "most_interacted": None,
+            "token_volumes": {},
+        }
+
+    def _direct_entity_risk_rows(self, address: str) -> List[Dict[str, Any]]:
+        """Offline: if the screened address itself is a known malicious contract."""
+        entries = self._lookup_tx_risk_entries(address)
+        if not entries:
+            return []
+        primary = max(
+            entries, key=lambda item: self._severity_rank(item.get("severity", ""))
+        )
+        sources = sorted({entry.get("source_file", "Unknown") for entry in entries})
+        return [
+            {
+                "tx_hash": None,
+                "other_party": address,
+                "direction": "self",
+                "transfer_kind": "direct",
+                "contract_name": primary.get("contract_name"),
+                "severity": primary.get("severity"),
+                "jurisdictions": primary.get("jurisdictions", []),
+                "source_file": primary.get("source_file"),
+                "sources": sources,
+            }
+        ]
+
+    def _run_live_verification(
+        self, address: str
+    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+        """Optional Chainalysis / TRM checks; soft-fail into metadata.warnings."""
+        rows: List[Dict[str, Any]] = []
+        warnings: List[str] = []
+        if self.chainalysis_api_key:
+            row, warn = self._screen_chainalysis(address)
+            rows.append(row)
+            if warn:
+                warnings.append(warn)
+        if self.trm_sanctions_api_key:
+            row, warn = self._screen_trm(address)
+            rows.append(row)
+            if warn:
+                warnings.append(warn)
+        return rows, warnings
+
+    def _screen_chainalysis(self, address: str) -> Tuple[Dict[str, Any], Optional[str]]:
+        url = _CHAINALYSIS_PUBLIC_URL.format(address=address)
+        try:
+            resp = requests.get(
+                url,
+                headers={"X-API-Key": self.chainalysis_api_key or ""},
+                timeout=15,
+            )
+        except requests.RequestException as exc:
+            return (
+                {
+                    "provider": "chainalysis",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": str(exc),
+                },
+                "chainalysis_unavailable",
+            )
+        if resp.status_code == 429:
+            return (
+                {
+                    "provider": "chainalysis",
+                    "status": "rate_limited",
+                    "sanctioned": None,
+                    "detail": "HTTP 429",
+                },
+                "chainalysis_rate_limited",
+            )
+        if resp.status_code >= 400:
+            return (
+                {
+                    "provider": "chainalysis",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": f"HTTP {resp.status_code}",
+                },
+                "chainalysis_unavailable",
+            )
+        try:
+            payload = resp.json()
+        except ValueError:
+            return (
+                {
+                    "provider": "chainalysis",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": "invalid_json",
+                },
+                "chainalysis_unavailable",
+            )
+        identifications = payload.get("identifications") or []
+        sanctioned = bool(identifications) or bool(payload.get("isSanctioned"))
+        return (
+            {
+                "provider": "chainalysis",
+                "status": "ok",
+                "sanctioned": sanctioned,
+                "identifications": identifications,
+                "detail": payload.get("message") or payload.get("category"),
+            },
+            None,
+        )
+
+    def _screen_trm(self, address: str) -> Tuple[Dict[str, Any], Optional[str]]:
+        key = self.trm_sanctions_api_key or ""
+        token = base64.b64encode(f"{key}:{key}".encode("utf-8")).decode("ascii")
+        try:
+            resp = requests.post(
+                _TRM_SANCTIONS_URL,
+                headers={
+                    "Authorization": f"Basic {token}",
+                    "Content-Type": "application/json",
+                },
+                json=[{"address": address}],
+                timeout=15,
+            )
+        except requests.RequestException as exc:
+            return (
+                {
+                    "provider": "trm",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": str(exc),
+                },
+                "trm_unavailable",
+            )
+        if resp.status_code == 429:
+            return (
+                {
+                    "provider": "trm",
+                    "status": "rate_limited",
+                    "sanctioned": None,
+                    "detail": "HTTP 429",
+                },
+                "trm_rate_limited",
+            )
+        if resp.status_code >= 400:
+            return (
+                {
+                    "provider": "trm",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": f"HTTP {resp.status_code}",
+                },
+                "trm_unavailable",
+            )
+        try:
+            payload = resp.json()
+        except ValueError:
+            return (
+                {
+                    "provider": "trm",
+                    "status": "error",
+                    "sanctioned": None,
+                    "detail": "invalid_json",
+                },
+                "trm_unavailable",
+            )
+        row = payload[0] if isinstance(payload, list) and payload else {}
+        if not isinstance(row, dict):
+            row = {}
+        sanctioned = bool(row.get("isSanctioned"))
+        return (
+            {
+                "provider": "trm",
+                "status": "ok",
+                "sanctioned": sanctioned,
+                "detail": row,
+            },
+            None,
         )
 
     # --- Loader Helpers ---
@@ -791,8 +1008,11 @@ class WalletScreeningSkill(BaseSkill):
         eth_eur,
         txs_count,
         warnings=None,
+        mode: str = "full_forensics",
+        live_verification: Optional[List[Dict[str, Any]]] = None,
     ):
         warnings = warnings or []
+        live_verification = live_verification or []
         pnl = analysis["value_out"] - analysis["value_in"] - analysis["gas_paid"]
         pnl_pct = (
             ((pnl) / analysis["value_in"] * 100) if analysis["value_in"] > 0 else 0.0
@@ -809,6 +1029,29 @@ class WalletScreeningSkill(BaseSkill):
         risk_factors = self._build_risk_factors(
             sanctions_summary, malicious, indirect_exposures
         )
+
+        live_sanctioned = any(
+            row.get("status") == "ok" and row.get("sanctioned") is True
+            for row in live_verification
+        )
+        if live_sanctioned and risk_level != "critical":
+            risk_level, decision, reason_code = (
+                "critical",
+                "DENY",
+                "LIVE_SANCTIONS_MATCH",
+            )
+            for row in live_verification:
+                if row.get("status") == "ok" and row.get("sanctioned") is True:
+                    risk_factors.append(
+                        {
+                            "code": "LIVE_SANCTIONS_MATCH",
+                            "severity": "critical",
+                            "evidence": {
+                                "provider": row.get("provider"),
+                                "detail": row.get("detail"),
+                            },
+                        }
+                    )
 
         top_counterparties = sorted(
             [(k, v) for k, v in analysis.get("counterparty_counts", {}).items()],
@@ -830,7 +1073,7 @@ class WalletScreeningSkill(BaseSkill):
             "screening_time": datetime.now().isoformat(),
             "wallet_address": address,
             "chain": self.SCREENING_CHAIN,
-            "mode": "full_forensics",
+            "mode": mode,
             "data_sources_count": len(self.additional_datasets) + 2,
         }
         if warnings:
@@ -844,6 +1087,7 @@ class WalletScreeningSkill(BaseSkill):
         }
 
         risk_flag = risk_level in {"critical", "high", "medium"}
+        sanctioned_match = bool(sanctions_hits) or live_sanctioned
 
         return {
             "schema_version": _REPORT_SCHEMA_VERSION,
@@ -858,7 +1102,7 @@ class WalletScreeningSkill(BaseSkill):
                 "risk_level": risk_level,
                 # Backward-compatible alias for v1 hosts.
                 "risk_flag": risk_flag,
-                "sanctioned_entity_match": bool(sanctions_hits),
+                "sanctioned_entity_match": sanctioned_match,
                 "malicious_interaction_count": len(malicious),
                 "indirect_exposure_count": len(indirect_exposures),
                 "balance_eth": eth_balance,
@@ -885,6 +1129,7 @@ class WalletScreeningSkill(BaseSkill):
                 "sanctions_hits": sanctions_summary,
                 "malicious_interactions": malicious,
                 "indirect_exposures": indirect_exposures,
+                "live_verification": live_verification,
             },
             "risk_factors": risk_factors,
             "network_analysis": {
