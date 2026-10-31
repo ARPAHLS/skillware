@@ -249,14 +249,21 @@ class WalletScreeningSkill(BaseSkill):
                 "chainalysis_unavailable",
             )
         identifications = payload.get("identifications") or []
+        if not isinstance(identifications, list):
+            identifications = []
         sanctioned = bool(identifications) or bool(payload.get("isSanctioned"))
+        detail = payload.get("message") or payload.get("category")
+        if detail is None and identifications:
+            primary = identifications[0]
+            if isinstance(primary, dict):
+                detail = primary.get("name") or primary.get("category")
         return (
             {
                 "provider": "chainalysis",
                 "status": "ok",
                 "sanctioned": sanctioned,
                 "identifications": identifications,
-                "detail": payload.get("message") or payload.get("category"),
+                "detail": detail,
             },
             None,
         )
@@ -1034,24 +1041,26 @@ class WalletScreeningSkill(BaseSkill):
             row.get("status") == "ok" and row.get("sanctioned") is True
             for row in live_verification
         )
+        for row in live_verification:
+            if row.get("status") == "ok" and row.get("sanctioned") is True:
+                risk_factors.append(
+                    {
+                        "code": "LIVE_SANCTIONS_MATCH",
+                        "severity": "critical",
+                        "evidence": {
+                            "provider": row.get("provider"),
+                            "detail": row.get("detail"),
+                        },
+                    }
+                )
+        # Elevate only when offline tiers were not already critical; still keep
+        # live evidence above when both offline and live hit.
         if live_sanctioned and risk_level != "critical":
             risk_level, decision, reason_code = (
                 "critical",
                 "DENY",
                 "LIVE_SANCTIONS_MATCH",
             )
-            for row in live_verification:
-                if row.get("status") == "ok" and row.get("sanctioned") is True:
-                    risk_factors.append(
-                        {
-                            "code": "LIVE_SANCTIONS_MATCH",
-                            "severity": "critical",
-                            "evidence": {
-                                "provider": row.get("provider"),
-                                "detail": row.get("detail"),
-                            },
-                        }
-                    )
 
         top_counterparties = sorted(
             [(k, v) for k, v in analysis.get("counterparty_counts", {}).items()],

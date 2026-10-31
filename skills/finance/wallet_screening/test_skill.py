@@ -523,3 +523,43 @@ def test_live_chainalysis_rate_limit_warns(mock_get, skill):
     assert "chainalysis_rate_limited" in result["metadata"]["warnings"]
     assert result["risk_details"]["live_verification"][0]["status"] == "rate_limited"
     assert result["summary"]["risk_level"] == "low"
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+def test_live_chainalysis_detail_from_identification(mock_get, skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = "ca-test-key"
+    skill.trm_sanctions_api_key = None
+    mock_get.return_value = MagicMock(
+        status_code=200,
+        json=lambda: {
+            "identifications": [
+                {"name": "OFAC SDN Entity", "category": "sanctions"},
+            ]
+        },
+    )
+
+    result = skill.execute({"address": WALLET})
+
+    live = result["risk_details"]["live_verification"][0]
+    assert live["sanctioned"] is True
+    assert live["detail"] == "OFAC SDN Entity"
+    assert any(f["code"] == "LIVE_SANCTIONS_MATCH" for f in result["risk_factors"])
+
+
+@patch("skills.finance.wallet_screening.skill.requests.post")
+def test_live_factors_kept_when_offline_already_critical(mock_post, skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = "trm-test-key"
+    mock_post.return_value = MagicMock(
+        status_code=200,
+        json=lambda: [{"address": SANCTIONED_COUNTERPARTY, "isSanctioned": True}],
+    )
+
+    result = skill.execute({"address": SANCTIONED_COUNTERPARTY})
+
+    assert result["summary"]["risk_level"] == "critical"
+    assert result["verdict"]["reason_code"] == "DIRECT_SANCTIONS_MATCH"
+    assert any(f["code"] == "DIRECT_SANCTIONS_MATCH" for f in result["risk_factors"])
+    assert any(f["code"] == "LIVE_SANCTIONS_MATCH" for f in result["risk_factors"])
