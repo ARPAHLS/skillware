@@ -3,11 +3,11 @@
 **ID**: `bio/sequence_ops`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 24 Oct 2026
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `dna`, `rna`, `protein`, `bioinformatics`, `in_silico`, `alignment`, `translation`, `transcription`, `genomics`, `fasta`
+- **Version**: `0.1.0` — 24 Oct 2026
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `dna`, `rna`, `protein`, `bioinformatics`, `in_silico`, `alignment`, `translation`, `transcription`, `genomics`, `fasta`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Deterministic in-silico operations on DNA, RNA, and protein sequence strings.

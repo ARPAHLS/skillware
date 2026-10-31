@@ -3,11 +3,11 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `2.0.0` — 20 Oct 2026
-**Tier**: `core`
-**Shape**: `workflow`
-**Target**: `software`
-**Tags**: `aml`, `sanctions`, `forensics`, `web3`, `compliance`
+- **Version**: `2.0.0` — 20 Oct 2026
+- **Tier**: `core`
+- **Shape**: `workflow`
+- **Target**: `software`
+- **Tags**: `aml`, `sanctions`, `forensics`, `web3`, `compliance`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts; emit schema v2 verdicts hosts can gate on.

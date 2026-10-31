@@ -4,11 +4,11 @@
 **Skill ID:** `linguistics/korean_slang`
 **Issuer:** [@bd-c3](https://github.com/bd-c3) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 19 Sep 2026
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `nlp`, `slang`, `korean`, `translation`, `linguistics`
+- **Version**: `0.1.0` — 19 Sep 2026
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `nlp`, `slang`, `korean`, `translation`, `linguistics`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Interpret and generate Korean Gen-Z slang and internet register that foundation models routinely miss.

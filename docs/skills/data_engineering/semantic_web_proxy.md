@@ -3,11 +3,11 @@
 **ID**: `data_engineering/semantic_web_proxy`  
 **Issuer**: [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0`
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `web`, `scraping`, `semantic`, `proxy`, `markdown`
+- **Version**: `0.1.0`
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `web`, `scraping`, `semantic`, `proxy`, `markdown`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Convert live pages or raw HTML into token-efficient Markdown, text, or JSON behind an SSRF guard.

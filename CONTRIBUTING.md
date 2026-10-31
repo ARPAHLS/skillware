@@ -413,7 +413,7 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<category>/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md) and the category hub `docs/skills/<category>/README.md`.
-- Include **ID**, **Issuer**, the Manifest v2 metadata block (**Version**, **Tier**, **Shape**, **Target**, **Tags** inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, the Manifest v2 metadata block as a scannable bulleted list (**Version**, **Tier**, **Shape**, **Target**, **Tags** inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Include the **intent** block (`<!-- skill-intent:begin -->`) with **Solves**, **Works with**, and **Runtime** lines so search and GitHub can match operator queries. Keep wording accurate; do not stuff keywords.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
