@@ -4,24 +4,52 @@ Flat crawl map for Skillware documentation. Category hubs and skill catalog page
 are one hop from this file; runtime bundles stay under `skills/<category>/<skill_name>/`
 with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
-[Project README](../README.md) · [Skill library](skills/README.md) · [Glossary](glossary.md)
+[Project README](../README.md) · [Comparison](../COMPARISON.md) · [Skill library](skills/README.md) · [Glossary](glossary.md)
 
 ## Guides
 
+### Framework and Governance
+
 - [Introduction](introduction.md)
 - [Vision](vision.md)
+- [Comparison](../COMPARISON.md)
 - [Glossary](glossary.md)
 - [Testing](TESTING.md)
 - [Contributing](../CONTRIBUTING.md)
 - [Agent-native workflow](contributing/ai_native_workflow.md)
+- [Inclusive language](contributing/inclusive-language.md)
+- [Issue resolver profile](contributing/issue_resolver_profile.md)
+- [Examples index](../examples/README.md)
+
+### Security and Trust
+
+- [Security overview](security/README.md)
+- [Skill trust model](security/skill-trust-model.md)
+
+### Usage and Configuration
+
 - [Usage guides](usage/README.md)
 - [Agent loops](usage/agent_loops.md)
 - [Skill chaining](usage/skill_chaining.md)
+- [CLI reference](usage/cli.md)
 - [Install extras](usage/install_extras.md)
 - [API keys](usage/api_keys.md)
-- [CLI](usage/cli.md)
-- [Skill trust model](security/skill-trust-model.md)
-- [Examples index](../examples/README.md)
+- [EVM operator config](usage/evm_operator_config.md)
+- [Address book operator config](usage/addressbook_operator_config.md)
+- [Skill usage template](usage/skill_usage_template.md)
+
+### Host LLM and Cloud Integrations
+
+- [Enterprise cloud](usage/enterprise_cloud.md)
+- [OpenAI](usage/openai.md)
+- [OpenAI-compatible hosts](usage/openai_compatible.md)
+- [Anthropic Claude](usage/claude.md)
+- [Google Gemini](usage/gemini.md)
+- [Google Cloud Vertex AI](usage/vertex.md)
+- [Amazon Bedrock](usage/bedrock.md)
+- [Microsoft Azure OpenAI](usage/azure_openai.md)
+- [DeepSeek](usage/deepseek.md)
+- [Ollama](usage/ollama.md)
 
 ## Skill category hubs
 
