@@ -226,19 +226,41 @@ Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](
 
 ## Comparison
 
-Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL.md) in several ways:
+Skillware is fundamentally differentiated from prompt-only formats (such as Agent Skills / `SKILL.md`), protocol transports (like Model Context Protocol / MCP), and agent orchestration frameworks (LangChain, AutoGen, CrewAI):
 
-*   **Model Agnostic**: Native adapters for Gemini, Claude, Ollama, and OpenAI.
-*   **Code-First**: Skills are executable Python bundles, not just server specs.
-*   **Runtime-Focused**: Provides tools for the application, not just recipes for an IDE.
+*   **Versioned Software, Not Prompts**: Skills are self-contained Python software modules (Contract + Effect + Directive + Assurance + Corpus), not markdown recipes or prompt snippets. Logic runs in pre-compiled, tested Python (`skill.py`), decoupling capability from model hallucination and eliminating runaway script-debugging loops.
+*   **Curated & Governed by ARPA**: Skillware does not host unvetted third-party uploads or unreviewed marketplace scripts. Every skill in the registry is curated, tested, and in the vast majority of cases co-designed and steered by ARPA.
+*   **Embedded Enterprise Security**: Security is native to the bundle and framework—requiring no separate security proxies or manual host hardening. Explicit parameter contracts, hermetic offline test suites, isolated credential boundaries (`EnvSecretProvider`), simulation stress tests, and hardware execution guards (`target: [hardware]`) prevent injection leakage and unauthorized host mutations.
+*   **Enterprise Workflows vs. Toy Scripts**: Built for mission-critical enterprise operations (compliance forensics, corporate filings, AcroForm automation, sensor telemetry normalization, in-silico genomics) rather than superficial freelancer prompts. Structured by Manifest v2 Universal Taxonomy (`shape`, `tier`, `target`, `tags`).
+*   **Universal Model Agnosticism**: Native runtime adapters adapt a single skill bundle dynamically across Gemini, Claude, OpenAI, Ollama, Bedrock, DeepSeek, and custom loops.
+*   **Progressive Context Unlocking (JIT Context Excision)**: Monolithic prompt dumping degrades reasoning and burns token budgets. `SkillContext` unlocks context gradually when needed:
+    *   *Catalog Brief (`mode="brief"`)*: Mounts 1-line taxonomy summaries (`[tier:shape:target]`), cutting prompt footprint by ~85% while preserving typed tool schemas.
+    *   *Category & Tag Scoping*: Mounts domain-specific clusters (`categories=["finance", "compliance"]`).
+    *   *Cherry-Picked Bundles*: Equips specific high-trust skills per agent role (`skills=[...]`).
+    *   *Full Directives (`mode="directives"`)*: Injects full markdown SOP playbooks for small, dedicated workflows.
+    *   *Lazy JIT Unlocking*: Discloses full `instructions.md` playbooks dynamically only when the model calls or routes to the skill.
 
-[Read the full comparison here](COMPARISON.md).
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig11_latency_anatomy.png" alt="Latency anatomy across execution stages" width="100%" />
+</div>
+
+> **Latency anatomy across execution stages:** JIT context excision shrinks prefill latency, compact model routing accelerates decoding, and deterministic host validation eliminates error-retry loops, cutting end-to-end median latency by 55.6% and collapsing time-to-first-token (TTFT).
+
+<br/>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig14_run_to_run_determinism.png" alt="Run-to-run determinism and variance contraction" width="100%" />
+</div>
+
+> **Run-to-run determinism and variance contraction across 40 seeded replays under identical seeds (8B compact model):** Unassisted Vanilla execution scatters across an erratic score distribution (mean 61.0, σ = 4.1) driven by non-deterministic code synthesis paths. Skillware contracts run-to-run dispersion by 5.1× tighter (mean 88.2, σ = 0.8), establishing the execution predictability required for enterprise regression testing and CI/CD release gating.
+
+*   **Comprehensive Analysis**: [Read the full technical breakdown in COMPARISON.md](COMPARISON.md).
+*   **Empirical Evaluation**: [Inspect benchmarks, crucibles, and 23-model leaderboards in Skillware-Bench](https://github.com/ARPAHLS/skillware-bench).
 
 ## Stats
 
 <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/badge/Stats-PePyTech-ffdac1?style=flat-square" alt="PePy.tech dashboard"></a>
 <a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-ffdac1?style=flat-square" alt="PyPI Stats dashboard"></a>
-<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93%20total&color=bbf7d0" alt="Total downloads (PePy)"></a>
 
 PyPI download counts measure **install activity** from public aggregators (including CI and mirrors), not unique users. Use the badge links above for charts and version breakdowns.
 
