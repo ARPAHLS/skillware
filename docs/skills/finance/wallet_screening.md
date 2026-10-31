@@ -3,7 +3,7 @@
 **ID**: `finance/wallet_screening`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `2.0.0` — 20 Oct 2026
+**Version**: `2.1.0` — 26 Oct 2026
 **Tier**: `core`
 **Shape**: `workflow`
 **Target**: `software`
@@ -12,7 +12,7 @@
 <!-- skill-intent:begin -->
 **Solves:** Screen Ethereum wallets against OFAC / FBI sanctions lists and known mixer or scam contracts before a host agent acts; emit schema v2 verdicts hosts can gate on.
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
-**Runtime:** Needs `ETHERSCAN_API_KEY`; CoinGecko optional.
+**Runtime:** `ETHERSCAN_API_KEY` optional (offline-direct without it); CoinGecko, Chainalysis, and TRM optional.
 <!-- skill-intent:end -->
 
 **Recommended install:** `pip install "skillware[finance_wallet_screening]"`. See [Install extras](../../usage/install_extras.md).
@@ -67,8 +67,10 @@ Offline tools to refresh Corpus (not loaded by `execute()`).
 
 | Variable | Required | Purpose |
 | :--- | :--- | :--- |
-| `ETHERSCAN_API_KEY` | Yes | Etherscan API for transaction history |
-| `COINGECKO_API_KEY` | No | CoinGecko pricing (free tier if unset) |
+| `ETHERSCAN_API_KEY` | No | Etherscan history for `full_forensics`. If unset, skill runs `offline_direct_only` against bundled lists |
+| `COINGECKO_API_KEY` | No | CoinGecko pricing (free tier if unset; unused in offline-direct) |
+| `CHAINALYSIS_API_KEY` | No | Optional Chainalysis public sanctions screening (`X-API-Key`) |
+| `TRM_SANCTIONS_API_KEY` | No | Optional TRM Labs sanctions screening (HTTP Basic `key:key`) |
 
 Configure values per [API keys for skills](../../usage/api_keys.md). This skill reads the names declared in `skills/finance/wallet_screening/manifest.yaml`.
 
@@ -347,7 +349,9 @@ Report schema **v2** (`schema_version: "2.0"`). Hosts should gate on `verdict.de
 - **Entity-only designations**: Aban Tether is designated without a digital-currency identifier in SDN remarks, so address screening cannot hit it.
 - **Deferred peer lists**: OpenSanctions `il_mod_crypto` (`entities.ftm.json`), FBI Lazarus, Israel NBCTF, and Uniswap TRM stay at their 22 Jul 2025 snapshots. UK OFSI, the EU 20th package, and MEW darklist had no public address file in this bundle to ingest.
 - **ERC-20 and internal coverage**: `tokentx` and `txlistinternal` are screened against the malicious / TRM risk index. Major-token volumes (USDT, USDC, DAI, WETH) come from operator `evm.tokens` on ethereum. NFT transfers are still out of scope.
-- **Hop-1 only**: `indirect_exposures` screens direct counterparties against the sanctions index. Deeper graph hops, offline-direct mode, live Chainalysis/TRM, and `provenance.report_hash` remain on #439 slices 3–4.
+- **Hop-1 only**: `indirect_exposures` screens direct counterparties against the sanctions index. Deeper graph hops and `provenance.report_hash` remain on #439 slice 4.
+- **Offline-direct**: Without `ETHERSCAN_API_KEY`, balances and tx history are omitted (`metadata.mode: offline_direct_only`). Live providers still run when their keys are set.
+- **Live providers**: Chainalysis/TRM failures or rate limits add `metadata.warnings` and do not erase offline findings. A live sanctions hit elevates to `critical` / `DENY`.
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
@@ -359,6 +363,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(wallet_screening): offline-direct mode and optional live Chainalysis/TRM (#439) | 26 Oct 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`ec30a64`](https://github.com/ARPAHLS/skillware/commit/ec30a6444c) | feat(wallet_screening): schema v2 verdicts and hop-1 exposures (#439) (#447) | 20 Oct 2026 | `2.0.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.1.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`3204c82`](https://github.com/ARPAHLS/skillware/commit/3204c82249e0004ff475b8e992bfe1d0c4b6ea33) | feat(wallet_screening): ingest tokentx and txlistinternal (#439) | 17 Oct 2026 | `1.1.0` | [@Hendobox](https://github.com/Hendobox) |

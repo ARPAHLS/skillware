@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/wallet_screening` v2.1.0):** Offline-direct screening when `ETHERSCAN_API_KEY` is unset (`metadata.mode: offline_direct_only`). Optional live verification via `CHAINALYSIS_API_KEY` / `TRM_SANCTIONS_API_KEY` into `risk_details.live_verification[]`, soft-failing into `metadata.warnings` ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 3).
 - **CLI / Discovery (`skillware find`):** Added semantic task-intent and keyword discovery engine (`SkillMatcher` in `skillware.core.matcher`) with multi-field weighted scoring, token-overlap, action matching, and Manifest v2 taxonomy filtering (`--shape`, `--tier`, `--target`, `--tag`, `--category`, `--ready-only`, `--top`, `--min-confidence`, `--json`, `--inspect`). Exposes programmatic `find_skills()` and `inspect_skill()` public APIs and interactive menu option `[1] find`.
 
 ### Changed

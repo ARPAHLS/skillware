@@ -1,5 +1,5 @@
 name: finance/wallet_screening
-version: 2.0.0
+version: 2.1.0
 tier: core
 shape: workflow
 target:
@@ -11,7 +11,7 @@ tags:
   - web3
   - compliance
 description: |
-  A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). Analyzes normal ETH, ERC-20 (tokentx), and internal (txlistinternal) history, screens hop-1 counterparties, and returns report schema v2 (verdict + risk_factors) with backward-compatible risk_flag aliases.
+  A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). Analyzes normal ETH, ERC-20 (tokentx), and internal (txlistinternal) history, screens hop-1 counterparties, supports offline-direct screening without Etherscan, and optional live Chainalysis/TRM verification.
 short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
 issuer:
   name: Ross Peili
@@ -36,10 +36,16 @@ constitution: |
   3. COMPLIANCE: If a wallet is sanctioned, clearly state the jurisdiction and reason.
 env_vars:
   ETHERSCAN_API_KEY:
-    description: "API key for Etherscan to fetch transaction data."
-    required: true
+    description: "API key for Etherscan transaction history. If unset, skill runs offline_direct_only against bundled lists."
+    required: false
   COINGECKO_API_KEY:
     description: "Optional API key for CoinGecko. If not provided, free tier is used (rate limited)."
+    required: false
+  CHAINALYSIS_API_KEY:
+    description: "Optional Chainalysis public sanctions screening key (X-API-Key)."
+    required: false
+  TRM_SANCTIONS_API_KEY:
+    description: "Optional TRM Labs sanctions screening API key (HTTP Basic key:key)."
     required: false
 requirements:
   - requests

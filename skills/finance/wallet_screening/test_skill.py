@@ -10,11 +10,16 @@ WALLET = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
 WALLET_L = WALLET.lower()
 TORNADO = "0x910cbd523d972eb0a6f4cae4618ad62622b39dbf"
 USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7"
+SANCTIONED_COUNTERPARTY = "0xc8fe1c81e927540fcc99ebb3c880a840082293da"
 
 
 @pytest.fixture
 def skill():
-    return WalletScreeningSkill()
+    instance = WalletScreeningSkill()
+    # Keep unit tests offline for live providers unless a test opts in.
+    instance.chainalysis_api_key = None
+    instance.trm_sanctions_api_key = None
+    return instance
 
 
 @pytest.fixture
@@ -27,7 +32,7 @@ def manifest():
 def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
-    assert skill_manifest["version"] == manifest["version"] == "2.0.0"
+    assert skill_manifest["version"] == manifest["version"] == "2.1.0"
 
 
 def test_invalid_address(skill):
@@ -36,11 +41,31 @@ def test_invalid_address(skill):
     assert "Invalid Ethereum address" in result["error"]
 
 
-def test_missing_api_key(skill):
+def test_offline_direct_only_without_etherscan(skill):
     skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = None
     result = skill.execute({"address": WALLET})
-    assert "error" in result
-    assert "Missing ETHERSCAN_API_KEY" in result["error"]
+
+    assert "error" not in result
+    assert result["metadata"]["mode"] == "offline_direct_only"
+    assert "offline_direct_only_no_tx_history" in result["metadata"]["warnings"]
+    assert result["summary"]["total_transactions"] == 0
+    assert result["summary"]["risk_level"] == "low"
+    assert result["verdict"]["decision"] == "ALLOW"
+    assert result["risk_details"]["live_verification"] == []
+
+
+def test_offline_direct_sanctioned_address(skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = None
+    result = skill.execute({"address": SANCTIONED_COUNTERPARTY})
+
+    assert result["metadata"]["mode"] == "offline_direct_only"
+    assert result["summary"]["sanctioned_entity_match"] is True
+    assert result["summary"]["risk_level"] == "critical"
+    assert result["verdict"]["decision"] == "DENY"
 
 
 def test_major_tokens_come_from_evm_config(skill):
@@ -154,6 +179,8 @@ def test_execute_success(mock_get, skill):
     assert result["verdict"]["reason_code"] == "CLEAN_RECORD"
     assert result["summary"]["indirect_exposure_count"] == 0
     assert result["risk_details"]["indirect_exposures"] == []
+    assert result["risk_details"]["live_verification"] == []
+    assert result["metadata"]["mode"] == "full_forensics"
     assert result["network_analysis"]["risky_counterparties"] == []
 
 
@@ -375,9 +402,6 @@ def test_tokentx_truncation_warning(mock_get, skill, monkeypatch):
     assert result["summary"]["total_token_txs"] == 2
 
 
-SANCTIONED_COUNTERPARTY = "0xc8fe1c81e927540fcc99ebb3c880a840082293da"
-
-
 def test_compute_risk_level_matrix():
     assert WalletScreeningSkill.compute_risk_level([{"id": 1}], [], []) == (
         "critical",
@@ -464,3 +488,38 @@ def test_hop1_sanctioned_counterparty_is_high_deny(mock_get, skill):
     assert any(
         f["code"] == "HOP1_SANCTIONS_COUNTERPARTY" for f in result["risk_factors"]
     )
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+@patch("skills.finance.wallet_screening.skill.requests.post")
+def test_live_trm_sanctioned_elevates_to_critical(mock_post, mock_get, skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = "trm-test-key"
+    mock_post.return_value = MagicMock(
+        status_code=200,
+        json=lambda: [{"address": WALLET_L, "isSanctioned": True}],
+    )
+
+    result = skill.execute({"address": WALLET})
+
+    assert result["metadata"]["mode"] == "offline_direct_only"
+    assert result["summary"]["risk_level"] == "critical"
+    assert result["verdict"]["reason_code"] == "LIVE_SANCTIONS_MATCH"
+    assert result["risk_details"]["live_verification"][0]["provider"] == "trm"
+    assert result["risk_details"]["live_verification"][0]["sanctioned"] is True
+    mock_get.assert_not_called()
+
+
+@patch("skills.finance.wallet_screening.skill.requests.get")
+def test_live_chainalysis_rate_limit_warns(mock_get, skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = "ca-test-key"
+    skill.trm_sanctions_api_key = None
+    mock_get.return_value = MagicMock(status_code=429, json=lambda: {})
+
+    result = skill.execute({"address": WALLET})
+
+    assert "chainalysis_rate_limited" in result["metadata"]["warnings"]
+    assert result["risk_details"]["live_verification"][0]["status"] == "rate_limited"
+    assert result["summary"]["risk_level"] == "low"

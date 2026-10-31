@@ -42,7 +42,8 @@
       "risk_details": {
         "sanctions_hits": [],
         "malicious_interactions": [],
-        "indirect_exposures": []
+        "indirect_exposures": [],
+        "live_verification": []
       },
       "risk_factors": [],
       "network_analysis": {

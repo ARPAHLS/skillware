@@ -24,7 +24,7 @@ Skills that call external APIs declare credential names in `manifest.yaml` under
 | **Skill runtime keys** | `skill.py` when you call `execute()` | Names in `manifest.yaml` `env_vars` | Skill's catalog page + manifest |
 | **Agent / LLM keys** | Your chat client (Gemini, Claude, OpenAI, and similar) | `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, and similar | Provider usage guides under `docs/usage/` |
 
-A single workflow may need both: for example, a skill that screens wallets may require `ETHERSCAN_API_KEY`, while your Gemini agent loop separately needs `GOOGLE_API_KEY` to run the model. Configure each name the code actually reads.
+A single workflow may need both: for example, a skill that screens wallets may use `ETHERSCAN_API_KEY` for full forensics (optional — offline-direct works without it), while your Gemini agent loop separately needs `GOOGLE_API_KEY` to run the model. Configure each name the code actually reads.
 
 ---
 

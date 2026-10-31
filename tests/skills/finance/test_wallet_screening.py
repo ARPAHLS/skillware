@@ -76,12 +76,14 @@ def test_wallet_screening_invalid_address():
     assert "Invalid Ethereum address" in result["error"]
 
 
-def test_wallet_screening_missing_key():
+def test_wallet_screening_offline_without_etherscan():
     skill = get_skill()
     skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = None
     result = skill.execute({"address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"})
-    assert "error" in result
-    assert "Missing ETHERSCAN_API_KEY" in result["error"]
+    assert "error" not in result
+    assert result["metadata"]["mode"] == "offline_direct_only"
 
 
 # Known ETH vector from entities.ftm.json (properties.publicKey)
