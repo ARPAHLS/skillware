@@ -1,0 +1,57 @@
+{
+    "name": "Geo IP Rotator",
+    "description": "Geographic egress proxy routing, multi-region web inspection, and anti-blocking gateway for AI agents.",
+    "issuer": {
+        "name": "Blade Dancer",
+        "email": "bladedancerc3@gmail.com",
+        "github": "bd-c3",
+        "org": "ARPAHLS"
+    },
+    "icon": "globe",
+    "color": "#2563EB",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {
+                "key": "status",
+                "label": "Status"
+            },
+            {
+                "key": "action",
+                "label": "Action"
+            },
+            {
+                "key": "egress.country",
+                "label": "Country"
+            },
+            {
+                "key": "egress.ip",
+                "label": "Egress IP"
+            },
+            {
+                "key": "egress.isp",
+                "label": "ISP"
+            },
+            {
+                "key": "response.status_code",
+                "label": "HTTP Status"
+            },
+            {
+                "key": "response.size_bytes",
+                "label": "Payload Size"
+            },
+            {
+                "key": "agent_hint",
+                "label": "Agent Hint"
+            },
+            {
+                "key": "sovereignty.jurisdiction_code",
+                "label": "Jurisdiction"
+            },
+            {
+                "key": "error",
+                "label": "Error"
+            }
+        ]
+    }
+}

@@ -140,6 +140,15 @@ Skills for life sciences, bioinformatics, genomics, and biotechnology.
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **[Sequence Operations](bio/sequence_ops.md)** | `bio/sequence_ops` | `atomic` | `0.1.0` (24 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic in-silico operations on DNA, RNA, and protein sequence strings. |
 
+## Networking
+Skills for transport, egress routing, and connectivity middleware.
+
+**Category hub:** [Networking agent skills](networking/README.md).
+
+| Skill | ID | Shape | Version | Issuer | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **[Geo IP Rotator](networking/geo_ip_rotator.md)** | `networking/geo_ip_rotator` | `middleware` | `0.1.0` (31 Oct 2026) | [@bd-c3](https://github.com/bd-c3) ([@ARPAHLS](https://github.com/ARPAHLS)) | Geographic egress proxy routing, multi-region web inspection, and anti-blocking gateway for AI agents. |
+
 ---
 
 ## Installing Skills

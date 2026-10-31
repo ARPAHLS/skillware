@@ -244,6 +244,17 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Bio sequence operations demo completed successfully.",
         ],
     ),
+    (
+        "geo_ip_rotator_demo.py",
+        [
+            "networking/geo_ip_rotator",
+            "resolve_egress",
+            "fetch_via_geo",
+            "compare_regions",
+            "get_proxy_context",
+            "Geo IP rotator demonstration completed successfully.",
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because
