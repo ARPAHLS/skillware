@@ -4,11 +4,11 @@
 **Skill ID:** `data_engineering/novelty_extractor`
 **Issuer:** [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0` — 16 Jul 2026
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `clustering`, `novelty`, `embeddings`, `data_mining`
+- **Version**: `0.1.0` — 16 Jul 2026
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `clustering`, `novelty`, `embeddings`, `data_mining`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Filter text datasets by semantic novelty using local embeddings, keeping only chunks that add information.

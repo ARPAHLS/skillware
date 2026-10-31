@@ -4,11 +4,11 @@
 **Skill ID:** `dev_tools/issue_resolver`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.3.0` — 3 Aug 2026
-**Tier**: `core`
-**Shape**: `workflow`
-**Target**: `software`
-**Tags**: `github`, `git`, `issue`, `debugging`, `agent`
+- **Version**: `0.3.0` — 3 Aug 2026
+- **Tier**: `core`
+- **Shape**: `workflow`
+- **Target**: `software`
+- **Tags**: `github`, `git`, `issue`, `debugging`, `agent`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Turn a GitHub issue URL into a staged, gated resolution workflow with optional repository context.

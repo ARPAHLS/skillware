@@ -4,11 +4,11 @@
 **Skill ID:** `monitoring/token_limiter`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `1.0.0` — 16 Jul 2026
-**Tier**: `core`
-**Shape**: `middleware`
-**Target**: `software`
-**Tags**: `rate_limit`, `token_bucket`, `cost_control`, `quota`
+- **Version**: `1.0.0` — 16 Jul 2026
+- **Tier**: `core`
+- **Shape**: `middleware`
+- **Target**: `software`
+- **Tags**: `rate_limit`, `token_bucket`, `cost_control`, `quota`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Enforce a token budget on long-running agent loops (`CONTINUE`, `WARN`, `FORCE_TERMINATE`).

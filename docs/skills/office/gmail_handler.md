@@ -3,11 +3,11 @@
 **ID**: `office/gmail_handler`  
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 19 Aug 2026
-**Tier**: `core`
-**Shape**: `workflow`
-**Target**: `software`
-**Tags**: `email`, `gmail`, `google_workspace`, `draft`
+- **Version**: `0.2.0` — 19 Aug 2026
+- **Tier**: `core`
+- **Shape**: `workflow`
+- **Target**: `software`
+- **Tags**: `email`, `gmail`, `google_workspace`, `draft`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Send, search, read, and reply to Gmail with attachments from a dedicated agent mailbox.
