@@ -108,6 +108,11 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [`monitoring/kpi_gate`](skills/monitoring/kpi_gate.md)
 - [`monitoring/token_limiter`](skills/monitoring/token_limiter.md)
 
+### Networking
+
+- [Networking hub](skills/networking/README.md)
+- [`networking/geo_ip_rotator`](skills/networking/geo_ip_rotator.md)
+
 ### Office
 
 - [Office hub](skills/office/README.md)

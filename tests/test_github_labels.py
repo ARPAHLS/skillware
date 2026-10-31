@@ -25,6 +25,7 @@ REGISTRY_CATEGORIES = (
     "finance",
     "linguistics",
     "monitoring",
+    "networking",
     "office",
     "optimization",
     "security",

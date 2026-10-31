@@ -116,6 +116,7 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 | [Bio](docs/skills/bio/README.md) | 1 | Life sciences, bioinformatics, genomics, and biotechnology |
 | [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
 | [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
+| [Networking](docs/skills/networking/README.md) | 1 | Egress proxy rotation, multi-region inspection, and transport middleware |
 | [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
 
 ## Quick Start
