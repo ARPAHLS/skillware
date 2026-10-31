@@ -226,19 +226,9 @@ Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](
 
 ## Comparison
 
-Skillware is fundamentally differentiated from prompt-only formats (such as Agent Skills / `SKILL.md`), protocol transports (like Model Context Protocol / MCP), and agent orchestration frameworks (LangChain, AutoGen, CrewAI):
+Most agent frameworks treat capabilities as prompt recipes, markdown checklists, or loose protocol wrappers that ask models to generate code on the fly. Skillware treats capabilities as versioned software modules: self-contained bundles pairing typed contracts, tested Python logic, agent directives, and offline assurance suites. Pre-compiled host execution decouples capability from model hallucination and eliminates the trial-and-error debugging loops inherent in unstructured tool calling.
 
-*   **Versioned Software, Not Prompts**: Skills are self-contained Python software modules (Contract + Effect + Directive + Assurance + Corpus), not markdown recipes or prompt snippets. Logic runs in pre-compiled, tested Python (`skill.py`), decoupling capability from model hallucination and eliminating runaway script-debugging loops.
-*   **Curated & Governed by ARPA**: Skillware does not host unvetted third-party uploads or unreviewed marketplace scripts. Every skill in the registry is curated, tested, and in the vast majority of cases co-designed and steered by ARPA.
-*   **Embedded Enterprise Security**: Security is native to the bundle and framework—requiring no separate security proxies or manual host hardening. Explicit parameter contracts, hermetic offline test suites, isolated credential boundaries (`EnvSecretProvider`), simulation stress tests, and hardware execution guards (`target: [hardware]`) prevent injection leakage and unauthorized host mutations.
-*   **Enterprise Workflows vs. Toy Scripts**: Built for mission-critical enterprise operations (compliance forensics, corporate filings, AcroForm automation, sensor telemetry normalization, in-silico genomics) rather than superficial freelancer prompts. Structured by Manifest v2 Universal Taxonomy (`shape`, `tier`, `target`, `tags`).
-*   **Universal Model Agnosticism**: Native runtime adapters adapt a single skill bundle dynamically across Gemini, Claude, OpenAI, Ollama, Bedrock, DeepSeek, and custom loops.
-*   **Progressive Context Unlocking (JIT Context Excision)**: Monolithic prompt dumping degrades reasoning and burns token budgets. `SkillContext` unlocks context gradually when needed:
-    *   *Catalog Brief (`mode="brief"`)*: Mounts 1-line taxonomy summaries (`[tier:shape:target]`), cutting prompt footprint by ~85% while preserving typed tool schemas.
-    *   *Category & Tag Scoping*: Mounts domain-specific clusters (`categories=["finance", "compliance"]`).
-    *   *Cherry-Picked Bundles*: Equips specific high-trust skills per agent role (`skills=[...]`).
-    *   *Full Directives (`mode="directives"`)*: Injects full markdown SOP playbooks for small, dedicated workflows.
-    *   *Lazy JIT Unlocking*: Discloses full `instructions.md` playbooks dynamically only when the model calls or routes to the skill.
+Every skill in the registry is curated, tested, and steered by ARPA Hellenic Logical Systems rather than aggregated from thousands of unvetted, arbitrary third-party uploads. At runtime, dumping full tool documentation degrades model reasoning and inflates token costs. Through just-in-time progressive disclosure, `SkillContext` mounts compact one-line taxonomy briefs upfront (~45 tokens per skill) and unlocks full playbooks only when an action is dispatched, excising up to 85% of redundant prompt tokens.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig11_latency_anatomy.png" alt="Latency anatomy across execution stages" width="100%" />
@@ -246,16 +236,15 @@ Skillware is fundamentally differentiated from prompt-only formats (such as Agen
 
 > **Latency anatomy across execution stages:** JIT context excision shrinks prefill latency, compact model routing accelerates decoding, and deterministic host validation eliminates error-retry loops, cutting end-to-end median latency by 55.6% and collapsing time-to-first-token (TTFT).
 
-<br/>
+Mission-critical enterprise workflows—such as financial transaction screening, regulatory compliance forensics, and sensor telemetry normalization—cannot afford prompt ambiguity, hallucinated edge cases, or non-deterministic event triggers. Security is embedded directly into the framework: isolated credential providers prevent ambient process leakage, AST audits prohibit runtime code synthesis, and hardware execution gates protect physical substrates. Executing pre-verified code paths replaces erratic model behavior with tight, deterministic score distributions essential for CI/CD release gating.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig14_run_to_run_determinism.png" alt="Run-to-run determinism and variance contraction" width="100%" />
 </div>
 
-> **Run-to-run determinism and variance contraction across 40 seeded replays under identical seeds (8B compact model):** Unassisted Vanilla execution scatters across an erratic score distribution (mean 61.0, σ = 4.1) driven by non-deterministic code synthesis paths. Skillware contracts run-to-run dispersion by 5.1× tighter (mean 88.2, σ = 0.8), establishing the execution predictability required for enterprise regression testing and CI/CD release gating.
+> **Run-to-run determinism across 40 seeded replays:** Unassisted script generation scatters across an erratic score distribution (mean 61.0, σ = 4.1). Skillware contracts run-to-run variance by 5.1× (mean 88.2, σ = 0.8), establishing the reproducibility needed for regulated enterprise production.
 
-*   **Comprehensive Analysis**: [Read the full technical breakdown in COMPARISON.md](COMPARISON.md).
-*   **Empirical Evaluation**: [Inspect benchmarks, crucibles, and 23-model leaderboards in Skillware-Bench](https://github.com/ARPAHLS/skillware-bench).
+To see how Skillware architecturally compares against MCP, Agent Skills, Antigravity, and LangChain, read [COMPARISON.md](COMPARISON.md). For empirical telemetry, stress crucibles, and 23-model benchmark evaluations, visit the [Skillware-Bench repository](https://github.com/ARPAHLS/skillware-bench).
 
 ## Stats
 
