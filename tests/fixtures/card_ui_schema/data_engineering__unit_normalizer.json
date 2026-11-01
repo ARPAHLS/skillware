@@ -1,0 +1,53 @@
+{
+  "samples": [
+    {
+      "status": "warning",
+      "action": "normalize_batch",
+      "result": null,
+      "results": [
+        {
+          "id": "r1",
+          "value": 62.13711922373339,
+          "display_value": "62.137119",
+          "from_unit": "km",
+          "to_unit": "miles",
+          "dimension": "length"
+        },
+        {
+          "id": "r3",
+          "value": 20000.0,
+          "display_value": "20000.000000",
+          "from_unit": "ton",
+          "to_unit": "kg",
+          "dimension": "mass",
+          "assumed": true,
+          "assumption": "ton interpreted as metric_ton",
+          "alternatives": [
+            "us_short_ton",
+            "imperial_long_ton"
+          ],
+          "risk_variance": "12.0%"
+        }
+      ],
+      "errors": [
+        {
+          "id": "r7",
+          "code": "dimension_mismatch",
+          "detail": "kg (mass) cannot convert to m (length)",
+          "from_unit": "kg",
+          "to_unit": "m"
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "converted": 2,
+        "assumed": 1,
+        "errors": 1,
+        "skipped": 0
+      },
+      "precision": 6,
+      "agent_hint": "Converted 2 of 3 record(s); 1 assumed; 1 error(s).",
+      "error": null
+    }
+  ]
+}

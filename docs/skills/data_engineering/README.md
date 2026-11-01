@@ -14,10 +14,12 @@ This hub is the documentation landing page for Skillware **data engineering** ag
 | **[Novelty Extractor](novelty_extractor.md)** | `data_engineering/novelty_extractor` | `0.1.0` (16 Jul 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Filters a text dataset by semantic novelty, retaining only chunks that carry new information above a configurable threshold. |
 | **[Semantic Web Proxy](semantic_web_proxy.md)** | `data_engineering/semantic_web_proxy` | `0.1.0` (5 Sep 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Converts a live web page or raw HTML into token-efficient Markdown, text, or JSON, stripping boilerplate behind an SSRF guard and reporting estimated token savings. |
 | **[Telemetry Normalizer](telemetry_normalizer.md)** | `data_engineering/telemetry_normalizer` | `0.1.0` (12 Oct 2026) | [@rin-katsuragi](https://github.com/rin-katsuragi) ([@ARPAHLS](https://github.com/ARPAHLS)) | Normalizes raw sensor telemetry into canonical SI units and W3C SOSA/SSN observations. |
+| **[Unit Normalizer](unit_normalizer.md)** | `data_engineering/unit_normalizer` | `0.1.0` (1 Nov 2026) | [@rizzoMartin](https://github.com/rizzoMartin) ([@ARPAHLS](https://github.com/ARPAHLS)) | Normalizes mixed units, parses compound strings, and validates dimensions in batch. |
 
 ## Typical host pipelines
 
 - Fetch a page to token-efficient Markdown, then keep only novel chunks: `data_engineering/semantic_web_proxy` → `data_engineering/novelty_extractor`.
+- Harmonize mixed-unit records before analysis or actuation: `data_engineering/unit_normalizer` (`normalize_table` for CSV columns, `parse_quantity` for document strings). Continuous sensor streams belong to `data_engineering/telemetry_normalizer`.
 - Build a fine-tune corpus: `data_engineering/synthetic_generator` (optional Gemini / Anthropic backends).
 
 ## Load by registry ID
