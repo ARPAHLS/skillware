@@ -3,11 +3,11 @@
 **ID**: `defi/evm_reader`  
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))  
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.0`
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `web3`, `evm`, `ethereum`, `rpc`, `blockchain`
+- **Version**: `0.1.0`
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `web3`, `evm`, `ethereum`, `rpc`, `blockchain`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Read-only EVM chain queries: token metadata, balances, allowances, allowlisted contract view calls, Multicall3 batch reads, and address book contact resolution without signing.  

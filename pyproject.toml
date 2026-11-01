@@ -118,6 +118,8 @@ linguistics = []
 
 monitoring = []
 
+networking = []
+
 office = [
     "pymupdf",
 ]
@@ -193,6 +195,8 @@ linguistics_korean_slang = []
 monitoring_kpi_gate = []
 
 monitoring_token_limiter = []
+
+networking_geo_ip_rotator = []
 
 office_gmail_handler = []
 

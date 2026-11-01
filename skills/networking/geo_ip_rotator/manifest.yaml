@@ -1,0 +1,197 @@
+name: "networking/geo_ip_rotator"
+version: "0.1.0"
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - networking
+  - proxy
+  - geo_ip
+  - egress
+  - routing
+  - multi_region
+  - anti_blocking
+  - ssrf_guard
+description: >
+  Geographic egress proxy routing, multi-region web inspection, and anti-blocking gateway for AI agents.
+  Provides strict SSRF guardrails, pluggable provider credential adapters, concurrent multi-country
+  comparison, bounded streaming response parsing, and verifiable data sovereignty receipts.
+short_description: "Geographic egress proxy routing and multi-region web inspection gateway."
+issuer:
+  name: "Blade Dancer"
+  email: "bladedancerc3@gmail.com"
+  github: "bd-c3"
+  org: "ARPAHLS"
+category: "networking"
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Networking capability to execute."
+      enum:
+        - fetch_via_geo
+        - compare_regions
+        - resolve_egress
+        - get_proxy_context
+        - list_supported_regions
+      default: fetch_via_geo
+    url:
+      type: string
+      description: "Target public http(s) URL to inspect or fetch."
+    country:
+      type: string
+      description: "Two-letter ISO country code for targeted egress routing (e.g. 'GB', 'DE', 'US', 'JP')."
+      default: "US"
+    city:
+      type: string
+      description: "Optional target city for localized metropolitan egress (e.g. 'London', 'Tokyo')."
+    network_type:
+      type: string
+      description: "Egress network tier: residential (ISP anti-bot bypass), datacenter, or mobile."
+      enum:
+        - residential
+        - datacenter
+        - mobile
+      default: residential
+    session_id:
+      type: string
+      description: "Session identifier for sticky exit IP persistence across multi-step agent turns."
+    timeout_seconds:
+      type: number
+      description: "Network timeout in seconds before triggering failover or circuit breaking."
+      default: 15.0
+    max_bytes:
+      type: integer
+      description: "Maximum response payload bytes allowed before streaming halt (default 5MB, ceiling 10MB)."
+      default: 5242880
+    headers:
+      type: object
+      description: "Optional custom HTTP headers to forward with the request."
+    method:
+      type: string
+      description: "HTTP request method."
+      enum:
+        - GET
+        - POST
+        - HEAD
+      default: GET
+    body:
+      type: string
+      description: "Optional payload body string for POST requests."
+    follow_redirects:
+      type: boolean
+      description: "Whether to follow HTTP 3xx redirects (each hop re-validated against SSRF)."
+      default: true
+    regions:
+      type: array
+      items:
+        type: string
+      description: "List of 2 to 5 ISO country codes to concurrently compare in compare_regions."
+    extract_currency_symbols:
+      type: boolean
+      description: "Automatically detect and extract localized prices and currency symbols."
+      default: true
+    format:
+      type: string
+      description: "Output formatting for downstream Python libraries in get_proxy_context."
+      enum:
+        - requests
+        - httpx
+        - aiohttp
+        - playwright
+        - urllib
+        - curl
+        - dict
+      default: requests
+    provider:
+      type: string
+      description: "Upstream commercial or private proxy backend format profile."
+      enum:
+        - generic
+        - brightdata
+        - oxylabs
+        - smartproxy
+        - iproyal
+      default: generic
+    continent:
+      type: string
+      description: "Optional continent filter for list_supported_regions (NA, EU, AS, SA, OC, AF)."
+    jurisdiction_fence:
+      type: object
+      description: "Enterprise compliance policy constraints (allow_eea_only, blocked_countries, allowed_countries)."
+    synthesize_regional_headers:
+      type: boolean
+      description: "Automatically synthesize locale-appropriate Accept-Language and client headers matching egress country."
+      default: true
+  required: []
+outputs:
+  status:
+    type: string
+    description: "Execution status indicator ('ready', 'error', 'ssrf_blocked', or 'circuit_broken')."
+  action:
+    type: string
+    description: "The action executed."
+  egress:
+    type: object
+    description: "Confirmed exit node metadata (ip, country, city, asn, isp, network_type, latency_ms)."
+  response:
+    type: object
+    description: "HTTP response payload (status_code, final_url, content_type, size_bytes, body, headers)."
+  regional_results:
+    type: object
+    description: "Side-by-side multi-region comparison matrix in compare_regions."
+  variance_detected:
+    type: object
+    description: "Regional delta summary (geo_redirects, currency_variance, regional_path_branching)."
+  proxies:
+    type: object
+    description: "Formatted proxy configuration dictionary for downstream client integration."
+  supported_regions:
+    type: array
+    description: "Inventory of supported geographic destinations and pool tiers."
+  sovereignty:
+    type: object
+    description: "Verifiable cryptographic audit receipt with SHA-256 fingerprint and jurisdiction classification."
+  agent_hint:
+    type: string
+    description: "Actionable summary and guidance for host agent reasoning."
+  error:
+    type: string
+    description: "Detailed failure or rejection reason on non-ready outcomes."
+requirements: []
+env_vars:
+  PROXY_SERVICE_URL:
+    description: "Base proxy endpoint URL (e.g. http://proxy.provider.com:8080 or SOCKS5 URL)."
+    required: false
+  PROXY_USERNAME:
+    description: "Authentication username for upstream proxy gateway."
+    required: false
+  PROXY_PASSWORD:
+    description: "Authentication password for upstream proxy gateway."
+    required: false
+  PROXY_AUTH_TOKEN:
+    description: "Bearer or API token for upstream proxy service."
+    required: false
+  PROXY_PROVIDER:
+    description: "Format profile for geo-targeting credentials (generic, brightdata, oxylabs, smartproxy, iproyal)."
+    required: false
+  GEO_IP_RESOLVER_URL:
+    description: "Lightweight endpoint for egress IP and ASN verification."
+    required: false
+constitution: |
+  1. STRICT SSRF GUARDRAILS: Only public http and https URLs. Reject loopback (127.0.0.1, localhost),
+     link-local (169.254.169.254 AWS/GCP metadata), RFC 1918 private subnets (10/8, 172.16/12, 192.168/16),
+     and internal service mesh domains before every request, including on every redirect hop.
+  2. CREDENTIAL ISOLATION: Proxy authentication credentials are resolved hermetically via self.credential()
+     and never logged, echoed in outputs, or written to disk.
+  3. PAYLOAD BOUNDS: Enforce bounded streaming responses with a mandatory max_bytes ceiling (default 5 MB,
+     hard limit 10 MB) to protect against memory exhaustion.
+  4. CIRCUIT BREAKING: Gracefully handle node timeouts and 5xx upstream failures with automated failover
+     and structured circuit_broken status envelopes.
+  5. SOVEREIGN INTEGRITY: Verify data sovereignty jurisdictions, respect enterprise compliance fences,
+     and attach verifiable cryptographic audit receipts to all egress responses.
+presentation:
+  icon: "globe"
+  color: "#2563EB"

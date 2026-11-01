@@ -413,7 +413,7 @@ Registry skills are shipped inside the `skillware` wheel. Per-skill layout uses 
 ### 6. `docs/skills/<category>/<skill_name>.md` (catalog page)
 
 - Human-readable documentation linked from the [Skill Library](docs/skills/README.md) and the category hub `docs/skills/<category>/README.md`.
-- Include **ID**, **Issuer**, the Manifest v2 metadata block (**Version**, **Tier**, **Shape**, **Target**, **Tags** inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
+- Include **ID**, **Issuer**, the Manifest v2 metadata block as a scannable bulleted list (**Version**, **Tier**, **Shape**, **Target**, **Tags** inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`), and **Recommended install** (`pip install "skillware[<category>_<skill>]"` — see [install_extras.md](install_extras.md)) near the top.
 - Include the **intent** block (`<!-- skill-intent:begin -->`) with **Solves**, **Works with**, and **Runtime** lines so search and GitHub can match operator queries. Keep wording accurate; do not stuff keywords.
 - Describe capabilities, prerequisites, arguments, and limitations.
 - If the skill calls external services, list its environment variables in a short table and link to [API keys for skills](docs/usage/api_keys.md). Do not duplicate the full setup guide on the skill page.
@@ -472,6 +472,7 @@ Place each skill under one top-level directory under `skills/`. Use an existing 
 | `office` | Documents, desktop work, and productivity automation | `pdf_form_filler`, `gmail_handler` |
 | `optimization` | Middleware, efficiency, and token economics | `prompt_rewriter`, `context_optimizer` |
 | `monitoring` | Agent loop observability, budget gates, and task control | `token_limiter`, `kpi_gate` |
+| `networking` | Transport, egress routing, and connectivity middleware | `geo_ip_rotator` |
 | `security` | Defenses for untrusted input reaching logical systems | `prompt_injection_firewall`, `deceptive_ui_guard` |
 | `wellness` | Coaching guardrails and mental health support | `mental_coach` |
 
@@ -563,6 +564,18 @@ Routine contributor PRs must **not** bump the package version. Maintainers cut r
 
 #### Strict Manual Verification Policy for Maintainers
 Maintainer release preparation and documentation curation must always be conducted through **manual, line-by-line inspection and editing**. Never use automated batch scripts to update documentation, changelogs, or skill histories. Comparing past commits (`git log -p -- <skill_dir>`) and `CHANGELOG.md` ensures zero template placeholders, accurate commit numbers, and precise author attribution across every catalog page.
+
+### Maintainer: documentation sweeps and chore updates
+
+During release cuts, framework upgrades, or periodic documentation sweeps, maintainers must ensure navigation and canonical documentation surfaces remain synchronized with repository changes:
+
+| Surface | Trigger / Condition | Maintenance action |
+| :--- | :--- | :--- |
+| `docs/sitemap.md` | Any doc page, guide, operator config, provider doc, or category hub added, renamed, or moved | Add crawl link under the corresponding section so crawl trees and documentation indexes remain complete. |
+| `docs/glossary.md` | New architectural concepts, runtime roles, Manifest v2 taxonomy primitives, or config terms introduced or changed | Add/update canonical definitions; audit repo-wide ripple effects (`README.md`, `CONTRIBUTING.md`, `introduction.md`, `vision.md`, `skill-trust-model.md`, `usage/`) to eliminate stale synonyms or mismatched vocabulary. |
+| `docs/security/skill-trust-model.md` | Security invariants, resolution tiers, AST audits, hardware safety gates, or credential mechanisms updated | Keep trust guarantees, provenance tiers (`override`, `external`, `project`, `bundled`), and security checklists aligned. |
+| `docs/TESTING.md` | New test suites, AST audits, linters, or CI workflows added | Keep test commands, local CI parity instructions, and environment requirements up to date. |
+| `COMPARISON.md` | Empirical benchmark updates, framework parity changes, or core differentiators revised | Synchronize comparison telemetry, benchmark figures, and architectural tables. |
 
 README Citing badge and `pyproject.toml` `[project.urls]` `DOI` already point at the concept DOI. Do not add `.zenodo.json` unless a Zenodo-only field is required (it would override CFF).
 

@@ -1,0 +1,41 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "action": "fetch_via_geo",
+      "egress": {
+        "ip": "82.165.197.42",
+        "country": "GB",
+        "country_name": "United Kingdom",
+        "city": "London",
+        "asn": 2856,
+        "isp": "British Telecommunications PLC",
+        "network_type": "residential",
+        "latency_ms": 24.1
+      },
+      "response": {
+        "status_code": 200,
+        "final_url": "https://service.gov.uk/regional-notice",
+        "content_type": "text/html; charset=utf-8",
+        "size_bytes": 48210,
+        "body": "<!DOCTYPE html><html>...</html>",
+        "headers": {
+          "content-type": "text/html; charset=utf-8",
+          "server": "cloudflare"
+        }
+      },
+      "sovereignty": {
+        "jurisdiction_code": "UK_GDPR",
+        "regime_name": "United Kingdom General Data Protection Regulation",
+        "payload_sha256": "3a4b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b"
+      },
+      "agent_hint": "Request successfully routed through London residential egress (AS2856). HTTP 200 returned without challenge."
+    },
+    {
+      "status": "error",
+      "action": "fetch_via_geo",
+      "error": "Connection timed out after 15 seconds.",
+      "agent_hint": "Exit node timed out. Try a different region or network type."
+    }
+  ]
+}

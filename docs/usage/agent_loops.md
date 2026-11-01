@@ -227,3 +227,4 @@ the address book.
 | `monitoring/kpi_gate` | `kpi_gate_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `finance/uk_companies_house_handler` | `uk_companies_house_handler_demo.py` | `gemini_uk_companies_house_handler.py` | `claude_uk_companies_house_handler.py` | (catalog page) | (catalog page) | (catalog page) |
 | `bio/sequence_ops` | `bio_sequence_ops_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
+| `networking/geo_ip_rotator` | `geo_ip_rotator_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |

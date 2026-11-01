@@ -130,6 +130,11 @@
         "description": "Registry skill category — monitoring (`skills/monitoring/`)."
     },
     {
+        "name": "cat: networking",
+        "color": "E6D9F5",
+        "description": "Registry skill category — networking (`skills/networking/`)."
+    },
+    {
         "name": "cat: office",
         "color": "E6D9F5",
         "description": "Registry skill category — office (`skills/office/`)."

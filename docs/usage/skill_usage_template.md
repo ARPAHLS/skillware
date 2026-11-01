@@ -2,7 +2,7 @@
 
 When adding **Usage Examples** to `docs/skills/<category>/<skill>.md`, include subsections for Gemini, Claude, OpenAI, DeepSeek, and Ollama (prompt mode). Each block should be runnable: imports, `load_env_file()`, `load_skill`, `bundle["class"]()` (or explicit `bundle["module"].ClassName()`), adapter, system instructions, sample user message, and `execute` on tool call.
 
-Add **Recommended install:** `pip install "skillware[<category>_<skill>]"` near the top of every catalog page (use the registry ID with `/` replaced by `_`, even when the extra is empty today). Include the Manifest v2 metadata block (`Version`, `Tier`, `Shape`, `Target`, `Tags`) inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`. Add the intent block (**Solves**, **Works with**, **Runtime**) immediately after the metadata markers.
+Add **Recommended install:** `pip install "skillware[<category>_<skill>]"` near the top of every catalog page (use the registry ID with `/` replaced by `_`, even when the extra is empty today). Include the Manifest v2 metadata block as a scannable bulleted list (`- **Version**: ...`, `- **Tier**: ...`, `- **Shape**: ...`, `- **Target**: ...`, `- **Tags**: ...`) inside `<!-- skill-doc-meta:begin --> ... <!-- skill-doc-meta:end -->`. Add the intent block (**Solves**, **Works with**, **Runtime**) immediately after the metadata markers.
 
 For Gemini sections, ensure the dispatch matches the sanitized tool name (e.g. `SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])` or adapter-derived name) rather than the raw registry ID with slashes. Do not manually wrap the tool output in `types.Tool(function_declarations=[...])`, as `to_gemini_tool()` already returns a `types.Tool` object.
 

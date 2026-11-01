@@ -77,6 +77,7 @@ Union of non-core `requirements` from every skill in the category.
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
+| `networking` | `networking/geo_ip_rotator` | *(none today)* |
 | `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
 | `security` | `security/deceptive_ui_guard`, `security/deepfake_guard`, `security/prompt_injection_firewall` | `numpy`, `pillow` |
@@ -114,6 +115,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `linguistics_korean_slang` | `linguistics/korean_slang` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
+| `networking_geo_ip_rotator` | `networking/geo_ip_rotator` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf` | |
 | `office_web_form_mapper` | `office/web_form_mapper` | *(none today)* | Use this extra in docs and installs |

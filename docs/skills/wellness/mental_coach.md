@@ -4,11 +4,11 @@
 **Skill ID:** `wellness/mental_coach`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.1` — 9 Sep 2026
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `wellness`, `coaching`, `mindfulness`, `reflection`
+- **Version**: `0.1.1` — 9 Sep 2026
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `wellness`, `coaching`, `mindfulness`, `reflection`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Crisis triage and scoped wellness coaching guardrails so host agents do not improvise clinical advice.

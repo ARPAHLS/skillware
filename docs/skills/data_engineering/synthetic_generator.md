@@ -4,11 +4,11 @@
 **Skill ID:** `data_engineering/synthetic_generator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.1.1` — 9 Sep 2026
-**Tier**: `core`
-**Shape**: `atomic`
-**Target**: `software`
-**Tags**: `synthetic_data`, `generation`, `testing`, `mock`
+- **Version**: `0.1.1` — 9 Sep 2026
+- **Tier**: `core`
+- **Shape**: `atomic`
+- **Target**: `software`
+- **Tags**: `synthetic_data`, `generation`, `testing`, `mock`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Generate high-entropy synthetic JSONL for model fine-tuning without mode collapse.

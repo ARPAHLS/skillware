@@ -116,6 +116,7 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 | [Bio](docs/skills/bio/README.md) | 1 | Life sciences, bioinformatics, genomics, and biotechnology |
 | [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
 | [Linguistics](docs/skills/linguistics/README.md) | 1 | Language adapters and internet-register lexicons |
+| [Networking](docs/skills/networking/README.md) | 1 | Egress proxy rotation, multi-region inspection, and transport middleware |
 | [Wellness](docs/skills/wellness/README.md) | 1 | Coaching guardrails and mental health support |
 
 ## Quick Start
@@ -226,19 +227,30 @@ Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](
 
 ## Comparison
 
-Skillware differs from the Model Context Protocol (MCP), and Agent Skills (SKILL.md) in several ways:
+Most agent frameworks treat capabilities as prompt recipes, markdown checklists, or loose protocol wrappers that ask models to generate code on the fly. Skillware treats capabilities as versioned software modules: self-contained bundles pairing typed contracts, tested Python logic, agent directives, and offline assurance suites. Pre-compiled host execution decouples capability from model hallucination and eliminates the trial-and-error debugging loops inherent in unstructured tool calling.
 
-*   **Model Agnostic**: Native adapters for Gemini, Claude, Ollama, and OpenAI.
-*   **Code-First**: Skills are executable Python bundles, not just server specs.
-*   **Runtime-Focused**: Provides tools for the application, not just recipes for an IDE.
+Every skill in the registry is curated, tested, and steered by ARPA Hellenic Logical Systems rather than aggregated from thousands of unvetted, arbitrary third-party uploads. At runtime, dumping full tool documentation degrades model reasoning and inflates token costs. Through just-in-time progressive disclosure, `SkillContext` mounts compact one-line taxonomy briefs upfront (~45 tokens per skill) and unlocks full playbooks only when an action is dispatched, excising up to 85% of redundant prompt tokens.
 
-[Read the full comparison here](COMPARISON.md).
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig11_latency_anatomy.png" alt="Latency anatomy across execution stages" width="100%" />
+</div>
+
+> **Latency anatomy across execution stages:** JIT context excision shrinks prefill latency, compact model routing accelerates decoding, and deterministic host validation eliminates error-retry loops, cutting end-to-end median latency by 55.6% and collapsing time-to-first-token (TTFT).
+
+Mission-critical enterprise workflows—such as financial transaction screening, regulatory compliance forensics, and sensor telemetry normalization—cannot afford prompt ambiguity, hallucinated edge cases, or non-deterministic event triggers. Security is embedded directly into the framework: isolated credential providers prevent ambient process leakage, AST audits prohibit runtime code synthesis, and hardware execution gates protect physical substrates. Executing pre-verified code paths replaces erratic model behavior with tight, deterministic score distributions essential for CI/CD release gating.
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig14_run_to_run_determinism.png" alt="Run-to-run determinism and variance contraction" width="100%" />
+</div>
+
+> **Run-to-run determinism across 40 seeded replays:** Unassisted script generation scatters across an erratic score distribution (mean 61.0, σ = 4.1). Skillware contracts run-to-run variance by 5.1× (mean 88.2, σ = 0.8), establishing the reproducibility needed for regulated enterprise production.
+
+To see how Skillware architecturally compares against MCP, Agent Skills, Antigravity, and LangChain, read [COMPARISON.md](COMPARISON.md). For empirical telemetry, stress crucibles, and 23-model benchmark evaluations, visit the [Skillware-Bench repository](https://github.com/ARPAHLS/skillware-bench).
 
 ## Stats
 
 <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/badge/Stats-PePyTech-ffdac1?style=flat-square" alt="PePy.tech dashboard"></a>
 <a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-ffdac1?style=flat-square" alt="PyPI Stats dashboard"></a>
-<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93%20total&color=bbf7d0" alt="Total downloads (PePy)"></a>
 
 PyPI download counts measure **install activity** from public aggregators (including CI and mirrors), not unique users. Use the badge links above for charts and version breakdowns.
 

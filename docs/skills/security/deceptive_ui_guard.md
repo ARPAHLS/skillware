@@ -4,11 +4,11 @@
 **Skill ID:** `security/deceptive_ui_guard`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.2.0` — 3 Sep 2026
-**Tier**: `core`
-**Shape**: `middleware`
-**Target**: `software`
-**Tags**: `ui_safety`, `phishing`, `dark_patterns`, `vision`
+- **Version**: `0.2.0` — 3 Sep 2026
+- **Tier**: `core`
+- **Shape**: `middleware`
+- **Target**: `software`
+- **Tags**: `ui_safety`, `phishing`, `dark_patterns`, `vision`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Detect deceptive HTML UI patterns (hidden controls, bait, pre-click traps) before a host agent clicks.

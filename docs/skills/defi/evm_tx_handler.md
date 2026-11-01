@@ -3,11 +3,11 @@
 **ID**: `defi/evm_tx_handler`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-**Version**: `0.3.0`
-**Tier**: `core`
-**Shape**: `workflow`
-**Target**: `software`
-**Tags**: `web3`, `evm`, `transaction`, `signing`, `wallet`
+- **Version**: `0.3.0`
+- **Tier**: `core`
+- **Shape**: `workflow`
+- **Target**: `software`
+- **Tags**: `web3`, `evm`, `transaction`, `signing`, `wallet`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Quote, preview, and execute Uniswap V2 swaps and transfers from structured intent on Ethereum or Base.
