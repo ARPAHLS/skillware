@@ -11,7 +11,13 @@ import yaml
 
 from . import units as units_module
 from .parser import parse_quantity
+from .skill import UnitNormalizerSkill
 from .units import UnitError, canonical_unit, convert, resolve_unit, validate_assume
+
+
+@pytest.fixture
+def skill():
+    return UnitNormalizerSkill()
 
 
 @pytest.fixture
@@ -193,3 +199,187 @@ class TestParser:
         for text in ("", "   ", "kg", "5", "5 ft -11 in", "1/0 in"):
             assert _parse_error(text) == "unparseable"
         assert _parse_error("5 parsecs") == "unknown_unit"
+
+
+ENVELOPE_KEYS = {
+    "status",
+    "action",
+    "result",
+    "results",
+    "errors",
+    "summary",
+    "precision",
+    "agent_hint",
+    "error",
+}
+
+
+class TestSkillActions:
+    def test_normalize_scalar(self, skill):
+        res = skill.execute({"value": 100, "from_unit": "km", "to_unit": "miles"})
+        assert res["status"] == "ready"
+        assert res["action"] == "normalize"
+        assert res["result"]["value"] == pytest.approx(62.13711922373339, rel=1e-12)
+        assert res["result"]["display_value"] == "62.137119"
+        assert res["result"]["dimension"] == "length"
+        assert res["summary"]["converted"] == 1
+        assert res["error"] is None
+
+    def test_batch_issue_example(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_batch",
+                "records": [
+                    {"id": "a", "value": 100, "from_unit": "km", "to_unit": "miles"},
+                    {"id": "b", "value": 70, "from_unit": "kg", "to_unit": "lbs"},
+                ],
+            }
+        )
+        assert res["status"] == "ready"
+        assert [r["id"] for r in res["results"]] == ["a", "b"]
+        assert res["results"][0]["value"] == pytest.approx(62.13711922373339)
+        assert res["results"][1]["value"] == pytest.approx(154.32358352941431)
+        assert res["results"][1]["display_value"] == "154.323584"
+        assert res["errors"] == []
+        assert res["result"] is None
+
+    def test_batch_partial_failure(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_batch",
+                "records": [
+                    {"id": "ok", "value": 1, "from_unit": "m", "to_unit": "ft"},
+                    {"id": "r7", "value": 70, "from_unit": "kg", "to_unit": "m"},
+                    {"value": 1, "from_unit": "xyz", "to_unit": "m"},
+                    "not a record",
+                    {"id": "nounit", "value": 1},
+                ],
+            }
+        )
+        assert res["status"] == "warning"
+        assert res["summary"] == {
+            "total": 5,
+            "converted": 1,
+            "assumed": 0,
+            "errors": 4,
+            "skipped": 0,
+        }
+        errors = {e["id"]: e for e in res["errors"]}
+        assert errors["r7"]["code"] == "dimension_mismatch"
+        assert errors["r7"]["detail"] == "kg (mass) cannot convert to m (length)"
+        assert errors[2]["code"] == "unknown_unit"
+        assert errors[3]["code"] == "invalid_record"
+        assert errors["nounit"]["code"] == "invalid_record"
+
+    def test_bool_nan_inf_rejected(self, skill):
+        records = [
+            {"id": i, "value": v, "from_unit": "m", "to_unit": "ft"}
+            for i, v in enumerate([True, float("nan"), float("inf"), "abc", None])
+        ]
+        records.append({"id": "str", "value": "12.5", "from_unit": "m"})
+        res = skill.execute({"action": "normalize_batch", "records": records})
+        assert [e["code"] for e in res["errors"]] == ["invalid_value"] * 5
+        assert res["results"][0]["id"] == "str"
+        assert res["results"][0]["value"] == pytest.approx(12.5)
+
+    def test_ambiguous_row_is_warning_not_ready(self, skill):
+        params = {"value": 20, "from_unit": "ton", "to_unit": "kg"}
+        res = skill.execute(params)
+        assert res["status"] == "warning"
+        assert res["result"]["assumed"] is True
+        assert res["result"]["alternatives"] == ["us_short_ton", "imperial_long_ton"]
+        assert res["result"]["risk_variance"] == "12.0%"
+        assert res["summary"]["assumed"] == 1
+
+        locked = skill.execute(dict(params, assume={"ton": "metric_ton"}))
+        assert locked["status"] == "ready"
+        assert "assumed" not in locked["result"]
+        assert locked["result"]["value"] == pytest.approx(20000.0)
+
+    def test_invalid_assume_is_fatal(self, skill):
+        res = skill.execute(
+            {"value": 1, "from_unit": "ton", "to_unit": "kg", "assume": {"ton": "x"}}
+        )
+        assert res["status"] == "error"
+        assert "invalid_assumption" in res["error"]
+
+    def test_canonicalize(self, skill):
+        res = skill.execute({"action": "canonicalize", "value": 45, "from_unit": "psi"})
+        assert res["results"][0]["to_unit"] == "Pa"
+        assert res["results"][0]["value"] == pytest.approx(310264.0781925762)
+        res = skill.execute(
+            {
+                "action": "canonicalize",
+                "records": [
+                    {"value": 3000, "from_unit": "rpm", "to_unit": "deg/s"},
+                    {"value": 20, "from_unit": "C"},
+                ],
+            }
+        )
+        assert [r["to_unit"] for r in res["results"]] == ["rad/s", "K"]
+        assert res["results"][1]["value"] == pytest.approx(293.15)
+        batch = skill.execute(
+            {"action": "normalize_batch", "records": [{"value": 1, "from_unit": "mi"}]}
+        )
+        assert batch["results"][0]["to_unit"] == "m"
+
+    def test_precision(self, skill):
+        params = {"value": 100, "from_unit": "km", "to_unit": "miles"}
+        assert skill.execute(dict(params, precision=2))["result"]["display_value"] == (
+            "62.14"
+        )
+        assert skill.execute(dict(params, precision=0))["result"]["display_value"] == (
+            "62"
+        )
+        for bad in (13, -1, True, "2", 2.0):
+            assert skill.execute(dict(params, precision=bad))["status"] == "error"
+
+    def test_parse_quantity_action(self, skill):
+        res = skill.execute(
+            {"action": "parse_quantity", "text": "5 ft 11 in", "target_unit": "m"}
+        )
+        assert res["status"] == "ready"
+        record = res["result"]
+        assert record["value"] == pytest.approx(1.8034)
+        assert record["display_value"] == "1.803400"
+        assert record["original_text"] == "5 ft 11 in"
+        assert record["from_unit"] == "ft+in"
+        assert record["to_unit"] == "m"
+        assert record["components"] == [
+            {"value": 5.0, "unit": "ft"},
+            {"value": 11.0, "unit": "in"},
+        ]
+
+    def test_parse_quantity_canonical_and_errors(self, skill):
+        res = skill.execute({"action": "parse_quantity", "text": "3 1/2 gal"})
+        assert res["status"] == "warning"
+        assert res["result"]["to_unit"] == "m3"
+        assert res["result"]["assumed"] is True
+        bad = skill.execute({"action": "parse_quantity", "text": "20 C 5 F"})
+        assert bad["status"] == "warning"
+        assert bad["result"] is None
+        assert bad["errors"][0]["code"] == "unparseable"
+        missing = skill.execute({"action": "parse_quantity"})
+        assert missing["status"] == "insufficient_data"
+
+    def test_empty_and_bad_payloads(self, skill):
+        empty = skill.execute({"action": "normalize_batch", "records": []})
+        bad_type = skill.execute({"action": "normalize_batch", "records": "x"})
+        bad_action = skill.execute({"action": "nope"})
+        no_params = skill.execute(None)
+        assert empty["status"] == "insufficient_data"
+        assert bad_type["status"] == "error"
+        assert bad_action["status"] == "error"
+        assert no_params["status"] == "insufficient_data"
+        for res in (empty, bad_type, bad_action, no_params):
+            assert set(res) == ENVELOPE_KEYS
+
+    def test_determinism(self, skill):
+        params = {
+            "action": "normalize_batch",
+            "records": [
+                {"id": "a", "value": 20, "from_unit": "ton", "to_unit": "kg"},
+                {"id": "b", "value": 450, "from_unit": "kPa", "to_unit": "psi"},
+            ],
+        }
+        assert skill.execute(params) == skill.execute(params)
