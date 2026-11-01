@@ -11,7 +11,7 @@ tags:
   - web3
   - compliance
 description: |
-  A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). Analyzes normal ETH, ERC-20 (tokentx), and internal (txlistinternal) history, screens hop-1 counterparties, supports offline-direct screening without Etherscan, and optional live Chainalysis/TRM verification.
+  A comprehensive crypto wallet screening tool. Checks Ethereum addresses against sanctions lists (OFAC, FBI, etc.) and known malicious contracts (Mixers, Scams). Analyzes normal ETH, ERC-20 (tokentx), and internal (txlistinternal) history, screens hop-1 counterparties, supports offline-direct screening without Etherscan, optional live Chainalysis/TRM verification, and emits provenance.report_hash for audit integrity.
 short_description: "Screens Ethereum wallets against OFAC sanctions and mixer lists."
 issuer:
   name: Ross Peili

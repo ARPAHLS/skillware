@@ -54,6 +54,7 @@ def test_offline_direct_only_without_etherscan(skill):
     assert result["summary"]["risk_level"] == "low"
     assert result["verdict"]["decision"] == "ALLOW"
     assert result["risk_details"]["live_verification"] == []
+    assert WalletScreeningSkill.verify_report_hash(result) is True
 
 
 def test_offline_direct_sanctioned_address(skill):
@@ -182,6 +183,9 @@ def test_execute_success(mock_get, skill):
     assert result["risk_details"]["live_verification"] == []
     assert result["metadata"]["mode"] == "full_forensics"
     assert result["network_analysis"]["risky_counterparties"] == []
+    assert result["provenance"]["generator"].endswith("v2.1.0")
+    assert len(result["provenance"]["report_hash"]) == 64
+    assert WalletScreeningSkill.verify_report_hash(result) is True
 
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
@@ -328,6 +332,7 @@ def test_tokentx_usdt_to_tornado_is_flagged(mock_get, skill):
     assert any(
         f["code"] == "MALICIOUS_CONTRACT_INTERACTION" for f in result["risk_factors"]
     )
+    assert WalletScreeningSkill.verify_report_hash(result) is True
 
 
 @patch("skills.finance.wallet_screening.skill.requests.get")
@@ -563,3 +568,13 @@ def test_live_factors_kept_when_offline_already_critical(mock_post, skill):
     assert result["verdict"]["reason_code"] == "DIRECT_SANCTIONS_MATCH"
     assert any(f["code"] == "DIRECT_SANCTIONS_MATCH" for f in result["risk_factors"])
     assert any(f["code"] == "LIVE_SANCTIONS_MATCH" for f in result["risk_factors"])
+
+
+def test_verify_report_hash_detects_tamper(skill):
+    skill.etherscan_api_key = None
+    skill.chainalysis_api_key = None
+    skill.trm_sanctions_api_key = None
+    result = skill.execute({"address": WALLET})
+    assert WalletScreeningSkill.verify_report_hash(result) is True
+    result["summary"]["risk_flag"] = True
+    assert WalletScreeningSkill.verify_report_hash(result) is False

@@ -50,6 +50,10 @@
         "most_interacted_wallet": "0xabc",
         "top_10_counterparties": [],
         "risky_counterparties": []
+      },
+      "provenance": {
+        "report_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "generator": "skillware/finance/wallet_screening v2.1.0"
       }
     }
   ]
