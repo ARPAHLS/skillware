@@ -383,3 +383,122 @@ class TestSkillActions:
             ],
         }
         assert skill.execute(params) == skill.execute(params)
+
+
+class TestTableAndCompact:
+    SPEED = {"speed": {"from_unit": "mph", "to_unit": "km/h"}}
+
+    def test_table_rows(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": [
+                    {"id": "a", "speed": 60, "name": "x"},
+                    {"id": "b", "speed": "30"},
+                ],
+                "columns": self.SPEED,
+            }
+        )
+        assert res["status"] == "ready"
+        assert res["table"][0]["speed"] == pytest.approx(96.56064)
+        assert res["table"][0]["name"] == "x"
+        assert res["table"][1]["speed"] == pytest.approx(48.28032)
+        assert res["results"][0]["column"] == "speed"
+        assert res["results"][0]["id"] == "a"
+
+    def test_table_columnar(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": {"speed": [60, None], "label": ["p", "q"]},
+                "columns": self.SPEED,
+            }
+        )
+        assert res["table"]["speed"][0] == pytest.approx(96.56064)
+        assert res["table"]["speed"][1] is None
+        assert res["table"]["label"] == ["p", "q"]
+        assert res["summary"]["skipped"] == 1
+        assert res["results"][0]["id"] == 0
+
+    def test_table_text_cell_rejected(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": [{"speed": "12.5 kg"}, {"speed": 10}],
+                "columns": self.SPEED,
+            }
+        )
+        assert res["status"] == "warning"
+        assert res["errors"][0]["code"] == "invalid_value"
+        assert res["errors"][0]["column"] == "speed"
+        assert res["errors"][0]["id"] == 0
+        assert res["table"][0]["speed"] == "12.5 kg"
+
+    def test_table_canonical_column(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": [{"t": 20}],
+                "columns": {"t": {"from_unit": "C"}},
+            }
+        )
+        assert res["table"][0]["t"] == pytest.approx(293.15)
+        assert res["results"][0]["to_unit"] == "K"
+
+    def test_table_bad_spec(self, skill):
+        table = [{"speed": 1}]
+        for columns in (
+            {"speed": {"to_unit": "m"}},
+            {"speed": {"from_unit": "xyz"}},
+            {"speed": {"from_unit": "mph", "to_unit": "kg"}},
+            "speed",
+            {},
+        ):
+            res = skill.execute(
+                {"action": "normalize_table", "table": table, "columns": columns}
+            )
+            assert res["status"] == "error"
+            assert set(res) == ENVELOPE_KEYS
+        empty = skill.execute(
+            {"action": "normalize_table", "table": [], "columns": self.SPEED}
+        )
+        assert empty["status"] == "insufficient_data"
+        ragged = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": {"speed": [1, 2], "x": [1]},
+                "columns": self.SPEED,
+            }
+        )
+        assert ragged["status"] == "error"
+
+    def test_compact_bounds_output(self, skill):
+        records = [
+            {"id": i, "value": i, "from_unit": "km", "to_unit": "m"}
+            for i in range(4995)
+        ]
+        records += [
+            {"id": f"bad{i}", "value": 1, "from_unit": "kg", "to_unit": "m"}
+            for i in range(5)
+        ]
+        res = skill.execute(
+            {"action": "normalize_batch", "records": records, "compact": True}
+        )
+        assert res["compact"] is True
+        assert len(res["results"]) == 5
+        assert len(res["errors"]) == 5
+        assert res["results_omitted"] == 4990
+        assert res["stats"]["m"] == {"count": 4995, "min": 0.0, "max": 4994000.0}
+        assert res["summary"]["converted"] == 4995
+
+    def test_compact_table_omits_table(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": [{"speed": 60}],
+                "columns": self.SPEED,
+                "compact": True,
+            }
+        )
+        assert "table" not in res
+        assert res["stats"]["km/h"]["count"] == 1

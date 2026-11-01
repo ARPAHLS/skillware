@@ -29,6 +29,9 @@ DEFAULT_PRECISION = 6
 
 MAX_PRECISION = 12
 
+# Results kept under compact: true; errors are always returned in full.
+COMPACT_SAMPLE_SIZE = 5
+
 # Numeric strings are accepted because CSV readers hand every cell over as text.
 # Anything carrying a unit is not a number here; parse_quantity is the path for that.
 NUMERIC_STRING = re.compile(r"^\s*[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?\s*$")
@@ -70,8 +73,15 @@ class UnitNormalizerSkill(BaseSkill):
         except units.UnitError as exc:
             return self._failure(action, f"{exc.code}: {exc.detail}", precision)
 
+        compact = params.get("compact", False)
+        if not isinstance(compact, bool):
+            return self._failure(action, "compact must be a boolean.", precision)
+
         if action == "parse_quantity":
             return self._handle_parse(params, assume, precision)
+
+        if action == "normalize_table":
+            return self._handle_table(params, assume, precision, compact)
 
         canonical = action == "canonicalize"
         if action == "normalize" or (canonical and "records" not in params):
@@ -108,8 +118,107 @@ class UnitNormalizerSkill(BaseSkill):
                 errors.append(error)
 
         return self._envelope(
-            action, results, errors, precision, single=action == "normalize"
+            action,
+            results,
+            errors,
+            precision,
+            single=action == "normalize",
+            compact=compact,
         )
+
+    def _handle_table(
+        self,
+        params: Dict[str, Any],
+        assume: Mapping[str, str],
+        precision: int,
+        compact: bool,
+    ) -> Dict[str, Any]:
+        action = "normalize_table"
+        table = params.get("table")
+        if table is None or table == [] or table == {}:
+            return self._insufficient(
+                action, "Parameter 'table' is empty or missing.", precision
+            )
+
+        columns = params.get("columns")
+        if not isinstance(columns, dict) or not columns:
+            return self._failure(
+                action,
+                "Parameter 'columns' must map column names to {from_unit, to_unit}.",
+                precision,
+            )
+        for name, spec in columns.items():
+            if not isinstance(spec, dict) or not isinstance(spec.get("from_unit"), str):
+                return self._failure(
+                    action, f"columns['{name}'] needs a 'from_unit' string.", precision
+                )
+            try:
+                _convert(1.0, spec["from_unit"], spec.get("to_unit"), assume)
+            except units.UnitError as exc:
+                return self._failure(
+                    action, f"columns['{name}']: {exc.code}: {exc.detail}", precision
+                )
+
+        columnar = isinstance(table, dict)
+        if columnar:
+            if not all(isinstance(v, list) for v in table.values()):
+                return self._failure(
+                    action, "A columnar table maps column names to lists.", precision
+                )
+            lengths = {len(v) for v in table.values()}
+            if len(lengths) > 1:
+                return self._failure(
+                    action, "Columnar table columns have different lengths.", precision
+                )
+            rows = [
+                {name: values[i] for name, values in table.items()}
+                for i in range(lengths.pop())
+            ]
+        elif isinstance(table, list) and all(isinstance(r, dict) for r in table):
+            rows = [dict(row) for row in table]
+        else:
+            return self._failure(
+                action,
+                "Parameter 'table' must be a list of row objects or an object of column lists.",
+                precision,
+            )
+
+        results: List[Dict[str, Any]] = []
+        errors: List[Dict[str, Any]] = []
+        skipped = 0
+        for index, row in enumerate(rows):
+            record_id = row.get("id", index)
+            for name, spec in columns.items():
+                if row.get(name) is None:
+                    skipped += 1
+                    continue
+                cell = {
+                    "id": record_id,
+                    "value": row[name],
+                    "from_unit": spec["from_unit"],
+                    "to_unit": spec.get("to_unit"),
+                }
+                result, error = self._convert_record(
+                    index, cell, assume, precision, canonical=False
+                )
+                if result is not None:
+                    result["column"] = name
+                    row[name] = result["value"]
+                    results.append(result)
+                else:
+                    error["column"] = name
+                    errors.append(error)
+
+        envelope = self._envelope(
+            action, results, errors, precision, skipped=skipped, compact=compact
+        )
+        if not compact:
+            envelope["table"] = (
+                {name: [row[name] for row in rows] for name in table}
+                if columnar
+                else rows
+            )
+        return envelope
 
     def _convert_record(
         self,
@@ -209,6 +318,7 @@ class UnitNormalizerSkill(BaseSkill):
         precision: int,
         single: bool = False,
         skipped: int = 0,
+        compact: bool = False,
     ) -> Dict[str, Any]:
         assumed = sum(1 for r in results if r.get("assumed"))
         total = len(results) + len(errors) + skipped
@@ -219,7 +329,7 @@ class UnitNormalizerSkill(BaseSkill):
             "errors": len(errors),
             "skipped": skipped,
         }
-        return {
+        envelope = {
             "status": "warning" if errors or assumed else "ready",
             "action": action,
             "result": results[0] if single and results else None,
@@ -233,6 +343,21 @@ class UnitNormalizerSkill(BaseSkill):
             ),
             "error": None,
         }
+        if compact:
+            stats: Dict[str, Dict[str, Any]] = {}
+            for result in results:
+                entry = stats.setdefault(
+                    result["to_unit"],
+                    {"count": 0, "min": result["value"], "max": result["value"]},
+                )
+                entry["count"] += 1
+                entry["min"] = min(entry["min"], result["value"])
+                entry["max"] = max(entry["max"], result["value"])
+            envelope["results"] = results[:COMPACT_SAMPLE_SIZE]
+            envelope["compact"] = True
+            envelope["results_omitted"] = max(0, len(results) - COMPACT_SAMPLE_SIZE)
+            envelope["stats"] = stats
+        return envelope
 
     def _insufficient(
         self, action: str, message: str, precision: int
