@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from . import units as units_module
+from .parser import parse_quantity
 from .units import UnitError, canonical_unit, convert, resolve_unit, validate_assume
 
 
@@ -140,3 +141,55 @@ class TestAmbiguity:
         assert resolved.unit.factor == pytest.approx(0.3048)
         assert resolved.assumption["alternatives"] == ["arcmin"]
         assert resolve_unit('"').assumption["alternatives"] == ["arcsec"]
+
+
+def _parse_error(text):
+    with pytest.raises(UnitError) as excinfo:
+        parse_quantity(text)
+    return excinfo.value.code
+
+
+class TestParser:
+    def test_feet_inches(self):
+        parsed = parse_quantity("5 ft 11 in")
+        assert parsed.si_value == pytest.approx(1.8034)
+        assert [r.label for _, r in parsed.components] == ["ft", "in"]
+        assert [v for v, _ in parsed.components] == [5, 11]
+        assert parsed.assumptions == []
+
+    def test_prime_notation(self):
+        parsed = parse_quantity("5'11\"")
+        assert parsed.si_value == pytest.approx(1.8034)
+        assert len(parsed.assumptions) == 2
+
+    def test_fraction_and_mixed_number(self):
+        assert parse_quantity("1/4 lb").si_value == pytest.approx(0.1133980925)
+        parsed = parse_quantity("3 1/2 gal")
+        assert parsed.si_value == pytest.approx(0.013248941244)
+        assert len(parsed.assumptions) == 1
+
+    def test_rate_and_prefix_strings(self):
+        assert parse_quantity("120 km/h").si_value == pytest.approx(33.333333333333336)
+        assert parse_quantity("3.5 MPa").si_value == pytest.approx(3.5e6)
+        assert parse_quantity("45.2 psi").si_value == pytest.approx(311643.0296512)
+        assert parse_quantity("15 knots").si_value == pytest.approx(7.716666666666667)
+        assert parse_quantity("25mm").si_value == pytest.approx(0.025)
+        assert parse_quantity("-40 F").si_value == pytest.approx(233.15)
+        assert parse_quantity("1.5e3 m").si_value == pytest.approx(1500)
+
+    def test_offset_compound_rejected(self):
+        assert _parse_error("20 C 5 F") == "unparseable"
+
+    def test_mixed_dimension_compound_rejected(self):
+        assert _parse_error("5 ft 3 kg") == "unparseable"
+
+    def test_decimal_denominator_refused(self):
+        assert _parse_error('1/2.3"') == "unparseable"
+
+    def test_comma_refused(self):
+        assert _parse_error("1,500 kg") == "unparseable"
+
+    def test_malformed_text(self):
+        for text in ("", "   ", "kg", "5", "5 ft -11 in", "1/0 in"):
+            assert _parse_error(text) == "unparseable"
+        assert _parse_error("5 parsecs") == "unknown_unit"
