@@ -50,6 +50,10 @@ class UnitNormalizerSkill(BaseSkill):
 
     def execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
         params = params or {}
+        if not isinstance(params, dict):
+            return self._failure(
+                "normalize", "Parameters must be a JSON object.", DEFAULT_PRECISION
+            )
 
         raw_action = params.get("action") or "normalize"
         action = raw_action.strip().lower() if isinstance(raw_action, str) else ""
@@ -189,7 +193,7 @@ class UnitNormalizerSkill(BaseSkill):
         for index, row in enumerate(rows):
             record_id = row.get("id", index)
             for name, spec in columns.items():
-                if row.get(name) is None:
+                if _is_blank(row.get(name)):
                     skipped += 1
                     continue
                 cell = {
@@ -289,11 +293,11 @@ class UnitNormalizerSkill(BaseSkill):
             else:
                 dst_unit, to_symbol = units.canonical_unit(parsed.dimension)
             _check_dimensions(text, parsed.dimension, to_symbol, dst_unit.dimension)
+            value = _finite(parsed.si_value / dst_unit.factor - dst_unit.offset)
         except units.UnitError as exc:
             error = _error(record_id, exc.code, exc.detail, None, target_label)
             return self._envelope("parse_quantity", [], [error], precision, single=True)
 
-        value = parsed.si_value / dst_unit.factor - dst_unit.offset
         result = {
             "id": record_id,
             "original_text": text,
@@ -399,6 +403,23 @@ def _coerce_value(value: Any) -> Optional[float]:
     return number if math.isfinite(number) else None
 
 
+def _is_blank(cell: Any) -> bool:
+    """Empty table cells: None, blank strings from CSV readers, and NaN from pandas."""
+    if cell is None:
+        return True
+    if isinstance(cell, str):
+        return not cell.strip()
+    return isinstance(cell, float) and math.isnan(cell)
+
+
+def _finite(value: float) -> float:
+    if not math.isfinite(value):
+        raise units.UnitError(
+            "invalid_value", "The converted value overflows the float range."
+        )
+    return value
+
+
 def _display(value: float, precision: int) -> str:
     return format(value, f".{precision}f")
 
@@ -445,13 +466,13 @@ def _convert(
         if src.unit.dimension != dst.unit.dimension:
             if src.assumption:
                 src = units.resolve_unit(from_label, assume, dst.unit.dimension)
-            elif dst.assumption:
+            if src.unit.dimension != dst.unit.dimension and dst.assumption:
                 dst = units.resolve_unit(to_label, assume, src.unit.dimension)
         dst_unit, to_symbol = dst.unit, dst.label
 
     _check_dimensions(src.label, src.unit.dimension, to_symbol, dst_unit.dimension)
     converted = (value + src.unit.offset) * src.unit.factor / dst_unit.factor
-    converted -= dst_unit.offset
+    converted = _finite(converted - dst_unit.offset)
     assumptions = [a for a in (src.assumption, dst and dst.assumption) if a]
     return converted, src, to_symbol, assumptions
 

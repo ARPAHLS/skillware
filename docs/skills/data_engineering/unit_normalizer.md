@@ -51,7 +51,7 @@ Models convert `10 km` to miles without trouble. They fail where unit work actua
 | `precision` | integer | `6` | Decimals in `display_value` (0 to 12). |
 | `compact` | boolean | `false` | Summary statistics and samples instead of every result. |
 
-Numeric strings such as `"12.5"` are accepted as values, because CSV readers return text. Strings with units are not; use `parse_quantity` for those.
+In tables, empty cells (`null`, blank strings, NaN) are skipped and counted in `summary.skipped`. Numeric strings such as `"12.5"` are accepted as values, because CSV readers return text. Strings with units are not; use `parse_quantity` for those.
 
 ## Output
 
@@ -117,7 +117,7 @@ When the target unit settles the dimension, the reading follows it: `8 oz` to `m
 
 - **No unit products** such as `oz-in` or `N*m`, and no ambiguous units inside rates (`gal/min` is `unknown_unit`).
 - **No caller-defined units** in this version.
-- **Compound strings need whitespace between pairs** (`5 ft 11 in`), except quote marks (`5'11"`). Sums are refused across dimensions or with temperature scales (`20 C 5 F` is `unparseable`).
+- **Compound strings need whitespace between pairs** (`5 ft 11 in`), except after quote marks and the degree sign (`5'11"`, `40°26'46"`). Later components follow the first one's dimension, so `45° 30'` reads the `'` as arcminutes. Sums are refused across dimensions or with temperature scales (`20 C 5 F` is `unparseable`).
 - **Commas are refused**, not guessed as thousands or decimal separators.
 - **Fractions with a decimal denominator** (`1/2.3"`) are refused: they are optical sensor-format designations, not lengths. Integer fractions of an inch (`1/2"`) are read literally.
 - **Static constants only.** No currencies or other time-varying rates.

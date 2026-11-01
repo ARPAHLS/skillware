@@ -5,6 +5,7 @@ number/unit components and one SI value. Separate number+unit pairs are summed, 
 is only meaningful when every component shares a dimension and carries no offset.
 """
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -23,7 +24,7 @@ COMPONENT = re.compile(
       | (?P<decimal>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)
     )
     \s*
-    (?P<unit>['"]|[^\s\d'"+\-.][^\s'"]*)
+    (?P<unit>['"]|\u00b0(?=[\d\s]|$)|[^\s\d'"+\-.][^\s'"]*)
     """,
     re.VERBOSE,
 )
@@ -94,7 +95,16 @@ def parse_quantity(
                 f"'{text}' has a sign inside a compound quantity.",
             )
         value = _number(match, text)
-        resolved = units.resolve_unit(match.group("unit"), assume, target_dim)
+        if not math.isfinite(value):
+            raise units.UnitError(
+                "unparseable", f"'{text}' holds a number outside the float range."
+            )
+        # Later components follow the first one's dimension, so the ' in 45° 30'
+        # reads as arcminutes while the ' in 5' 11" still reads as feet.
+        hint = target_dim
+        if hint is None and components:
+            hint = components[0][1].unit.dimension
+        resolved = units.resolve_unit(match.group("unit"), assume, hint)
         components.append((value, resolved))
         position = match.end()
 

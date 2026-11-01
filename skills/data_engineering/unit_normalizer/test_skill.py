@@ -502,3 +502,58 @@ class TestTableAndCompact:
         )
         assert "table" not in res
         assert res["stats"]["km/h"]["count"] == 1
+
+
+class TestReviewFindings:
+    def test_overflow_is_never_a_ready_result(self, skill):
+        res = skill.execute({"value": 1e308, "from_unit": "km", "to_unit": "m"})
+        assert res["status"] == "warning"
+        assert res["errors"][0]["code"] == "invalid_value"
+        for params in (
+            {"action": "parse_quantity", "text": "1e400 m"},
+            {"action": "parse_quantity", "text": "1e308 km", "target_unit": "m"},
+        ):
+            res = skill.execute(params)
+            assert res["result"] is None
+            assert res["errors"][0]["code"] in ("unparseable", "invalid_value")
+
+    def test_ambiguous_source_follows_ambiguous_target(self, skill):
+        res = skill.execute({"value": 1, "from_unit": "gal", "to_unit": "oz"})
+        assert res["result"]["value"] == pytest.approx(128.0)
+        assert res["result"]["assumed"] is True
+
+    def test_blank_and_nan_table_cells_are_skipped(self, skill):
+        res = skill.execute(
+            {
+                "action": "normalize_table",
+                "table": [{"a": ""}, {"a": "  "}, {"a": float("nan")}, {"a": None}],
+                "columns": {"a": {"from_unit": "m"}},
+            }
+        )
+        assert res["errors"] == []
+        assert res["summary"]["skipped"] == 4
+        assert res["status"] == "ready"
+
+    def test_dms_without_spaces(self, skill):
+        locked = skill.execute(
+            {
+                "action": "parse_quantity",
+                "text": "40°26'46\"",
+                "target_unit": "deg",
+                "assume": {"'": "arcmin", '"': "arcsec"},
+            }
+        )
+        assert locked["status"] == "ready"
+        assert locked["result"]["value"] == pytest.approx(40.446111111111)
+        declared = skill.execute(
+            {"action": "parse_quantity", "text": "45° 30'", "target_unit": "deg"}
+        )
+        assert declared["result"]["value"] == pytest.approx(45.5)
+        assert declared["result"]["assumed"] is True
+        assert parse_quantity("20°C").si_value == pytest.approx(293.15)
+
+    def test_non_dict_params_return_envelope(self, skill):
+        for params in ([1, 2], "normalize", 42):
+            res = skill.execute(params)
+            assert res["status"] == "error"
+            assert set(res) == ENVELOPE_KEYS

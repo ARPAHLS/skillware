@@ -36,7 +36,8 @@ compound string, or a unit could be read more than one way.
 - `parse_quantity`: `text` plus optional `target_unit`.
 - `normalize_table`: `table` (a list of row objects or an object of column lists) and
   `columns`, e.g. `{"speed": {"from_unit": "mph", "to_unit": "km/h"}}`. The table comes
-  back in the same shape with converted cells.
+  back in the same shape with converted cells. Empty cells (`null`, blank strings, NaN)
+  are skipped and counted in `summary.skipped`, not reported as errors.
 
 Shared options: `assume` locks ambiguous readings, `precision` (0 to 12, default 6) sets
 `display_value` decimals, and `compact: true` returns statistics, five sample results,
@@ -69,7 +70,8 @@ arcseconds are the alternatives).
 
 - Compound strings sum only within one dimension and never with temperature scales:
   `20 C 5 F` is `unparseable`. Separate pairs need whitespace (`5 ft 11 in`), except
-  quote marks (`5'11"`).
+  after quote marks and the degree sign (`5'11"`, `40°26'46"`). Later components follow
+  the first one's dimension, so the `'` in `45° 30'` reads as arcminutes.
 - Commas are refused rather than guessed as thousands or decimal separators.
 - A fraction with a decimal denominator such as `1/2.3"` is refused: it is an optical
   sensor-format designation, not a length.
