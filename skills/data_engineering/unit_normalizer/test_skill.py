@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 from . import units as units_module
-from .units import UnitError, canonical_unit, convert, resolve_unit
+from .units import UnitError, canonical_unit, convert, resolve_unit, validate_assume
 
 
 @pytest.fixture
@@ -96,3 +96,47 @@ class TestUnits:
         assert units_module.dimension_name(resolve_unit("m/s2").unit.dimension) == (
             "acceleration"
         )
+
+
+class TestAmbiguity:
+    def test_ton_defaults_to_metric_and_declares(self):
+        resolved = resolve_unit("ton")
+        assert resolved.unit.factor == 1000
+        assert resolved.assumption["assumption"] == "ton interpreted as metric_ton"
+        assert resolved.assumption["alternatives"] == [
+            "us_short_ton",
+            "imperial_long_ton",
+        ]
+        assert resolved.assumption["risk_variance"] == "12.0%"
+
+    def test_gallon_risk_variance(self):
+        assert resolve_unit("gal").assumption["risk_variance"] == "20.1%"
+
+    def test_assume_locks_without_flag(self):
+        resolved = resolve_unit("ton", {"ton": "us_short_ton"})
+        assert resolved.unit.factor == pytest.approx(907.18474)
+        assert resolved.assumption is None
+
+    def test_invalid_assumption(self):
+        for assume in ({"ton": "banana"}, {"kg": "x"}, "ton", {"ton": 1}):
+            with pytest.raises(UnitError) as excinfo:
+                validate_assume(assume)
+            assert excinfo.value.code == "invalid_assumption"
+        assert validate_assume(None) == {}
+
+    def test_oz_follows_target_dimension(self):
+        resolved = resolve_unit("oz", target_dim=units_module.VOLUME)
+        assert resolved.unit.factor == pytest.approx(2.95735295625e-5)
+        assert "oz_fluid_us" in resolved.assumption["assumption"]
+        assert "oz_mass" in resolved.assumption["alternatives"]
+
+    def test_oz_defaults_to_mass(self):
+        resolved = resolve_unit("oz")
+        assert resolved.unit.dimension == units_module.MASS
+        assert resolved.assumption["risk_variance"] is None
+
+    def test_prime_marks_default_to_length(self):
+        resolved = resolve_unit("'")
+        assert resolved.unit.factor == pytest.approx(0.3048)
+        assert resolved.assumption["alternatives"] == ["arcmin"]
+        assert resolve_unit('"').assumption["alternatives"] == ["arcsec"]

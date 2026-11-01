@@ -143,7 +143,7 @@ _add("kg", MASS, 1.0)
 _add("g", MASS, 1e-3, names=("gram", "grams"))
 _add("lb", MASS, 0.45359237, symbols=("lbs",), names=("pound", "pounds"))
 _add("st", MASS, 6.35029318, names=("stone",))
-_add("t", MASS, 1000.0, symbols=("metric_ton",), names=("tonne", "tonnes"))
+_add("t", MASS, 1000.0, names=("tonne", "tonnes"))
 _name("kg", "kilogram", "kilograms")
 _name("mg", "milligram", "milligrams")
 
@@ -222,6 +222,47 @@ _add("arcsec", ANGLE, math.pi / 648000.0)
 # Angular velocity
 _add("rpm", ANGULAR_VELOCITY, 2.0 * math.pi / 60.0)
 _add("dps", ANGULAR_VELOCITY, math.pi / 180.0)
+
+# Readings of ambiguous units. Each is addressable directly and via assume.
+_add("metric_ton", MASS, 1000.0)
+_add("us_short_ton", MASS, 907.18474)
+_add("imperial_long_ton", MASS, 1016.0469088)
+_add("us_gallon", VOLUME, 3.785411784e-3)
+_add("imperial_gallon", VOLUME, 4.54609e-3)
+_add("us_pint", VOLUME, 4.73176473e-4)
+_add("imperial_pint", VOLUME, 5.6826125e-4)
+_add("us_quart", VOLUME, 9.46352946e-4)
+_add("imperial_quart", VOLUME, 1.1365225e-3)
+_add("oz_mass", MASS, 0.028349523125)
+_add("oz_fluid_us", VOLUME, 2.95735295625e-5)
+_add("oz_fluid_imperial", VOLUME, 2.84130625e-5)
+
+# Ambiguous tokens: the default reading comes first. A token resolving here never
+# comes back as a bare result; it carries an assumption record unless assume locks it.
+AMBIGUOUS: Dict[str, Tuple[str, ...]] = {
+    "ton": ("metric_ton", "us_short_ton", "imperial_long_ton"),
+    "gal": ("us_gallon", "imperial_gallon"),
+    "pt": ("us_pint", "imperial_pint"),
+    "qt": ("us_quart", "imperial_quart"),
+    "oz": ("oz_mass", "oz_fluid_us", "oz_fluid_imperial"),
+    "'": ("ft", "arcmin"),
+    '"': ("in", "arcsec"),
+}
+
+AMBIGUOUS_ALIASES: Dict[str, str] = {group: group for group in AMBIGUOUS}
+AMBIGUOUS_ALIASES.update(
+    {
+        "tons": "ton",
+        "gallon": "gal",
+        "gallons": "gal",
+        "pint": "pt",
+        "pints": "pt",
+        "quart": "qt",
+        "quarts": "qt",
+        "ounce": "oz",
+        "ounces": "oz",
+    }
+)
 
 
 def dimension_name(dim: Dim) -> str:
@@ -314,6 +355,9 @@ def resolve_unit(
     if not isinstance(token, str) or not token.strip():
         raise UnitError("unknown_unit", "Unit must be a non-empty string.")
     label = token.strip()
+    group = _ambiguity_group(label)
+    if group is not None:
+        return _resolve_ambiguous(label, group, assume or {}, target_dim)
     normalized = label.replace("µ", "u").replace("μ", "u")
 
     unit = _resolve_simple(normalized)
@@ -339,3 +383,72 @@ def resolve_unit(
     if unit is None:
         raise UnitError("unknown_unit", f"Unrecognised unit '{label}'.")
     return Resolved(unit, label)
+
+
+def _ambiguity_group(token: str) -> Optional[str]:
+    if token in AMBIGUOUS_ALIASES:
+        return AMBIGUOUS_ALIASES[token]
+    if token.isalpha() and token.lower() in AMBIGUOUS_ALIASES:
+        return AMBIGUOUS_ALIASES[token.lower()]
+    return None
+
+
+def _risk_variance(candidates: Tuple[str, ...], dimension: Dim) -> Optional[str]:
+    factors = [_UNITS[k].factor for k in candidates if _UNITS[k].dimension == dimension]
+    if len(factors) < 2:
+        return None
+    low, high = min(factors), max(factors)
+    return f"{(high - low) / low * 100:.1f}%"
+
+
+def _resolve_ambiguous(
+    label: str,
+    group: str,
+    assume: Mapping[str, str],
+    target_dim: Optional[Dim],
+) -> Resolved:
+    candidates = AMBIGUOUS[group]
+    locked = assume.get(group)
+    if locked is not None:
+        return Resolved(_UNITS[locked], label)
+
+    eligible = candidates
+    if target_dim is not None:
+        matching = tuple(k for k in candidates if _UNITS[k].dimension == target_dim)
+        eligible = matching or candidates
+    chosen = eligible[0]
+    unit = _UNITS[chosen]
+    return Resolved(
+        unit,
+        label,
+        {
+            "assumption": f"{label} interpreted as {chosen}",
+            "alternatives": [k for k in candidates if k != chosen],
+            "risk_variance": _risk_variance(candidates, unit.dimension),
+        },
+    )
+
+
+def validate_assume(assume: Any) -> Dict[str, str]:
+    """Validate an operator ``assume`` map; keys are ambiguity groups or their aliases."""
+    if assume is None:
+        return {}
+    if not isinstance(assume, dict):
+        raise UnitError("invalid_assumption", "assume must be an object.")
+    validated: Dict[str, str] = {}
+    for token, reading in assume.items():
+        group = _ambiguity_group(token) if isinstance(token, str) else None
+        if group is None:
+            supported = ", ".join(sorted(AMBIGUOUS))
+            raise UnitError(
+                "invalid_assumption",
+                f"'{token}' is not an ambiguous unit. Ambiguous units: {supported}.",
+            )
+        if reading not in AMBIGUOUS[group]:
+            options = ", ".join(AMBIGUOUS[group])
+            raise UnitError(
+                "invalid_assumption",
+                f"'{reading}' is not a reading of '{token}'. Options: {options}.",
+            )
+        validated[group] = reading
+    return validated
