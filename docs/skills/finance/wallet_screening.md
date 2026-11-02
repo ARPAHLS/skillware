@@ -336,9 +336,15 @@ Report schema **v2** (`schema_version: "2.0"`). Hosts should gate on `verdict.de
     "most_interacted_wallet": ["0x123...", 45],
     "top_10_counterparties": [["0x123...", 45]],
     "risky_counterparties": [{"address": "0xc8fe...", "tx_count": 1}]
+  },
+  "provenance": {
+    "report_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "generator": "skillware/finance/wallet_screening v2.1.0"
   }
 }
 ```
+
+`provenance.report_hash` is the SHA-256 of the report JSON with sorted keys, compact separators, and the `provenance` object omitted. Hosts can recompute and compare.
 
 ## Limitations
 
@@ -349,9 +355,10 @@ Report schema **v2** (`schema_version: "2.0"`). Hosts should gate on `verdict.de
 - **Entity-only designations**: Aban Tether is designated without a digital-currency identifier in SDN remarks, so address screening cannot hit it.
 - **Deferred peer lists**: OpenSanctions `il_mod_crypto` (`entities.ftm.json`), FBI Lazarus, Israel NBCTF, and Uniswap TRM stay at their 22 Jul 2025 snapshots. UK OFSI, the EU 20th package, and MEW darklist had no public address file in this bundle to ingest.
 - **ERC-20 and internal coverage**: `tokentx` and `txlistinternal` are screened against the malicious / TRM risk index. Major-token volumes (USDT, USDC, DAI, WETH) come from operator `evm.tokens` on ethereum. NFT transfers are still out of scope.
-- **Hop-1 only**: `indirect_exposures` screens direct counterparties against the sanctions index. Deeper graph hops and `provenance.report_hash` remain on #439 slice 4.
+- **Hop-1 only**: `indirect_exposures` screens direct counterparties against the sanctions index. Deeper multi-hop graph analysis is out of scope.
 - **Offline-direct**: Without `ETHERSCAN_API_KEY`, balances and tx history are omitted (`metadata.mode: offline_direct_only`). Live providers still run when their keys are set.
 - **Live providers**: Chainalysis/TRM failures or rate limits add `metadata.warnings` and do not erase offline findings. A live sanctions hit elevates to `critical` / `DENY`.
+- **Provenance**: `report_hash` covers the report body only (not the `provenance` block). Changing any scored field invalidates the digest. `screening_time` is part of the hashed body, so two screens of the same address at different times differ.
 - **Not legal advice**: Risk flags are derived from open-source sanctions data and pattern heuristics. A clean result does not constitute legal clearance.
 
 ---
@@ -363,6 +370,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(wallet_screening): provenance report_hash and slice-4 polish (#439) | 1 Nov 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`055697e`](https://github.com/ARPAHLS/skillware/commit/055697ea73) | feat(wallet_screening): offline-direct mode and optional live providers (#439) (#461) | 1 Nov 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`ec30a64`](https://github.com/ARPAHLS/skillware/commit/ec30a6444c) | feat(wallet_screening): schema v2 verdicts and hop-1 exposures (#439) (#447) | 20 Oct 2026 | `2.0.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.1.0` | [@rosspeili](https://github.com/rosspeili) |

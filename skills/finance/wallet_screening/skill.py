@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import re
@@ -1098,7 +1099,7 @@ class WalletScreeningSkill(BaseSkill):
         risk_flag = risk_level in {"critical", "high", "medium"}
         sanctioned_match = bool(sanctions_hits) or live_sanctioned
 
-        return {
+        report = {
             "schema_version": _REPORT_SCHEMA_VERSION,
             "metadata": metadata,
             "verdict": {
@@ -1147,3 +1148,44 @@ class WalletScreeningSkill(BaseSkill):
                 "risky_counterparties": risky_counterparties,
             },
         }
+        return self._attach_provenance(report)
+
+    def _skill_version(self) -> str:
+        try:
+            return str(self.manifest.get("version") or "0.0.0")
+        except Exception:
+            return "0.0.0"
+
+    @staticmethod
+    def _canonical_report_json(report: Dict[str, Any]) -> str:
+        """Stable JSON for hashing: sorted keys, compact separators, UTF-8."""
+        return json.dumps(
+            report, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        )
+
+    def _attach_provenance(self, report: Dict[str, Any]) -> Dict[str, Any]:
+        """SHA-256 over the report body excluding ``provenance`` itself."""
+        body = {key: value for key, value in report.items() if key != "provenance"}
+        digest = hashlib.sha256(
+            self._canonical_report_json(body).encode("utf-8")
+        ).hexdigest()
+        report["provenance"] = {
+            "report_hash": digest,
+            "generator": (
+                f"skillware/finance/wallet_screening v{self._skill_version()}"
+            ),
+        }
+        return report
+
+    @classmethod
+    def verify_report_hash(cls, report: Dict[str, Any]) -> bool:
+        """Return True if ``provenance.report_hash`` matches the report body."""
+        provenance = report.get("provenance") or {}
+        expected = provenance.get("report_hash")
+        if not expected:
+            return False
+        body = {key: value for key, value in report.items() if key != "provenance"}
+        actual = hashlib.sha256(
+            cls._canonical_report_json(body).encode("utf-8")
+        ).hexdigest()
+        return actual == expected

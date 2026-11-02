@@ -22,6 +22,7 @@ The tool returns a JSON object. You should summarize this for the user in a prof
 7.  **`network_analysis.top_10_counterparties`**: Who are they sending money to?
 8.  **`metadata.mode`**: `full_forensics` when Etherscan ran; `offline_direct_only` when only bundled lists were checked (no tx history).
 9.  **`metadata.warnings` (Array, optional)**: Incomplete history or live-provider codes (`etherscan_*`, `offline_direct_only_no_tx_history`, `chainalysis_*`, `trm_*`). Do not present PnL or interaction counts as exhaustive when warnings are set.
+10. **`provenance.report_hash`**: Mention only if the user asks about integrity/audit — it is a SHA-256 digest of the report body for downstream verification.
 
 ## Safety Protocol
 *   If a wallet is **Sanctioned** or **`verdict.decision` is `DENY`**: severe warning. Halt automated execution.

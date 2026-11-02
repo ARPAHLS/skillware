@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/wallet_screening` v2.1.0):** `provenance.report_hash` — SHA-256 over the canonical report body (sorted keys, `provenance` excluded) plus `generator` for audit pipelines ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 4).
+
 ### Changed
 
 ### Fixed
