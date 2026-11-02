@@ -7,10 +7,11 @@
 <br/>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/License-MIT-efcefa?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Python-3.10+-bae6fd?style=flat-square" alt="Python Version">
-  <a href="https://pypi.org/project/skillware/"><img src="https://img.shields.io/pypi/v/skillware?style=flat-square&color=bbf7d0" alt="PyPI Version"></a>
-  <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93&color=ffdac1" alt="Total PyPI downloads"></a>
+  <img src="https://img.shields.io/badge/License-MIT-F4ECC8?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Python-3.10+-DBD3DC?style=flat-square" alt="Python Version">
+  <a href="https://pypi.org/project/skillware/"><img src="https://img.shields.io/pypi/v/skillware?style=flat-square&color=C7E4CA" alt="PyPI Version"></a>
+  <a href="https://skillware.site/bench/"><img src="https://img.shields.io/badge/Evals-Bench-D4E4F1?style=flat-square" alt="Evals | Bench"></a>
+  <a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/pepy/dt/skillware?style=flat-square&label=DLs%20%E2%86%93&color=F0D9CC" alt="Total PyPI downloads"></a>
 </div>
 
 <br/>
@@ -249,14 +250,14 @@ To see how Skillware architecturally compares against MCP, Agent Skills, Antigra
 
 ## Stats
 
-<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/badge/Stats-PePyTech-ffdac1?style=flat-square" alt="PePy.tech dashboard"></a>
-<a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-ffdac1?style=flat-square" alt="PyPI Stats dashboard"></a>
+<a href="https://pepy.tech/projects/skillware"><img src="https://img.shields.io/badge/Stats-PePyTech-F0D9CC?style=flat-square" alt="PePy.tech dashboard"></a>
+<a href="https://pypistats.org/packages/skillware"><img src="https://img.shields.io/badge/Stats-PyPiStats-F0D9CC?style=flat-square" alt="PyPI Stats dashboard"></a>
 
 PyPI download counts measure **install activity** from public aggregators (including CI and mirrors), not unique users. Use the badge links above for charts and version breakdowns.
 
 ## Citing
 
-<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-c7d2fe?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
+<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-D4E4F1?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
 
 If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.6.1`).
 
