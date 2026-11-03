@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Unit table and resolution for data_engineering/unit_normalizer.
 
 Every unit is one ``{factor, offset}`` row against the SI base of its dimension, so a

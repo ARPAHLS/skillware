@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Compound quantity parsing for data_engineering/unit_normalizer.
 
 Turns strings such as ``5 ft 11 in``, ``3 1/2 gal``, ``120 km/h`` or ``5'11"`` into

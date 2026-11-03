@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Effect for data_engineering/unit_normalizer."""
 
 import math

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """Bundle tests for data_engineering/unit_normalizer.
 
 Fully offline: the skill is pure Python over bundled constants, so every test drives
