@@ -350,7 +350,7 @@ Commits that touched this skill bundle or its catalog page ([`data_engineering/u
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`770fd3f`](https://github.com/ARPAHLS/skillware/commit/770fd3f594f15bb6432b4e1c58d99f47dbf711b5) | feat(data_engineering): add unit_normalizer skill (#167) | 1 Nov 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
+| [`c6507b6`](https://github.com/ARPAHLS/skillware/commit/c6507b61e75d3f37278c3e191f924a29a260d922) | feat(data_engineering): add unit_normalizer skill (#167) (#466) | 5 Nov 2026 | `0.1.0` | [@rizzoMartin](https://github.com/rizzoMartin) |
 <!-- skill-history:end -->
 
 ## Enterprise disclaimer
