@@ -1,0 +1,130 @@
+name: "data_engineering/unit_normalizer"
+version: "0.1.0"
+tier: core
+shape: atomic
+target:
+  - software
+  - hardware
+tags:
+  - units
+  - normalization
+  - conversion
+  - measurement
+  - data_cleaning
+  - si_units
+  - engineering
+description: "Deterministic unit normalization, compound string parsing, and dimensional audit trail for batch agent pipelines and engineering feeds."
+short_description: "Normalizes mixed units, parses compound strings, and validates dimensions in batch."
+issuer:
+  name: Martin Rizzo Lozano
+  email: rizzolozanomartin@gmail.com
+  github: rizzoMartin
+  org: ARPAHLS
+category: "data_engineering"
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: >
+        Operation to run. 'normalize' converts one value, 'normalize_batch' converts a list of
+        records, 'canonicalize' converts to the SI base unit of each value's dimension,
+        'parse_quantity' parses a compound string such as '5 ft 11 in', and 'normalize_table'
+        converts named columns of a table.
+      enum:
+        - normalize
+        - normalize_batch
+        - canonicalize
+        - parse_quantity
+        - normalize_table
+      default: normalize
+    value:
+      type: number
+      description: Value to convert (normalize, canonicalize).
+    from_unit:
+      type: string
+      description: Unit of value, e.g. 'km', 'psi', 'degF', 'rpm', 'kPa'.
+    to_unit:
+      type: string
+      description: Target unit. Omit to convert to the canonical SI unit of the dimension.
+    id:
+      type: string
+      description: Optional identifier echoed on the result of a single normalize call.
+    records:
+      type: array
+      description: >
+        Records for normalize_batch or canonicalize. Each record is an object with 'value',
+        'from_unit', optional 'to_unit', and optional 'id' (defaults to the record index).
+      items:
+        type: object
+    text:
+      type: string
+      description: Quantity string for parse_quantity, e.g. '5 ft 11 in', '3 1/2 gal', '120 km/h'.
+    target_unit:
+      type: string
+      description: Target unit for parse_quantity. Omit for the canonical SI unit.
+    table:
+      description: >
+        Table for normalize_table, either a list of row objects or an object mapping column
+        names to lists of values. The output keeps the same shape.
+    columns:
+      type: object
+      description: >
+        Column spec for normalize_table, mapping a column name to an object with 'from_unit'
+        and optional 'to_unit', e.g. {"speed": {"from_unit": "mph", "to_unit": "km/h"}}.
+    assume:
+      type: object
+      description: >
+        Locks the reading of ambiguous units, e.g. {"ton": "us_short_ton", "gal": "imperial_gallon"}.
+        Locked rows are returned without assumption flags.
+    precision:
+      type: integer
+      description: Decimal places used for display_value (0 to 12).
+      default: 6
+    compact:
+      type: boolean
+      description: Return summary statistics, a sample of results, and every error instead of all results.
+      default: false
+  required: []
+outputs:
+  status:
+    type: string
+    description: Outcome of the run ('ready', 'warning', 'insufficient_data', 'error').
+  action:
+    type: string
+    description: Action that produced the envelope.
+  result:
+    type: object
+    description: The single result record for normalize and parse_quantity, or null.
+  results:
+    type: array
+    description: Converted records with full-precision value, display_value, units, and dimension.
+  errors:
+    type: array
+    description: Per-record errors with id, stable code, and detail.
+  summary:
+    type: object
+    description: Counts of total, converted, assumed, errors, and skipped records.
+  precision:
+    type: integer
+    description: Decimal places used for display_value.
+  agent_hint:
+    type: string
+    description: Template-based one-line summary for the host agent.
+  error:
+    type: string
+    description: Request-level failure reason, or null.
+requirements: []
+constitution: |
+  1. DETERMINISTIC: Identical inputs always yield identical outputs. Conversion factors are exact constants bundled
+     with the skill. No LLM, network call, or external data source is used inside execute().
+  2. NO SILENT GUESSES: A value whose unit had more than one reading is never returned as a bare result. It carries
+     assumed, assumption, alternatives, and risk_variance unless the caller locked the reading with assume.
+  3. DIMENSIONAL INTEGRITY: Never convert across dimensions. Angles are their own dimension. Compound strings that mix
+     dimensions or offset units are rejected rather than summed.
+  4. NON-BLOCKING BATCHES: A bad record produces a structured error keyed by its id; it never aborts the other records.
+  5. NEVER ALTER INPUTS: Values are converted, never rounded away. value keeps full float precision; display_value is
+     the only rounded field.
+presentation:
+  icon: "ruler"
+  color: "#6366f1"

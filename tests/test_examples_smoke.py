@@ -234,6 +234,17 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "unit_normalizer_demo.py",
+        [
+            "data_engineering/unit_normalizer",
+            "[Batch conversion] status: warning",
+            "dimension_mismatch",
+            "180.340000 cm",
+            "[Table normalization] status: ready",
+            "Demo complete.",
+        ],
+    ),
+    (
         "bio_sequence_ops_demo.py",
         [
             "bio/sequence_ops",

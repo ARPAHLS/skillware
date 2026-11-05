@@ -1,0 +1,28 @@
+{
+    "name": "Unit Normalizer",
+    "description": "Normalizes mixed units, parses compound quantity strings, and declares every ambiguous reading in batch.",
+    "issuer": {
+        "name": "Martin Rizzo Lozano",
+        "email": "rizzolozanomartin@gmail.com",
+        "github": "rizzoMartin",
+        "org": "ARPAHLS"
+    },
+    "icon": "ruler",
+    "color": "#6366f1",
+    "ui_schema": {
+        "type": "card",
+        "fields": [
+            {"key": "status", "label": "Status"},
+            {"key": "action", "label": "Action"},
+            {"key": "summary.total", "label": "Total Records"},
+            {"key": "summary.converted", "label": "Converted"},
+            {"key": "summary.assumed", "label": "Assumed Readings"},
+            {"key": "summary.errors", "label": "Errors"},
+            {"key": "summary.skipped", "label": "Skipped"},
+            {"key": "precision", "label": "Precision"},
+            {"key": "agent_hint", "label": "Agent Hint"},
+            {"key": "errors", "label": "Error Records"},
+            {"key": "error", "label": "Error"}
+        ]
+    }
+}
