@@ -257,9 +257,17 @@ PyPI download counts measure **install activity** from public aggregators (inclu
 
 ## Citing
 
-<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21552745-D4E4F1?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a>
+<a href="https://doi.org/10.48550/arXiv.2611.07652"><img src="https://img.shields.io/badge/Paper-F4ECC8?style=flat-square" alt="Paper"></a>
+<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/Software-DBD3DC?style=flat-square" alt="Software"></a>
+<a href="https://doi.org/10.5281/zenodo.23725543"><img src="https://img.shields.io/badge/Bench-D4E4F1?style=flat-square" alt="Bench"></a>
 
-If you use Skillware in research or products, please cite it using [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**) or the Zenodo **concept DOI** above. That DOI is stable across releases. For reproducibility, also record the **Skillware version** you used (PyPI or Git tag, for example `0.6.1`).
+<br/>
+
+<a href="https://doi.org/10.48550/arXiv.2611.07652"><img src="https://img.shields.io/badge/DOI%20P-10.48550%2FarXiv.2611.07652-F4ECC8?style=flat-square" alt="DOI 10.48550/arXiv.2611.07652"></a><br/>
+<a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI%20S-10.5281%2Fzenodo.21552745-DBD3DC?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a><br/>
+<a href="https://doi.org/10.5281/zenodo.23725543"><img src="https://img.shields.io/badge/DOI%20B-10.5281%2Fzenodo.23725543-D4E4F1?style=flat-square" alt="DOI 10.5281/zenodo.23725543"></a>
+
+If you use Skillware in research or products, please cite it using [CITATION.cff](https://github.com/ARPAHLS/skillware/blob/main/CITATION.cff) (GitHub Cite this repository) or the Zenodo concept DOI above (DOI S). That DOI is stable across releases. For reproducibility, also record the Skillware version you used (PyPI or Git tag, for example 0.6.1). For citing the paper, use the arxiv DOI above (DOI P).
 
 ## Contact
 

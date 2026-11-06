@@ -42,6 +42,7 @@ Repository = "https://github.com/ARPAHLS/skillware"
 Documentation = "https://github.com/ARPAHLS/skillware/blob/main/docs/introduction.md"
 Issues = "https://github.com/ARPAHLS/skillware/issues"
 Changelog = "https://github.com/ARPAHLS/skillware/blob/main/CHANGELOG.md"
+Paper = "https://doi.org/10.48550/arXiv.2611.07652"
 DOI = "https://doi.org/10.5281/zenodo.21552745"
 
 [project.scripts]
