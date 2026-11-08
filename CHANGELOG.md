@@ -16,6 +16,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **Typing:** `skillware/cli.py` is now type-clean and the `[[tool.mypy.overrides]]` block is removed from `pyproject.toml`, so `mypy skillware` checks every module in CI (#415, Phase 4).
+
 ### Fixed
 
 ## [0.6.1] - 2026-11-01
