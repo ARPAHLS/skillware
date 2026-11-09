@@ -608,7 +608,7 @@ def _resolve_pytest_targets(
 
     if category:
         targets: List[Path] = []
-        searched: List[Path] = []
+        searched = []
         for root in roots:
             category_dir = root / category
             searched.append(category_dir)
@@ -2223,7 +2223,7 @@ def cmd_config_submenu(console=None, input_fn=None) -> Optional[str]:
         if not choice:
             continue
         command = commands.get(choice.lower())
-        child_nav = None
+        child_nav: Optional[Union[int, str]] = None
         if command == "paths":
             child_nav = cmd_paths_submenu(console=console, input_fn=input_fn)
         elif command == "theme":
@@ -2339,7 +2339,11 @@ def _rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
 def _lerp_rgb(
     start: Tuple[int, int, int], end: Tuple[int, int, int], t: float
 ) -> Tuple[int, int, int]:
-    return tuple(int(start[i] + (end[i] - start[i]) * t) for i in range(3))
+    return (
+        int(start[0] + (end[0] - start[0]) * t),
+        int(start[1] + (end[1] - start[1]) * t),
+        int(start[2] + (end[2] - start[2]) * t),
+    )
 
 
 def _splash_gradient_color(column: int, width: int) -> str:

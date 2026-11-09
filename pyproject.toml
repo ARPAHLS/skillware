@@ -286,12 +286,7 @@ python_version = "3.10"
 ignore_missing_imports = true
 warn_unused_configs = true
 
-[[tool.mypy.overrides]]
-module = [
-    "skillware.cli",
-]
-ignore_errors = true
-
 [tool.bandit]
 exclude_dirs = ["tests", "build", "dist"]
 skips = ["B101", "B104", "B108", "B310"]
+
