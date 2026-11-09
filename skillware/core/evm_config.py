@@ -406,7 +406,7 @@ def get_web3(
     credential_fn: Optional[Callable[[str], Optional[str]]] = None,
     *,
     config: Optional[MergedEvmConfig] = None,
-):
+) -> Any:
     """Return a Web3 HTTP provider client for ``chain_name`` (requires web3)."""
     try:
         from web3 import Web3

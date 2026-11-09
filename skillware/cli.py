@@ -9,7 +9,7 @@ import sys
 import yaml
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from rich.table import Table
 from rich.console import Console
@@ -632,7 +632,7 @@ def cmd_test(
     category: Optional[str] = None,
     verbose: bool = False,
     no_header: bool = False,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Run bundle tests via pytest. Returns pytest's exit code."""
     _apply_active_theme()
@@ -668,7 +668,7 @@ def cmd_list(
     target_filter: Optional[str] = None,
     tag_filter: Optional[str] = None,
     show_examples: bool = False,
-    console=None,
+    console: Optional[Console] = None,
 ) -> None:
     """Print a formatted table of all available skills."""
     _apply_active_theme()
@@ -773,7 +773,7 @@ def cmd_list(
 def cmd_info(
     skill_id: str,
     skills_root_override: Optional[Path] = None,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Print detailed metadata and taxonomy panel for a skill."""
     _apply_active_theme()
@@ -851,7 +851,7 @@ def cmd_find(
     min_confidence: int = 15,
     json_output: bool = False,
     inspect_target: Optional[str] = None,
-    console=None,
+    console: Optional[Console] = None,
     as_json: bool = False,
     inspect: Any = None,
     min_score: Optional[int] = None,
@@ -981,7 +981,7 @@ def cmd_find(
 def _render_find_inspection(
     matcher: SkillMatcher,
     skill_id: str,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Render deep-inspection panel for a skill discovered via find."""
     _apply_active_theme()
@@ -1066,7 +1066,7 @@ def _render_find_inspection(
 
 def cmd_examples(
     skill_id: Optional[str] = None,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Print runnable example scripts from examples/README.md."""
     _apply_active_theme()
@@ -1133,7 +1133,9 @@ def cmd_examples(
     return 0
 
 
-def _read_line(prompt: str, input_fn=None) -> Optional[str]:
+def _read_line(
+    prompt: str, input_fn: Optional[Callable[[str], str]] = None
+) -> Optional[str]:
     if input_fn is None:
         input_fn = builtins.input
     try:
@@ -1160,7 +1162,7 @@ def _parse_nav(raw: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
     return text, None
 
 
-def _print_nav_footer(console, *, show_back: bool = True) -> None:
+def _print_nav_footer(console: Console, *, show_back: bool = True) -> None:
     console.print("  ---", style="dim")
     if show_back:
         console.print("  b — back to previous menu", style="dim")
@@ -1169,7 +1171,7 @@ def _print_nav_footer(console, *, show_back: bool = True) -> None:
 
 
 def _print_help_command_group(
-    console, group: Tuple[str, List[Tuple[str, str]], str]
+    console: Console, group: Tuple[str, List[Tuple[str, str]], str]
 ) -> None:
     group_name, commands, doc_link = group
     console.print(Text(group_name, style=TABLE_STYLE))
@@ -1179,7 +1181,7 @@ def _print_help_command_group(
     console.print()
 
 
-def _print_help_index(console) -> None:
+def _print_help_index(console: Console) -> None:
     console.print(Text("Usage", style=TABLE_STYLE))
     console.print(
         "  Run skillware and choose help (6) for full topic details.",
@@ -1192,14 +1194,14 @@ def _print_help_index(console) -> None:
     console.print()
 
 
-def _print_cli_usage_examples(console) -> None:
+def _print_cli_usage_examples(console: Console) -> None:
     console.print(Text("CLI usage examples", style=TABLE_STYLE))
     for line in _CLI_USAGE_EXAMPLES:
         console.print(f"  {line}", style=MENU_STYLE)
     console.print()
 
 
-def _print_help_static_topic(console, topic: str) -> None:
+def _print_help_static_topic(console: Console, topic: str) -> None:
     if topic == "install":
         console.print(Text("Install", style=TABLE_STYLE))
         console.print("  pip install skillware", style=MENU_STYLE)
@@ -1218,14 +1220,16 @@ def _print_help_static_topic(console, topic: str) -> None:
     console.print()
 
 
-def _print_help_groups(console, *, compact: bool = False) -> None:
+def _print_help_groups(console: Console, *, compact: bool = False) -> None:
     """Print all help groups (legacy flat dump). Prefer cmd_help(brief=True)."""
     console.print(Text("Usage", style=TABLE_STYLE))
     for group in HELP_GROUPS:
         _print_help_command_group(console, group)
 
 
-def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
+def cmd_help_submenu(
+    console: Optional[Console] = None, input_fn: Optional[Callable[[str], str]] = None
+) -> Optional[str]:
     """Interactive help topics. Returns _NAV_EXIT to quit Skillware."""
     _apply_active_theme()
     if console is None:
@@ -1269,7 +1273,7 @@ def cmd_help_submenu(console=None, input_fn=None) -> Optional[str]:
         console.print()
 
 
-def _print_paths_submenu(console) -> None:
+def _print_paths_submenu(console: Console) -> None:
     console.print(Text("Paths", style=TABLE_STYLE))
     console.print(
         f"  Project config: {project_config_write_path()}",
@@ -1285,7 +1289,7 @@ def _print_paths_submenu(console) -> None:
     _print_nav_footer(console, show_back=True)
 
 
-def _cmd_paths_show_bundled(console) -> None:
+def _cmd_paths_show_bundled(console: Console) -> None:
     root = bundled_skill_root(include_missing=True)
     console.print(Text("Bundled registry (read-only)", style=TABLE_STYLE))
     console.print(f"  path: {root.path}", style=MENU_STYLE)
@@ -1304,7 +1308,7 @@ def _cmd_paths_show_bundled(console) -> None:
 
 
 def _cmd_paths_shadows_only(
-    console, skills_root_override: Optional[Path] = None
+    console: Console, skills_root_override: Optional[Path] = None
 ) -> None:
     roots = get_skill_roots(skills_root_override, for_display=True)
     conflicts = find_shadow_conflicts(roots)
@@ -1325,7 +1329,7 @@ def _cmd_paths_shadows_only(
 
 
 def _cmd_paths_flat_diagnose(
-    console, skills_root_override: Optional[Path] = None
+    console: Console, skills_root_override: Optional[Path] = None
 ) -> None:
     roots = get_skill_roots(skills_root_override, for_display=True)
     console.print(Text("Flat-layout skills (loadable, not in list)", style=TABLE_STYLE))
@@ -1354,7 +1358,9 @@ def _cmd_paths_flat_diagnose(
     )
 
 
-def _cmd_paths_edit_project(console, input_fn=None) -> None:
+def _cmd_paths_edit_project(
+    console: Console, input_fn: Optional[Callable[[str], str]] = None
+) -> None:
     paths = load_project_paths_settings()
     current = paths.project if paths.project is not None else "auto"
     console.print(f"  Current project path: {current}", style=MENU_STYLE)
@@ -1381,7 +1387,9 @@ def _cmd_paths_edit_project(console, input_fn=None) -> None:
     console.print(f"  Saved project path to {target}", style=ID_STYLE)
 
 
-def _cmd_paths_edit_external(console, input_fn=None) -> None:
+def _cmd_paths_edit_external(
+    console: Console, input_fn: Optional[Callable[[str], str]] = None
+) -> None:
     paths = load_project_paths_settings()
     while True:
         console.print(Text("External paths (project config)", style=TABLE_STYLE))
@@ -1442,8 +1450,8 @@ def _cmd_paths_edit_external(console, input_fn=None) -> None:
 
 def cmd_paths_submenu(
     skills_root_override: Optional[Path] = None,
-    console=None,
-    input_fn=None,
+    console: Optional[Console] = None,
+    input_fn: Optional[Callable[[str], str]] = None,
 ) -> Optional[str]:
     """Interactive config -> paths submenu. Returns _NAV_EXIT to quit Skillware."""
     _apply_active_theme()
@@ -1496,7 +1504,7 @@ def cmd_paths_submenu(
 
 def cmd_paths(
     skills_root_override: Optional[Path] = None,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Show skill root resolution order, tiers, and shadowing (read-only config via skillware config show)."""
     _apply_active_theme()
@@ -1588,7 +1596,7 @@ def cmd_paths(
     return 0
 
 
-def cmd_config_show(console=None) -> int:
+def cmd_config_show(console: Optional[Console] = None) -> int:
     """Print merged global + project configuration (read-only)."""
     _apply_active_theme()
     if console is None:
@@ -1729,7 +1737,7 @@ def cmd_context_show(
     roots: Optional[str] = None,
     mode: str = "brief",
     export_path: Optional[Path] = None,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     _apply_active_theme()
     if console is None:
@@ -1765,7 +1773,7 @@ def cmd_context_show(
     return 0
 
 
-def cmd_chain_list(console=None) -> int:
+def cmd_chain_list(console: Optional[Console] = None) -> int:
     _apply_active_theme()
     if console is None:
         console = Console()
@@ -1792,7 +1800,7 @@ def cmd_chain_list(console=None) -> int:
     return 0
 
 
-def cmd_chain_show(name: str, console=None) -> int:
+def cmd_chain_show(name: str, console: Optional[Console] = None) -> int:
     _apply_active_theme()
     if console is None:
         console = Console()
@@ -1847,7 +1855,7 @@ def cmd_chain_run(
     host_vars: Optional[List[str]] = None,
     as_json: bool = False,
     dry_run: bool = False,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     _apply_active_theme()
     if console is None:
@@ -1894,7 +1902,7 @@ def cmd_chain_run(
     return 0 if result.status != "failed" else 1
 
 
-def _save_global_theme_selection(selected: str, console) -> None:
+def _save_global_theme_selection(selected: str, console: Console) -> None:
     """Persist a theme name globally and print effective vs saved notices."""
     target = save_global_presentation_theme(selected)
     _apply_active_theme()
@@ -1909,8 +1917,8 @@ def _save_global_theme_selection(selected: str, console) -> None:
 
 def cmd_theme(
     theme_name: Optional[str] = None,
-    console=None,
-    input_fn=None,
+    console: Optional[Console] = None,
+    input_fn: Optional[Callable[[str], str]] = None,
 ) -> int:
     """Set or interactively choose the global CLI presentation theme."""
     _apply_active_theme()
@@ -1934,7 +1942,10 @@ def cmd_theme(
 
 
 def cmd_theme_picker(
-    console=None, input_fn=None, *, show_back: bool = True
+    console: Optional[Console] = None,
+    input_fn: Optional[Callable[[str], str]] = None,
+    *,
+    show_back: bool = True,
 ) -> Optional[str]:
     """Select and persist a global CLI theme. Returns _NAV_EXIT when requested."""
     if console is None:
@@ -2063,7 +2074,7 @@ def cmd_doctor(
     skills_root_override: Optional[Path] = None,
     skill_id: Optional[str] = None,
     category: Optional[str] = None,
-    console=None,
+    console: Optional[Console] = None,
 ) -> int:
     """Check manifest deps and skill.py import without running execute()."""
     _apply_active_theme()
@@ -2182,7 +2193,7 @@ def cmd_doctor(
     return 1 if fatal_failures else 0
 
 
-def cmd_doctor_install(console=None) -> int:
+def cmd_doctor_install(console: Optional[Console] = None) -> int:
     """Report Python package install health (editable vs PyPI overlap)."""
     _apply_active_theme()
     if console is None:
@@ -2193,7 +2204,9 @@ def cmd_doctor_install(console=None) -> int:
     return 0 if report.ok else 1
 
 
-def cmd_config_submenu(console=None, input_fn=None) -> Optional[str]:
+def cmd_config_submenu(
+    console: Optional[Console] = None, input_fn: Optional[Callable[[str], str]] = None
+) -> Optional[str]:
     """Run configuration actions; return _NAV_EXIT only for a session exit."""
     if console is None:
         console = Console()
@@ -2250,7 +2263,7 @@ def cmd_config_submenu(console=None, input_fn=None) -> Optional[str]:
 
 
 def _prompt_examples_skill_id(
-    console, input_fn=None
+    console: Console, input_fn: Optional[Callable[[str], str]] = None
 ) -> Tuple[Optional[str], Optional[str]]:
     """
     Return (skill_id or None for all, nav).
@@ -2277,7 +2290,9 @@ def _prompt_examples_skill_id(
     return choice, None
 
 
-def _prompt_find_query(console, input_fn=None) -> Tuple[Optional[str], Optional[str]]:
+def _prompt_find_query(
+    console: Console, input_fn: Optional[Callable[[str], str]] = None
+) -> Tuple[Optional[str], Optional[str]]:
     """Return (query_string, nav)."""
     console.print(
         "  Search query or keywords (e.g. 'honeypot check', 'send email'):",
@@ -2294,13 +2309,13 @@ def _prompt_find_query(console, input_fn=None) -> Tuple[Optional[str], Optional[
     return choice, None
 
 
-def _print_menu(console, menu) -> None:
+def _print_menu(console: Console, menu: List[Tuple[str, str, str]]) -> None:
     for num, name, desc in menu:
         console.print(f"    [{num}] {name:<20}— {desc}", style=MENU_STYLE)
     _print_nav_footer(console, show_back=False)
 
 
-def cmd_help(console=None, *, brief: bool = True) -> None:
+def cmd_help(console: Optional[Console] = None, *, brief: bool = True) -> None:
     """Print CLI help. Brief mode (default) shows topics + examples only."""
     _apply_active_theme()
     if console is None:
@@ -2377,7 +2392,9 @@ def _package_version_str() -> str:
     return get_package_version_display()
 
 
-def cmd_interactive(console=None, parser=None) -> None:
+def cmd_interactive(
+    console: Optional[Console] = None, parser: Optional[argparse.ArgumentParser] = None
+) -> None:
     """Launch ASCII splash screen and interactive menu."""
     _apply_active_theme()
     if console is None:
