@@ -12,11 +12,13 @@ This hub is the documentation landing page for Skillware **monitoring** agent sk
 | :--- | :--- | :--- | :--- | :--- |
 | **[Token Limiter](token_limiter.md)** | `monitoring/token_limiter` | `1.0.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
 | **[KPI Gate](kpi_gate.md)** | `monitoring/kpi_gate` | `0.1.0` (29 Aug 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic business-KPI gate evaluating a metrics snapshot against a policy charter with fail-closed findings (issue #317). |
+| **[RPC Health Probe](rpc_health_probe.md)** | `monitoring/rpc_health_probe` | `0.1.0` (8 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Probe EVM JSON-RPC latency, chain ID, and optional sync lag before agent trades (issue #459). |
 
 ## Typical host pipelines
 
 - Token budget for long-running host loops: `monitoring/token_limiter` (`CONTINUE` / `WARN` / `FORCE_TERMINATE`).
 - Fail-closed business KPIs before the loop continues: `monitoring/kpi_gate`.
+- Pre-trade RPC gate: `monitoring/rpc_health_probe` → `defi/evm_tx_handler` (host orchestration).
 
 ## Load by registry ID
 

@@ -113,6 +113,7 @@ Observability and guardrails for long-running autonomous agent loops.
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **[Token Limiter](monitoring/token_limiter.md)** | `monitoring/token_limiter` | `middleware` | `1.0.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic token budget gate that returns CONTINUE, WARN, or FORCE_TERMINATE for host loops. |
 | **[KPI Gate](monitoring/kpi_gate.md)** | `monitoring/kpi_gate` | `middleware` | `0.1.0` (29 Aug 2026) | [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) | Deterministic business-KPI gate evaluating a metrics snapshot against a policy charter with fail-closed findings (issue #317). |
+| **[RPC Health Probe](monitoring/rpc_health_probe.md)** | `monitoring/rpc_health_probe` | `atomic` | `0.1.0` (8 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Probe EVM JSON-RPC latency, chain ID, and optional sync lag before agent trades. |
 
 ## Wellness
 Supportive coaching guardrails, crisis triage, and grounded psychoeducation for host agents.

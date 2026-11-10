@@ -1,0 +1,20 @@
+{
+  "name": "RPC Health Probe",
+  "description": "Checks EVM RPC latency, chain ID, and optional sync lag before trades.",
+  "issuer": {
+    "name": "Hendobox",
+    "email": "henryonyebuchi53@gmail.com",
+    "github": "Hendobox",
+    "org": "ARPAHLS"
+  },
+  "icon": "activity",
+  "color": "green",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "all_healthy", "label": "All Healthy", "type": "status_badge"},
+      {"key": "status", "label": "Status", "type": "status_badge"},
+      {"key": "results", "label": "Results", "type": "count"}
+    ]
+  }
+}

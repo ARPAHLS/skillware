@@ -1,0 +1,22 @@
+{
+  "samples": [
+    {
+      "status": "ok",
+      "all_healthy": true,
+      "results": [
+        {
+          "chain": "base",
+          "healthy": true,
+          "status": "healthy",
+          "latency_ms": 120,
+          "block": 12345678,
+          "chain_id": 8453,
+          "expected_chain_id": 8453,
+          "block_lag": null,
+          "lag_status": "unchecked",
+          "reasons": []
+        }
+      ]
+    }
+  ]
+}
