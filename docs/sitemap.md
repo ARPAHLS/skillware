@@ -107,6 +107,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
 - [Monitoring hub](skills/monitoring/README.md)
 - [`monitoring/kpi_gate`](skills/monitoring/kpi_gate.md)
+- [`monitoring/rpc_health_probe`](skills/monitoring/rpc_health_probe.md)
 - [`monitoring/token_limiter`](skills/monitoring/token_limiter.md)
 
 ### Networking

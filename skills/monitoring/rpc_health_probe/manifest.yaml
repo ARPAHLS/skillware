@@ -1,0 +1,92 @@
+name: monitoring/rpc_health_probe
+version: 0.1.0
+tier: core
+shape: atomic
+target:
+  - software
+tags:
+  - web3
+  - rpc
+  - latency
+  - health
+  - evm
+description: |
+  Probe operator-configured EVM JSON-RPC endpoints before agent trades:
+  eth_chainId, eth_blockNumber, round-trip latency, and optional reference
+  lag. Returns healthy / degraded / unhealthy with reasons. No transactions.
+short_description: "Probe EVM RPC latency, chain ID, and sync lag before trades."
+category: monitoring
+issuer:
+  name: Hendobox
+  email: henryonyebuchi53@gmail.com
+  github: Hendobox
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Action to run. Only probe is supported in v0.1."
+      enum:
+        - probe
+    endpoints:
+      type: array
+      description: >
+        Endpoints to probe. Each item needs chain (EVM config slug). Optional
+        url / url_env for the target RPC; optional reference_url /
+        reference_url_env (or REFERENCE_RPC_URL_<CHAIN>) for lag checks.
+      items:
+        type: object
+        properties:
+          chain:
+            type: string
+          url:
+            type: string
+          url_env:
+            type: string
+          reference_url:
+            type: string
+          reference_url_env:
+            type: string
+        required:
+          - chain
+      minItems: 1
+    max_latency_ms:
+      type: integer
+      description: "Latency above this (ms) marks the endpoint degraded. Default 2000."
+    max_block_lag:
+      type: integer
+      description: >
+        Absolute block height difference vs reference above this marks
+        degraded. Only applied when a usable same-chain reference is present.
+        Default 3.
+    timeout_s:
+      type: number
+      description: "Per-request HTTP timeout in seconds. Default 5. Capped at 30."
+  required:
+    - endpoints
+outputs:
+  status:
+    type: string
+    description: "ok when the probe ran; error for invalid input."
+  results:
+    type: array
+    description: "Per-endpoint probe rows (healthy, latency_ms, chain_id, reasons, lag)."
+  all_healthy:
+    type: boolean
+    description: "True only when every endpoint status is healthy."
+requirements:
+  - requests
+env_vars: {}
+constitution: |
+  1. READ-ONLY: Never send eth_sendRawTransaction or any signing call.
+  2. FAIL CLOSED: Wrong chain_id, JSON-RPC errors, and unreachable endpoints
+     are never all_healthy.
+  3. CHAIN IDENTITY: Compare eth_chainId to resolve_chain().chain_id; endpoint
+     height agreement alone is not identity.
+  4. LAG HONESTY: Without a same-chain reference, lag is unchecked (null), not zero.
+  5. SECRETS: Never echo full RPC URLs that may embed API keys; redact to host.
+  6. NOT LEGAL ADVICE: Health signals are operational, not compliance clearance.
+presentation:
+  icon: "activity"
+  color: "#27AE60"

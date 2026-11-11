@@ -76,7 +76,7 @@ Union of non-core `requirements` from every skill in the category.
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
 | `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
-| `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate` | *(none today)* |
+| `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate`, `monitoring/rpc_health_probe` | *(none today)* |
 | `networking` | `networking/geo_ip_rotator` | *(none today)* |
 | `office` | `office/gmail_handler`, `office/pdf_form_filler`, `office/web_form_mapper` | `pymupdf` |
 | `optimization` | `optimization/context_optimizer`, `optimization/prompt_rewriter` | `fastembed`, `numpy` |
@@ -116,6 +116,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `linguistics_korean_slang` | `linguistics/korean_slang` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_token_limiter` | `monitoring/token_limiter` | *(none today)* | Use this extra in docs and installs |
 | `monitoring_kpi_gate` | `monitoring/kpi_gate` | *(none today)* | Use this extra in docs and installs |
+| `monitoring_rpc_health_probe` | `monitoring/rpc_health_probe` | *(none today)* | Use this extra in docs and installs |
 | `networking_geo_ip_rotator` | `networking/geo_ip_rotator` | *(none today)* | Use this extra in docs and installs |
 | `office_gmail_handler` | `office/gmail_handler` | *(none today)* | Use this extra in docs and installs |
 | `office_pdf_form_filler` | `office/pdf_form_filler` | `pymupdf` | |
