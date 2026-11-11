@@ -19,12 +19,12 @@
 <div align="center">
   <a href="#mission">Mission</a> •
   <a href="#how-it-works">How it works</a> •
+  <a href="#comparison">Comparison</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#supported-agent-skill-categories">Skill categories</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#contributing">Contributing</a> •
-  <a href="#comparison">Comparison</a> •
   <a href="#stats">Stats</a> •
   <a href="#citing">Citing</a> •
   <a href="CHANGELOG.md">Changelog</a> •
@@ -64,6 +64,28 @@ flowchart LR
 ```
 
 Install the registry once. Skillware loads a bundle, adapts it to your host's tool format, and your app runs the agent loop (Gemini, Claude, Ollama, custom scripts, …). See the [Introduction](docs/introduction.md) for loader details, [Agent loops](docs/usage/agent_loops.md) for the execution pattern, and [Skill chaining](docs/usage/skill_chaining.md) for multi-skill sessions (`SkillContext`, named `chains:`).
+
+## Comparison
+
+Most agent frameworks treat capabilities as prompt recipes, markdown checklists, or loose protocol wrappers that ask models to generate code on the fly. Skillware treats capabilities as versioned software modules: self-contained bundles pairing typed contracts, tested Python logic, agent directives, and offline assurance suites. Pre-compiled host execution decouples capability from model hallucination and eliminates the trial-and-error debugging loops inherent in unstructured tool calling.
+
+Every skill in the registry is curated, tested, and steered by ARPA Hellenic Logical Systems rather than aggregated from thousands of unvetted, arbitrary third-party uploads. At runtime, dumping full tool documentation degrades model reasoning and inflates token costs. Through just-in-time progressive disclosure, `SkillContext` mounts compact one-line taxonomy briefs upfront (~45 tokens per skill) and unlocks full playbooks only when an action is dispatched, excising up to 85% of redundant prompt tokens.
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig11_latency_anatomy.png" alt="Latency anatomy across execution stages" width="100%" />
+</div>
+
+> **Latency anatomy across execution stages:** JIT context excision shrinks prefill latency, compact model routing accelerates decoding, and deterministic host validation eliminates error-retry loops, cutting end-to-end median latency by 55.6% and collapsing time-to-first-token (TTFT).
+
+Mission-critical enterprise workflows—such as financial transaction screening, regulatory compliance forensics, and sensor telemetry normalization—cannot afford prompt ambiguity, hallucinated edge cases, or non-deterministic event triggers. Security is embedded directly into the framework: isolated credential providers prevent ambient process leakage, AST audits prohibit runtime code synthesis, and hardware execution gates protect physical substrates. Executing pre-verified code paths replaces erratic model behavior with tight, deterministic score distributions essential for CI/CD release gating.
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig14_run_to_run_determinism.png" alt="Run-to-run determinism and variance contraction" width="100%" />
+</div>
+
+> **Run-to-run determinism across 40 seeded replays:** Unassisted script generation scatters across an erratic score distribution (mean 61.0, σ = 4.1). Skillware contracts run-to-run variance by 5.1× (mean 88.2, σ = 0.8), establishing the reproducibility needed for regulated enterprise production.
+
+To see how Skillware architecturally compares against MCP, Agent Skills, Antigravity, and LangChain, read [COMPARISON.md](COMPARISON.md). For empirical telemetry, stress crucibles, and 23-model benchmark evaluations, visit the [Skillware-Bench repository](https://github.com/ARPAHLS/skillware-bench).
 
 ## Architecture
 
@@ -108,11 +130,11 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 | [Data Engineering](docs/skills/data_engineering/README.md) | 5 | Datasets, generation, and ETL-style tooling |
 | [Compliance](docs/skills/compliance/README.md) | 3 | Privacy, policy, and regulatory guardrails |
 | [DeFi](docs/skills/defi/README.md) | 3 | On-chain ops, trading, and agent wallet management |
+| [Monitoring](docs/skills/monitoring/README.md) | 3 | Agent loop observability, budget gates, RPC health, and task control |
 | [Office](docs/skills/office/README.md) | 3 | Documents, desktop work, and productivity automation |
 | [Security](docs/skills/security/README.md) | 3 | Defenses for untrusted input reaching logical systems |
 | [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
 | [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
-| [Monitoring](docs/skills/monitoring/README.md) | 3 | Agent loop observability, budget gates, RPC health, and task control |
 | [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
 | [Bio](docs/skills/bio/README.md) | 1 | Life sciences, bioinformatics, genomics, and biotechnology |
 | [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |
@@ -225,28 +247,6 @@ More providers and patterns: [usage guides](docs/usage/README.md).
 ## Contributing
 
 Skills, docs, tests, and framework fixes are welcome. Start with [Contributing](CONTRIBUTING.md), the [glossary](docs/glossary.md), [Agent Native Workflow](docs/contributing/ai_native_workflow.md), and [Testing](docs/TESTING.md). See the [Agent Code of Conduct](CODE_OF_CONDUCT.md). Open PRs with the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
-
-## Comparison
-
-Most agent frameworks treat capabilities as prompt recipes, markdown checklists, or loose protocol wrappers that ask models to generate code on the fly. Skillware treats capabilities as versioned software modules: self-contained bundles pairing typed contracts, tested Python logic, agent directives, and offline assurance suites. Pre-compiled host execution decouples capability from model hallucination and eliminates the trial-and-error debugging loops inherent in unstructured tool calling.
-
-Every skill in the registry is curated, tested, and steered by ARPA Hellenic Logical Systems rather than aggregated from thousands of unvetted, arbitrary third-party uploads. At runtime, dumping full tool documentation degrades model reasoning and inflates token costs. Through just-in-time progressive disclosure, `SkillContext` mounts compact one-line taxonomy briefs upfront (~45 tokens per skill) and unlocks full playbooks only when an action is dispatched, excising up to 85% of redundant prompt tokens.
-
-<div align="center">
-  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig11_latency_anatomy.png" alt="Latency anatomy across execution stages" width="100%" />
-</div>
-
-> **Latency anatomy across execution stages:** JIT context excision shrinks prefill latency, compact model routing accelerates decoding, and deterministic host validation eliminates error-retry loops, cutting end-to-end median latency by 55.6% and collapsing time-to-first-token (TTFT).
-
-Mission-critical enterprise workflows—such as financial transaction screening, regulatory compliance forensics, and sensor telemetry normalization—cannot afford prompt ambiguity, hallucinated edge cases, or non-deterministic event triggers. Security is embedded directly into the framework: isolated credential providers prevent ambient process leakage, AST audits prohibit runtime code synthesis, and hardware execution gates protect physical substrates. Executing pre-verified code paths replaces erratic model behavior with tight, deterministic score distributions essential for CI/CD release gating.
-
-<div align="center">
-  <img src="https://raw.githubusercontent.com/ARPAHLS/skillware-bench/main/docs/figures/fig14_run_to_run_determinism.png" alt="Run-to-run determinism and variance contraction" width="100%" />
-</div>
-
-> **Run-to-run determinism across 40 seeded replays:** Unassisted script generation scatters across an erratic score distribution (mean 61.0, σ = 4.1). Skillware contracts run-to-run variance by 5.1× (mean 88.2, σ = 0.8), establishing the reproducibility needed for regulated enterprise production.
-
-To see how Skillware architecturally compares against MCP, Agent Skills, Antigravity, and LangChain, read [COMPARISON.md](COMPARISON.md). For empirical telemetry, stress crucibles, and 23-model benchmark evaluations, visit the [Skillware-Bench repository](https://github.com/ARPAHLS/skillware-bench).
 
 ## Stats
 
