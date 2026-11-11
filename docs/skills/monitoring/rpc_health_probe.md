@@ -245,5 +245,5 @@ Commits that touched this skill bundle or its catalog page ([`monitoring/rpc_hea
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(monitoring): add rpc_health_probe v0.1 (#459) | 8 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`a705ab0`](https://github.com/ARPAHLS/skillware/commit/a705ab0796c278ffed4694c7e5287f45312df0bc) | feat(monitoring): add rpc_health_probe v0.1 (#459) (#472) | 11 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->
