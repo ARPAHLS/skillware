@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from rich.console import Console
 from rich.table import Table
@@ -565,7 +565,7 @@ def cmd_evm_dispatch(
     area: Optional[str],
     action: Optional[str],
     console: Optional[Console] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> int:
     console = console or Console()
     action = (action or "show").strip().lower()

@@ -18,6 +18,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 ### Changed
 
 - **Typing:** `skillware/cli.py` is now type-clean and the `[[tool.mypy.overrides]]` block is removed from `pyproject.toml`, so `mypy skillware` checks every module in CI (#415, Phase 4).
+- **Typing:** Enabled `check_untyped_defs` and `disallow_incomplete_defs` under `[tool.mypy]` and completed the missing parameter and return annotations in the CLI modules and `evm_config.get_web3`, so `mypy skillware` runs in strict-incomplete mode with zero overrides (#415, Phase 5).
 
 ### Fixed
 

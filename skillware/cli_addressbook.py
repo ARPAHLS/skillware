@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 from rich import box
 from rich.console import Console
@@ -409,7 +409,7 @@ def cmd_addressbook_dispatch(
     *,
     console: Optional[Console] = None,
     input_fn: ReadLineFn = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> int:
     _apply_active_theme()
     console = console or Console()

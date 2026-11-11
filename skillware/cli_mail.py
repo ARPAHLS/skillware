@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from rich.console import Console
 from rich.text import Text
@@ -728,7 +728,7 @@ def cmd_mail(
     area: Optional[str] = None,
     action: Optional[str] = None,
     console: Optional[Console] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> int:
     """Dispatch skillware mail [area] [action]."""
     _apply_active_theme()
