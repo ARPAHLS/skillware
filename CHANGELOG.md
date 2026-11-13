@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/ephemeral_wallet` v0.1.0):** Spend-capped x402 agent payment sessions (`create_session` / `status` / `pay` / `revoke`) with mocked settlement, soft cap/TTL policy honesty, optional JSONL session durability, and fail-closed `missing_config` / `over_cap` / `expired` / `revoked` ([#41](https://github.com/ARPAHLS/skillware/issues/41); design [#272](https://github.com/ARPAHLS/skillware/issues/272)).
+
 ### Changed
 
 ### Fixed

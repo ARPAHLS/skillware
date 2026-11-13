@@ -134,7 +134,7 @@ Category hubs live under `docs/skills/<category>/`. Full catalog: [Skill library
 | [Office](docs/skills/office/README.md) | 3 | Documents, desktop work, and productivity automation |
 | [Security](docs/skills/security/README.md) | 3 | Defenses for untrusted input reaching logical systems |
 | [Creative](docs/skills/creative/README.md) | 2 | Image processing, media editing, and creative utilities |
-| [Finance](docs/skills/finance/README.md) | 2 | Fintech, blockchain, payments, and financial services |
+| [Finance](docs/skills/finance/README.md) | 3 | Fintech, blockchain, payments, and financial services |
 | [Optimization](docs/skills/optimization/README.md) | 2 | Middleware, efficiency, and token economics |
 | [Bio](docs/skills/bio/README.md) | 1 | Life sciences, bioinformatics, genomics, and biotechnology |
 | [Dev Tools](docs/skills/dev_tools/README.md) | 1 | Developer workflows, repo tooling, and coding |

@@ -10,11 +10,13 @@ This hub is the documentation landing page for Skillware **finance** agent skill
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
+| **[Ephemeral Wallet](ephemeral_wallet.md)** | `finance/ephemeral_wallet` | `0.1.0` (11 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Spend-capped x402 agent payment sessions (`create_session` / `status` / `pay` / `revoke`). Mock settlement in v0.1; live CDP+x402 is PR2. |
 | **[Wallet Screening](wallet_screening.md)** | `finance/wallet_screening` | `2.1.0` (1 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). Schema v2 verdicts, hop-1 exposure, offline-direct and optional live providers. |
 | **[UK Companies House Handler](uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `1.4.0` (15 Oct 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, filing history with helpers, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 
 ## Typical host pipelines
 
+- Spend-capped agent HTTP pay session: `finance/ephemeral_wallet` (`create_session` → `pay` / `revoke`).
 - Screen an Ethereum address against OFAC / FBI / mixer lists before a host agent acts: `finance/wallet_screening`.
 - UK entity diligence: `finance/uk_companies_house_handler` `run_pipeline` (resolve → officers → filings).
 
