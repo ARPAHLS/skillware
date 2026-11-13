@@ -74,7 +74,7 @@ Union of non-core `requirements` from every skill in the category.
 | `data_engineering` | `data_engineering/novelty_extractor`, `data_engineering/semantic_web_proxy`, `data_engineering/synthetic_generator`, `data_engineering/telemetry_normalizer`, `data_engineering/unit_normalizer` | `fastembed`, `numpy`, `trafilatura>=2.0.0` |
 | `defi` | `defi/evm_reader`, `defi/evm_tx_handler`, `defi/token_security_scanner` | `web3>=6.0.0` |
 | `dev_tools` | `dev_tools/issue_resolver` | *(none today)* |
-| `finance` | `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
+| `finance` | `finance/ephemeral_wallet`, `finance/uk_companies_house_handler`, `finance/wallet_screening` | *(none today)* |
 | `linguistics` | `linguistics/korean_slang` | *(none today)* |
 | `monitoring` | `monitoring/token_limiter`, `monitoring/kpi_gate`, `monitoring/rpc_health_probe` | *(none today)* |
 | `networking` | `networking/geo_ip_rotator` | *(none today)* |
@@ -111,6 +111,7 @@ One extra per bundled registry skill. Naming: `{category}_{skill_name}` (registr
 | `defi_evm_tx_handler` | `defi/evm_tx_handler` | `web3>=6.0.0` | |
 | `defi_token_security_scanner` | `defi/token_security_scanner` | *(none today)* | Use this extra in docs and installs |
 | `dev_tools_issue_resolver` | `dev_tools/issue_resolver` | *(none today)* | Use this extra in docs and installs |
+| `finance_ephemeral_wallet` | `finance/ephemeral_wallet` | *(none today)* | Use this extra in docs and installs |
 | `finance_uk_companies_house_handler` | `finance/uk_companies_house_handler` | *(none today)* | Use this extra in docs and installs |
 | `finance_wallet_screening` | `finance/wallet_screening` | *(none today)* | Use this extra in docs and installs |
 | `linguistics_korean_slang` | `linguistics/korean_slang` | *(none today)* | Use this extra in docs and installs |

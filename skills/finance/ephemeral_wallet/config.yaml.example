@@ -1,0 +1,8 @@
+# Non-secret defaults for finance/ephemeral_wallet.
+# Copy to config.yaml beside this file if you want local overrides.
+# Secrets stay in .env only (CDP_*). Never put keys here.
+
+default_spend_cap_usd: 5.0
+default_ttl_seconds: 7200
+network: base-sepolia
+# session_dir: /tmp/ephemeral_wallet_sessions

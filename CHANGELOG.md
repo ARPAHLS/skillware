@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/ephemeral_wallet` v0.1.0):** Spend-capped x402 agent payment sessions (`create_session` / `status` / `pay` / `revoke`) with mocked settlement, soft cap/TTL policy honesty, optional JSONL session durability, and fail-closed `missing_config` / `over_cap` / `expired` / `revoked` ([#41](https://github.com/ARPAHLS/skillware/issues/41) PR1; design [#272](https://github.com/ARPAHLS/skillware/issues/272)).
 - **Skill (`monitoring/rpc_health_probe` v0.1.0):** Read-only EVM JSON-RPC health probe (`eth_chainId`, `eth_blockNumber`, latency, optional same-chain reference lag) with fail-closed `all_healthy` and chain-identity checks against `resolve_chain` ([#459](https://github.com/ARPAHLS/skillware/issues/459)).
 - **Skill (`finance/wallet_screening` v2.1.0):** `provenance.report_hash` — SHA-256 over the canonical report body (sorted keys, `provenance` excluded) plus `generator` for audit pipelines ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 4).
 

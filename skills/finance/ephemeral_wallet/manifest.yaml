@@ -1,0 +1,115 @@
+name: finance/ephemeral_wallet
+version: 0.1.0
+tier: core
+shape: workflow
+target:
+  - software
+tags:
+  - payments
+  - x402
+  - agent-wallet
+  - web3
+  - finance
+description: |
+  Spend-capped, short-lived agent payment sessions for x402 HTTP micropayments
+  using a dedicated CDP-style wallet. v0.1 ships create_session / status / pay /
+  revoke with mocked settlement (no live chain in CI). Not virtual-card PANs.
+short_description: "Spend-capped x402 agent payment sessions (mocked settle in v0.1)."
+category: finance
+issuer:
+  name: Hendobox
+  email: henryonyebuchi53@gmail.com
+  github: Hendobox
+  org: ARPAHLS
+parameters:
+  type: object
+  properties:
+    action:
+      type: string
+      description: "Session action to run."
+      enum:
+        - create_session
+        - status
+        - pay
+        - revoke
+    spend_cap_usd:
+      type: number
+      description: "Soft session spend cap in USD (create_session). Default from config / 5.0."
+    ttl_seconds:
+      type: integer
+      description: "Soft session TTL in seconds (create_session). Default 7200."
+    network:
+      type: string
+      description: "Settlement network label (create_session). Default base-sepolia."
+    session_id:
+      type: string
+      description: "Host-held session id from create_session (status / pay / revoke)."
+    url:
+      type: string
+      description: "Resource URL for x402 pay (mocked settle in v0.1)."
+    amount_usd:
+      type: number
+      description: "USD amount to debit from the soft session counter (pay)."
+    live:
+      type: boolean
+      description: >
+        Request live CDP+x402 settle. v0.1 returns missing_config without CDP
+        env, or error (live not wired). Default mock.
+  required:
+    - action
+outputs:
+  status:
+    type: string
+    description: >
+      ready | confirmed | revoked | expired | missing_config | over_cap |
+      error (and related fail-closed codes).
+  session_id:
+    type: string
+    description: "Opaque session id for later turns."
+  remaining_usd:
+    type: number
+    description: "Soft remaining spend counter (display, not a hard bound in v0.1)."
+  payment:
+    type: object
+    description: "Receipt refs from pay (url, amount_usd, tx_ref, receipt_ref)."
+constitution: |
+  1. DEDICATED AGENT WALLET ONLY: Never use personal, treasury, or exchange keys.
+  2. NO SECRETS IN OUTPUT: Never return private keys, seeds, CDP secrets, or
+     full PANs/CVVs. Redact; teach agents not to echo secrets.
+  3. FAIL CLOSED: Missing live config, unknown/expired/revoked session, or
+     over-cap must abort pay — do not guess.
+  4. SOFT POLICY IN V0.1: spend_cap_usd, TTL, and revoke are in-process UX
+     policy. Funded-to-cap (or facilitator policy) is the real bound for live
+     settle — do not claim a cryptographic hard limit yet.
+  5. NOT FINANCIAL ADVICE: Settlements are technical operations; on-chain
+     results may differ from quotes.
+  6. BOUNDARY: This skill only does spend-capped x402-shaped session pay.
+     General swaps/transfers belong in defi/evm_tx_handler.
+env_vars:
+  CDP_API_KEY_ID:
+    description: "CDP API key id for live pay (later slice). Not required for mock v0.1."
+    required: false
+  CDP_API_KEY_SECRET:
+    description: "CDP API key secret for live pay (later slice). Never pass in tool args."
+    required: false
+  CDP_WALLET_SECRET:
+    description: "Dedicated agent wallet secret for live pay (later slice)."
+    required: false
+  EPHEMERAL_WALLET_NETWORK:
+    description: "Default network label (e.g. base-sepolia). Optional."
+    required: false
+  EPHEMERAL_WALLET_FACILITATOR_URL:
+    description: "Optional x402 facilitator URL (used when live settle lands)."
+    required: false
+  EPHEMERAL_WALLET_SESSION_DIR:
+    description: >
+      Optional directory for append-only sessions.jsonl / payments.jsonl.
+      If set, must be writable (fail closed — no silent memory-only fallback).
+    required: false
+  EPHEMERAL_WALLET_MOCK:
+    description: "Set to 0 to request live mode (v0.1 still refuses live settle)."
+    required: false
+requirements: []
+presentation:
+  icon: "credit-card"
+  color: "#2D9CDB"
