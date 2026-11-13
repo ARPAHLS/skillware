@@ -1,0 +1,20 @@
+{
+  "name": "Ephemeral Wallet",
+  "description": "Spend-capped x402 agent payment sessions (mocked settle in v0.1).",
+  "issuer": {
+    "name": "Hendobox",
+    "email": "henryonyebuchi53@gmail.com",
+    "github": "Hendobox",
+    "org": "ARPAHLS"
+  },
+  "icon": "credit-card",
+  "color": "blue",
+  "ui_schema": {
+    "type": "card",
+    "fields": [
+      {"key": "status", "label": "Status", "type": "status_badge"},
+      {"key": "session_id", "label": "Session", "type": "text"},
+      {"key": "remaining_usd", "label": "Remaining USD", "type": "number"}
+    ]
+  }
+}
