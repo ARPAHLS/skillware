@@ -1,5 +1,8 @@
 name: wellness/mental_coach
 version: 0.1.1
+deprecated: true
+deprecation_notice: >
+  This skill is deprecated as of Skillware v0.6.2 and scheduled for removal in v0.7.0.
 tier: core
 shape: atomic
 target:

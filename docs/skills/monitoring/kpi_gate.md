@@ -1,5 +1,7 @@
 # KPI Gate
 
+> **Deprecated (v0.6.2):** This skill is deprecated and scheduled for removal in **v0.7.0**. See [#467](https://github.com/ARPAHLS/skillware/issues/467).
+
 **Domain:** `monitoring`
 **Skill ID:** `monitoring/kpi_gate`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol))

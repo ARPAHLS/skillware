@@ -34,6 +34,10 @@ class SkillwareIdentityWarning(UserWarning):
     """Emitted when manifest.name does not match the registry folder path (warn-only in v1)."""
 
 
+class SkillwareDeprecationWarning(FutureWarning):
+    """Emitted when loading a skill marked deprecated in manifest.yaml."""
+
+
 class SkillLoader:
     """
     Utility to load skills dynamically or by path, bundling their
@@ -233,6 +237,17 @@ class SkillLoader:
 
         manifest = normalize_manifest_v2(manifest)
         registry_id = SkillLoader._validate_manifest_identity(resolved_path, manifest)
+
+        if manifest.get("deprecated"):
+            notice = manifest.get("deprecation_notice") or (
+                "This skill is deprecated and scheduled for removal in a future release."
+            )
+            skill_label = manifest.get("name") or registry_id or skill_path
+            warnings.warn(
+                f"Skill '{skill_label}' is deprecated: {notice}",
+                SkillwareDeprecationWarning,
+                stacklevel=2,
+            )
 
         # Check Dependencies
         if check_requirements and "requirements" in manifest:

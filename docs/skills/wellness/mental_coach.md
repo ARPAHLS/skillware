@@ -1,5 +1,7 @@
 # Mental Coach
 
+> **Deprecated (v0.6.2):** This skill is deprecated and scheduled for removal in **v0.7.0** (along with the `wellness` category). See [#467](https://github.com/ARPAHLS/skillware/issues/467).
+
 **Domain:** `wellness`
 **Skill ID:** `wellness/mental_coach`
 **Issuer:** [@mrmasa88](https://github.com/mrmasa88) ([AO](https://github.com/0x-AO-Protocol)) · **Contact:** masa88keith@gmail.com

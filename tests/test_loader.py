@@ -708,3 +708,29 @@ def test_load_skill_legacy_manifest_fallbacks(tmp_path):
     assert inst.tier == "core"
     assert inst.target == ["software"]
     assert inst.tags == []
+
+
+def test_load_skill_emits_deprecation_warning(tmp_path, monkeypatch):
+    """Loading a skill with deprecated: true emits SkillwareDeprecationWarning."""
+    from skillware.core.loader import SkillwareDeprecationWarning
+
+    skill_dir = tmp_path / "skills" / "demo" / "legacy"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        "name: demo/legacy\nversion: 0.1.0\ndeprecated: true\n"
+        "deprecation_notice: Scheduled for removal in v0.7.0.\n"
+        "description: test\nparameters:\n  type: object\n  properties: {}\n",
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class LegacySkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {'status': 'ok'}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.warns(SkillwareDeprecationWarning, match="Scheduled for removal in v0.7.0"):
+        bundle = SkillLoader.load_skill("demo/legacy")
+    assert bundle["manifest"]["deprecated"] is True
