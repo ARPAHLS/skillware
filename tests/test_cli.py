@@ -1891,3 +1891,44 @@ def test_cmd_doctor_schema_validation(tmp_path, monkeypatch):
     out = buf.getvalue()
     assert "SCHEMA" in out
     assert "Manifest v2 specification" in out
+
+
+def test_cmd_list_hides_deprecated_by_default(tmp_path):
+    """Deprecated skills are hidden from default cmd_list and shown with include_deprecated=True."""
+    from io import StringIO
+    from rich.console import Console
+    from skillware.cli import cmd_list
+
+    for name, deprecated in [("active_skill", False), ("old_skill", True)]:
+        sdir = tmp_path / "demo" / name
+        sdir.mkdir(parents=True)
+        dep_line = "deprecated: true\n" if deprecated else ""
+        (sdir / "manifest.yaml").write_text(
+            f"name: demo/{name}\nversion: 0.1.0\n{dep_line}"
+            "description: test skill\nparameters:\n  type: object\n  properties: {}\n",
+            encoding="utf-8",
+        )
+        (sdir / "skill.py").write_text(
+            "from skillware.core.base_skill import BaseSkill\n"
+            "class S(BaseSkill):\n"
+            "    def execute(self, **kwargs): return {}\n",
+            encoding="utf-8",
+        )
+
+    buf_default = StringIO()
+    cmd_list(
+        skills_root_override=tmp_path, console=Console(file=buf_default, width=200)
+    )
+    out_default = buf_default.getvalue()
+    assert "active_skill" in out_default
+    assert "old_skill" not in out_default
+
+    buf_all = StringIO()
+    cmd_list(
+        skills_root_override=tmp_path,
+        include_deprecated=True,
+        console=Console(file=buf_all, width=200),
+    )
+    out_all = buf_all.getvalue()
+    assert "active_skill" in out_all
+    assert "old_skill" in out_all

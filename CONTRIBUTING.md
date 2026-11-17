@@ -488,6 +488,22 @@ When a new top-level category lands under `skills/`, update this table and the c
 
 ---
 
+## Deprecation lifecycle & capability sunsetting
+
+Retiring a bundled skill, category, or core API contract follows a structured two-phase window so downstream hosts are never broken silently:
+
+1. **RFC requirement:** Open an RFC using `.github/ISSUE_TEMPLATE/05_rfc.yml` explaining why the capability is being retired, what replaces it, and the target versions for Phase 1 and Phase 2.
+2. **Phase 1 — Warning & visibility reduction (minimum one minor release, e.g. `v0.6.x`):**
+   - Keep the bundle operational so existing callers do not break mid-minor.
+   - Set `deprecated: true` and `deprecation_notice` in the skill's `manifest.yaml`.
+   - `SkillLoader.load_skill()` emits `SkillwareDeprecationWarning` (subclass of `FutureWarning`).
+   - `skillware list` hides deprecated skills by default (pass `--include-deprecated` / `--all` to view them).
+   - Add a deprecation banner to `docs/skills/<category>/<skill>.md` pointing to the RFC and any replacement.
+3. **Phase 2 — Complete removal (next scheduled minor release, e.g. `v0.7.0`):**
+   - Delete `skills/<category>/<skill>/` and `docs/skills/<category>/<skill>.md`.
+   - Remove the skill's extra from `pyproject.toml` (`sync_extras.py`), `docs/usage/install_extras.md`, `docs/usage/agent_loops.md`, `docs/sitemap.md`, `docs/skills/README.md`, and `tests/fixtures/card_ui_schema/`.
+   - **Category dissolution:** When the last skill in a category is removed, delete `skills/<category>/` and `docs/skills/<category>/`, and remove the category from `README.md`, `docs/skills/README.md`, `docs/sitemap.md`, and `.github/labels.json`.
+
 ## What to avoid
 
 - **God skills** — One skill that does everything; split into focused capabilities.

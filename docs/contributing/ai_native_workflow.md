@@ -347,6 +347,11 @@ Complete the checklist that matches your issue during Stage 5.
 
 ---
 
+### Executing deprecation chores (agent guidelines)
+
+- **Phase 1 (deprecation):** Add `deprecated: true` and `deprecation_notice` to `manifest.yaml`, add a deprecation banner to `docs/skills/<category>/<skill>.md`, ensure `SkillLoader.load_skill()` emits `SkillwareDeprecationWarning`, and verify `skillware list` hides deprecated skills by default while `--include-deprecated` shows them. Do **not** delete bundle files or break existing skill tests in Phase 1.
+- **Phase 2 (removal):** Delete the skill directory, catalog page, `card_ui_schema` fixture, `pyproject.toml` extra, and any `examples/` or `tests/` references, then run `pytest tests/test_registry_docs.py tests/test_skill_docs.py tests/test_extras_sync.py` to confirm zero stale references remain.
+
 ## Self-check protocol (use between stages)
 
 Run this internal dialogue before you hand off to your operator.

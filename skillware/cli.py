@@ -566,6 +566,7 @@ def _discover_skills(
                     "description": _short_description(data),
                     "requirements": ", ".join(data.get("requirements") or []).strip(),
                     "issuer": issuer.get("github") or issuer.get("name") or "",
+                    "deprecated": bool(data.get("deprecated", False)),
                 }
             )
 
@@ -668,6 +669,7 @@ def cmd_list(
     target_filter: Optional[str] = None,
     tag_filter: Optional[str] = None,
     show_examples: bool = False,
+    include_deprecated: bool = False,
     console: Optional[Console] = None,
 ) -> None:
     """Print a formatted table of all available skills."""
@@ -676,6 +678,9 @@ def cmd_list(
         console = Console()
 
     skills = _discover_skills(skills_root_override)
+
+    if not include_deprecated:
+        skills = [s for s in skills if not s.get("deprecated")]
 
     if category_filter:
         skills = [s for s in skills if s["category"] == category_filter]
@@ -2588,6 +2593,13 @@ def main() -> None:
         help="Filter skills by issuer GitHub handle or name.",
     )
     list_parser.add_argument(
+        "--include-deprecated",
+        "--all",
+        action="store_true",
+        dest="include_deprecated",
+        help="Include deprecated skills in the listing.",
+    )
+    list_parser.add_argument(
         "--shape",
         choices=["atomic", "workflow", "middleware", "stream"],
         default=None,
@@ -3187,6 +3199,7 @@ def main() -> None:
             target_filter=args.target,
             tag_filter=args.tag,
             show_examples=args.examples,
+            include_deprecated=args.include_deprecated,
         )
     elif args.command == "info":
         raise SystemExit(
