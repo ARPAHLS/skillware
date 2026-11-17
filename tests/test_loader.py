@@ -731,6 +731,8 @@ def test_load_skill_emits_deprecation_warning(tmp_path, monkeypatch):
     )
     monkeypatch.chdir(tmp_path)
 
-    with pytest.warns(SkillwareDeprecationWarning, match="Scheduled for removal in v0.7.0"):
+    with pytest.warns(
+        SkillwareDeprecationWarning, match="Scheduled for removal in v0.7.0"
+    ):
         bundle = SkillLoader.load_skill("demo/legacy")
     assert bundle["manifest"]["deprecated"] is True

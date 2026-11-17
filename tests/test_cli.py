@@ -1916,7 +1916,9 @@ def test_cmd_list_hides_deprecated_by_default(tmp_path):
         )
 
     buf_default = StringIO()
-    cmd_list(skills_root_override=tmp_path, console=Console(file=buf_default, width=200))
+    cmd_list(
+        skills_root_override=tmp_path, console=Console(file=buf_default, width=200)
+    )
     out_default = buf_default.getvalue()
     assert "active_skill" in out_default
     assert "old_skill" not in out_default
