@@ -64,7 +64,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 **Self-contained, deterministic skills for any LLM or agent**
 
-**In short:** A public registry of 29 skills across 14 categories, Manifest v2 Universal Taxonomy, a stable loader, multi-provider model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.6.x).
+**In short:** A public registry of 31 skills across 14 categories, Manifest v2 Universal Taxonomy, a stable loader, multi-provider model adapters, tests, and docs. Install a skill and call it from any major LLM runtime. **You are here** (v0.6.x).
 
 **Example:** Your agent runs `pip install "skillware[compliance_tos_evaluator]"`, loads a Terms-of-Service evaluator skill, then visits a site or ingests a document. It follows the skill's constitution and logic immediately: what to extract, what to flag, what never to scrape or store. No extra prompt engineering, no one-off tools, no separate subscription stack. The capability ships as one bundle.
 
@@ -104,7 +104,7 @@ Skillware follows one thread: modular capability you can install, trust, and ext
 
 Honest snapshot for **v0** (current v0.6.x line):
 
-- **Registry**: 29 skills across 14 categories (`bio`, `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `linguistics`, `monitoring`, `networking`, `office`, `optimization`, `security`, `wellness`) under `skills/` with category hubs and catalog pages in [docs/skills/](skills/README.md) (`docs/skills/<category>/`).
+- **Registry**: 31 skills across 14 categories (`bio`, `compliance`, `creative`, `data_engineering`, `defi`, `dev_tools`, `finance`, `linguistics`, `monitoring`, `networking`, `office`, `optimization`, `security`, `wellness`) under `skills/` with category hubs and catalog pages in [docs/skills/](skills/README.md) (`docs/skills/<category>/`).
 - **Taxonomy**: Manifest v2 Universal Taxonomy governing execution `shape` (`atomic`, `workflow`, `middleware`, `stream`), deployment `tier` (`core`, `cloud`, `enterprise`), substrate `target` (`software`, `hardware`, `bioware`), and domain `tags` with `SkillContext` safety filtering.
 - **Loader**: Dynamic import, auto-discovered `bundle["class"]`, dependency checks, and adapters for major LLM tool formats (Gemini, Claude, OpenAI, DeepSeek, Ollama).
 - **CLI**: `skillware list` (with `--shape`, `--tier`, `--target`, `--tag` taxonomy filters and `--examples`), `skillware find` (semantic task-intent and keyword discovery engine), `skillware info <skill_id>`, `skillware paths`, `skillware config` (consolidated interactive menu for paths, theme, EVM, mail, address book), `skillware doctor` (sub-200ms cold startup, schema checks, and separate env advisories), `skillware test`, `skillware chain`, `skillware addressbook`, `skillware evm`, and an interactive menu (paths editor, grouped help), included with `pip install skillware`. Without a config file, resolution stays legacy (external -> project -> bundled); with `.skillware.yaml`, default order is project -> external -> bundled — bundled registry skills are always on, even with no local `skills/` folder.

@@ -10,7 +10,15 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
-- **Skill (`office/pdf_form_filler` v0.2.0):** Added curated static AcroForm template & section-chunked YAML schema Knowledge Base (`kb/`) starting with IRS Form W-8BEN (`us_irs_w8ben`), `list_templates` and `get_template_schema(section=...)` actions, 3-tier operator template discovery (`PDF_TEMPLATES_DIR`, `.skillware.yaml`, user config), `sensitive: true` PII redaction in previews, auto-dated certification fields, `<template_id>_<timestamp>_<filler>.pdf` output naming, offline demo `examples/pdf_form_filler_w8ben_demo.py`, and multi-turn/batch stress tests ([#404](https://github.com/ARPAHLS/skillware/issues/404)).
+### Changed
+
+### Fixed
+
+## [0.6.2] - 2026-11-18
+
+### Added
+
+- **Skill (`office/pdf_form_filler` v0.2.0):** Added curated static AcroForm template & section-chunked YAML schema Knowledge Base (`kb/`) with 4 IRS tax/FATCA templates (**W-8BEN**, **W-9**, **W-8BEN-E**, **Form 8966 FATCA**), `list_templates` and `get_template_schema(section=...)` actions, 3-tier operator template discovery (`PDF_TEMPLATES_DIR` via `self.credential()`, `.skillware.yaml`, user config), `sensitive: true` PII redaction in previews, auto-dated certification fields, `<template_id>_<timestamp>_<filler>.pdf` output naming, offline demo `examples/pdf_form_filler_w8ben_demo.py`, and multi-turn/batch stress tests ([#404](https://github.com/ARPAHLS/skillware/issues/404), [#486](https://github.com/ARPAHLS/skillware/pull/486)).
 - **Skill (`monitoring/rpc_health_probe` v0.1.0):** Read-only EVM JSON-RPC health probe (`eth_chainId`, `eth_blockNumber`, latency, optional same-chain reference lag) with fail-closed `all_healthy` and chain-identity checks against `resolve_chain` ([#459](https://github.com/ARPAHLS/skillware/issues/459)).
 - **Skill (`finance/wallet_screening` v2.1.0):** `provenance.report_hash` — SHA-256 over the canonical report body (sorted keys, `provenance` excluded) plus `generator` for audit pipelines ([#439](https://github.com/ARPAHLS/skillware/issues/439) slice 4).
 

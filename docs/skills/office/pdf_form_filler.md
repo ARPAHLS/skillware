@@ -306,7 +306,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(pdf_form_filler): add curated W-8BEN KB, section-chunked schemas, and PII redaction (#404) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
+| [`9b05cc7`](https://github.com/ARPAHLS/skillware/commit/9b05cc74ff) | feat(pdf_form_filler): v0.2.0 curated tax/FATCA KB (W-8BEN, W-9, W-8BEN-E, 8966), section-chunked schemas, and PII redaction (#404) (#486) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`f5942a8`](https://github.com/ARPAHLS/skillware/commit/f5942a89f01b95cbc240cdd73d7f8a6e452f2664) | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`42df736`](https://github.com/ARPAHLS/skillware/commit/42df736318a4ee8fbf4c40bcfe1d3f3f00994fbc) | Fix pdf_form_filler helper imports without mutating sys.path (#399) | 30 Sep 2026 | `0.1.1` | [@Bdysj](https://github.com/Bdysj) |
