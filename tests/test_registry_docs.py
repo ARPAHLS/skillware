@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import re
+import subprocess
 
 import pytest
 import yaml
@@ -35,6 +36,83 @@ def iter_catalog_pages() -> list[Path]:
     """Skill pages only — skip the library index and category hub READMEs."""
     docs_root = REPO_ROOT / "docs" / "skills"
     return sorted(path for path in docs_root.rglob("*.md") if path.name != "README.md")
+
+
+def get_base_branch_skills(repo_root: Path) -> set[str]:
+    """Return skill IDs with manifests on origin/main."""
+    result = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "origin/main", "--", "skills"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    skill_ids = {
+        path.removeprefix("skills/").removesuffix("/manifest.yaml")
+        for path in result.stdout.splitlines()
+        if path.startswith("skills/") and path.endswith("/manifest.yaml")
+    }
+    if not skill_ids:
+        raise RuntimeError("No skill manifests found on origin/main")
+    return skill_ids
+
+
+def find_skill_history_placeholders(content: str) -> list[int]:
+    """Return line numbers of TBD commit rows within the marked skill history."""
+    history = re.search(
+        r"<!-- skill-history:begin -->(.*?)<!-- skill-history:end -->",
+        content,
+        re.DOTALL,
+    )
+    if history is None:
+        return []
+    return [
+        content.count("\n", 0, history.start(1) + match.start()) + 1
+        for match in re.finditer(r"(?m)^[ \t]*\|[ \t]*`TBD`[ \t]*\|", history.group(1))
+    ]
+
+
+def find_stale_skill_history_entries(
+    pages: list[Path], base_skill_ids: set[str]
+) -> list[str]:
+    """Find TBD commit rows for skills already present on origin/main."""
+    failures = []
+    for page in pages:
+        skill_id = f"{page.parent.name}/{page.stem}"
+        if skill_id not in base_skill_ids:
+            continue
+        content = page.read_text(encoding="utf-8")
+        for line_number in find_skill_history_placeholders(content):
+            failures.append(
+                f"docs/skills/{skill_id}.md:{line_number}: "
+                "placeholder commit hash `TBD`"
+            )
+    return failures
+
+
+def find_unreleased_changelog_issues(content: str) -> list[str]:
+    """Validate required subsections inside CHANGELOG.md's Unreleased section."""
+    match = re.search(r"^## \[Unreleased\][ \t]*$", content, re.MULTILINE)
+    if match is None:
+        return ["missing `## [Unreleased]` section"]
+
+    section = content[match.end() :]
+    next_section = re.search(r"^## ", section, re.MULTILINE)
+    if next_section is not None:
+        section = section[: next_section.start()]
+
+    present = set(
+        re.findall(r"^### (Added|Changed|Fixed)[ \t]*$", section, re.MULTILINE)
+    )
+    return [
+        f"missing `### {heading}` in `## [Unreleased]`"
+        for heading in (
+            "Added",
+            "Changed",
+            "Fixed",
+        )
+        if heading not in present
+    ]
 
 
 def iter_category_hubs() -> list[Path]:
@@ -268,6 +346,91 @@ def test_catalog_pages_have_version_and_history_blocks(
     assert not missing, "Missing skill version/history blocks:\n" + "\n".join(
         f"  - {item}" for item in missing
     )
+
+
+def test_existing_skill_history_has_no_placeholder_commit_hashes():
+    """Existing skills must not retain TBD hashes in their history table."""
+    pages = sorted((REPO_ROOT / "docs" / "skills").glob("*/*.md"))
+    failures = find_stale_skill_history_entries(
+        [page for page in pages if page.name != "README.md"],
+        get_base_branch_skills(REPO_ROOT),
+    )
+    assert not failures, "Placeholder skill history commit hashes:\n" + "\n".join(
+        f"  - {failure}" for failure in failures
+    )
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        (
+            "## [Unreleased]\n\n### Added\n\n### Changed\n\n### Fixed\n",
+            [],
+        ),
+        (
+            "## [0.1.0]\n\n### Added\n### Changed\n### Fixed\n",
+            ["missing `## [Unreleased]` section"],
+        ),
+        (
+            "## [Unreleased]\n\n### Added\n\n## [0.1.0]\n\n### Changed\n### Fixed\n",
+            [
+                "missing `### Changed` in `## [Unreleased]`",
+                "missing `### Fixed` in `## [Unreleased]`",
+            ],
+        ),
+        (
+            "## [Unreleased]\n\n### Changed\n\n### Fixed\n",
+            ["missing `### Added` in `## [Unreleased]`"],
+        ),
+    ],
+)
+def test_unreleased_changelog_has_required_subsections(
+    content: str, expected: list[str]
+):
+    """Only subsections within Unreleased satisfy the changelog guard."""
+    assert find_unreleased_changelog_issues(content) == expected
+
+
+def test_changelog_has_valid_unreleased_section():
+    """The repository changelog keeps the standard Unreleased subsections."""
+    content = (REPO_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert find_unreleased_changelog_issues(content) == []
+
+
+def test_skill_history_placeholder_only_fails_for_existing_skills(tmp_path: Path):
+    """New skill placeholders are allowed until their skill lands on main."""
+    existing_page = tmp_path / "finance" / "existing_skill.md"
+    new_page = tmp_path / "finance" / "new_skill.md"
+    existing_page.parent.mkdir()
+    history = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| `TBD` | pending commit | date | version | author |\n"
+        "<!-- skill-history:end -->\n"
+    )
+    existing_page.write_text(history, encoding="utf-8")
+    new_page.write_text(history, encoding="utf-8")
+
+    failures = find_stale_skill_history_entries(
+        [existing_page, new_page], {"finance/existing_skill"}
+    )
+
+    assert failures == [
+        "docs/skills/finance/existing_skill.md:3: " "placeholder commit hash `TBD`"
+    ]
+
+
+def test_skill_history_parser_ignores_non_placeholder_rows_and_other_sections():
+    """Only TBD commit cells inside the marked history block are stale."""
+    content = (
+        "A mention of `TBD` outside the history table.\n"
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| [`abc1234`](https://example.com/commit/abc1234) | valid | date | version | author |\n"
+        "<!-- skill-history:end -->\n"
+    )
+
+    assert find_skill_history_placeholders(content) == []
 
 
 def test_catalog_pages_taxonomy_matches_manifests(
