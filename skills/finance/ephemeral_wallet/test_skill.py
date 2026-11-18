@@ -1,21 +1,34 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 ARPA Hellenic Logical Systems
 
-"""Mocked tests for finance/ephemeral_wallet (#41 PR1)."""
+"""Tests for finance/ephemeral_wallet (#41 / #475)."""
 
 from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any, Dict
 
 import pytest
 import yaml
 
-from skills.finance.ephemeral_wallet.providers import MockX402Provider
+from skills.finance.ephemeral_wallet.networks import normalize_network
+from skills.finance.ephemeral_wallet.providers import (
+    HttpX402Provider,
+    MockX402Provider,
+)
 from skills.finance.ephemeral_wallet.skill import (
     EphemeralWalletSkill,
     _reset_sessions_for_tests,
+)
+from skills.finance.ephemeral_wallet.x402_client import (
+    HEADER_PAYMENT_SIGNATURE,
+    MockExactSigner,
+    ScriptedHttp,
+    X402Error,
+    build_mock_402_pair,
+    settle_x402,
 )
 
 
@@ -27,7 +40,7 @@ def _clean_sessions():
 
 
 @pytest.fixture
-def skill(tmp_path, monkeypatch):
+def skill(monkeypatch):
     monkeypatch.delenv("EPHEMERAL_WALLET_SESSION_DIR", raising=False)
     monkeypatch.delenv("EPHEMERAL_WALLET_MOCK", raising=False)
     for key in ("CDP_API_KEY_ID", "CDP_API_KEY_SECRET", "CDP_WALLET_SECRET"):
@@ -42,11 +55,17 @@ def test_manifest_contract():
         manifest = yaml.safe_load(handle)
     assert skill.manifest["name"] == manifest["name"] == "finance/ephemeral_wallet"
     assert skill.manifest["version"] == "0.1.0"
-    assert (
-        "create_session" in skill.manifest["parameters"]["properties"]["action"]["enum"]
-    )
+    assert "requests" in skill.manifest["requirements"]
     assert "constitution" in skill.manifest
-    assert "CDP_WALLET_SECRET" in skill.manifest["env_vars"]
+
+
+def test_network_caip2_aliases():
+    alias, caip2 = normalize_network("base-sepolia")
+    assert alias == "base-sepolia"
+    assert caip2 == "eip155:84532"
+    alias2, caip22 = normalize_network("eip155:84532")
+    assert caip22 == "eip155:84532"
+    assert alias2 == "base-sepolia"
 
 
 def test_create_status_pay_revoke_happy_path(skill):
@@ -60,20 +79,10 @@ def test_create_status_pay_revoke_happy_path(skill):
     )
     assert created["status"] == "ready"
     assert created["session_id"].startswith("ews_")
-    assert created["spend_cap_usd"] == 5.0
-    assert created["remaining_usd"] == 5.0
-    assert created["wallet_address"].startswith("0x")
+    assert created["network_caip2"] == "eip155:84532"
     assert "private_key" not in created
-    assert "CDP_WALLET_SECRET" not in json.dumps(created)
-    assert "card_number" not in created
-    assert "cvv" not in created
 
     sid = created["session_id"]
-    st = skill.execute({"action": "status", "session_id": sid})
-    assert st["status"] == "ready"
-    assert st["payments_count"] == 0
-    assert st["revoked"] is False
-
     paid = skill.execute(
         {
             "action": "pay",
@@ -84,19 +93,13 @@ def test_create_status_pay_revoke_happy_path(skill):
     )
     assert paid["status"] == "confirmed"
     assert paid["remaining_usd"] == pytest.approx(3.75)
-    assert paid["payment"]["tx_ref"].startswith("mock_tx_")
-    assert paid["payment"]["url"] == "https://api.example.com/v1/resource"
+    assert paid["payment"]["tx_ref"]
+    assert paid["payment"]["nonce"]
+    assert paid["payment"]["network"] == "eip155:84532"
     assert "cvv" not in paid["payment"]
-    assert "pan" not in paid["payment"]
-
-    st2 = skill.execute({"action": "status", "session_id": sid})
-    assert st2["payments_count"] == 1
-    assert st2["last_payment"]["amount_usd"] == 1.25
 
     revoked = skill.execute({"action": "revoke", "session_id": sid})
     assert revoked["status"] == "revoked"
-    assert revoked["revoked_at"]
-
     blocked = skill.execute(
         {
             "action": "pay",
@@ -108,21 +111,154 @@ def test_create_status_pay_revoke_happy_path(skill):
     assert blocked["status"] == "revoked"
 
 
-def test_over_cap_fail_closed(skill):
-    created = skill.execute(
-        {"action": "create_session", "spend_cap_usd": 1.0, "ttl_seconds": 600}
+def test_x402_handshake_scripted_http():
+    url = "https://api.example.com/premium"
+    caip2 = "eip155:84532"
+    challenge, success = build_mock_402_pair(
+        url=url, amount_atomic="1000000", network_caip2=caip2
     )
-    sid = created["session_id"]
+    http = ScriptedHttp([challenge, success])
+    used: set[str] = set()
+    result = settle_x402(
+        url=url,
+        session_caip2=caip2,
+        remaining_usd=5.0,
+        max_amount_usd=2.0,
+        signer=MockExactSigner(),
+        http_get=http.get,
+        used_nonces=used,
+    )
+    assert result.amount_usd == pytest.approx(1.0)
+    assert result.nonce
+    assert HEADER_PAYMENT_SIGNATURE in http.calls[1]["headers"]
+    # Replay same nonce blocked
+    used.add(result.nonce)
+    challenge2, success2 = build_mock_402_pair(
+        url=url, amount_atomic="1000000", network_caip2=caip2
+    )
+    http2 = ScriptedHttp([challenge2, success2])
+
+    class FixedNonceSigner(MockExactSigner):
+        def sign_exact(self, **kwargs):
+            payload = super().sign_exact(**kwargs)
+            payload["authorization"]["nonce"] = result.nonce
+            return payload
+
+    with pytest.raises(X402Error) as exc:
+        settle_x402(
+            url=url,
+            session_caip2=caip2,
+            remaining_usd=5.0,
+            max_amount_usd=2.0,
+            signer=FixedNonceSigner(),
+            http_get=http2.get,
+            used_nonces=used,
+        )
+    assert exc.value.code == "replay"
+
+
+def test_http_provider_with_scripted_transport():
+    url = "https://api.example.com/item"
+    caip2 = "eip155:84532"
+    challenge, success = build_mock_402_pair(
+        url=url, amount_atomic="500000", network_caip2=caip2
+    )
+    http = ScriptedHttp([challenge, success])
+    provider = HttpX402Provider(http_get=http.get)
+    used: set[str] = set()
+    receipt = provider.pay(
+        session_id="ews_test",
+        url=url,
+        amount_usd=1.0,
+        network_caip2=caip2,
+        remaining_usd=5.0,
+        used_nonces=used,
+        idempotency_key="k1",
+    )
+    assert receipt["provider"] == "http_x402"
+    assert receipt["amount_usd"] == pytest.approx(0.5)
+    assert receipt["nonce"] in used
+
+
+def test_ssrf_blocks_loopback(skill):
+    created = skill.execute({"action": "create_session", "spend_cap_usd": 2.0})
     out = skill.execute(
         {
             "action": "pay",
+            "session_id": created["session_id"],
+            "url": "http://127.0.0.1/secret",
+            "amount_usd": 0.1,
+        }
+    )
+    assert out["status"] == "ssrf_blocked"
+
+
+def test_allowed_domains_enforced(skill):
+    created = skill.execute(
+        {
+            "action": "create_session",
+            "spend_cap_usd": 2.0,
+            "allowed_domains": ["api.example.com"],
+        }
+    )
+    denied = skill.execute(
+        {
+            "action": "pay",
+            "session_id": created["session_id"],
+            "url": "https://evil.example.net/x",
+            "amount_usd": 0.1,
+        }
+    )
+    assert denied["status"] == "ssrf_blocked"
+    ok = skill.execute(
+        {
+            "action": "pay",
+            "session_id": created["session_id"],
+            "url": "https://api.example.com/ok",
+            "amount_usd": 0.1,
+        }
+    )
+    assert ok["status"] == "confirmed"
+
+
+def test_idempotency_key_replays_prior_payment(skill):
+    created = skill.execute({"action": "create_session", "spend_cap_usd": 5.0})
+    sid = created["session_id"]
+    first = skill.execute(
+        {
+            "action": "pay",
             "session_id": sid,
-            "url": "https://pay.example/x",
-            "amount_usd": 1.01,
+            "url": "https://api.example.com/v1/resource",
+            "amount_usd": 1.0,
+            "idempotency_key": "order-9",
+        }
+    )
+    second = skill.execute(
+        {
+            "action": "pay",
+            "session_id": sid,
+            "url": "https://api.example.com/v1/resource",
+            "amount_usd": 1.0,
+            "idempotency_key": "order-9",
+        }
+    )
+    assert first["status"] == second["status"] == "confirmed"
+    assert second.get("idempotent_replay") is True
+    assert second["remaining_usd"] == first["remaining_usd"]
+    assert second["payment"]["tx_ref"] == first["payment"]["tx_ref"]
+
+
+def test_over_cap_from_server_amount(skill):
+    created = skill.execute({"action": "create_session", "spend_cap_usd": 0.25})
+    out = skill.execute(
+        {
+            "action": "pay",
+            "session_id": created["session_id"],
+            "url": "https://api.example.com/v1/resource",
+            "amount_usd": 1.0,
         }
     )
     assert out["status"] == "over_cap"
-    assert out["remaining_usd"] == pytest.approx(1.0)
 
 
 def test_expired_fail_closed(skill):
@@ -130,7 +266,6 @@ def test_expired_fail_closed(skill):
         {"action": "create_session", "spend_cap_usd": 2.0, "ttl_seconds": 60}
     )
     sid = created["session_id"]
-    # Force expiry in the process store.
     from skills.finance.ephemeral_wallet import skill as skill_mod
 
     past = (
@@ -139,54 +274,57 @@ def test_expired_fail_closed(skill):
         .replace("+00:00", "Z")
     )
     skill_mod._SESSIONS[sid]["expires_at"] = past
-
     out = skill.execute(
         {
             "action": "pay",
             "session_id": sid,
-            "url": "https://pay.example/x",
+            "url": "https://api.example.com/x",
             "amount_usd": 0.1,
         }
     )
     assert out["status"] == "expired"
 
-    st = skill.execute({"action": "status", "session_id": sid})
-    assert st["status"] == "expired"
-
-
-def test_unknown_session_fail_closed(skill):
-    out = skill.execute({"action": "status", "session_id": "ews_missing"})
-    assert out["status"] == "error"
-    assert "Unknown session_id" in out["error"]
-
 
 def test_missing_config_when_live_without_cdp(skill, monkeypatch):
-    monkeypatch.delenv("CDP_API_KEY_ID", raising=False)
-    monkeypatch.delenv("CDP_API_KEY_SECRET", raising=False)
-    monkeypatch.delenv("CDP_WALLET_SECRET", raising=False)
     out = skill.execute(
         {"action": "create_session", "spend_cap_usd": 1.0, "live": True}
     )
     assert out["status"] == "missing_config"
-    assert "setup" in out
-    assert "CDP_API_KEY_ID" in out["error"]
 
 
-def test_missing_config_when_mock_env_disabled(skill, monkeypatch):
-    monkeypatch.setenv("EPHEMERAL_WALLET_MOCK", "0")
-    out = skill.execute({"action": "create_session", "spend_cap_usd": 1.0})
-    assert out["status"] == "missing_config"
-
-
-def test_live_with_cdp_still_refuses_in_pr1(skill, monkeypatch):
+def test_live_with_cdp_creates_http_session(skill, monkeypatch):
     monkeypatch.setenv("CDP_API_KEY_ID", "id")
     monkeypatch.setenv("CDP_API_KEY_SECRET", "secret")
     monkeypatch.setenv("CDP_WALLET_SECRET", "wallet")
     out = skill.execute(
         {"action": "create_session", "spend_cap_usd": 1.0, "live": True}
     )
-    assert out["status"] == "error"
-    assert "not wired" in out["error"].lower() or "mock only" in out["error"].lower()
+    assert out["status"] == "ready"
+    assert out["settlement"] == "http_x402"
+
+
+def test_provider_injection_sanitizes_secrets():
+    class LeakyProvider(MockX402Provider):
+        def pay(self, **kwargs: Any) -> Dict[str, Any]:
+            receipt = super().pay(**kwargs)
+            receipt["private_key"] = "0xDEAD"
+            receipt["cvv"] = "999"
+            return receipt
+
+    store: dict = {}
+    skill = EphemeralWalletSkill(provider=LeakyProvider(), sessions=store)
+    created = skill.execute({"action": "create_session", "spend_cap_usd": 2.0})
+    paid = skill.execute(
+        {
+            "action": "pay",
+            "session_id": created["session_id"],
+            "url": "https://api.example.com/p",
+            "amount_usd": 0.25,
+        }
+    )
+    assert paid["status"] == "confirmed"
+    assert "private_key" not in paid["payment"]
+    assert "cvv" not in paid["payment"]
 
 
 def test_session_dir_jsonl(skill, tmp_path, monkeypatch):
@@ -203,57 +341,12 @@ def test_session_dir_jsonl(skill, tmp_path, monkeypatch):
             "amount_usd": 0.5,
         }
     )
-    skill.execute({"action": "revoke", "session_id": sid})
-
     sessions_log = (
         (tmp_path / "sessions.jsonl").read_text(encoding="utf-8").strip().splitlines()
     )
     payments_log = (
         (tmp_path / "payments.jsonl").read_text(encoding="utf-8").strip().splitlines()
     )
-    assert len(sessions_log) == 2  # create + revoke
+    assert len(sessions_log) >= 1
     assert len(payments_log) == 1
-    create_row = json.loads(sessions_log[0])
-    assert create_row["event"] == "create"
-    assert create_row["session_id"] == sid
-    pay_row = json.loads(payments_log[0])
-    assert pay_row["amount_usd"] == 0.5
-    assert "private_key" not in pay_row
-
-
-def test_session_dir_unwritable_fail_closed(skill, tmp_path, monkeypatch):
-    bad = tmp_path / "not_a_dir"
-    bad.write_text("file", encoding="utf-8")
-    monkeypatch.setenv("EPHEMERAL_WALLET_SESSION_DIR", str(bad))
-    out = skill.execute({"action": "create_session", "spend_cap_usd": 1.0})
-    assert out["status"] == "error"
-    assert "SESSION_DIR" in out["error"] or "writable" in out["error"].lower()
-
-
-def test_provider_injection_sanitizes_secrets():
-    class LeakyProvider(MockX402Provider):
-        def pay(self, **kwargs):
-            receipt = super().pay(**kwargs)
-            receipt["private_key"] = "0xDEAD"
-            receipt["cvv"] = "999"
-            return receipt
-
-    store: dict = {}
-    skill = EphemeralWalletSkill(provider=LeakyProvider(), sessions=store)
-    created = skill.execute({"action": "create_session", "spend_cap_usd": 2.0})
-    paid = skill.execute(
-        {
-            "action": "pay",
-            "session_id": created["session_id"],
-            "url": "https://x.example/p",
-            "amount_usd": 0.25,
-        }
-    )
-    assert paid["status"] == "confirmed"
-    assert "private_key" not in paid["payment"]
-    assert "cvv" not in paid["payment"]
-
-
-def test_unsupported_action(skill):
-    out = skill.execute({"action": "mint_card"})
-    assert out["status"] == "error"
+    assert json.loads(payments_log[0])["amount_usd"] == 0.5

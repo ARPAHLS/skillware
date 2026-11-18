@@ -11,10 +11,11 @@ tags:
   - web3
   - finance
 description: |
-  Spend-capped, short-lived agent payment sessions for x402 HTTP micropayments
-  using a dedicated CDP-style wallet. v0.1 ships create_session / status / pay /
-  revoke with mocked settlement (no live chain in CI). Not virtual-card PANs.
-short_description: "Spend-capped x402 agent payment sessions (mocked settle in v0.1)."
+  Spend-capped, short-lived agent payment sessions for x402 v2 HTTP micropayments
+  using a dedicated CDP-style wallet. create_session / status / pay / revoke with
+  402 handshake (PAYMENT-REQUIRED → PAYMENT-SIGNATURE → PAYMENT-RESPONSE), SSRF
+  guards, CAIP-2 networks, and idempotency. Mock HTTP in CI; live needs CDP env.
+short_description: "Spend-capped x402 v2 agent payment sessions with SSRF + CAIP-2."
 category: finance
 issuer:
   name: Hendobox
@@ -40,21 +41,33 @@ parameters:
       description: "Soft session TTL in seconds (create_session). Default 7200."
     network:
       type: string
-      description: "Settlement network label (create_session). Default base-sepolia."
+      description: >
+        Settlement network alias or CAIP-2 (create_session). Default base-sepolia
+        → eip155:84532.
+    allowed_domains:
+      type: array
+      description: "Optional hostname allowlist for pay URLs (create_session)."
+      items:
+        type: string
     session_id:
       type: string
       description: "Host-held session id from create_session (status / pay / revoke)."
     url:
       type: string
-      description: "Resource URL for x402 pay (mocked settle in v0.1)."
+      description: "Resource URL for x402 pay (SSRF-checked; mock handshake in CI)."
     amount_usd:
       type: number
-      description: "USD amount to debit from the soft session counter (pay)."
+      description: >
+        Optional max USD for this pay. Server atomic amount (from PAYMENT-REQUIRED)
+        is verified against remaining_usd and this cap before signing.
+    idempotency_key:
+      type: string
+      description: "Optional key; replay returns the prior confirmed payment."
     live:
       type: boolean
       description: >
-        Request live CDP+x402 settle. v0.1 returns missing_config without CDP
-        env, or error (live not wired). Default mock.
+        Request live HTTP x402 settle. Requires CDP_* env. Default mock
+        (in-process scripted 402 handshake).
   required:
     - action
 outputs:
@@ -76,14 +89,16 @@ constitution: |
   1. DEDICATED AGENT WALLET ONLY: Never use personal, treasury, or exchange keys.
   2. NO SECRETS IN OUTPUT: Never return private keys, seeds, CDP secrets, or
      full PANs/CVVs. Redact; teach agents not to echo secrets.
-  3. FAIL CLOSED: Missing live config, unknown/expired/revoked session, or
-     over-cap must abort pay — do not guess.
+  3. FAIL CLOSED: Missing live config, unknown/expired/revoked session,
+     over-cap, SSRF, or replay must abort pay — do not guess.
   4. SOFT POLICY IN V0.1: spend_cap_usd, TTL, and revoke are in-process UX
      policy. Funded-to-cap (or facilitator policy) is the real bound for live
      settle — do not claim a cryptographic hard limit yet.
-  5. NOT FINANCIAL ADVICE: Settlements are technical operations; on-chain
+  5. SSRF / ALLOWLIST: Block private, loopback, and metadata URLs; honor
+     allowed_domains when set.
+  6. NOT FINANCIAL ADVICE: Settlements are technical operations; on-chain
      results may differ from quotes.
-  6. BOUNDARY: This skill only does spend-capped x402-shaped session pay.
+  7. BOUNDARY: This skill only does spend-capped x402 session pay.
      General swaps/transfers belong in defi/evm_tx_handler.
 env_vars:
   CDP_API_KEY_ID:
@@ -107,9 +122,10 @@ env_vars:
       If set, must be writable (fail closed — no silent memory-only fallback).
     required: false
   EPHEMERAL_WALLET_MOCK:
-    description: "Set to 0 to request live mode (v0.1 still refuses live settle)."
+    description: "Set to 0 to request live HTTP mode (requires CDP_*)."
     required: false
-requirements: []
+requirements:
+  - requests
 presentation:
   icon: "credit-card"
   color: "#2D9CDB"

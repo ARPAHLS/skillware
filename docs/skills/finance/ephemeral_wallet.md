@@ -10,24 +10,24 @@
 - **Tags**: `payments`, `x402`, `agent-wallet`, `web3`, `finance`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
-**Solves:** Spend-capped, short-lived agent payment sessions for x402-shaped HTTP micropayments from a dedicated agent wallet (not card PANs).
+**Solves:** Spend-capped, short-lived agent payment sessions for x402 v2 HTTP micropayments from a dedicated agent wallet (not card PANs).
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
-**Runtime:** Mock settlement in v0.1 (no live chain in CI). Optional CDP env names reserved for live settle (PR2). Optional `EPHEMERAL_WALLET_SESSION_DIR` for JSONL durability.
+**Runtime:** Mock x402 handshake in CI; live HTTP settle needs `CDP_*`. Optional `EPHEMERAL_WALLET_SESSION_DIR` for JSONL durability.
 <!-- skill-intent:end -->
 
 **Recommended install:** `pip install "skillware[finance_ephemeral_wallet]"`. See [Install extras](../../usage/install_extras.md).
 
 [Skill Library](../README.md) · [Finance hub](README.md) · [Glossary](../../glossary.md) · [Testing](../../TESTING.md)
 
-Thin **agent payment session** skill: `create_session` → `status` / `pay` / `revoke`. v0.1 uses a **mock x402 provider** so hosts can wire the action loop offline. Live CDP + x402 settle is PR2. Cap / TTL / revoke are **soft in-process policy** until funded-to-cap enforcement.
+Thin **agent payment session** skill: `create_session` → `status` / `pay` / `revoke`. `pay` runs the x402 v2 HTTP handshake (402 → `PAYMENT-REQUIRED` → amount vs `remaining_usd` → `PAYMENT-SIGNATURE` → `PAYMENT-RESPONSE`), with SSRF/`allowed_domains`, CAIP-2 networks, and idempotency. CI uses an in-process mock handshake (no live chain). Cap / TTL / revoke are **soft in-process policy** until funded-to-cap enforcement.
 
 ## Capabilities
 
 | Action | Description |
 |--------|-------------|
-| `create_session` | Open a session with soft `spend_cap_usd` + `ttl_seconds`; returns `session_id` |
+| `create_session` | Open a session with soft `spend_cap_usd` + `ttl_seconds` + CAIP-2 network; returns `session_id` |
 | `status` | Remaining soft budget, expiry, revoke flag, last payment refs |
-| `pay` | Debit soft counter and return mock receipt refs for a URL |
+| `pay` | x402 handshake for a URL; debit soft counter from server amount |
 | `revoke` | Expire the session; further `pay` fails closed |
 
 ## Environment
@@ -37,20 +37,21 @@ Thin **agent payment session** skill: `create_session` → `status` / `pay` / `r
 | `CDP_API_KEY_ID` | For live (PR2) | CDP auth |
 | `CDP_API_KEY_SECRET` | For live (PR2) | CDP auth |
 | `CDP_WALLET_SECRET` | For live (PR2) | Dedicated agent wallet secret |
-| `EPHEMERAL_WALLET_NETWORK` | No | Default `base-sepolia` |
-| `EPHEMERAL_WALLET_FACILITATOR_URL` | No | Reserved for live facilitator |
+| `EPHEMERAL_WALLET_NETWORK` | No | Default `base-sepolia` (`eip155:84532`) |
+| `EPHEMERAL_WALLET_FACILITATOR_URL` | No | Reserved for facilitator overrides |
 | `EPHEMERAL_WALLET_SESSION_DIR` | No | Append-only `sessions.jsonl` / `payments.jsonl` (fail closed if unwritable) |
-| `EPHEMERAL_WALLET_MOCK` | No | Default `1` (mock). `0` requests live and hits `missing_config` / PR1 refuse |
+| `EPHEMERAL_WALLET_MOCK` | No | Default `1` (mock handshake). `0` / `live: true` requires `CDP_*` |
 
 Non-secret defaults: `config.yaml.example` (`default_spend_cap_usd`, `default_ttl_seconds`, `network`). Secrets never in YAML or tool args. See [API keys for skills](../../usage/api_keys.md).
 
 ## Agent notes
 
 - Pass **`session_id`** from `create_session` on every later call (host-held across turns).
-- **`status` other than `ready` / `confirmed`**: halt automated spend.
-- **`remaining_usd`**: display counter — not a hard on-chain bound in v0.1.
+- **`status` other than `ready` / `confirmed`**: halt automated spend (`ssrf_blocked`, `over_cap`, `replay`, …).
+- **`remaining_usd`**: display counter — not a hard on-chain bound in v0.1. Server atomic amount is checked before signing.
+- Networks: friendly aliases or CAIP-2 (`base-sepolia` ↔ `eip155:84532`).
 - **Never** echo private keys, CDP secrets, or PANs/CVVs.
-- Boundary: x402-shaped session pay only — swaps/transfers → `defi/evm_tx_handler`.
+- Boundary: x402 session pay only — swaps/transfers → `defi/evm_tx_handler`.
 - Why not Issuing/PANs in v1: secret risk + KYC; x402 + CDP is the locked open path (#41 / #272).
 
 ## Bundle layout
@@ -59,7 +60,7 @@ The skill lives in `skills/finance/ephemeral_wallet/`. Roles: [Skill anatomy](..
 
 ### Effect (`skill.py`)
 
-Session store + `MockX402Provider` behind a small provider boundary.
+Session store + `MockX402Provider` / `HttpX402Provider` behind `x402_client.settle_x402`.
 
 ### Directive (`instructions.md`)
 
@@ -235,13 +236,14 @@ print(json.dumps({"created": created, "paid": paid}, indent=2))
   "remaining_usd": 5.0,
   "expires_at": "2026-11-11T16:00:00Z",
   "network": "base-sepolia",
+  "network_caip2": "eip155:84532",
   "wallet_address": "0x1111111111111111111111111111111111111111",
-  "settlement": "mock",
+  "settlement": "mock_x402",
   "agent_hint": "Pass session_id on later status/pay/revoke. No secrets in this payload."
 }
 ```
 
-**`pay` (mock)**
+**`pay` (mock handshake)**
 
 ```json
 {
@@ -251,20 +253,22 @@ print(json.dumps({"created": created, "paid": paid}, indent=2))
   "payment": {
     "url": "https://api.example.com/v1/resource",
     "amount_usd": 0.5,
-    "network": "base-sepolia",
-    "tx_ref": "mock_tx_…",
-    "receipt_ref": "mock_rcpt_…"
+    "network": "eip155:84532",
+    "tx_ref": "0x…",
+    "receipt_ref": "x402_rcpt_…",
+    "nonce": "0x…"
   },
-  "settlement": "mock"
+  "settlement": "mock_x402"
 }
 ```
 
-Errors use structured `status` (`missing_config` | `expired` | `revoked` | `over_cap` | `error`) plus `agent_hint`. Never keys / PANs.
+Errors use structured `status` (`missing_config` | `expired` | `revoked` | `over_cap` | `ssrf_blocked` | `replay` | `error`) plus `agent_hint`. Never keys / PANs.
 
 ## Limitations
 
-- v0.1 settlement is **mocked** — no live Base / facilitator / CDP in CI.
-- Cap / TTL / revoke are soft in-process policy until funded-to-cap (PR2).
+- CI uses an in-process mock 402 handshake (no live Base / facilitator).
+- Cap / TTL / revoke are soft in-process policy until funded-to-cap.
+- Live HTTP path needs `CDP_*`; cryptographic CDP AgentKit signing can be hardened further.
 - Session memory is process-local unless `EPHEMERAL_WALLET_SESSION_DIR` is set.
 - Not Stripe Issuing / virtual-card PANs (deferred adapter).
 - Not a general EVM transfer/swap skill.

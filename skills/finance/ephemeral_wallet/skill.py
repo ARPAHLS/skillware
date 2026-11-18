@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 ARPA Hellenic Logical Systems
 
-"""Spend-capped x402 agent payment sessions (PR1: mocked settlement)."""
+"""Spend-capped x402 agent payment sessions (v0.1: handshake + soft policy)."""
 
 from __future__ import annotations
 
@@ -11,24 +11,23 @@ import sys
 import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 from uuid import uuid4
 
 from skillware.core.base_skill import BaseSkill
 
-try:
-    from .providers import MockX402Provider, PaymentProvider
-except (ImportError, ValueError):
-    try:
-        from skills.finance.ephemeral_wallet.providers import (  # type: ignore
-            MockX402Provider,
-            PaymentProvider,
-        )
-    except ImportError:
-        _pkg_dir = os.path.dirname(os.path.abspath(__file__))
-        if _pkg_dir not in sys.path:
-            sys.path.insert(0, _pkg_dir)
-        from providers import MockX402Provider, PaymentProvider  # noqa: E402
+_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
+if _PKG_DIR not in sys.path:
+    sys.path.insert(0, _PKG_DIR)
+
+from networks import normalize_network  # noqa: E402
+from providers import (  # noqa: E402
+    HttpX402Provider,
+    MockX402Provider,
+    PaymentProvider,
+    X402Error,
+)
+from ssrf import is_safe_public_url, normalize_allowed_domains  # noqa: E402
 
 _CDP_ENV_KEYS = (
     "CDP_API_KEY_ID",
@@ -42,7 +41,6 @@ _MOCK_WALLET = "0x1111111111111111111111111111111111111111"
 _MAX_TTL_SECONDS = 7 * 24 * 3600
 _MAX_SPEND_CAP_USD = 10_000.0
 
-# Process-local session store (host passes session_id across turns).
 _SESSIONS: Dict[str, Dict[str, Any]] = {}
 _SESSIONS_LOCK = threading.RLock()
 
@@ -75,8 +73,7 @@ class EphemeralWalletSkill(BaseSkill):
         sessions: Optional[Dict[str, Dict[str, Any]]] = None,
     ):
         super().__init__(config=config)
-        self._provider: PaymentProvider = provider or MockX402Provider()
-        # Allow tests to inject an isolated store; default is process memory.
+        self._provider_override = provider
         self._sessions = sessions if sessions is not None else _SESSIONS
 
     @property
@@ -92,7 +89,7 @@ class EphemeralWalletSkill(BaseSkill):
         payload.update(kwargs)
         try:
             self.validate_params(payload)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return self._error("error", str(exc))
 
         action = str(payload.get("action") or "").strip().lower()
@@ -113,7 +110,7 @@ class EphemeralWalletSkill(BaseSkill):
     # ----- actions ---------------------------------------------------------
 
     def _create_session(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        live_gate = self._live_gate(payload)
+        live_gate = self._live_config_gate(payload)
         if live_gate is not None:
             return live_gate
 
@@ -129,8 +126,6 @@ class EphemeralWalletSkill(BaseSkill):
             spend_cap = self._config_float(
                 "default_spend_cap_usd", _DEFAULT_SPEND_CAP_USD
             )
-            if spend_cap is None:
-                spend_cap = _DEFAULT_SPEND_CAP_USD
 
         if "ttl_seconds" in payload and payload.get("ttl_seconds") not in (None, ""):
             try:
@@ -151,7 +146,7 @@ class EphemeralWalletSkill(BaseSkill):
                 f"ttl_seconds must be in (0, {_MAX_TTL_SECONDS}].",
             )
 
-        network = (
+        network_raw = (
             str(
                 payload.get("network")
                 or self.credential("EPHEMERAL_WALLET_NETWORK")
@@ -161,8 +156,18 @@ class EphemeralWalletSkill(BaseSkill):
             .strip()
             .lower()
         )
+        try:
+            network_alias, network_caip2 = normalize_network(network_raw)
+        except ValueError as exc:
+            return self._error("error", str(exc))
+
+        allowed_domains = normalize_allowed_domains(
+            payload.get("allowed_domains") or self.config.get("allowed_domains") or []
+        )
+
         now = _utc_now()
         session_id = f"ews_{uuid4().hex}"
+        mock_mode = not self._wants_live(payload)
         session = {
             "session_id": session_id,
             "spend_cap_usd": float(spend_cap),
@@ -170,16 +175,21 @@ class EphemeralWalletSkill(BaseSkill):
             "ttl_seconds": int(ttl_seconds),
             "created_at": _iso(now),
             "expires_at": _iso(now + timedelta(seconds=int(ttl_seconds))),
-            "network": network,
+            "network": network_alias,
+            "network_caip2": network_caip2,
             "wallet_address": _MOCK_WALLET,
             "revoked": False,
             "revoked_at": None,
             "payments": [],
+            "used_nonces": set(),
+            "idempotency": {},
+            "allowed_domains": allowed_domains,
             "policy_note": (
                 "spend_cap_usd / TTL / revoke are soft in-process policy in v0.1; "
                 "funded-to-cap enforcement lands with live settle."
             ),
-            "settlement": "mock",
+            "settlement": "mock_x402" if mock_mode else "http_x402",
+            "mock": mock_mode,
         }
 
         try:
@@ -192,7 +202,8 @@ class EphemeralWalletSkill(BaseSkill):
                         "session_id": session_id,
                         "spend_cap_usd": session["spend_cap_usd"],
                         "expires_at": session["expires_at"],
-                        "network": network,
+                        "network": network_alias,
+                        "network_caip2": network_caip2,
                         "at": session["created_at"],
                     },
                 )
@@ -215,9 +226,11 @@ class EphemeralWalletSkill(BaseSkill):
             "spend_cap_usd": session["spend_cap_usd"],
             "remaining_usd": session["remaining_usd"],
             "expires_at": session["expires_at"],
-            "network": network,
+            "network": network_alias,
+            "network_caip2": network_caip2,
             "wallet_address": session["wallet_address"],
-            "settlement": "mock",
+            "allowed_domains": allowed_domains,
+            "settlement": session["settlement"],
             "agent_hint": (
                 "Pass session_id on later status/pay/revoke. "
                 "No secrets in this payload. Cap/TTL are soft policy until live settle."
@@ -244,16 +257,18 @@ class EphemeralWalletSkill(BaseSkill):
             "revoked": bool(session["revoked"]),
             "payments_count": len(session["payments"]),
             "last_payment": last,
-            "settlement": session.get("settlement", "mock"),
+            "network": session.get("network"),
+            "network_caip2": session.get("network_caip2"),
+            "settlement": session.get("settlement", "mock_x402"),
             "policy_note": session.get("policy_note"),
             "agent_hint": (
                 "remaining_usd is a display counter for soft session policy; "
-                "do not treat it as a hard on-chain bound in v1."
+                "do not treat it as a hard on-chain bound in v0.1."
             ),
         }
 
     def _pay(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        live_gate = self._live_gate(payload)
+        live_gate = self._live_config_gate(payload)
         if live_gate is not None:
             return live_gate
 
@@ -283,41 +298,98 @@ class EphemeralWalletSkill(BaseSkill):
                 session_id=session["session_id"],
             )
 
-        amount = self._as_float(payload.get("amount_usd"), None)
-        if amount is None or amount <= 0:
+        allowed = session.get("allowed_domains") or []
+        ok, reason = is_safe_public_url(url, allowed_domains=allowed)
+        if not ok:
             return self._error(
-                "error",
-                "amount_usd must be a positive number.",
+                "ssrf_blocked",
+                reason,
                 session_id=session["session_id"],
-            )
-        if amount > float(session["remaining_usd"]) + 1e-9:
-            return self._error(
-                "over_cap",
-                (
-                    f"amount_usd {amount} exceeds remaining_usd "
-                    f"{session['remaining_usd']} (soft session policy)."
-                ),
-                session_id=session["session_id"],
-                remaining_usd=session["remaining_usd"],
                 agent_hint=(
-                    "Lower amount_usd, create a new session with a higher cap, "
-                    "or revoke and restart. Cap is soft until funded-to-cap live settle."
+                    "Use a public https URL on an allowed domain. "
+                    "Private/loopback/metadata hosts are blocked."
                 ),
             )
 
-        payment = self._provider.pay(
-            session_id=session["session_id"],
-            url=url,
-            amount_usd=float(amount),
-            network=session["network"],
-        )
-        # Strip any accidental secret-looking keys from provider output.
-        payment = self._sanitize_payment(payment)
+        amount: Optional[float]
+        if "amount_usd" in payload and payload.get("amount_usd") not in (None, ""):
+            try:
+                amount = float(payload["amount_usd"])
+            except (TypeError, ValueError):
+                return self._error(
+                    "error",
+                    "amount_usd must be a positive number.",
+                    session_id=session["session_id"],
+                )
+            if amount <= 0:
+                return self._error(
+                    "error",
+                    "amount_usd must be a positive number.",
+                    session_id=session["session_id"],
+                )
+        else:
+            amount = None
 
-        session["remaining_usd"] = round(
-            float(session["remaining_usd"]) - float(amount), 8
-        )
+        idem_key = str(payload.get("idempotency_key") or "").strip() or None
+        if idem_key:
+            prior = session.get("idempotency", {}).get(idem_key)
+            if prior is not None:
+                return {
+                    "status": "confirmed",
+                    "session_id": session["session_id"],
+                    "remaining_usd": session["remaining_usd"],
+                    "payment": prior,
+                    "settlement": session.get("settlement"),
+                    "idempotent_replay": True,
+                    "agent_hint": (
+                        "Returned prior payment for this idempotency_key "
+                        "(replay protected)."
+                    ),
+                }
+
+        provider = self._resolve_provider(session)
+        used_nonces: Set[str] = session.setdefault("used_nonces", set())
+        try:
+            payment = provider.pay(
+                session_id=session["session_id"],
+                url=url,
+                amount_usd=amount,
+                network_caip2=str(session["network_caip2"]),
+                remaining_usd=float(session["remaining_usd"]),
+                used_nonces=used_nonces,
+                idempotency_key=idem_key,
+            )
+        except X402Error as exc:
+            status = (
+                exc.code
+                if exc.code
+                in {
+                    "over_cap",
+                    "replay",
+                    "network_mismatch",
+                    "expected_402",
+                    "settlement_failed",
+                    "payment_failed",
+                }
+                else "error"
+            )
+            if exc.code == "over_cap":
+                status = "over_cap"
+            elif exc.code == "replay":
+                status = "replay"
+            return self._error(
+                status,
+                exc.message,
+                session_id=session["session_id"],
+                remaining_usd=float(session["remaining_usd"]),
+            )
+
+        payment = self._sanitize_payment(payment)
+        debit = float(payment.get("amount_usd") or 0.0)
+        session["remaining_usd"] = round(float(session["remaining_usd"]) - debit, 8)
         session["payments"].append(payment)
+        if idem_key:
+            session.setdefault("idempotency", {})[idem_key] = payment
 
         try:
             session_dir = self._session_dir()
@@ -331,15 +403,18 @@ class EphemeralWalletSkill(BaseSkill):
                         "amount_usd": payment.get("amount_usd"),
                         "tx_ref": payment.get("tx_ref"),
                         "receipt_ref": payment.get("receipt_ref"),
+                        "nonce": payment.get("nonce"),
+                        "idempotency_key": idem_key,
                         "at": payment.get("at"),
                     },
                 )
         except OSError as exc:
-            # Roll back in-memory debit if durability was requested.
-            session["remaining_usd"] = round(
-                float(session["remaining_usd"]) + float(amount), 8
-            )
+            session["remaining_usd"] = round(float(session["remaining_usd"]) + debit, 8)
             session["payments"].pop()
+            if idem_key:
+                session.get("idempotency", {}).pop(idem_key, None)
+            if payment.get("nonce") in used_nonces:
+                used_nonces.discard(str(payment.get("nonce")))
             return self._error(
                 "error",
                 f"EPHEMERAL_WALLET_SESSION_DIR is set but not writable: {exc}",
@@ -351,10 +426,10 @@ class EphemeralWalletSkill(BaseSkill):
             "session_id": session["session_id"],
             "remaining_usd": session["remaining_usd"],
             "payment": payment,
-            "settlement": "mock",
+            "settlement": payment.get("settlement") or session.get("settlement"),
             "agent_hint": (
                 "Do not ask for or display private keys or card PANs. "
-                "This confirmation is from the mock provider (v0.1)."
+                "Server amount was checked against remaining_usd before signing."
             ),
         }
 
@@ -400,10 +475,16 @@ class EphemeralWalletSkill(BaseSkill):
 
     # ----- helpers ---------------------------------------------------------
 
-    def _live_gate(self, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """PR1: mock by default; live request without CDP → missing_config."""
-        wants_live = self._wants_live(payload)
-        if not wants_live:
+    def _resolve_provider(self, session: Dict[str, Any]) -> PaymentProvider:
+        if self._provider_override is not None:
+            return self._provider_override
+        if session.get("mock", True):
+            return MockX402Provider()
+        return HttpX402Provider()
+
+    def _live_config_gate(self, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Live mode requires CDP env; mock mode does not."""
+        if not self._wants_live(payload):
             return None
         missing = [k for k in _CDP_ENV_KEYS if not self.credential(k)]
         if missing:
@@ -416,7 +497,7 @@ class EphemeralWalletSkill(BaseSkill):
                 "agent_hint": (
                     "Add CDP_API_KEY_ID, CDP_API_KEY_SECRET, and CDP_WALLET_SECRET "
                     "to a local .env (never tool args). Or omit live / keep mock "
-                    "mode for offline demos. Live x402 settle is not in v0.1."
+                    "mode for offline demos."
                 ),
                 "setup": {
                     "env_vars": list(_CDP_ENV_KEYS),
@@ -425,14 +506,7 @@ class EphemeralWalletSkill(BaseSkill):
                     "docs": "docs/skills/finance/ephemeral_wallet.md#environment",
                 },
             }
-        return {
-            "status": "error",
-            "error": "Live x402 + CDP settlement is not wired in v0.1 (mock only).",
-            "agent_hint": (
-                "Retry without live=true / with EPHEMERAL_WALLET_MOCK=1. "
-                "Live settle is a later slice."
-            ),
-        }
+        return None
 
     def _wants_live(self, payload: Dict[str, Any]) -> bool:
         if payload.get("live") is True:
@@ -504,6 +578,8 @@ class EphemeralWalletSkill(BaseSkill):
             "secret",
             "api_key",
             "wallet_secret",
+            "payment_payload",
+            "payment_required",
         }
         clean: Dict[str, Any] = {}
         for key, value in payment.items():
@@ -513,7 +589,8 @@ class EphemeralWalletSkill(BaseSkill):
         return clean
 
     def _config_float(self, key: str, default: float) -> float:
-        return self._as_float(self.config.get(key), default)
+        value = self._as_float(self.config.get(key), default)
+        return float(default if value is None else value)
 
     def _config_int(self, key: str, default: int) -> int:
         return self._as_int(self.config.get(key), default)
@@ -560,7 +637,6 @@ class EphemeralWalletSkill(BaseSkill):
         return out
 
 
-# Clear process store (tests).
 def _reset_sessions_for_tests() -> None:
     with _SESSIONS_LOCK:
         _SESSIONS.clear()
