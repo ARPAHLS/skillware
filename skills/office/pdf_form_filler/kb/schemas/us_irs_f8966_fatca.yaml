@@ -1,0 +1,82 @@
+form_id: "us_irs_8966_fatca"
+title: "FATCA Report (IRS Form 8966)"
+revision: "Rev. 2024"
+jurisdiction: "US"
+category: "tax"
+source_pdf: "templates/us_irs_f8966_fatca.pdf"
+pages: 2
+
+sections:
+  - id: "part_1_filer_identification"
+    title: "Part I: Identification of Filer"
+    description: "Filer ID, name, category code, address, and GIIN."
+    fields:
+      - id: "filer_id_number"
+        pdf_field_name: "topmostSubform[0].Page1[0].IDNumber[0].f1_1[0]"
+        field_type: "text"
+        page: 0
+        label: "1. Filer ID Number / EIN"
+        required: false
+        sensitive: true
+
+      - id: "filer_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_2[0]"
+        field_type: "text"
+        page: 0
+        label: "1. Name of filer"
+        required: true
+
+      - id: "filer_category_code"
+        pdf_field_name: "topmostSubform[0].Page1[0].FilerCategory[0].f1_3[0]"
+        field_type: "text"
+        page: 0
+        label: "1b. Filer category code"
+        required: false
+
+      - id: "filer_address_street"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_4[0]"
+        field_type: "text"
+        page: 0
+        label: "2. Number, street, and room or suite no."
+        required: true
+
+      - id: "filer_city_town"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_5[0]"
+        field_type: "text"
+        page: 0
+        label: "3a. City or town"
+        required: true
+
+      - id: "filer_country"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_6[0]"
+        field_type: "text"
+        page: 0
+        label: "3b. State/Province and Country"
+        required: true
+
+      - id: "filer_postal_code"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_7[0]"
+        field_type: "text"
+        page: 0
+        label: "3c. Postal code"
+        required: false
+
+  - id: "part_4_financial_information"
+    title: "Part IV: Financial Information"
+    description: "Account number and reported balances/payments."
+    fields:
+      - id: "account_number"
+        pdf_field_name: "topmostSubform[0].Page2[0].f2_1[0]"
+        field_type: "text"
+        page: 1
+        label: "1. Account number"
+        required: false
+        sensitive: true
+
+      - id: "account_balance"
+        pdf_field_name: "topmostSubform[0].Page2[0].f2_2[0]"
+        field_type: "text"
+        page: 1
+        label: "3. Account balance or value"
+        required: false
+

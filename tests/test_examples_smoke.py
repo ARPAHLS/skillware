@@ -266,6 +266,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "Geo IP rotator demonstration completed successfully.",
         ],
     ),
+    (
+        "pdf_form_filler_w8ben_demo.py",
+        [
+            "us_irs_w8ben",
+            "***4321",
+            "needs_input",
+            '"status": "success"',
+        ],
+    ),
 ]
 
 # Provider-dependent scripts that are deliberately excluded from CI smoke tests because

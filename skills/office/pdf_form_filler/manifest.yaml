@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.1.2
+version: 0.2.0
 tier: core
 shape: workflow
 target:
@@ -9,8 +9,10 @@ tags:
   - form_filling
   - documents
   - acrobat
-description: "Deterministic AcroForm PDF inspection, validation, and filling engine with multi-action dispatch, XFA guard, and radio group handling."
-short_description: "Inspects, validates, and fills AcroForm PDFs deterministically with XFA and radio group safeguards."
+  - compliance
+  - tax
+description: "Deterministic AcroForm PDF inspection, curated template discovery, section-chunked schema mapping, validation, and filling engine with XFA guard, PII redaction, and radio group handling."
+short_description: "Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction."
 issuer:
   name: Ross Peili
   email: vpeilivanidis@gmail.com
@@ -22,16 +24,33 @@ parameters:
     action:
       type: string
       enum:
+        - list_templates
+        - get_template_schema
         - inspect
         - validate
         - fill
-      description: "Operation to execute: 'inspect' to detect fields, 'validate' to check proposed edits, 'fill' to apply values."
+      description: "Operation to execute: 'list_templates', 'get_template_schema', 'inspect', 'validate', or 'fill'."
+    template_id:
+      type: string
+      description: "Curated template ID (e.g., 'us_irs_w8ben'). Alternative to 'pdf_path'."
+    section:
+      type: string
+      description: "Optional section ID for 'get_template_schema' (returns only that section's fields)."
+    category:
+      type: string
+      description: "Optional category filter for 'list_templates' (e.g., 'tax')."
+    jurisdiction:
+      type: string
+      description: "Optional jurisdiction filter for 'list_templates' (e.g., 'US')."
     pdf_path:
       type: string
-      description: "Path to the AcroForm PDF form."
+      description: "Path to a custom AcroForm PDF form (optional when 'template_id' is provided)."
+    schema_path:
+      type: string
+      description: "Optional path to a custom YAML schema when using an ad-hoc 'pdf_path'."
     edits:
       type: object
-      description: "Mapping of field_id or native field names to proposed values."
+      description: "Mapping of semantic schema field IDs or native field names to proposed values."
     confirmed:
       type: boolean
       default: false
@@ -42,9 +61,21 @@ parameters:
       description: "Convert editable form widgets to permanent vector graphics to prevent post-fill tampering."
     output_path:
       type: string
-      description: "Optional destination path for the filled PDF. Defaults to '<original>_filled.pdf'."
-  required:
-    - pdf_path
+      description: "Optional destination path for the filled PDF. Defaults to '<template_id>_<timestamp>_<filler>.pdf' or '<original>_filled.pdf'."
+    output_dir:
+      type: string
+      description: "Optional directory for auto-named template outputs."
+    filler_name:
+      type: string
+      description: "Optional filler/entity label used in default output filename '<template_id>_<timestamp>_<filler>.pdf'."
+    auto_date:
+      type: boolean
+      default: true
+      description: "Auto-populate schema fields with signature_mode='auto_date' to today's UTC date when omitted or 'auto'."
+    check_required:
+      type: boolean
+      description: "Enforce required schema fields during 'validate' (defaults to true when schema is active)."
+  required: []
 outputs:
   type: object
   properties:
@@ -54,6 +85,18 @@ outputs:
     message:
       type: string
       description: "Human-readable status summary or instruction."
+    count:
+      type: integer
+      description: "Number of templates returned by 'list_templates'."
+    templates:
+      type: array
+      description: "Summary list of discovered templates."
+    sections_index:
+      type: array
+      description: "Ordered section index for 'get_template_schema'."
+    fields:
+      type: array
+      description: "List of detected AcroForm fields or section schema fields."
     page_count:
       type: integer
       description: "Total page count of inspected PDF."
@@ -63,21 +106,18 @@ outputs:
     is_xfa:
       type: boolean
       description: "Whether the PDF uses dynamic XFA architecture."
-    fields:
-      type: array
-      description: "List of detected AcroForm fields (for action='inspect')."
     valid:
       type: boolean
-      description: "Whether proposed edits passed schema validation (for action='validate')."
+      description: "Whether proposed edits passed validation (for action='validate')."
     errors:
       type: array
       description: "List of field mismatch reasons if validation failed."
     preview:
       type: object
-      description: "Review summary returned when action='fill' is invoked without confirmed=true."
+      description: "Redacted review summary returned when action='fill' is invoked without confirmed=true."
     output_path:
       type: string
-      description: "Absolute or relative path to the generated output PDF."
+      description: "Path to the generated output PDF."
     filled_fields:
       type: array
       items:
@@ -86,12 +126,16 @@ outputs:
     flattened:
       type: boolean
       description: "Whether interactive form widgets were permanently baked/flattened."
+env_vars:
+  PDF_TEMPLATES_DIR:
+    description: "Optional directory overriding bundled/user/project PDF form templates and YAML schemas."
+    required: false
 requirements:
   - pymupdf
 constitution: |
-  1. USER PRIVACY: Process PDFs strictly in-memory and on local disk; never exfiltrate document bytes or filled values to external servers.
-  2. INTEGRITY: Verify field types, dropdown choices, and radio button export values deterministically before modifying documents.
-  3. SAFETY: Enforce explicit confirmation before persisting document edits and guard against unsupported dynamic XFA forms.
+  1. USER PRIVACY & PII PROTECTION: Process PDFs strictly in-memory and on local disk; mask fields tagged sensitive: true in previews and logs; never exfiltrate document bytes or filled values.
+  2. INTEGRITY: Verify field types, required schema fields, date formats, dropdown choices, and radio button export values deterministically before modifying documents.
+  3. SAFETY: Enforce explicit confirmation before persisting document edits, guard against unsupported dynamic XFA forms, and never overwrite bundled blank templates.
 presentation:
   icon: "document-text"
   color: "rose"

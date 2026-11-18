@@ -1,0 +1,192 @@
+form_id: "us_irs_w9_2024"
+title: "Request for Taxpayer Identification Number and Certification (Form W-9)"
+revision: "Rev. March 2024"
+jurisdiction: "US"
+category: "tax"
+source_pdf: "templates/us_irs_w9.pdf"
+pages: 6
+
+sections:
+  - id: "part_1_identification"
+    title: "Line 1–7: Name, Tax Classification, Exemptions & Address"
+    description: "Legal name, business name, federal tax classification, exemption codes, and address."
+    fields:
+      - id: "legal_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_01[0]"
+        field_type: "text"
+        page: 0
+        label: "1. Name of entity/individual"
+        description: "Name as shown on your income tax return."
+        required: true
+
+      - id: "business_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_02[0]"
+        field_type: "text"
+        page: 0
+        label: "2. Business name/disregarded entity name, if different from above"
+        required: false
+
+      - id: "tax_class_individual"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[0]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. Individual/sole proprietor"
+        required: false
+        export_value: "1"
+
+      - id: "tax_class_c_corp"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[1]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. C Corporation"
+        required: false
+        export_value: "2"
+
+      - id: "tax_class_s_corp"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[2]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. S Corporation"
+        required: false
+        export_value: "3"
+
+      - id: "tax_class_partnership"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[3]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. Partnership"
+        required: false
+        export_value: "4"
+
+      - id: "tax_class_trust_estate"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[4]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. Trust/estate"
+        required: false
+        export_value: "5"
+
+      - id: "tax_class_llc"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[5]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. Limited liability company (LLC)"
+        required: false
+        export_value: "6"
+
+      - id: "llc_tax_classification_code"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].f1_03[0]"
+        field_type: "text"
+        page: 0
+        label: "3a. LLC tax classification (C, S, or P)"
+        required: false
+
+      - id: "tax_class_other"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_1[6]"
+        field_type: "checkbox"
+        page: 0
+        label: "3a. Other"
+        required: false
+        export_value: "7"
+
+      - id: "tax_class_other_text"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].f1_04[0]"
+        field_type: "text"
+        page: 0
+        label: "3a. Other classification description"
+        required: false
+
+      - id: "has_foreign_partners_3b"
+        pdf_field_name: "topmostSubform[0].Page1[0].Boxes3a-b_ReadOrder[0].c1_2[0]"
+        field_type: "checkbox"
+        page: 0
+        label: "3b. Foreign partners, owners, or beneficiaries"
+        required: false
+        export_value: "1"
+
+      - id: "exempt_payee_code"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_05[0]"
+        field_type: "text"
+        page: 0
+        label: "4. Exempt payee code (if any)"
+        required: false
+
+      - id: "fatca_exemption_code"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_06[0]"
+        field_type: "text"
+        page: 0
+        label: "4. Exemption from FATCA reporting code (if any)"
+        required: false
+
+      - id: "address_street"
+        pdf_field_name: "topmostSubform[0].Page1[0].Address_ReadOrder[0].f1_07[0]"
+        field_type: "text"
+        page: 0
+        label: "5. Address (number, street, and apt. or suite no.)"
+        required: true
+
+      - id: "address_city_state_zip"
+        pdf_field_name: "topmostSubform[0].Page1[0].Address_ReadOrder[0].f1_08[0]"
+        field_type: "text"
+        page: 0
+        label: "6. City, state, and ZIP code"
+        required: true
+
+      - id: "account_numbers"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_09[0]"
+        field_type: "text"
+        page: 0
+        label: "7. List account number(s) here (optional)"
+        required: false
+
+      - id: "requester_name_and_address"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_10[0]"
+        field_type: "text"
+        page: 0
+        label: "Requester's name and address (optional)"
+        required: false
+
+  - id: "part_2_tin"
+    title: "Part I: Taxpayer Identification Number (TIN)"
+    description: "Enter either Social Security Number (SSN) segments or Employer Identification Number (EIN) segments."
+    fields:
+      - id: "ssn_part1"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_11[0]"
+        field_type: "text"
+        page: 0
+        label: "SSN (first 3 digits)"
+        required: false
+        sensitive: true
+
+      - id: "ssn_part2"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_12[0]"
+        field_type: "text"
+        page: 0
+        label: "SSN (middle 2 digits)"
+        required: false
+        sensitive: true
+
+      - id: "ssn_part3"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_13[0]"
+        field_type: "text"
+        page: 0
+        label: "SSN (last 4 digits)"
+        required: false
+        sensitive: true
+
+      - id: "ein_part1"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_14[0]"
+        field_type: "text"
+        page: 0
+        label: "EIN (first 2 digits)"
+        required: false
+        sensitive: true
+
+      - id: "ein_part2"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_15[0]"
+        field_type: "text"
+        page: 0
+        label: "EIN (last 7 digits)"
+        required: false
+        sensitive: true
+
