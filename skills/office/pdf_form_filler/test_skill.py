@@ -101,8 +101,8 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert manifest["name"] == "office/pdf_form_filler"
-    assert skill_manifest["version"] == "0.2.0"
-    assert manifest["version"] == "0.2.0"
+    assert skill_manifest["version"] == "0.2.1"
+    assert manifest["version"] == "0.2.1"
     assert "pymupdf" in manifest.get("requirements", [])
     assert "anthropic" not in manifest.get("requirements", [])
 
@@ -777,3 +777,170 @@ def test_all_four_bundled_tax_templates_discoverable_and_fillable(skill, tmp_pat
     )
     assert f8966_fill["status"] == "success"
     assert os.path.isfile(f8966_fill["output_path"])
+
+
+def test_session_state_machine_full_lifecycle(skill, tmp_path):
+    """Test session_init -> session_update (values, skip, defer) -> session_preview -> session_finalize."""
+    sdir = str(tmp_path / "sessions")
+
+    # 1. Init
+    init_res = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8ben",
+            "session_dir": sdir,
+        }
+    )
+    assert init_res["status"] == "ok"
+    sid = init_res["session_id"]
+    assert sid.startswith("sess_us_irs_w8ben_")
+    assert init_res["progress"]["total_fields"] == 23
+
+    # 2. Update: partial values + skip + defer
+    upd1 = skill.execute(
+        {
+            "action": "session_update",
+            "session_id": sid,
+            "session_dir": sdir,
+            "values": {
+                "beneficial_owner_name": "Alice Smith",
+                "country_of_citizenship": "Germany",
+                "permanent_residence_street": "Musterstrasse 1",
+                "permanent_residence_city_state_postal": "10115 Berlin",
+                "permanent_residence_country": "Germany",
+            },
+            "skip_fields": ["us_tin"],
+            "defer_fields": {"foreign_tin": "looking up tax certificate"},
+        }
+    )
+    assert upd1["status"] == "needs_input"
+    assert upd1["progress"]["filled_count"] == 5
+    assert upd1["progress"]["skipped_count"] == 1
+    assert upd1["progress"]["to_revise_count"] == 1
+    assert upd1["pending_revisions"][0]["field_id"] == "foreign_tin"
+
+    # 3. Update: resolve deferred field & certification
+    upd2 = skill.execute(
+        {
+            "action": "session_update",
+            "session_id": sid,
+            "session_dir": sdir,
+            "values": {
+                "foreign_tin": "DE-123456789",
+                "capacity_to_sign": True,
+                "signature": "Alice Smith",
+                "signer_name": "Alice Smith",
+            },
+        }
+    )
+    assert upd2["status"] == "ready"
+    assert upd2["progress"]["to_revise_count"] == 0
+    assert upd2["progress"]["remaining_required_count"] == 0
+
+    # 4. Preview (masked by default, unmasked on request)
+    prev_masked = skill.execute(
+        {"action": "session_preview", "session_id": sid, "session_dir": sdir}
+    )
+    assert prev_masked["status"] == "preview"
+    assert prev_masked["all_required_resolved"] is True
+    assert (
+        prev_masked["summary_table"]["6a. Foreign tax identifying number"] == "***6789"
+    )
+    assert (
+        prev_masked["summary_table"][
+            "5. U.S. taxpayer identification number (SSN or ITIN), if required"
+        ]
+        == "[SKIPPED]"
+    )
+    assert (
+        "/s/ Alice Smith"
+        in prev_masked["summary_table"][
+            "Signature of beneficial owner (or authorized individual)"
+        ]
+    )
+
+    prev_unmasked = skill.execute(
+        {
+            "action": "session_preview",
+            "session_id": sid,
+            "session_dir": sdir,
+            "unmask": True,
+        }
+    )
+    assert (
+        prev_unmasked["summary_table"]["6a. Foreign tax identifying number"]
+        == "DE-123456789"
+    )
+
+    # 5. Finalize: fails closed without confirmed=True
+    unconfirmed = skill.execute(
+        {
+            "action": "session_finalize",
+            "session_id": sid,
+            "session_dir": sdir,
+            "confirmed": False,
+        }
+    )
+    assert unconfirmed["status"] == "needs_input"
+    assert unconfirmed["error_code"] == "confirmation_required"
+
+    # 6. Finalize: confirmed=True writes flattened PDF
+    out_pdf = str(tmp_path / "alice_w8ben_final.pdf")
+    finalized = skill.execute(
+        {
+            "action": "session_finalize",
+            "session_id": sid,
+            "session_dir": sdir,
+            "output_path": out_pdf,
+            "confirmed": True,
+        }
+    )
+    assert finalized["status"] == "success"
+    assert finalized["flattened"] is True
+    assert os.path.isfile(out_pdf)
+    doc = fitz.open(out_pdf)
+    text = doc[0].get_text()
+    doc.close()
+    assert "Alice Smith" in text
+    assert "/s/ Alice Smith" in text
+    assert "DE-123456789" in text
+
+
+def test_session_expiry_and_invalid_id_fail_closed(skill, tmp_path):
+    sdir = tmp_path / "sessions"
+    bad = skill.execute(
+        {
+            "action": "session_preview",
+            "session_id": "../escape",
+            "session_dir": str(sdir),
+        }
+    )
+    assert bad["status"] == "error"
+    assert bad["error_code"] == "invalid_session_id"
+
+    # Expired session
+    init_res = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8ben",
+            "session_dir": str(sdir),
+        }
+    )
+    sid = init_res["session_id"]
+    sess_file = sdir / f"{sid}.json"
+    import json
+
+    data = json.loads(sess_file.read_text(encoding="utf-8"))
+    data["expires_at"] = "2020-01-01T00:00:00Z"
+    sess_file.write_text(json.dumps(data), encoding="utf-8")
+
+    expired = skill.execute(
+        {
+            "action": "session_update",
+            "session_id": sid,
+            "session_dir": str(sdir),
+            "values": {"signer_name": "X"},
+        }
+    )
+    assert expired["status"] == "error"
+    assert expired["error_code"] == "session_expired"

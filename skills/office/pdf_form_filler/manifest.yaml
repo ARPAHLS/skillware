@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.2.0
+version: 0.2.1
 tier: core
 shape: workflow
 target:
@@ -26,10 +26,14 @@ parameters:
       enum:
         - list_templates
         - get_template_schema
+        - session_init
+        - session_update
+        - session_preview
+        - session_finalize
         - inspect
         - validate
         - fill
-      description: "Operation to execute: 'list_templates', 'get_template_schema', 'inspect', 'validate', or 'fill'."
+      description: "Operation to execute: 'list_templates', 'get_template_schema', 'session_init', 'session_update', 'session_preview', 'session_finalize', 'inspect', 'validate', or 'fill'."
     template_id:
       type: string
       description: "Curated template ID (e.g., 'us_irs_w8ben'). Alternative to 'pdf_path'."
@@ -75,6 +79,30 @@ parameters:
     check_required:
       type: boolean
       description: "Enforce required schema fields during 'validate' (defaults to true when schema is active)."
+    session_id:
+      type: string
+      description: "Active interview session ID returned by 'session_init'."
+    values:
+      type: object
+      description: "Field values to store in 'session_update'."
+    skip_fields:
+      type: array
+      items:
+        type: string
+      description: "Field IDs to mark as 'skipped' in 'session_update'."
+    defer_fields:
+      description: "Field IDs (array or {field_id: note} map) to mark as 'to_revise' in 'session_update'."
+    unmask:
+      type: boolean
+      default: false
+      description: "If true, unmask sensitive PII fields in 'session_preview'."
+    ttl_seconds:
+      type: integer
+      default: 172800
+      description: "Session TTL in seconds for 'session_init' (default 48h)."
+    session_dir:
+      type: string
+      description: "Optional override directory for file-backed session JSON files."
   required: []
 outputs:
   type: object
@@ -129,6 +157,9 @@ outputs:
 env_vars:
   PDF_TEMPLATES_DIR:
     description: "Optional directory overriding bundled/user/project PDF form templates and YAML schemas."
+    required: false
+  PDF_SESSIONS_DIR:
+    description: "Optional directory for file-backed interview session JSON files (default ~/.config/skillware/pdf_sessions)."
     required: false
 requirements:
   - pymupdf

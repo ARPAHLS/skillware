@@ -10,6 +10,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`office/pdf_form_filler` v0.2.1):** Added file-backed conversational interview session state machine (`session_init`, `session_update`, `session_preview`, `session_finalize`) with atomic JSON persistence (`~/.config/skillware/pdf_sessions/`, 48h TTL), per-field lifecycle states (`empty`, `filled`, `skipped`, `to_revise`), PII-masked previews (`unmask=False`), `"/s/ Name"` typed e-sign formatting, and `flatten=True` default on finalization ([#405](https://github.com/ARPAHLS/skillware/issues/405)).
+
 - **Skill (`finance/ephemeral_wallet` v0.1.0):** Spend-capped x402 v2 agent payment sessions (`create_session` / `status` / `pay` / `revoke`) with HTTP 402 handshake (`PAYMENT-REQUIRED` → `PAYMENT-SIGNATURE` → `PAYMENT-RESPONSE`), CAIP-2 networks, SSRF/`allowed_domains`, idempotency/replay protection, soft cap/TTL honesty, and mocked HTTP for CI ([#41](https://github.com/ARPAHLS/skillware/issues/41); design [#272](https://github.com/ARPAHLS/skillware/issues/272)).
 
 ### Changed
