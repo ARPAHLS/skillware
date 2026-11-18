@@ -10,9 +10,13 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Docs:** Added `tests/test_doc_drift.py`, a pytest guard that fails when a **Skill history** table still carries a `TBD` commit placeholder or when `CHANGELOG.md` loses its Keep-a-Changelog `[Unreleased]` subsections ([#477](https://github.com/ARPAHLS/skillware/issues/477)).
+
 ### Changed
 
 ### Fixed
+
+- **Docs (`finance/wallet_screening`):** Replaced the stale `TBD` commit placeholder in the **Skill history** table with the real squash-merge SHA `d58132f` ([#465](https://github.com/ARPAHLS/skillware/pull/465)).
 
 ## [0.6.2] - 2026-11-18
 
