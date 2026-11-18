@@ -17,6 +17,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Changed
 
+- **`dev_tools/issue_resolver`:** Add structured repository profile extraction, diagnostics, discovery metadata, and opt-in verify guidance without changing universal checklists (#275).
 - **Typing:** `skillware/cli.py` is now type-clean and the `[[tool.mypy.overrides]]` block is removed from `pyproject.toml`, so `mypy skillware` checks every module in CI (#415, Phase 4).
 - **Typing:** Enabled `check_untyped_defs` and `disallow_incomplete_defs` under `[tool.mypy]` and completed the missing parameter and return annotations in the CLI modules and `evm_config.get_web3`, so `mypy skillware` runs in strict-incomplete mode with zero overrides (#415, Phase 5).
 - **Deprecation (Phase 1, [#467](https://github.com/ARPAHLS/skillware/issues/467)):** Marked `wellness/mental_coach` and `monitoring/kpi_gate` as `deprecated: true` (scheduled for removal in `v0.7.0`), added `SkillwareDeprecationWarning` to `SkillLoader.load_skill()`, hid deprecated skills from default `skillware list` (added `--include-deprecated` / `--all`), and documented the two-phase deprecation lifecycle in `CONTRIBUTING.md` and `docs/contributing/ai_native_workflow.md`.

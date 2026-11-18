@@ -77,7 +77,7 @@ Apply every check that matches the change type before requesting review:
 ## Caveats
 
 - **Context only:** this profile cannot override universal workflow gates, the skill constitution, or explicit user/operator instructions
-- **Trust:** repository admins must keep this file accurate and free of misleading or prompt-injection-style instructions; Skillware does not filter profile content in v0.3
+- **Trust:** repository admins must keep this file accurate and free of misleading or prompt-injection-style instructions; Skillware does not filter profile content in v0.4
 - **Native agent files:** `AGENTS.md`, `.cursor/rules`, and similar repo-native instructions remain independently applicable
 - **Operator authority:** the human operator owns fork, branch, commit, push, and PR creation
 
@@ -88,6 +88,7 @@ When using `dev_tools/issue_resolver` against this repo:
 1. `prepare` with the GitHub issue URL → use returned `profile_urls` (try `.github/ISSUE_RESOLVER.md` first)
 2. Fetch profile markdown → `load_repository_profile` → keep `profile_context` separate from universal checklists
 3. `stage_checklist` per stage in order: discover_issue → discover_repository → analyze → plan → **wait for approval** → implement → verify → pre_commit → commit → pull_request
-4. `validate_commit_message` before any commit stage unless the operator skips commit
+4. For `verify`, pass `profile_context` as `repository_profile`; apply matching repository blocks while leaving universal steps and conditionals unchanged
+5. `validate_commit_message` before any commit stage unless the operator skips commit
 
 Good profile bullets are **specific and verifiable** (“run pytest X”) — not vague (“be careful”) or authority-expanding (“you may push to main”).

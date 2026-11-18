@@ -3,7 +3,7 @@
     {
       "status": "ready",
       "action": "prepare",
-      "workflow_version": "0.2",
+      "workflow_version": "0.3",
       "issue": {
         "url": "https://github.com/ARPAHLS/skillware/issues/199",
         "api_url": "https://api.github.com/repos/ARPAHLS/skillware/issues/199",
@@ -20,6 +20,15 @@
           "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/.github/ISSUE_RESOLVER.md",
           "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md"
         ],
+        "profile_discovery": {
+          "canonical_path": ".github/ISSUE_RESOLVER.md",
+          "fallback_path": "ISSUE_RESOLVER.md",
+          "profile_urls": [
+            "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/.github/ISSUE_RESOLVER.md",
+            "https://raw.githubusercontent.com/ARPAHLS/skillware/HEAD/ISSUE_RESOLVER.md"
+          ],
+          "adoption_doc_url": "https://github.com/ARPAHLS/skillware/blob/main/docs/contributing/issue_resolver_profile.md"
+        },
         "tree_api_url": "https://api.github.com/repos/ARPAHLS/skillware/git/trees/HEAD?recursive=1"
       },
       "auth": {
@@ -32,7 +41,7 @@
     {
       "status": "ready",
       "action": "load_repository_profile",
-      "workflow_version": "0.2",
+      "workflow_version": "0.3",
       "profile_context": {
         "label": "Repository ISSUE_RESOLVER.md profile",
         "provenance": {
@@ -43,6 +52,11 @@
           "classification": "repository_context_only",
           "can_override_constitution": false,
           "can_grant_authority": false
+        },
+        "parse_status": "ok",
+        "warnings": [],
+        "structured": {
+          "required_checks": "- Run the issue resolver bundle tests."
         },
         "document": {
           "format": "markdown",
@@ -57,6 +71,16 @@
           ]
         }
       }
+    },
+    {
+      "status": "ready",
+      "action": "stage_checklist",
+      "workflow_version": "0.3",
+      "stage": "verify",
+      "profile_applied": true,
+      "repository_profile_steps": [
+        "- Run the issue resolver bundle tests."
+      ]
     }
   ]
 }

@@ -4,7 +4,7 @@
 **Skill ID:** `dev_tools/issue_resolver`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.3.0` — 3 Aug 2026
+- **Version**: `0.4.0` — unreleased
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -19,7 +19,7 @@
 **Recommended install:** `pip install "skillware[dev_tools_issue_resolver]"`. See [Install extras](../../usage/install_extras.md).
 [Skill Library](../README.md) · [Dev Tools](README.md) · [Testing](../../TESTING.md)
 
-A developer-tools skill that accepts any **GitHub issue URL** and guides the host agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written. Callers may also supply a repository's fetched `ISSUE_RESOLVER.md` Markdown for generic parsing into provenance-labelled, context-only profile data.
+A developer-tools skill that accepts any **GitHub issue URL** and guides the host agent through a structured resolution workflow — issue discovery, repository context, analysis, ranked implementation options, verification, commit, and pull request — before and after code is written. Callers may also supply a repository's fetched `ISSUE_RESOLVER.md` Markdown for generic parsing plus deterministic known-section extraction into provenance-labelled, context-only profile data.
 
 The skill is designed to work with **any public or authenticated GitHub repository**. It imposes no project-specific assumptions; the agent reads the target repository's README, CONTRIBUTING guide, and directory structure at runtime to ground analysis in actual conventions. Project-specific context can be injected via the optional `extra_instructions` parameter.
 
@@ -34,9 +34,9 @@ The skill itself does **not** call GitHub, run git, or write code. It validates 
 - **Sequential workflow gates**: Nine ordered stages from issue discovery through pull request, with `stage_checklist` payloads per stage.
 - **Conditional verification**: Each stage includes rules such as run tests if the repo has them, update release notes if the project maintains them, or infer conventions from README when CONTRIBUTING is missing.
 - **Commit-message validation**: `validate_commit_message` rejects AI co-author trailers by default before commit.
-- **Optional repository profiles**: `load_repository_profile` parses caller-fetched `ISSUE_RESOLVER.md` Markdown without interpreting section names, and returns explicit provenance and authority labels.
-- **Ordered profile discovery**: `prepare` exposes `.github/` then root `ISSUE_RESOLVER.md` candidates; the caller fetches the first file that exists.
-- **Stable universal gates**: Repository profiles do not change the stage order, approval requirements, or unaffected universal checklists; smart profile-to-stage merging remains deferred.
+- **Optional repository profiles**: `load_repository_profile` preserves generic Markdown structure and extracts recognized H2 sections with parse status, warnings, provenance, and authority labels.
+- **Ordered profile discovery**: `prepare` exposes `.github/` then root `ISSUE_RESOLVER.md` candidates plus explicit canonical, fallback, and adoption-document metadata; the caller fetches the first file that exists.
+- **Additive verify guidance**: `stage_checklist` can expose verbatim repository `required_checks` and `conditionals` under separate keys for `verify`; universal steps, conditionals, stage order, and approval gates never change.
 - **Caller-injectable context**: The `extra_instructions` field lets any caller inject project-specific style rules, scope constraints, or workflow requirements without modifying the skill.
 - **Graceful authentication**: Operates without a token against public repositories (subject to GitHub's 60 req/hr unauthenticated limit) and upgrades to 5000 req/hr when `GITHUB_TOKEN` is provided.
 
@@ -51,10 +51,18 @@ A thin, deterministic action router. It validates the issue URL against the GitH
 | action | Purpose |
 |--------|---------|
 | `prepare` | Validate issue URL; return GitHub API and raw content URLs |
-| `load_repository_profile` | Parse caller-fetched `ISSUE_RESOLVER.md`; return provenance-labelled, context-only data |
+| `load_repository_profile` | Parse caller-fetched `ISSUE_RESOLVER.md`; return generic plus structured provenance-labelled, context-only data |
 | `workflow_overview` | Ordered list of all workflow stages |
-| `stage_checklist` | Steps and conditionals for one stage |
+| `stage_checklist` | Steps and conditionals for one stage; optionally add separate repository guidance for `verify` |
 | `validate_commit_message` | Pre-commit message gate |
+
+### Repository profile contract
+
+`load_repository_profile` retains `document.sections` and adds `structured`, `parse_status`, and `warnings`. Known H2 headings are normalized case-insensitively; duplicate headings use the first occurrence and produce a warning.
+
+Pass the returned `profile_context` or its `structured` object as `repository_profile` to `stage_checklist`. Only `verify` applies non-empty `required_checks` and `conditionals`, under `repository_profile_steps` and `repository_profile_conditionals`. Each item preserves a Markdown block; the host evaluates conditions. Every successful stage returns `profile_applied`, false when no guidance is applied. Universal arrays remain unchanged.
+
+`prepare.repository.profile_discovery` identifies canonical and fallback paths, ordered profile URLs, and the adoption guide URL. The caller fetches the profile.
 
 ### Directive (`instructions.md`)
 
@@ -320,7 +328,7 @@ print(json.dumps(result, indent=2))
 {
   "status": "ready",
   "action": "prepare",
-  "workflow_version": "0.2",
+  "workflow_version": "0.3",
   "issue": {
     "url": "https://github.com/owner/repo/issues/42",
     "api_url": "https://api.github.com/repos/owner/repo/issues/42",
@@ -337,11 +345,20 @@ print(json.dumps(result, indent=2))
       "https://raw.githubusercontent.com/owner/repo/HEAD/.github/ISSUE_RESOLVER.md",
       "https://raw.githubusercontent.com/owner/repo/HEAD/ISSUE_RESOLVER.md"
     ],
+    "profile_discovery": {
+      "canonical_path": ".github/ISSUE_RESOLVER.md",
+      "fallback_path": "ISSUE_RESOLVER.md",
+      "profile_urls": [
+        "https://raw.githubusercontent.com/owner/repo/HEAD/.github/ISSUE_RESOLVER.md",
+        "https://raw.githubusercontent.com/owner/repo/HEAD/ISSUE_RESOLVER.md"
+      ],
+      "adoption_doc_url": "https://github.com/ARPAHLS/skillware/blob/main/docs/contributing/issue_resolver_profile.md"
+    },
     "tree_api_url": "https://api.github.com/repos/owner/repo/git/trees/HEAD?recursive=1"
   },
   "auth": {
     "token_provided": false,
-    "note": "No GITHUB_TOKEN configured. Unauthenticated rate limit applies (60 req/hr)."
+    "note": "No GITHUB_TOKEN is configured. The GitHub API will apply the unauthenticated rate limit (60 requests per hour). For private repositories or high-volume usage, set GITHUB_TOKEN."
   },
   "extra_instructions": null,
   "next_step": "Call action workflow_overview or stage_checklist for discover_issue. Follow instructions.md stages in order; do not skip gates."
@@ -354,7 +371,7 @@ print(json.dumps(result, indent=2))
 {
   "status": "ready",
   "action": "load_repository_profile",
-  "workflow_version": "0.2",
+  "workflow_version": "0.3",
   "profile_context": {
     "label": "Repository ISSUE_RESOLVER.md profile",
     "provenance": {
@@ -377,6 +394,11 @@ print(json.dumps(result, indent=2))
           "content": "- Run the tests."
         }
       ]
+    },
+    "parse_status": "ok",
+    "warnings": [],
+    "structured": {
+      "required_checks": "- Run the tests."
     }
   }
 }
@@ -400,8 +422,8 @@ print(json.dumps(result, indent=2))
 - **Repository tree size**: Very large repositories may return truncated tree responses from the GitHub API. The agent should note truncation and inspect directories selectively.
 - **Caller-managed profiles**: The caller must discover and fetch `ISSUE_RESOLVER.md`; `execute()` makes no network request and does not verify the asserted `profile_source`.
 - **Context, not authority**: Profile content cannot override the constitution, remove universal gates, or grant authority. Repository administrators are responsible for profile quality and currency.
-- **No profile firewall in v0.3**: The parser preserves prompt-like content without detecting or filtering it. Hosts retain responsibility for authorization checks and safe context handling.
-- **No smart profile integration in v0.3**: The skill does not map sections to stages, merge checklists, compress content, parse YAML, change loaders, generate profiles, or cache them.
+- **No profile firewall in v0.4**: The parser preserves prompt-like content without detecting or filtering it. Hosts retain responsibility for authorization checks and safe context handling.
+- **Bounded profile integration in v0.4**: Only verbatim `required_checks` and `conditionals` blocks can augment `verify` under separate keys. The skill does not parse bullets, evaluate repository conditions, map other sections to stages, compress content, parse YAML, change loaders, generate profiles, or cache them.
 
 Skill history and version notes: [CHANGELOG.md](../../../CHANGELOG.md) (#56, #143, #145).
 

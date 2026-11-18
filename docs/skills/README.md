@@ -102,7 +102,7 @@ Skills that assist developers in understanding codebases, planning changes, and 
 
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[Issue Resolver](dev_tools/issue_resolver.md)** | `dev_tools/issue_resolver` | `workflow` | `0.3.0` (3 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
+| **[Issue Resolver](dev_tools/issue_resolver.md)** | `dev_tools/issue_resolver` | `workflow` | `0.4.0` (unreleased) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
 ## Monitoring
 Observability and guardrails for long-running autonomous agent loops.

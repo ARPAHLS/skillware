@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-WORKFLOW_VERSION = "0.2"
+WORKFLOW_VERSION = "0.3"
 
 # Ordered stages — agent must complete each before advancing.
 STAGE_ORDER: List[str] = [
@@ -256,9 +256,10 @@ def get_workflow_overview() -> Dict[str, Any]:
             for name in STAGE_ORDER
         ],
         "repository_profiles_note": (
-            "v0.3 supports caller-fetched ISSUE_RESOLVER.md parsing as "
-            "provenance-labelled repository context. Smart checklist merging and "
-            "profile_applied remain deferred."
+            "v0.4 supports structured caller-fetched ISSUE_RESOLVER.md profiles. "
+            "The verify checklist may expose required checks and matching "
+            "conditionals under separate repository-profile keys without changing "
+            "universal steps, conditionals, stage order, or approval gates."
         ),
     }
 
