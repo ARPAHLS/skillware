@@ -516,7 +516,20 @@ def apply_edits_detailed(
                     widget.update()
                     applied_fields.add(matched_key)
 
-                # 3. Text, Dropdown & other fields
+                # 3. Signature Widget (typed e-signature rendering)
+                elif widget.field_type == 6:  # PDF_WIDGET_TYPE_SIGNATURE
+                    page.insert_text(
+                        (widget.rect.x0 + 2, widget.rect.y1 - 2),
+                        str(matched_val),
+                        fontsize=9,
+                        fontname="helv",
+                        color=(0, 0, 0),
+                    )
+                    widget.field_value = str(matched_val)
+                    widget.update()
+                    applied_fields.add(matched_key)
+
+                # 4. Text, Dropdown & other fields
                 else:
                     widget.field_value = str(matched_val)
                     widget.update()
