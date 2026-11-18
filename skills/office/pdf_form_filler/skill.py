@@ -170,7 +170,10 @@ class PDFFormFillerSkill(BaseSkill):
 
         if template_id and not pdf_path:
             try:
-                schema = get_template_schema(str(template_id))
+                schema = get_template_schema(
+                    str(template_id),
+                    env_templates_dir=self.credential("PDF_TEMPLATES_DIR"),
+                )
             except KeyError as exc:
                 return {"status": "error", "message": str(exc)}
             pdf_path = schema.get("_pdf_path") or ""
@@ -240,7 +243,11 @@ class PDFFormFillerSkill(BaseSkill):
         category: Optional[str] = None,
         jurisdiction: Optional[str] = None,
     ) -> Dict[str, Any]:
-        templates = list_templates(category=category, jurisdiction=jurisdiction)
+        templates = list_templates(
+            category=category,
+            jurisdiction=jurisdiction,
+            env_templates_dir=self.credential("PDF_TEMPLATES_DIR"),
+        )
         return {
             "status": "ok",
             "count": len(templates),
@@ -254,7 +261,11 @@ class PDFFormFillerSkill(BaseSkill):
         section: Optional[str] = None,
     ) -> Dict[str, Any]:
         try:
-            data = get_template_schema(template_id=template_id, section=section)
+            data = get_template_schema(
+                template_id=template_id,
+                section=section,
+                env_templates_dir=self.credential("PDF_TEMPLATES_DIR"),
+            )
         except KeyError as exc:
             return {"status": "error", "message": str(exc)}
         # Strip internal filesystem path before returning to callers

@@ -19,9 +19,7 @@ def _bundled_kb_dir() -> Path:
 
 def _user_templates_dir() -> Path:
     if os.name == "nt":
-        appdata = os.environ.get("APPDATA")
-        if appdata:
-            return Path(appdata) / "skillware" / "pdf_templates"
+        return Path.home() / "AppData" / "Roaming" / "skillware" / "pdf_templates"
     return Path.home() / ".config" / "skillware" / "pdf_templates"
 
 
@@ -44,11 +42,13 @@ def _project_templates_dir() -> Optional[Path]:
     return None
 
 
-def get_template_roots() -> List[Tuple[str, Path]]:
+def get_template_roots(
+    env_templates_dir: Optional[str] = None,
+) -> List[Tuple[str, Path]]:
     """Return ordered (tier_name, root_dir) pairs per 3-tier + bundled precedence."""
     roots: List[Tuple[str, Path]] = []
 
-    env_dir = os.environ.get("PDF_TEMPLATES_DIR", "").strip()
+    env_dir = (env_templates_dir or "").strip()
     if env_dir:
         roots.append(("env", Path(env_dir).expanduser()))
 
@@ -61,10 +61,12 @@ def get_template_roots() -> List[Tuple[str, Path]]:
     return roots
 
 
-def _iter_schema_files() -> List[Tuple[str, Path, Path]]:
+def _iter_schema_files(
+    env_templates_dir: Optional[str] = None,
+) -> List[Tuple[str, Path, Path]]:
     """Yield (tier, root_dir, schema_path) in precedence order."""
     found: List[Tuple[str, Path, Path]] = []
-    for tier, root in get_template_roots():
+    for tier, root in get_template_roots(env_templates_dir=env_templates_dir):
         if not root.exists():
             continue
         schemas_dir = root / "schemas" if (root / "schemas").is_dir() else root
@@ -113,6 +115,7 @@ def resolve_template_pdf_path(schema: Dict[str, Any]) -> Optional[Path]:
 def list_templates(
     category: Optional[str] = None,
     jurisdiction: Optional[str] = None,
+    env_templates_dir: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Return summary metadata for all discovered templates."""
     cat_filter = category.strip().lower() if category else None
@@ -121,7 +124,7 @@ def list_templates(
     seen: Set[str] = set()
     items: List[Dict[str, Any]] = []
 
-    for tier, root, yml_path in _iter_schema_files():
+    for tier, root, yml_path in _iter_schema_files(env_templates_dir=env_templates_dir):
         try:
             schema = load_schema_file(yml_path, tier=tier, root=root)
         except Exception:
@@ -167,12 +170,13 @@ def list_templates(
 def get_template_schema(
     template_id: str,
     section: Optional[str] = None,
+    env_templates_dir: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Load a template schema by template_id or form_id, optionally filtered to one section."""
     target = template_id.strip().lower()
     matched_schema: Optional[Dict[str, Any]] = None
 
-    for tier, root, yml_path in _iter_schema_files():
+    for tier, root, yml_path in _iter_schema_files(env_templates_dir=env_templates_dir):
         try:
             schema = load_schema_file(yml_path, tier=tier, root=root)
         except Exception:
