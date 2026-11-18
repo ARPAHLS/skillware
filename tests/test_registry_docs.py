@@ -1,5 +1,6 @@
 """Repository documentation consistency tests."""
 
+from difflib import SequenceMatcher
 from pathlib import Path
 import re
 import subprocess
@@ -57,8 +58,8 @@ def get_base_branch_skills(repo_root: Path) -> set[str]:
     return skill_ids
 
 
-def find_skill_history_placeholders(content: str) -> list[int]:
-    """Return line numbers of TBD commit rows within the marked skill history."""
+def find_skill_history_rows(content: str) -> list[tuple[int, str]]:
+    """Return table rows and line numbers within the marked skill history."""
     history = re.search(
         r"<!-- skill-history:begin -->(.*?)<!-- skill-history:end -->",
         content,
@@ -66,27 +67,71 @@ def find_skill_history_placeholders(content: str) -> list[int]:
     )
     if history is None:
         return []
+
+    start_line = content.count("\n", 0, history.start(1)) + 1
     return [
-        content.count("\n", 0, history.start(1) + match.start()) + 1
-        for match in re.finditer(r"(?m)^[ \t]*\|[ \t]*`TBD`[ \t]*\|", history.group(1))
+        (start_line + index, line)
+        for index, line in enumerate(history.group(1).splitlines())
+        if re.match(r"^[ \t]*\|", line)
+    ]
+
+
+def find_skill_history_placeholders(content: str) -> list[int]:
+    """Return line numbers of TBD commit rows within the marked skill history."""
+    return [
+        line_number
+        for line_number, row in find_skill_history_rows(content)
+        if re.match(r"^[ \t]*\|[ \t]*`TBD`[ \t]*\|", row)
     ]
 
 
 def find_stale_skill_history_entries(
     pages: list[Path], base_skill_ids: set[str]
 ) -> list[str]:
-    """Find TBD commit rows for skills already present on origin/main."""
+    """Find baseline TBD rows that remain in current skill histories."""
     failures = []
     for page in pages:
         skill_id = f"{page.parent.name}/{page.stem}"
         if skill_id not in base_skill_ids:
             continue
-        content = page.read_text(encoding="utf-8")
-        for line_number in find_skill_history_placeholders(content):
-            failures.append(
-                f"docs/skills/{skill_id}.md:{line_number}: "
-                "placeholder commit hash `TBD`"
-            )
+        base_result = subprocess.run(
+            ["git", "show", f"origin/main:docs/skills/{skill_id}.md"],
+            cwd=REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        base_content = base_result.stdout
+        current_content = page.read_text(encoding="utf-8")
+        base_rows = find_skill_history_rows(base_content)
+        current_rows = find_skill_history_rows(current_content)
+        base_placeholders = set(find_skill_history_placeholders(base_content))
+        current_placeholders = set(find_skill_history_placeholders(current_content))
+        matcher = SequenceMatcher(
+            None,
+            [row for _, row in base_rows],
+            [row for _, row in current_rows],
+            autojunk=False,
+        )
+
+        for tag, base_start, base_end, current_start, current_end in matcher.get_opcodes():
+            if tag not in {"equal", "replace"}:
+                continue
+            for base_index, current_index in zip(
+                range(base_start, base_end), range(current_start, current_end)
+            ):
+                base_line_number = base_rows[base_index][0]
+                current_line_number = current_rows[current_index][0]
+                if (
+                    base_line_number in base_placeholders
+                    and current_line_number in current_placeholders
+                ):
+                    failures.append(
+                        f"docs/skills/{skill_id}.md:{current_line_number}: "
+                        "placeholder commit hash `TBD`"
+                    )
     return failures
 
 
@@ -397,27 +442,167 @@ def test_changelog_has_valid_unreleased_section():
     assert find_unreleased_changelog_issues(content) == []
 
 
-def test_skill_history_placeholder_only_fails_for_existing_skills(tmp_path: Path):
+def test_new_skill_history_placeholders_are_allowed(tmp_path: Path):
     """New skill placeholders are allowed until their skill lands on main."""
-    existing_page = tmp_path / "finance" / "existing_skill.md"
     new_page = tmp_path / "finance" / "new_skill.md"
-    existing_page.parent.mkdir()
     history = (
         "<!-- skill-history:begin -->\n"
         "## Skill history\n"
         "| `TBD` | pending commit | date | version | author |\n"
         "<!-- skill-history:end -->\n"
     )
-    existing_page.write_text(history, encoding="utf-8")
+    new_page.parent.mkdir()
     new_page.write_text(history, encoding="utf-8")
 
-    failures = find_stale_skill_history_entries(
-        [existing_page, new_page], {"finance/existing_skill"}
+    assert find_stale_skill_history_entries([new_page], set()) == []
+
+
+def test_existing_skill_can_add_new_history_placeholder(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """TBD rows added in the PR are allowed when the baseline has none."""
+    page = tmp_path / "finance" / "existing_skill.md"
+    page.parent.mkdir()
+    page.write_text(
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| `TBD` | newly added | date | version | author |\n"
+        "<!-- skill-history:end -->\n",
+        encoding="utf-8",
+    )
+    base_content = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| [`abc1234`](https://example.com/commit/abc1234) | valid | date | version | author |\n"
+        "<!-- skill-history:end -->\n"
     )
 
-    assert failures == [
-        "docs/skills/finance/existing_skill.md:3: " "placeholder commit hash `TBD`"
+    def show_base_page(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+        assert command == [
+            "git",
+            "show",
+            "origin/main:docs/skills/finance/existing_skill.md",
+        ]
+        return subprocess.CompletedProcess(command, 0, base_content, "")
+
+    monkeypatch.setattr(subprocess, "run", show_base_page)
+
+    assert find_stale_skill_history_entries([page], {"finance/existing_skill"}) == []
+
+
+def test_existing_skill_retaining_base_placeholder_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """A retained baseline TBD fails, but a newly added row is not reported."""
+    page = tmp_path / "finance" / "existing_skill.md"
+    page.parent.mkdir()
+    page.write_text(
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| `TBD` | edited existing entry | updated date | updated version | author |\n"
+        "| `TBD` | newly added | date | version | author |\n"
+        "<!-- skill-history:end -->\n",
+        encoding="utf-8",
+    )
+    base_content = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| `TBD` | existing | date | version | author |\n"
+        "<!-- skill-history:end -->\n"
+    )
+
+    def show_base_page(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+        assert command == [
+            "git",
+            "show",
+            "origin/main:docs/skills/finance/existing_skill.md",
+        ]
+        return subprocess.CompletedProcess(command, 0, base_content, "")
+
+    monkeypatch.setattr(subprocess, "run", show_base_page)
+
+    assert find_stale_skill_history_entries([page], {"finance/existing_skill"}) == [
+        "docs/skills/finance/existing_skill.md:3: placeholder commit hash `TBD`"
     ]
+
+
+def test_existing_skill_duplicate_base_placeholders_match_one_to_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Duplicate baseline rows are matched to distinct current rows."""
+    page = tmp_path / "finance" / "existing_skill.md"
+    page.parent.mkdir()
+    row = "| `TBD` | existing | date | version | author |"
+    page.write_text(
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        f"{row}\n"
+        "<!-- skill-history:end -->\n",
+        encoding="utf-8",
+    )
+    base_content = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        f"{row}\n"
+        f"{row}\n"
+        "<!-- skill-history:end -->\n"
+    )
+
+    def show_base_page(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+        assert command == [
+            "git",
+            "show",
+            "origin/main:docs/skills/finance/existing_skill.md",
+        ]
+        return subprocess.CompletedProcess(command, 0, base_content, "")
+
+    monkeypatch.setattr(subprocess, "run", show_base_page)
+
+    assert find_stale_skill_history_entries([page], {"finance/existing_skill"}) == [
+        "docs/skills/finance/existing_skill.md:3: placeholder commit hash `TBD`"
+    ]
+
+
+@pytest.mark.parametrize(
+    "current_row",
+    [
+        "| [`abc1234`](https://example.com/commit/abc1234) | existing | date | version | author |",
+        None,
+    ],
+)
+def test_existing_skill_correcting_or_removing_base_placeholder_passes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    current_row: str | None,
+):
+    """A baseline TBD no longer fails after it is corrected or removed."""
+    page = tmp_path / "finance" / "existing_skill.md"
+    page.parent.mkdir()
+    current_content = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        + (f"{current_row}\n" if current_row is not None else "")
+        + "<!-- skill-history:end -->\n"
+    )
+    page.write_text(current_content, encoding="utf-8")
+    base_content = (
+        "<!-- skill-history:begin -->\n"
+        "## Skill history\n"
+        "| `TBD` | existing | date | version | author |\n"
+        "<!-- skill-history:end -->\n"
+    )
+
+    def show_base_page(command: list[str], **kwargs) -> subprocess.CompletedProcess:
+        assert command == [
+            "git",
+            "show",
+            "origin/main:docs/skills/finance/existing_skill.md",
+        ]
+        return subprocess.CompletedProcess(command, 0, base_content, "")
+
+    monkeypatch.setattr(subprocess, "run", show_base_page)
+
+    assert find_stale_skill_history_entries([page], {"finance/existing_skill"}) == []
 
 
 def test_skill_history_parser_ignores_non_placeholder_rows_and_other_sections():
