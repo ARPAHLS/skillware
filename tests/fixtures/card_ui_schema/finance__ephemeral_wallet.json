@@ -1,0 +1,33 @@
+{
+  "samples": [
+    {
+      "status": "ready",
+      "session_id": "ews_example000000000000000000000001",
+      "spend_cap_usd": 5.0,
+      "remaining_usd": 5.0,
+      "expires_at": "2026-11-11T16:00:00Z",
+      "network": "base-sepolia",
+      "wallet_address": "0x1111111111111111111111111111111111111111",
+      "settlement": "mock",
+      "agent_hint": "Pass session_id on later status/pay/revoke."
+    },
+    {
+      "status": "confirmed",
+      "session_id": "ews_example000000000000000000000001",
+      "remaining_usd": 4.5,
+      "payment": {
+        "url": "https://api.example.com/v1/resource",
+        "amount_usd": 0.5,
+        "network": "base-sepolia",
+        "tx_ref": "mock_tx_abc",
+        "receipt_ref": "mock_rcpt_xyz"
+      }
+    },
+    {
+      "status": "revoked",
+      "session_id": "ews_example000000000000000000000001",
+      "remaining_usd": 4.5,
+      "revoked_at": "2026-11-11T15:30:00Z"
+    }
+  ]
+}
