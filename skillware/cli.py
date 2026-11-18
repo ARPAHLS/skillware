@@ -3,11 +3,13 @@
 
 import argparse
 import builtins
+import json
 import re
 import subprocess
 import sys
 import yaml
 from collections import defaultdict
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -52,6 +54,7 @@ from skillware.cli_evm import cmd_evm, cmd_evm_dispatch, cmd_evm_submenu
 from skillware.cli_theme import THEMES, ThemePalette, active_theme
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
+    SkillRoot,
     bundled_skill_root,
     find_shadow_conflicts,
     get_skill_roots,
@@ -1507,9 +1510,55 @@ def cmd_paths_submenu(
         console.print()
 
 
+def _skill_root_record(root: SkillRoot, order: int) -> Dict[str, Any]:
+    """One resolvable skills root, in the shape consumed by ``paths --json``."""
+    return {
+        "order": order,
+        "tier": root.tier.value,
+        "path": str(root.path),
+        "exists": bool(root.exists),
+        "skill_count": len(list_registry_skill_ids(root.path)) if root.exists else None,
+    }
+
+
+def _paths_json_payload(cwd: Path, roots: List[SkillRoot]) -> Dict[str, Any]:
+    """Machine-readable form of ``skillware paths`` for CI and agent consumption."""
+    return {
+        "command": "paths",
+        "cwd": str(cwd),
+        "roots": [
+            _skill_root_record(root, index) for index, root in enumerate(roots, start=1)
+        ],
+        "shadowing": [
+            {
+                "skill_id": conflict.skill_id,
+                "winner": {
+                    "tier": conflict.winner.tier.value,
+                    "path": str(conflict.winner.path),
+                },
+                "shadowed": {
+                    "tier": conflict.shadowed.tier.value,
+                    "path": str(conflict.shadowed.path),
+                },
+            }
+            for conflict in find_shadow_conflicts(roots)
+        ],
+        "resolution_order": [
+            {"label": label, "detail": detail}
+            for label, detail in resolution_order_summary()
+        ],
+        "config": {
+            "project": str(project_config_write_path()),
+            "global": str(global_config_path()),
+            "loaded": format_config_sources(load_merged_config()),
+        },
+    }
+
+
 def cmd_paths(
     skills_root_override: Optional[Path] = None,
     console: Optional[Console] = None,
+    json_output: bool = False,
 ) -> int:
     """Show skill root resolution order, tiers, and shadowing (read-only config via skillware config show)."""
     _apply_active_theme()
@@ -1517,11 +1566,18 @@ def cmd_paths(
         console = Console()
 
     cwd = Path.cwd().resolve()
+    roots = get_skill_roots(skills_root_override, for_display=True)
+
+    if json_output:
+        # Resolve first, then serialise: JSON consumers still need a structured
+        # answer when nothing resolved, not an error string meant for a terminal.
+        print(json.dumps(_paths_json_payload(cwd, roots), indent=2, ensure_ascii=False))
+        return 0 if roots else 1
+
     console.print(Text("Skill path resolution", style=TABLE_STYLE))
     console.print(f"  cwd: {cwd}", style="dim")
     console.print()
 
-    roots = get_skill_roots(skills_root_override, for_display=True)
     if not roots:
         console.print(
             "No skill roots configured. Set "
@@ -2080,6 +2136,7 @@ def cmd_doctor(
     skill_id: Optional[str] = None,
     category: Optional[str] = None,
     console: Optional[Console] = None,
+    json_output: bool = False,
 ) -> int:
     """Check manifest deps and skill.py import without running execute()."""
     _apply_active_theme()
@@ -2092,7 +2149,27 @@ def cmd_doctor(
         category=category,
     )
     if error:
-        console.print(error, style=ERROR_STYLE)
+        if json_output:
+            print(
+                json.dumps(
+                    {
+                        "command": "doctor",
+                        "healthy": False,
+                        "skills": [],
+                        "summary": {
+                            "total": 0,
+                            "schema_valid": 0,
+                            "fatal_failures": 0,
+                            "missing_envs": 0,
+                        },
+                        "error": error,
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            console.print(error, style=ERROR_STYLE)
         return 2 if skill_id and category else 1
 
     table = Table(
@@ -2111,12 +2188,19 @@ def cmd_doctor(
     fatal_failures = 0
     missing_envs_count = 0
     rows: List[Tuple[str, Text, Text, Text, Text, str]] = []
+    records: List[Dict[str, Any]] = []
     spinner_label = (
         f"Diagnosing {len(skill_ids)} skill(s)…"
         if len(skill_ids) != 1
         else f"Diagnosing {skill_ids[0]}…"
     )
-    with Status(spinner_label, console=console, spinner="dots"):
+    # Skip the live spinner in JSON mode: stdout has to stay machine-parseable.
+    spinner = (
+        nullcontext()
+        if json_output
+        else Status(spinner_label, console=console, spinner="dots")
+    )
+    with spinner:
         for sid in sorted(skill_ids):
             try:
                 (
@@ -2167,11 +2251,43 @@ def cmd_doctor(
             rows.append(
                 (sid, schema_cell, deps_cell, load_cell, envs_cell, detail or "—")
             )
+            records.append(
+                {
+                    "id": sid,
+                    "schema": schema_status,
+                    "deps": deps_status,
+                    "load": load_status,
+                    "envs": envs_status,
+                    "detail": detail or "",
+                }
+            )
+
+    valid_schema_count = sum(1 for record in records if record["schema"] == "ok")
+
+    if json_output:
+        print(
+            json.dumps(
+                {
+                    "command": "doctor",
+                    "healthy": not fatal_failures,
+                    "skills": records,
+                    "summary": {
+                        "total": len(records),
+                        "schema_valid": valid_schema_count,
+                        "fatal_failures": fatal_failures,
+                        "missing_envs": missing_envs_count,
+                    },
+                    "error": None,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return 1 if fatal_failures else 0
 
     for sid, schema_cell, deps_cell, load_cell, envs_cell, detail in rows:
         table.add_row(sid, schema_cell, deps_cell, load_cell, envs_cell, detail)
 
-    valid_schema_count = sum(1 for s in rows if s[1].plain == "ok")
     console.print(table)
     console.print(
         f"{valid_schema_count}/{len(rows)} skill manifests satisfy Manifest v2 specification",
@@ -2198,13 +2314,45 @@ def cmd_doctor(
     return 1 if fatal_failures else 0
 
 
-def cmd_doctor_install(console: Optional[Console] = None) -> int:
+def cmd_doctor_install(
+    console: Optional[Console] = None,
+    json_output: bool = False,
+) -> int:
     """Report Python package install health (editable vs PyPI overlap)."""
     _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
 
     report = assess_install_health()
+
+    if json_output:
+        print(
+            json.dumps(
+                {
+                    "command": "doctor",
+                    "mode": "install",
+                    "healthy": report.ok,
+                    "display_version": report.display_version,
+                    "distribution_count": report.distribution_count,
+                    "issues": [
+                        {
+                            "code": issue.code,
+                            "message": issue.message,
+                            "dist_label": issue.dist_label,
+                        }
+                        for issue in report.issues
+                    ],
+                    "fix_commands": {
+                        "unix": list(report.fix_commands_unix),
+                        "windows": list(report.fix_commands_windows),
+                    },
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+        return 0 if report.ok else 1
+
     console.print(format_install_health_report(report))
     return 0 if report.ok else 1
 
@@ -2776,6 +2924,12 @@ def main() -> None:
         default=None,
         help="Override the skills directory path for this command only.",
     )
+    paths_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Emit machine-readable JSON to stdout.",
+    )
 
     doctor_parser = subparsers.add_parser(
         "doctor",
@@ -2802,6 +2956,12 @@ def main() -> None:
         "--install",
         action="store_true",
         help="Check skillware package install health (editable vs PyPI conflicts).",
+    )
+    doctor_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Emit machine-readable JSON to stdout.",
     )
 
     config_parser = subparsers.add_parser(
@@ -3238,7 +3398,12 @@ def main() -> None:
             )
         )
     elif args.command == "paths":
-        raise SystemExit(cmd_paths(skills_root_override=args.skills_root))
+        raise SystemExit(
+            cmd_paths(
+                skills_root_override=args.skills_root,
+                json_output=getattr(args, "json_output", False),
+            )
+        )
     elif args.command == "doctor":
         if getattr(args, "install", False):
             if args.skill_id or args.category or args.skills_root:
@@ -3247,12 +3412,15 @@ def main() -> None:
                     "skill/category flags are ignored.",
                     file=sys.stderr,
                 )
-            raise SystemExit(cmd_doctor_install())
+            raise SystemExit(
+                cmd_doctor_install(json_output=getattr(args, "json_output", False))
+            )
         raise SystemExit(
             cmd_doctor(
                 skills_root_override=args.skills_root,
                 skill_id=args.skill_id,
                 category=args.category,
+                json_output=getattr(args, "json_output", False),
             )
         )
     elif args.command == "config":
