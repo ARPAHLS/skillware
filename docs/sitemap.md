@@ -95,6 +95,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 ### Finance
 
 - [Finance hub](skills/finance/README.md)
+- [`finance/ephemeral_wallet`](skills/finance/ephemeral_wallet.md)
 - [`finance/uk_companies_house_handler`](skills/finance/uk_companies_house_handler.md)
 - [`finance/wallet_screening`](skills/finance/wallet_screening.md)
 
