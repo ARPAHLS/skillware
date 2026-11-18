@@ -259,6 +259,23 @@ result = skill.execute({
 })
 print(json.dumps(result, indent=2))
 ```
+## Bundled Tax & Compliance Templates
+
+| `template_id` | Form | Revision | Sections |
+| :--- | :--- | :--- | :--- |
+| `us_irs_w8ben` | IRS Form W-8BEN (Individuals) | Rev. Oct 2021 | `part_1_identification`, `part_2_treaty`, `part_3_certification` |
+| `us_irs_w9` | IRS Form W-9 (Request for TIN) | Rev. Mar 2024 | `part_1_identification`, `part_2_tin` |
+| `us_irs_w8bene` | IRS Form W-8BEN-E (Entities) | Rev. Oct 2021 | `part_1_identification`, `part_30_certification` |
+| `us_irs_f8966_fatca` | IRS Form 8966 (FATCA Report) | Rev. 2024 | `part_1_filer_identification`, `part_4_financial_information` |
+
+```python
+# Multi-turn curated template flow (see examples/pdf_form_filler_w8ben_demo.py)
+skill.execute({"action": "list_templates", "category": "tax"})
+skill.execute({"action": "get_template_schema", "template_id": "us_irs_w8ben", "section": "part_1_identification"})
+skill.execute({"action": "fill", "template_id": "us_irs_w8ben", "edits": edits, "confirmed": False})  # PII-redacted preview
+skill.execute({"action": "fill", "template_id": "us_irs_w8ben", "edits": edits, "confirmed": True, "flatten": True})
+```
+
 ## Data Schema
 
 The skill returns a JSON object with the result of the operation.
@@ -318,4 +335,4 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 ## Enterprise disclaimer
 
-This skill is provided for demonstration and integration purposes. It is intended as a starting point that you can adapt to your own data, schemas, and operational requirements. For an enterprise-grade version of this skill with dedicated support, SLAs, and customization, contact skills@arpacorp.net.
+This skill is provided for demonstration and integration purposes. It is intended as a starting point that you can adapt to your own data, schemas, and operational requirements. For an enterprise-grade version of this skill with dedicated support, SLAs, and customization—or for additional government, tax, legal, and custom AcroForm templates—contact skills@arpacorp.net.

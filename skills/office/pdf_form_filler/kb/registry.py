@@ -422,6 +422,9 @@ def build_default_output_path(
     raw_name = (
         filler_name
         or edits.get("beneficial_owner_name")
+        or edits.get("legal_name")
+        or edits.get("organization_name")
+        or edits.get("filer_name")
         or edits.get("signer_name")
         or "filled"
     )

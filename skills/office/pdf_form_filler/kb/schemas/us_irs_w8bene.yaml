@@ -1,0 +1,95 @@
+form_id: "us_irs_w8bene_2021"
+title: "Certificate of Status of Beneficial Owner for United States Tax Withholding and Reporting (Entities)"
+revision: "Rev. October 2021"
+jurisdiction: "US"
+category: "tax"
+source_pdf: "templates/us_irs_w8bene.pdf"
+pages: 8
+
+sections:
+  - id: "part_1_identification"
+    title: "Part I: Identification of Beneficial Owner (Entity)"
+    description: "Entity legal name, country of incorporation, disregarded entity, and Chapter 3 status."
+    fields:
+      - id: "organization_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_1[0]"
+        field_type: "text"
+        page: 0
+        label: "1. Name of organization that is the beneficial owner"
+        required: true
+
+      - id: "country_of_incorporation"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_2[0]"
+        field_type: "text"
+        page: 0
+        label: "2. Country of incorporation or organization"
+        required: true
+
+      - id: "disregarded_entity_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f1_3[0]"
+        field_type: "text"
+        page: 0
+        label: "3. Name of disregarded entity receiving the payment (if applicable)"
+        required: false
+
+      - id: "chapter3_corporation"
+        pdf_field_name: "topmostSubform[0].Page1[0].c1_1[0]"
+        field_type: "checkbox"
+        page: 0
+        label: "4. Chapter 3 Status: Corporation"
+        required: false
+        export_value: "1"
+
+      - id: "chapter3_partnership"
+        pdf_field_name: "topmostSubform[0].Page1[0].c1_1[4]"
+        field_type: "checkbox"
+        page: 0
+        label: "4. Chapter 3 Status: Partnership"
+        required: false
+        export_value: "5"
+
+      - id: "chapter3_government"
+        pdf_field_name: "topmostSubform[0].Page1[0].c1_1[8]"
+        field_type: "checkbox"
+        page: 0
+        label: "4. Chapter 3 Status: Foreign Government - Controlled Entity"
+        required: false
+        export_value: "9"
+
+  - id: "part_30_certification"
+    title: "Part XXX: Certification"
+    description: "Authorized signature, printed signer name, and signature date."
+    fields:
+      - id: "capacity_to_sign"
+        pdf_field_name: "topmostSubform[0].Page8[0].c8_3[0]"
+        field_type: "checkbox"
+        page: 7
+        label: "I certify that I have the capacity to sign for the entity identified on line 1"
+        required: true
+        export_value: "1"
+
+      - id: "signature"
+        pdf_field_name: "topmostSubform[0].Page8[0].f8_30[0]"
+        field_type: "signature"
+        page: 7
+        label: "Signature of individual authorized to sign for beneficial owner"
+        signature_mode: "typed_e_sign"
+        required: false
+
+      - id: "signer_name"
+        pdf_field_name: "topmostSubform[0].Page8[0].f8_31[0]"
+        field_type: "text"
+        page: 7
+        label: "Print Name"
+        signature_mode: "typed_e_sign"
+        required: true
+
+      - id: "signature_date"
+        pdf_field_name: "topmostSubform[0].Page8[0].f8_32[0]"
+        field_type: "date"
+        page: 7
+        label: "Date (MM-DD-YYYY)"
+        signature_mode: "auto_date"
+        date_format: "MM-DD-YYYY"
+        required: true
+

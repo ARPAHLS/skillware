@@ -680,3 +680,100 @@ def test_operator_env_template_override_and_path_traversal_guard(
     assert listed["count"] == 1
     assert listed["templates"][0]["template_id"] == "custom_tax"
     assert listed["templates"][0]["tier"] == "env"
+
+
+def test_all_four_bundled_tax_templates_discoverable_and_fillable(skill, tmp_path):
+    """Verify W-8BEN, W-9, W-8BEN-E, and 8966 FATCA are all discoverable, valid, and fillable."""
+    listed = skill.execute({"action": "list_templates", "category": "tax"})
+    assert listed["status"] == "ok"
+    ids = {t["template_id"] for t in listed["templates"]}
+    assert {"us_irs_w8ben", "us_irs_w9", "us_irs_w8bene", "us_irs_f8966_fatca"} <= ids
+
+    # 1. W-9 fill + PII redaction
+    w9_edits = {
+        "legal_name": "Acme Robotics Inc",
+        "tax_class_c_corp": True,
+        "address_street": "500 Market St",
+        "address_city_state_zip": "San Francisco, CA 94105",
+        "ein_part1": "94",
+        "ein_part2": "3456789",
+    }
+    w9_prev = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w9",
+            "edits": w9_edits,
+            "output_dir": str(tmp_path),
+            "confirmed": False,
+        }
+    )
+    assert w9_prev["status"] == "needs_input"
+    assert w9_prev["preview"]["proposed_edits"]["ein_part2"] == "***6789"
+    w9_fill = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w9",
+            "edits": w9_edits,
+            "output_dir": str(tmp_path),
+            "confirmed": True,
+            "flatten": True,
+        }
+    )
+    assert w9_fill["status"] == "success"
+    assert os.path.isfile(w9_fill["output_path"])
+
+    # 2. W-8BEN-E fill
+    w8bene_edits = {
+        "organization_name": "Aegean Holdings Ltd",
+        "country_of_incorporation": "Cyprus",
+        "chapter3_corporation": True,
+        "capacity_to_sign": True,
+        "signature": "Nikos Georgiou",
+        "signer_name": "Nikos Georgiou",
+    }
+    w8bene_fill = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8bene",
+            "edits": w8bene_edits,
+            "output_dir": str(tmp_path),
+            "confirmed": True,
+            "flatten": True,
+        }
+    )
+    assert w8bene_fill["status"] == "success"
+    assert os.path.isfile(w8bene_fill["output_path"])
+
+    # 3. Form 8966 FATCA fill + PII redaction
+    f8966_edits = {
+        "filer_id_number": "98-7654321",
+        "filer_name": "Mediterranean Custody SA",
+        "filer_address_street": "10 Kifisias Ave",
+        "filer_city_town": "Athens",
+        "filer_country": "Greece",
+        "account_number": "ACCT-99887766",
+        "account_balance": "250000.00",
+    }
+    f8966_prev = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_f8966_fatca",
+            "edits": f8966_edits,
+            "output_dir": str(tmp_path),
+            "confirmed": False,
+        }
+    )
+    assert f8966_prev["status"] == "needs_input"
+    assert f8966_prev["preview"]["proposed_edits"]["account_number"] == "***7766"
+    f8966_fill = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_f8966_fatca",
+            "edits": f8966_edits,
+            "output_dir": str(tmp_path),
+            "confirmed": True,
+            "flatten": True,
+        }
+    )
+    assert f8966_fill["status"] == "success"
+    assert os.path.isfile(f8966_fill["output_path"])
