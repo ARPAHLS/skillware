@@ -2093,3 +2093,116 @@ def test_cmd_list_hides_deprecated_by_default(tmp_path):
     out_all = buf_all.getvalue()
     assert "active_skill" in out_all
     assert "old_skill" in out_all
+
+
+def _write_verifiable_skill(tmp_path, skill_id="office/demo"):
+    """Demo skill plus the instructions.md / card.json that --verify hashes."""
+    skill_dir = _write_demo_skill(tmp_path, skill_id=skill_id)
+    (skill_dir / "instructions.md").write_text("# Demo\n", encoding="utf-8")
+    (skill_dir / "card.json").write_text('{"title": "Demo"}\n', encoding="utf-8")
+    return skill_dir
+
+
+def test_cmd_doctor_verify_reports_without_writing(tmp_path, monkeypatch, capsys):
+    import json
+
+    _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, verify=True) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["verify"]["enabled"] is True
+    assert payload["verify"]["lockfile"] is None
+    assert payload["verify"]["written"] is False
+    assert payload["verify"]["bundles"][0]["status"] == "computed"
+    assert not (tmp_path / "skills.lock.json").exists()
+
+
+def test_cmd_doctor_verify_writes_lockfile_then_matches(tmp_path, monkeypatch, capsys):
+    import json
+
+    _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    lockfile = tmp_path / "skills.lock.json"
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, lockfile=lockfile) == 0
+    written = json.loads(capsys.readouterr().out)
+    assert written["verify"]["written"] is True
+    assert lockfile.is_file()
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, lockfile=lockfile) == 0
+    matched = json.loads(capsys.readouterr().out)
+    assert matched["verify"]["matched"] == 1
+    assert matched["verify"]["drifted"] == 0
+    assert matched["healthy"] is True
+
+
+def test_cmd_doctor_verify_flags_drift(tmp_path, monkeypatch, capsys):
+    import json
+
+    skill_dir = _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    lockfile = tmp_path / "skills.lock.json"
+    assert cmd_doctor(skill_id="office/demo", json_output=True, lockfile=lockfile) == 0
+    capsys.readouterr()
+
+    (skill_dir / "skill.py").write_text("# tampered\n", encoding="utf-8")
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, lockfile=lockfile) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["verify"]["drifted"] == 1
+    assert payload["verify"]["ok"] is False
+    assert payload["healthy"] is False
+
+
+def test_cmd_doctor_verify_counts_missing_core_file(tmp_path, monkeypatch, capsys):
+    import json
+
+    skill_dir = _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    (skill_dir / "card.json").unlink()
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, verify=True) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["verify"]["missing"] == 1
+    assert payload["verify"]["bundles"][0]["status"] == "missing"
+
+
+def test_cmd_doctor_verify_rejects_update_without_lockfile(
+    tmp_path, monkeypatch, capsys
+):
+    import json
+
+    _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True, update=True) == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["healthy"] is False
+    assert "--update requires --lockfile" in payload["error"]
+
+
+def test_main_doctor_verify_flags_are_parsed(monkeypatch, tmp_path):
+    import sys
+    from skillware.cli import main
+
+    _write_verifiable_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    lockfile = tmp_path / "skills.lock.json"
+    argv = [
+        "skillware",
+        "doctor",
+        "office/demo",
+        "--verify",
+        "--lockfile",
+        str(lockfile),
+    ]
+    monkeypatch.setattr(sys, "argv", argv)
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        monkeypatch.setattr(sys, "argv", sys.argv)
+    assert lockfile.is_file()

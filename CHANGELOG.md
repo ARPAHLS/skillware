@@ -14,6 +14,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Skill (`finance/ephemeral_wallet` v0.1.0):** Spend-capped x402 v2 agent payment sessions (`create_session` / `status` / `pay` / `revoke`) with HTTP 402 handshake (`PAYMENT-REQUIRED` → `PAYMENT-SIGNATURE` → `PAYMENT-RESPONSE`), CAIP-2 networks, SSRF/`allowed_domains`, idempotency/replay protection, soft cap/TTL honesty, and mocked HTTP for CI ([#41](https://github.com/ARPAHLS/skillware/issues/41); design [#272](https://github.com/ARPAHLS/skillware/issues/272)).
 - **CLI:** `skillware doctor` (including `doctor --install`) and `skillware paths` accept `--json` and emit machine-readable JSON on stdout, so CI pipelines, scripts, and coding agents can read install health and resolved root tiers without scraping Rich tables ([#476](https://github.com/ARPAHLS/skillware/issues/476)).
+- **CLI:** `skillware doctor --verify` hashes skill bundles (SHA-256 over bundle-relative paths and file bytes, so the digest is location-independent) and compares them against a `--lockfile`, reporting `match` / `drift` / `new` / `missing` with exit code `1` on any mismatch; `--update` regenerates the lockfile and `--all-files` widens the digest beyond the four core bundle files. With `--json` the payload gains a `verify` section and `healthy` reflects both the diagnostic table and the verification ([#482](https://github.com/ARPAHLS/skillware/issues/482)).
 
 ### Changed
 

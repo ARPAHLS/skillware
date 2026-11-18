@@ -403,6 +403,9 @@ Check whether skills are valid and can load in the current environment — Manif
     skillware doctor --category compliance
     skillware doctor --skills-root /path/to/my/skills
     skillware doctor --install
+    skillware doctor --verify
+    skillware doctor --verify --lockfile skills.lock.json
+    skillware doctor --verify --lockfile skills.lock.json --update
 
 #### Arguments and flags
 
@@ -414,6 +417,10 @@ Check whether skills are valid and can load in the current environment — Manif
 | `--skills-root <path>` | Override the skills directory for discovery and load |
 | `--install` | Check Python package install health (editable vs PyPI conflicts); ignores skill args |
 | `--json` | Emit machine-readable JSON to stdout instead of the Rich table |
+| `--verify` | Hash the selected bundles and compare them against `--lockfile` |
+| `--lockfile <path>` | Bundle lockfile: written when absent (or with `--update`), compared when present |
+| `--update` | Rewrite the lockfile even though it exists; requires `--lockfile` |
+| `--all-files` | Hash every file in the bundle instead of the four core files |
 
 **SCHEMA** validates the manifest against the Manifest v2 JSON Schema and tag governance policy. **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
@@ -424,6 +431,23 @@ Exit code is non-zero (`1`) when any skill fails hard integrity checks (**SCHEMA
 **`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
 
 `--json` emits one object on stdout: `command`, `healthy`, `skills[]` (`id`, `schema`, `deps`, `load`, `envs`, `detail`), and `summary` (`total`, `schema_valid`, `fatal_failures`, `missing_envs`). `doctor --install --json` instead returns `mode: "install"`, `display_version`, `distribution_count`, `issues[]`, and `fix_commands`. Exit codes are unchanged (`0` healthy, `1` unhealthy, `2` conflicting filters).
+
+#### Bundle verification (`--verify`)
+
+`skillware doctor --verify` hashes each selected bundle so CI can prove the skills it is about to run are the ones that were reviewed. The digest is SHA-256 over the bundle's files in path order, keyed only by bundle-relative paths and file bytes — the same bundle produces the same digest on any machine and in any directory.
+
+By default the hashed files are `manifest.yaml`, `skill.py`, `instructions.md`, and `card.json`, so editing a data file such as `kb/corpus.json` does not show up as drift. Pass `--all-files` to fold every file in the bundle (excluding `__pycache__`, `*.pyc`, and `.DS_Store`) into the digest.
+
+    skillware doctor --verify                        # report digests only, writes nothing
+    skillware doctor --verify --lockfile skills.lock.json             # write it the first time
+    skillware doctor --verify --lockfile skills.lock.json             # compare on later runs
+    skillware doctor --verify --lockfile skills.lock.json --update    # accept reviewed changes
+
+A run with `--lockfile` writes the lockfile when the file does not exist yet (or when `--update` is passed) and compares against it otherwise. Comparison statuses are `match`, `drift` (content changed), `new` (bundle absent from the lockfile), and `missing` (a core bundle file is absent). Exit code is `1` when anything drifted, is untracked, or is incomplete, and `0` otherwise, so `--verify --lockfile ...` works as a CI gate next to `--json`.
+
+With `--json`, the payload gains a `verify` object: `enabled`, `lockfile`, `written`, `matched`, `drifted`, `new`, `missing`, `ok`, and `bundles[]` (`id`, `status`, `digest`, and `lockfile_digest` when known). `healthy` is true only when the diagnostic table and the verification both pass, so a pipeline can read one field.
+
+The lockfile is a JSON file with a `schema` of `skillware-lockfile/1`, a `generated_at` timestamp, and a `bundles` map from skill ID to `{digest, files}`. Commit it and let CI run `--verify` without `--update`; regenerate it deliberately when a bundle changes. Line endings are part of the digest, so generate the lockfile on the same platform as the check (CI, not a mixed local checkout).
 
 Interactive menu: **`5` / `doctor`**.
 
