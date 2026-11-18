@@ -101,8 +101,8 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert manifest["name"] == "office/pdf_form_filler"
-    assert skill_manifest["version"] == "0.1.2"
-    assert manifest["version"] == "0.1.2"
+    assert skill_manifest["version"] == "0.2.0"
+    assert manifest["version"] == "0.2.0"
     assert "pymupdf" in manifest.get("requirements", [])
     assert "anthropic" not in manifest.get("requirements", [])
 
@@ -433,3 +433,250 @@ def test_multi_page_form_handling(skill, tmp_path):
     )
     assert fill_res["status"] == "success"
     assert len(fill_res["filled_fields"]) == 2
+
+
+# ---------------------------------------------------------------------------
+# v0.2.0 KB Templates, Section-Chunked Schemas, PII Redaction & W-8BEN Tests
+# ---------------------------------------------------------------------------
+
+
+def test_list_templates_discovers_w8ben(skill):
+    res = skill.execute({"action": "list_templates"})
+    assert res["status"] == "ok"
+    assert res["count"] >= 1
+    ids = [t["template_id"] for t in res["templates"]]
+    assert "us_irs_w8ben" in ids
+
+    w8 = next(t for t in res["templates"] if t["template_id"] == "us_irs_w8ben")
+    assert w8["category"] == "tax"
+    assert w8["jurisdiction"] == "US"
+    assert w8["section_count"] == 3
+    assert w8["field_count"] == 23
+    assert w8["pdf_available"] is True
+
+    filtered = skill.execute(
+        {"action": "list_templates", "category": "tax", "jurisdiction": "US"}
+    )
+    assert filtered["count"] >= 1
+    empty = skill.execute({"action": "list_templates", "jurisdiction": "JP"})
+    assert empty["count"] == 0
+
+
+def test_get_template_schema_section_chunking(skill):
+    full = skill.execute(
+        {"action": "get_template_schema", "template_id": "us_irs_w8ben"}
+    )
+    assert full["status"] == "ok"
+    assert len(full["sections"]) == 3
+    assert len(full["sections_index"]) == 3
+
+    sec1 = skill.execute(
+        {
+            "action": "get_template_schema",
+            "template_id": "us_irs_w8ben",
+            "section": "part_1_identification",
+        }
+    )
+    assert sec1["status"] == "ok"
+    assert "sections" not in sec1
+    assert sec1["section"]["id"] == "part_1_identification"
+    field_ids = [f["id"] for f in sec1["fields"]]
+    assert "beneficial_owner_name" in field_ids
+    assert "foreign_tin" in field_ids
+    assert "treaty_country" not in field_ids
+
+    bad_sec = skill.execute(
+        {
+            "action": "get_template_schema",
+            "template_id": "us_irs_w8ben",
+            "section": "nonexistent_part",
+        }
+    )
+    assert bad_sec["status"] == "error"
+
+    bad_tpl = skill.execute(
+        {"action": "get_template_schema", "template_id": "unknown_form"}
+    )
+    assert bad_tpl["status"] == "error"
+
+
+def test_w8ben_validate_required_and_date_format(skill):
+    missing = skill.execute(
+        {
+            "action": "validate",
+            "template_id": "us_irs_w8ben",
+            "edits": {"beneficial_owner_name": "Jane Doe"},
+        }
+    )
+    assert missing["status"] == "error"
+    assert missing["valid"] is False
+    missing_fields = {e["field"] for e in missing["errors"]}
+    assert "country_of_citizenship" in missing_fields
+    assert "capacity_to_sign" in missing_fields
+
+    bad_date = skill.execute(
+        {
+            "action": "validate",
+            "template_id": "us_irs_w8ben",
+            "edits": {
+                "beneficial_owner_name": "Jane Doe",
+                "country_of_citizenship": "Greece",
+                "permanent_residence_street": "10 Ermou St",
+                "permanent_residence_city_state_postal": "Athens 10563",
+                "permanent_residence_country": "Greece",
+                "date_of_birth": "1990-05-12",  # invalid: must be MM-DD-YYYY
+                "capacity_to_sign": True,
+                "signer_name": "Jane Doe",
+            },
+        }
+    )
+    assert bad_date["status"] == "error"
+    assert any(e["field"] == "date_of_birth" for e in bad_date["errors"])
+
+
+def test_w8ben_fill_pii_redaction_and_output_naming(skill, tmp_path):
+    edits = {
+        "beneficial_owner_name": "Elena Papadopoulou",
+        "country_of_citizenship": "Greece",
+        "permanent_residence_street": "24 Syntagma Sq",
+        "permanent_residence_city_state_postal": "Athens 10563",
+        "permanent_residence_country": "Greece",
+        "foreign_tin": "EL-987654321",
+        "date_of_birth": "04-15-1992",
+        "treaty_country": "Greece",
+        "treaty_article_and_paragraph": "Article 12(2)",
+        "treaty_withholding_rate_pct": "5",
+        "treaty_income_type": "Royalties",
+        "capacity_to_sign": True,
+        "signature": "Elena Papadopoulou",
+        "signer_name": "Elena Papadopoulou",
+    }
+
+    # Preview (confirmed=False) must redact sensitive PII fields
+    preview_res = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8ben",
+            "edits": edits,
+            "output_dir": str(tmp_path),
+            "confirmed": False,
+        }
+    )
+    assert preview_res["status"] == "needs_input"
+    prev = preview_res["preview"]
+    assert prev["proposed_edits"]["foreign_tin"] == "***4321"
+    assert prev["proposed_edits"]["date_of_birth"] == "***1992"
+    assert prev["proposed_edits"]["beneficial_owner_name"] == "Elena Papadopoulou"
+    assert "foreign_tin" in prev["redacted_fields"]
+    assert "date_of_birth" in prev["redacted_fields"]
+    assert "us_irs_w8ben_" in os.path.basename(prev["output_path"])
+    assert prev["output_path"].endswith("_elena_papadopoulou.pdf")
+
+    # Confirmed fill with flatten=True
+    fill_res = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8ben",
+            "edits": edits,
+            "output_dir": str(tmp_path),
+            "confirmed": True,
+            "flatten": True,
+        }
+    )
+    assert fill_res["status"] == "success"
+    assert fill_res["flattened"] is True
+    out_file = fill_res["output_path"]
+    assert os.path.isfile(out_file)
+
+    # Verify filled text is present in the flattened output PDF
+    doc = fitz.open(out_file)
+    text = doc[0].get_text()
+    doc.close()
+    assert "Elena Papadopoulou" in text
+    assert "EL-987654321" in text
+    assert "Article 12(2)" in text
+
+
+def test_w8ben_unflattened_widgets_roundtrip(skill, tmp_path):
+    out_pdf = str(tmp_path / "w8ben_editable.pdf")
+    edits = {
+        "beneficial_owner_name": "Nikos Kazantzakis",
+        "country_of_citizenship": "Greece",
+        "permanent_residence_street": "12 Heraklion Ave",
+        "permanent_residence_city_state_postal": "Heraklion 71201",
+        "permanent_residence_country": "Greece",
+        "ftin_not_legally_required": True,
+        "capacity_to_sign": True,
+        "signature_date": "11-18-2026",
+        "signer_name": "Nikos Kazantzakis",
+    }
+    res = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8ben",
+            "edits": edits,
+            "output_path": out_pdf,
+            "confirmed": True,
+            "flatten": False,
+        }
+    )
+    assert res["status"] == "success"
+    doc = fitz.open(out_pdf)
+    widgets = {w.field_name: w.field_value for w in doc[0].widgets()}
+    doc.close()
+    assert widgets["topmostSubform[0].Page1[0].f_1[0]"] == "Nikos Kazantzakis"
+    assert widgets["topmostSubform[0].Page1[0].Date[0]"] == "11-18-2026"
+    assert widgets["topmostSubform[0].Page1[0].c1_01[0]"] in (True, "1", "Yes")
+    assert widgets["topmostSubform[0].Page1[0].c1_02[0]"] in (True, "1", "Yes")
+
+
+def test_operator_env_template_override_and_path_traversal_guard(
+    skill, tmp_path, monkeypatch
+):
+    from skills.office.pdf_form_filler.kb.registry import resolve_template_pdf_path
+
+    # Path traversal must be rejected
+    with pytest.raises(ValueError, match="Unsafe source_pdf"):
+        resolve_template_pdf_path(
+            {"source_pdf": "../../../../etc/passwd", "_root_dir": str(tmp_path)}
+        )
+
+    # Custom template via PDF_TEMPLATES_DIR (with radio group schema)
+    custom_root = tmp_path / "custom_kb"
+    (custom_root / "schemas").mkdir(parents=True)
+    (custom_root / "templates").mkdir(parents=True)
+
+    # Create a minimal 1-page static PDF with a radio button group
+    pdf_path = custom_root / "templates" / "custom_radio.pdf"
+    doc = fitz.open()
+    doc.new_page()
+    doc.save(str(pdf_path))
+    doc.close()
+
+    (custom_root / "schemas" / "custom_tax.yaml").write_text(
+        "form_id: custom_tax_v1\n"
+        "title: Custom Radio Tax Form\n"
+        "jurisdiction: EU\n"
+        "category: tax\n"
+        "source_pdf: templates/custom_radio.pdf\n"
+        "sections:\n"
+        "  - id: part_1\n"
+        "    title: Part 1\n"
+        "    fields:\n"
+        "      - id: entity_type\n"
+        "        pdf_field_name: entity_type_radio\n"
+        "        field_type: radio\n"
+        "        required: true\n"
+        "        options:\n"
+        "          - label: Individual\n"
+        "            export_value: Choice1\n"
+        "          - label: Corporation\n"
+        "            export_value: Choice2\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("PDF_TEMPLATES_DIR", str(custom_root))
+    listed = skill.execute({"action": "list_templates", "jurisdiction": "EU"})
+    assert listed["count"] == 1
+    assert listed["templates"][0]["template_id"] == "custom_tax"
+    assert listed["templates"][0]["tier"] == "env"

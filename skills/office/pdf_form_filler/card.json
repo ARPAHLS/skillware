@@ -1,6 +1,6 @@
 {
     "name": "PDF Form Filler",
-    "description": "Deterministic AcroForm PDF inspection, validation, and filling engine.",
+    "description": "Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",

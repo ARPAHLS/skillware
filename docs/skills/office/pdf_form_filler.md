@@ -3,11 +3,11 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.1.2` — 16 Oct 2026
+- **Version**: `0.2.0` — 18 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
-- **Tags**: `pdf`, `form_filling`, `documents`, `acrobat`
+- **Tags**: `pdf`, `form_filling`, `documents`, `acrobat`, `compliance`, `tax`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Inspect, validate, and fill AcroForm PDFs deterministically with XFA guards, radio group handling, and vector flattening.
@@ -22,10 +22,13 @@ A deterministic productivity skill that inspects, validates, and fills AcroForm-
 
 ## Capabilities
 
-*   **Multi-Action Protocol**: Discrete actions (`inspect`, `validate`, `fill`) giving host models full visibility and control over field discovery and form filling.
+*   **Curated Template KB & 3-Tier Discovery**: Ships verified static AcroForm templates (starting with `us_irs_w8ben`, IRS Form W-8BEN Rev. Oct 2021) via `list_templates` and `get_template_schema`, with 3-tier operator overrides (`PDF_TEMPLATES_DIR`, `.skillware.yaml` `pdf.templates_dir`, `~/.config/skillware/pdf_templates/`).
+*   **Section-Chunked Schemas**: `get_template_schema(section=...)` returns one logical section at a time to protect LLM context windows.
+*   **PII Sensitivity Tagging & Redaction**: Fields tagged `sensitive: true` (TINs, birthdates) are masked in `confirmed: false` previews.
+*   **Multi-Action Protocol**: Discrete actions (`list_templates`, `get_template_schema`, `inspect`, `validate`, `fill`) giving host models full visibility and control over field discovery and form filling.
 *   **XFA Dynamic Form Guard**: Early detection and graceful error handling for unsupported Adobe LiveCycle dynamic forms.
 *   **Radio Button Group Normalization**: Accurately aggregates shared-name radio widgets, mapping on-state export values and nearby labels without field collision.
-*   **Confirmation Safety Gate**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to disk.
+*   **Confirmation Safety Gate & Safe Output Naming**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to `<template_id>_<timestamp>_<filler>.pdf` (never modifying bundled blank templates).
 *   **Tamper-Proof Flattening**: Optional vector baking (`flatten: true`) converts interactive form fields into permanent page graphics for formal compliance submissions.
 
 ## Bundle layout
@@ -286,6 +289,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(pdf_form_filler): add curated W-8BEN KB, section-chunked schemas, and PII redaction (#404) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`f5942a8`](https://github.com/ARPAHLS/skillware/commit/f5942a89f01b95cbc240cdd73d7f8a6e452f2664) | Refactor into host-agnostic deterministic engine with multi-action dispatch, XFA guard, and radio groups (#403) | 16 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`42df736`](https://github.com/ARPAHLS/skillware/commit/42df736318a4ee8fbf4c40bcfe1d3f3f00994fbc) | Fix pdf_form_filler helper imports without mutating sys.path (#399) | 30 Sep 2026 | `0.1.1` | [@Bdysj](https://github.com/Bdysj) |

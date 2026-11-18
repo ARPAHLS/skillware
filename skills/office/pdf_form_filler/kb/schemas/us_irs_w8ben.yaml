@@ -1,0 +1,215 @@
+form_id: "us_irs_w8ben_2021"
+title: "Certificate of Foreign Status of Beneficial Owner for United States Tax Withholding and Reporting (Individuals)"
+revision: "Rev. October 2021"
+jurisdiction: "US"
+category: "tax"
+source_pdf: "templates/us_irs_w8ben.pdf"
+pages: 1
+
+sections:
+  - id: "part_1_identification"
+    title: "Part I: Identification of Beneficial Owner"
+    description: "Core individual identification, permanent/mailing addresses, TINs, and date of birth."
+    fields:
+      - id: "beneficial_owner_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_1[0]"
+        field_type: "text"
+        page: 0
+        label: "1. Name of individual who is the beneficial owner"
+        description: "Legal full name as registered for tax purposes."
+        required: true
+
+      - id: "country_of_citizenship"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_2[0]"
+        field_type: "text"
+        page: 0
+        label: "2. Country of citizenship"
+        description: "Full country name. Do not abbreviate."
+        required: true
+
+      - id: "permanent_residence_street"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_3[0]"
+        field_type: "text"
+        page: 0
+        label: "3. Permanent residence address (street, apt. or suite no., or rural route)"
+        description: "Street address. Do not use a P.O. box or in-care-of address."
+        required: true
+
+      - id: "permanent_residence_city_state_postal"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_4[0]"
+        field_type: "text"
+        page: 0
+        label: "3. City or town, state or province, and postal code"
+        description: "Include postal code where appropriate."
+        required: true
+
+      - id: "permanent_residence_country"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_5[0]"
+        field_type: "text"
+        page: 0
+        label: "3. Country"
+        description: "Country of permanent residence. Do not abbreviate."
+        required: true
+
+      - id: "mailing_street"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_6[0]"
+        field_type: "text"
+        page: 0
+        label: "4. Mailing address (if different from above)"
+        description: "Optional mailing street address."
+        required: false
+
+      - id: "mailing_city_state_postal"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_7[0]"
+        field_type: "text"
+        page: 0
+        label: "4. Mailing city or town, state or province, and postal code"
+        description: "Optional mailing city/state/postal code."
+        required: false
+
+      - id: "mailing_country"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_8[0]"
+        field_type: "text"
+        page: 0
+        label: "4. Mailing country"
+        description: "Optional mailing country."
+        required: false
+
+      - id: "us_tin"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_9[0]"
+        field_type: "text"
+        page: 0
+        label: "5. U.S. taxpayer identification number (SSN or ITIN), if required"
+        description: "U.S. SSN or ITIN if required by IRS instructions."
+        required: false
+        sensitive: true
+
+      - id: "foreign_tin"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_10[0]"
+        field_type: "text"
+        page: 0
+        label: "6a. Foreign tax identifying number"
+        description: "Tax ID issued by the beneficial owner's jurisdiction of tax residence."
+        required: false
+        sensitive: true
+
+      - id: "ftin_not_legally_required"
+        pdf_field_name: "topmostSubform[0].Page1[0].c1_01[0]"
+        field_type: "checkbox"
+        page: 0
+        label: "6b. Check if FTIN not legally required"
+        description: "Check true if foreign tax identifying number is not legally required."
+        required: false
+        export_value: "1"
+
+      - id: "reference_numbers"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_11[0]"
+        field_type: "text"
+        page: 0
+        label: "7. Reference number(s)"
+        description: "Optional withholding agent or account reference numbers."
+        required: false
+
+      - id: "date_of_birth"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_12[0]"
+        field_type: "date"
+        page: 0
+        label: "8. Date of birth (MM-DD-YYYY)"
+        description: "Date of birth in MM-DD-YYYY format."
+        required: false
+        sensitive: true
+        date_format: "MM-DD-YYYY"
+
+  - id: "part_2_treaty"
+    title: "Part II: Claim of Tax Treaty Benefits (for chapter 3 purposes only)"
+    description: "Optional tax treaty country, article/paragraph, withholding rate, and conditions."
+    fields:
+      - id: "treaty_country"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_13[0]"
+        field_type: "text"
+        page: 0
+        label: "9. Treaty country qualification"
+        description: "Country of residence within the meaning of the U.S. income tax treaty."
+        required: false
+
+      - id: "treaty_article_and_paragraph"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_14[0]"
+        field_type: "text"
+        page: 0
+        label: "10. Special rates and conditions: Article and paragraph"
+        description: "Applicable treaty article and paragraph (e.g., Article 12(2))."
+        required: false
+
+      - id: "treaty_withholding_rate_pct"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_15[0]"
+        field_type: "text"
+        page: 0
+        label: "10. % rate of withholding"
+        description: "Claimed treaty withholding percentage (e.g., 15 or 0)."
+        required: false
+
+      - id: "treaty_income_type"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_16[0]"
+        field_type: "text"
+        page: 0
+        label: "10. Specify type of income"
+        description: "Type of income covered by the treaty claim (e.g., Royalties, Dividends)."
+        required: false
+
+      - id: "treaty_additional_conditions_line1"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_17[0]"
+        field_type: "text"
+        page: 0
+        label: "10. Additional conditions (line 1)"
+        description: "Additional conditions met under the treaty article/paragraph."
+        required: false
+
+      - id: "treaty_additional_conditions_line2"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_18[0]"
+        field_type: "text"
+        page: 0
+        label: "10. Additional conditions (line 2)"
+        description: "Continuation line for additional treaty conditions."
+        required: false
+
+  - id: "part_3_certification"
+    title: "Part III: Certification"
+    description: "Capacity declaration, signature, signature date, and printed signer name."
+    fields:
+      - id: "capacity_to_sign"
+        pdf_field_name: "topmostSubform[0].Page1[0].c1_02[0]"
+        field_type: "checkbox"
+        page: 0
+        label: "Capacity to sign certification"
+        description: "I certify that I have the capacity to sign for the person identified on line 1."
+        required: true
+        export_value: "1"
+
+      - id: "signature"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_20[0]"
+        field_type: "signature"
+        page: 0
+        label: "Signature of beneficial owner (or authorized individual)"
+        description: "Typed e-signature or signature placeholder."
+        signature_mode: "typed_e_sign"
+        required: false
+
+      - id: "signature_date"
+        pdf_field_name: "topmostSubform[0].Page1[0].Date[0]"
+        field_type: "date"
+        page: 0
+        label: "Date (MM-DD-YYYY)"
+        description: "Signature date in MM-DD-YYYY format (auto-filled to today UTC if omitted or 'auto')."
+        signature_mode: "auto_date"
+        date_format: "MM-DD-YYYY"
+        required: true
+
+      - id: "signer_name"
+        pdf_field_name: "topmostSubform[0].Page1[0].f_21[0]"
+        field_type: "text"
+        page: 0
+        label: "Print name of signer"
+        description: "Printed full legal name of the signer."
+        signature_mode: "typed_e_sign"
+        required: true
+
