@@ -725,6 +725,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`bc1033e`](https://github.com/ARPAHLS/skillware/commit/bc1033e432) | feat(cli): add --json output to doctor and paths (#476) (#488) | 18 Nov 2026 | `0.6.2` | [@rise11hx-cmyk](https://github.com/rise11hx-cmyk) |
 | [`ad55a64`](https://github.com/ARPAHLS/skillware/commit/ad55a64ea4) | feat(cli): consolidate configuration under option 4 config and prioritize find (#455) (#458) | 31 Oct 2026 | `0.6.1` | [@ect2000](https://github.com/ect2000) |
 | [`0edccfc`](https://github.com/ARPAHLS/skillware/commit/0edccfc23d) | feat(core,cli): add SkillMatcher engine and skillware find command (#456) | 26 Oct 2026 | `0.6.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`d2a306c`](https://github.com/ARPAHLS/skillware/commit/d2a306cffc) | chore(release): cut v0.6.0 with bio category, sequence_ops foundational engine, wallet_screening v2, and 4.8s startup optimizations (#454) | 24 Oct 2026 | `0.6.0` | [@rosspeili](https://github.com/rosspeili) |
