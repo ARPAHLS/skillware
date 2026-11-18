@@ -282,5 +282,5 @@ Commits that touched this skill bundle or its catalog page ([`finance/ephemeral_
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(finance): add ephemeral_wallet v0.1 skeleton (#41 PR1) | 11 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`5ab781d`](https://github.com/ARPAHLS/skillware/commit/5ab781d0f9) | feat(finance): add ephemeral_wallet v0.1 (#41, #272) (#475) | 18 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->
