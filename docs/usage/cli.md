@@ -626,7 +626,16 @@ See [Skill chaining](skill_chaining.md#named-chains-yaml--api).
 
 ### `skillware pdf`
 
-Manage custom PDF form template directories, batch-import forms, audit XFA/schema status, auto-generate YAML schema maps, inspect AcroForm widgets, and validate maps for `office/pdf_form_filler`.
+Manage custom PDF form template directories, batch-import forms, audit XFA/schema status, auto-generate YAML schema maps, inspect AcroForm widgets, configure output folders, and validate maps for `office/pdf_form_filler`.
+
+```mermaid
+flowchart LR
+    A[Init Dir] --> B[Import PDFs]
+    B --> C[Auto-Map]
+    C --> D[Validate]
+    D --> E[Agent Fill]
+    E --> F[Output Dir]
+```
 
 ```bash
 skillware pdf init
@@ -782,7 +791,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| TBD | feat(cli,core): add `skillware pdf` command group (`output-dir`, `status --json`, `config -> pdf` submenu), `pdf_templates.py`, XFA detection, multi-section auto-mapping, and validation (#406) | 19 Nov 2026 | `Unreleased` | [@rosspeili](https://github.com/rosspeili) |
+| [`360353f`](https://github.com/ARPAHLS/skillware/commit/360353fdbc) | feat(cli,core): add `skillware pdf` command group (`output-dir`, `status --json`, `config -> pdf` submenu), `pdf_templates.py`, XFA detection, multi-section auto-mapping, and validation (#406) (#495) | 19 Nov 2026 | `Unreleased` | [@rosspeili](https://github.com/rosspeili) |
 | [`bc1033e`](https://github.com/ARPAHLS/skillware/commit/bc1033e432) | feat(cli): add --json output to doctor and paths (#476) (#488) | 18 Nov 2026 | `0.6.2` | [@rise11hx-cmyk](https://github.com/rise11hx-cmyk) |
 | [`ad55a64`](https://github.com/ARPAHLS/skillware/commit/ad55a64ea4) | feat(cli): consolidate configuration under option 4 config and prioritize find (#455) (#458) | 31 Oct 2026 | `0.6.1` | [@ect2000](https://github.com/ect2000) |
 | [`0edccfc`](https://github.com/ARPAHLS/skillware/commit/0edccfc23d) | feat(core,cli): add SkillMatcher engine and skillware find command (#456) | 26 Oct 2026 | `0.6.1` | [@rosspeili](https://github.com/rosspeili) |

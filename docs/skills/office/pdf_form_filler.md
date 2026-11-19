@@ -31,6 +31,38 @@ A deterministic productivity skill that inspects, validates, and fills AcroForm-
 *   **Confirmation Safety Gate & Configurable Output Directory**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to `<template_id>_<timestamp>_<filler>.pdf` (never modifying bundled blank templates). Supports configurable output routing via explicit `output_dir`, `PDF_OUTPUT_DIR`, or `pdf.output_dir` (set via `skillware pdf output-dir <path>`), auto-creating missing folders.
 *   **Tamper-Proof Flattening**: Optional vector baking (`flatten: true`) converts interactive form fields into permanent page graphics for formal compliance submissions.
 
+## How it works
+
+Any Skillware-connected agent (`SkillContext`, Gemini, Claude, OpenAI, DeepSeek, or Ollama) loads `office/pdf_form_filler` on demand, maps natural-language intent to a PDF template, and fills it safely:
+
+```mermaid
+flowchart LR
+    A[User Intent] --> B[Agent Context]
+    B --> C{Mode}
+    C -->|Missing fields| D[Smart Interview]
+    C -->|All data ready| E[Instant Fill]
+    C -->|Unmapped PDF| F[Ad-Hoc Inspect]
+    D --> G[PII Preview]
+    E --> G
+    F --> G
+    G -->|Confirmed| H[Save PDF]
+```
+
+**Three agent execution paths:**
+
+| Mode | Actions | Best for |
+| :--- | :--- | :--- |
+| **Smart Interview** | `session_init` -> `session_update` -> `session_preview` -> `session_finalize` | Conversational multi-turn filling (tax, HR, onboarding) with pause/resume and masked PII review |
+| **Instant Fill** | `list_templates` -> `get_template_schema` -> `validate` -> `fill` | Automated pipelines where all field values are already available |
+| **Ad-Hoc PDF** | `inspect` -> `validate` -> `fill` | One-off local AcroForm PDFs without a pre-built template |
+
+**Customize for any team or industry (Tax, Legal, HR, Real Estate, Procurement):**
+
+- **Add your own PDFs:** Run `skillware pdf init --dir ./my_forms` then `skillware pdf import ./incoming/ --auto-map` to ingest company NDAs, intake forms, or contracts outside `site-packages`.
+- **Change where filled PDFs go:** Run `skillware pdf output-dir ./filled_forms` (or `--global`, or set `PDF_OUTPUT_DIR`). Non-existent folders are created automatically.
+- **Audit & validate before agents run:** Run `skillware pdf status` (or `--json` in CI) to inspect active paths, flag unsupported XFA forms, and verify YAML maps against physical PDF widgets.
+- **Use interactively:** Run `skillware` -> `config` -> `pdf` (or type `pdf` at the prompt).
+
 ## Bundle layout
 
 The skill is self-contained in `skills/office/pdf_form_filler/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details above. **Assurance** — `test_skill.py` in the bundle.
@@ -332,7 +364,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| TBD | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
+| [`360353f`](https://github.com/ARPAHLS/skillware/commit/360353fdbc) | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) (#495) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`e66d3cd`](https://github.com/ARPAHLS/skillware/commit/e66d3cd282) | feat(pdf_form_filler): v0.2.1 file-backed interview sessions, PII masking, and e-sign rendering (#405) (#492) | 18 Nov 2026 | `0.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`9b05cc7`](https://github.com/ARPAHLS/skillware/commit/9b05cc74ff) | feat(pdf_form_filler): v0.2.0 curated tax/FATCA KB (W-8BEN, W-9, W-8BEN-E, 8966), section-chunked schemas, and PII redaction (#404) (#486) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |
