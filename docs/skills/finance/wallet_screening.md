@@ -370,7 +370,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/wallet_scr
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| [`d58132f1e238af251cba3749877aa62cc814ac07`](https://github.com/ARPAHLS/skillware/commit/d58132f1e238af251cba3749877aa62cc814ac07) | feat(wallet_screening): provenance report_hash and slice-4 polish (#439) (#465) | 1 Nov 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
+| [`d58132f`](https://github.com/ARPAHLS/skillware/commit/d58132f1e238af251cba3749877aa62cc814ac07) | feat(wallet_screening): provenance report_hash and slice-4 polish (#439) (#465) | 1 Nov 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`055697e`](https://github.com/ARPAHLS/skillware/commit/055697ea73) | feat(wallet_screening): offline-direct mode and optional live providers (#439) (#461) | 1 Nov 2026 | `2.1.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`ec30a64`](https://github.com/ARPAHLS/skillware/commit/ec30a6444c) | feat(wallet_screening): schema v2 verdicts and hop-1 exposures (#439) (#447) | 20 Oct 2026 | `2.0.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.1.0` | [@rosspeili](https://github.com/rosspeili) |

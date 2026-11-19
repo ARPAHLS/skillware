@@ -81,7 +81,7 @@ def find_skill_history_placeholders(content: str) -> list[int]:
     return [
         line_number
         for line_number, row in find_skill_history_rows(content)
-        if re.match(r"^[ \t]*\|[ \t]*`TBD`[ \t]*\|", row)
+        if re.match(r"^[ \t]*\|[ \t]*`?TBD`?[ \t]*\|", row)
     ]
 
 
