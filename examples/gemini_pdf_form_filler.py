@@ -32,7 +32,7 @@ def main() -> None:
     tool = SkillLoader.to_gemini_tool(skill_bundle)
     system_instruction = skill_bundle["instructions"]
     tool_name = SkillLoader._sanitize_gemini_tool_name(skill_bundle["manifest"]["name"])
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    model = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 
     user_query = (
         "Help me start a W-8BEN tax form session (template_id='us_irs_w8ben') "
