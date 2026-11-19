@@ -398,8 +398,16 @@ Keep tables and lists as Markdown.
         "can_override_constitution": False,
         "can_grant_authority": False,
     }
-    assert context["parse_status"] == "ok"
-    assert context["warnings"] == []
+    assert context["parse_status"] == "partial"
+    assert context["warnings"] == [
+        "Missing recommended H2 heading 'about'.",
+        "Missing recommended H2 heading 'conditionals'.",
+        "Missing recommended H2 heading 'paths'.",
+        "Missing recommended H2 heading 'ripple effects'.",
+        "Missing recommended H2 heading 'commit & pr'.",
+        "Missing recommended H2 heading 'out of scope'.",
+        "Missing recommended H2 heading 'caveats'.",
+    ]
     assert context["structured"] == {"required_checks": "- Run the bundle tests."}
 
     document = context["document"]
@@ -430,7 +438,16 @@ def test_load_repository_profile_without_h1(skill):
     ]
     context = result["profile_context"]
     assert context["parse_status"] == "empty"
-    assert context["warnings"] == []
+    assert context["warnings"] == [
+        "Missing recommended H2 heading 'about'.",
+        "Missing recommended H2 heading 'required checks'.",
+        "Missing recommended H2 heading 'conditionals'.",
+        "Missing recommended H2 heading 'paths'.",
+        "Missing recommended H2 heading 'ripple effects'.",
+        "Missing recommended H2 heading 'commit & pr'.",
+        "Missing recommended H2 heading 'out of scope'.",
+        "Missing recommended H2 heading 'caveats'.",
+    ]
     assert "structured" not in context
 
 
@@ -526,7 +543,7 @@ def test_load_repository_profile_duplicate_known_heading_is_partial(skill):
     context = result["profile_context"]
     assert context["parse_status"] == "partial"
     assert context["structured"]["required_checks"] == "- Run the first check."
-    assert len(context["warnings"]) == 1
+    assert len(context["warnings"]) == 8
     assert "Duplicate known H2 heading" in context["warnings"][0]
     assert len(context["document"]["sections"]) == 2
 
@@ -536,7 +553,7 @@ def test_load_repository_profile_empty_known_heading_is_empty(skill):
     context = result["profile_context"]
     assert context["parse_status"] == "empty"
     assert context["structured"] == {"required_checks": ""}
-    assert len(context["warnings"]) == 1
+    assert len(context["warnings"]) == 8
     assert "is empty" in context["warnings"][0]
 
 
@@ -551,7 +568,7 @@ def test_load_repository_profile_empty_known_heading_with_content_is_partial(ski
         "about": "Repository summary.",
         "required_checks": "",
     }
-    assert len(context["warnings"]) == 1
+    assert len(context["warnings"]) == 7
     assert "Required checks" in context["warnings"][0]
 
 
@@ -885,8 +902,15 @@ FROZEN_PROFILE_CONTRACT = {
                     },
                 ],
             },
-            "parse_status": "ok",
-            "warnings": [],
+            "parse_status": "partial",
+            "warnings": [
+                "Missing recommended H2 heading 'about'.",
+                "Missing recommended H2 heading 'paths'.",
+                "Missing recommended H2 heading 'ripple effects'.",
+                "Missing recommended H2 heading 'commit & pr'.",
+                "Missing recommended H2 heading 'out of scope'.",
+                "Missing recommended H2 heading 'caveats'.",
+            ],
             "structured": {
                 "required_checks": "- Run tests.",
                 "conditionals": "- If docs change, check links.",
@@ -919,7 +943,14 @@ FROZEN_PROFILE_CONTRACT = {
             },
             "parse_status": "partial",
             "warnings": [
-                "Duplicate known H2 heading 'REQUIRED CHECKS'; the first occurrence is used in structured output."
+                "Duplicate known H2 heading 'REQUIRED CHECKS'; the first occurrence is used in structured output.",
+                "Missing recommended H2 heading 'about'.",
+                "Missing recommended H2 heading 'conditionals'.",
+                "Missing recommended H2 heading 'paths'.",
+                "Missing recommended H2 heading 'ripple effects'.",
+                "Missing recommended H2 heading 'commit & pr'.",
+                "Missing recommended H2 heading 'out of scope'.",
+                "Missing recommended H2 heading 'caveats'.",
             ],
             "structured": {"required_checks": "- First"},
         },
@@ -946,7 +977,16 @@ FROZEN_PROFILE_CONTRACT = {
                 "sections": [{"level": 2, "heading": "Required checks", "content": ""}],
             },
             "parse_status": "empty",
-            "warnings": ["Known H2 heading 'Required checks' is empty."],
+            "warnings": [
+                "Known H2 heading 'Required checks' is empty.",
+                "Missing recommended H2 heading 'about'.",
+                "Missing recommended H2 heading 'conditionals'.",
+                "Missing recommended H2 heading 'paths'.",
+                "Missing recommended H2 heading 'ripple effects'.",
+                "Missing recommended H2 heading 'commit & pr'.",
+                "Missing recommended H2 heading 'out of scope'.",
+                "Missing recommended H2 heading 'caveats'.",
+            ],
             "structured": {"required_checks": ""},
         },
     },
@@ -1039,9 +1079,131 @@ def test_empty_duplicate_reports_both_diagnostics(skill):
         },
         "parse_status": "partial",
         "warnings": [
-            "Duplicate known H2 heading 'Required checks'; "
-            "the first occurrence is used in structured output.",
+            "Duplicate known H2 heading 'Required checks'; the first occurrence is used in structured output.",
             "Known H2 heading 'Required checks' is empty.",
+            "Missing recommended H2 heading 'about'.",
+            "Missing recommended H2 heading 'conditionals'.",
+            "Missing recommended H2 heading 'paths'.",
+            "Missing recommended H2 heading 'ripple effects'.",
+            "Missing recommended H2 heading 'commit & pr'.",
+            "Missing recommended H2 heading 'out of scope'.",
+            "Missing recommended H2 heading 'caveats'.",
         ],
         "structured": {"required_checks": "- First"},
     }
+
+
+RECOMMENDED_HEADINGS = [
+    "about",
+    "required checks",
+    "conditionals",
+    "paths",
+    "ripple effects",
+    "commit & pr",
+    "out of scope",
+    "caveats",
+]
+
+
+def complete_profile():
+    return "\n\n".join(f"## {heading}\n\nContent." for heading in RECOMMENDED_HEADINGS)
+
+
+def validate_profile(skill, markdown):
+    return skill.execute(
+        {"action": "validate_repository_profile", "profile_markdown": markdown}
+    )
+
+
+def test_validate_complete_profile_receipt(skill):
+    markdown = complete_profile()
+    assert validate_profile(skill, markdown) == {
+        "status": "ready",
+        "action": "validate_repository_profile",
+        "workflow_version": "0.3",
+        "valid": True,
+        "byte_size": len(markdown.encode("utf-8")),
+        "line_count": 31,
+        "recognized_headings": RECOMMENDED_HEADINGS,
+        "missing_recommended_headings": [],
+        "syntax_issues": [],
+    }
+    context = load_profile(skill, markdown)["profile_context"]
+    assert context["parse_status"] == "ok"
+    assert context["warnings"] == []
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    ["", "Plain prose.", "### About\ncontent", "```md\n## About\ncontent\n```"],
+)
+def test_validator_missing_sections_and_generic_markdown(skill, markdown):
+    result = validate_profile(skill, markdown)
+    assert result["valid"] is False
+    assert result["recognized_headings"] == []
+    assert result["missing_recommended_headings"] == RECOMMENDED_HEADINGS
+    assert result["syntax_issues"] == []
+
+
+@pytest.mark.parametrize("heading", ["About", "Custom"])
+def test_validator_duplicate_normalization_including_unknowns(skill, heading):
+    markdown = (
+        complete_profile()
+        + f"\n\n## {heading}\nFirst\n\n## {heading.upper()}  \nSecond"
+    )
+    result = validate_profile(skill, markdown)
+    assert result["valid"] is False
+    assert f"Duplicate H2 heading {heading.lower()!r}." in result["syntax_issues"]
+    assert result["missing_recommended_headings"] == []
+
+
+def test_validator_empty_known_section(skill):
+    result = validate_profile(
+        skill, complete_profile().replace("## caveats\n\nContent.", "## caveats")
+    )
+    assert result["valid"] is False
+    assert result["syntax_issues"] == ["Recommended H2 heading 'caveats' is empty."]
+    assert result["missing_recommended_headings"] == []
+
+
+@pytest.mark.parametrize("size", [8192, 8193])
+def test_validator_advisory_utf8_byte_boundary(skill, size):
+    markdown = complete_profile() + "é"
+    markdown += "x" * (size - len(markdown.encode("utf-8")))
+    result = validate_profile(skill, markdown)
+    assert result["valid"] is True
+    assert result["byte_size"] == size
+    assert result["syntax_issues"] == (
+        ["Profile exceeds the advisory 8192-byte UTF-8 size limit."]
+        if size > 8192
+        else []
+    )
+
+
+@pytest.mark.parametrize("markdown", [None, 1, [], {}, "\ud800"])
+def test_validator_bad_inputs_return_error(skill, markdown):
+    assert validate_profile(skill, markdown)["status"] == "error"
+
+
+def test_validator_declared_in_manifest(manifest):
+    assert (
+        "validate_repository_profile"
+        in manifest["parameters"]["properties"]["action"]["enum"]
+    )
+    for name in [
+        "valid",
+        "byte_size",
+        "line_count",
+        "recognized_headings",
+        "missing_recommended_headings",
+        "syntax_issues",
+    ]:
+        assert name in manifest["outputs"]
+
+
+@pytest.mark.parametrize(
+    "markdown,expected",
+    [("", 0), ("one", 1), ("one\n", 1), ("one\n\n", 2), ("one\r\ntwo", 2)],
+)
+def test_validator_line_count(skill, markdown, expected):
+    assert validate_profile(skill, markdown)["line_count"] == expected

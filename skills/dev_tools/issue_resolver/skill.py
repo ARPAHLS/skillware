@@ -167,6 +167,10 @@ def _structure_profile_document(document: Dict[str, Any]) -> Dict[str, Any]:
         if not content.strip():
             warnings.append(f"Known H2 heading {section['heading']!r} is empty.")
 
+    for heading, key in _PROFILE_HEADING_KEYS.items():
+        if key not in structured:
+            warnings.append(f"Missing recommended H2 heading {heading!r}.")
+
     if not structured or not any(value.strip() for value in structured.values()):
         parse_status = "empty"
     elif warnings:
@@ -224,6 +228,7 @@ class IssueResolverSkill(BaseSkill):
         {
             "prepare",
             "load_repository_profile",
+            "validate_repository_profile",
             "workflow_overview",
             "stage_checklist",
             "validate_commit_message",
@@ -395,6 +400,52 @@ class IssueResolverSkill(BaseSkill):
             "profile_context": profile_context,
         }
 
+    def _validate_repository_profile(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        markdown = params.get("profile_markdown")
+        if not isinstance(markdown, str):
+            return {"status": "error", "message": "profile_markdown must be a string."}
+        try:
+            byte_size = len(markdown.encode("utf-8"))
+        except UnicodeEncodeError:
+            return {
+                "status": "error",
+                "message": "profile_markdown must be UTF-8 encodable.",
+            }
+        document = _parse_profile_markdown(markdown)
+        seen = set()
+        recognized = set()
+        issues = []
+        for section in document["sections"]:
+            if section["level"] != 2:
+                continue
+            heading = _normalize_profile_heading(section["heading"])
+            if heading in seen:
+                issues.append(f"Duplicate H2 heading {heading!r}.")
+            seen.add(heading)
+            if heading in _PROFILE_HEADING_KEYS:
+                recognized.add(heading)
+                if not section["content"].strip():
+                    issues.append(f"Recommended H2 heading {heading!r} is empty.")
+        missing = [
+            heading for heading in _PROFILE_HEADING_KEYS if heading not in recognized
+        ]
+        valid = not missing and not issues
+        if byte_size > 8192:
+            issues.append("Profile exceeds the advisory 8192-byte UTF-8 size limit.")
+        return {
+            "status": "ready",
+            "action": "validate_repository_profile",
+            "workflow_version": WORKFLOW_VERSION,
+            "valid": valid,
+            "byte_size": byte_size,
+            "line_count": len(markdown.splitlines()),
+            "recognized_headings": [
+                heading for heading in _PROFILE_HEADING_KEYS if heading in recognized
+            ],
+            "missing_recommended_headings": missing,
+            "syntax_issues": issues,
+        }
+
     def _stage_checklist(self, params: Dict[str, Any]) -> Dict[str, Any]:
         stage = (params.get("stage") or "").strip().lower()
         if not stage:
@@ -453,6 +504,8 @@ class IssueResolverSkill(BaseSkill):
             return self._prepare(params)
         if action == "load_repository_profile":
             return self._load_repository_profile(params)
+        if action == "validate_repository_profile":
+            return self._validate_repository_profile(params)
         if action == "workflow_overview":
             overview = get_workflow_overview()
             overview["action"] = "workflow_overview"

@@ -52,9 +52,14 @@ A thin, deterministic action router. It validates the issue URL against the GitH
 |--------|---------|
 | `prepare` | Validate issue URL; return GitHub API and raw content URLs |
 | `load_repository_profile` | Parse caller-fetched `ISSUE_RESOLVER.md`; return generic plus structured provenance-labelled, context-only data |
+| `validate_repository_profile` | Check supplied Markdown for recommended headings, duplicates, empty sections and advisory UTF-8 size; no source or network required |
 | `workflow_overview` | Ordered list of all workflow stages |
 | `stage_checklist` | Steps and conditionals for one stage; optionally add separate repository guidance for `verify` |
 | `validate_commit_message` | Pre-commit message gate |
+
+### Structural profile validation
+
+Use `validate_repository_profile` for a deterministic completeness report, line/byte counts and advisory size diagnostics. Validation grants no authority and does not block loading. See the [profile validation contract](../../contributing/issue_resolver_profile.md#structural-profile-validation) for fields, validity and boundary semantics.
 
 ### Repository profile contract
 
@@ -395,8 +400,16 @@ print(json.dumps(result, indent=2))
         }
       ]
     },
-    "parse_status": "ok",
-    "warnings": [],
+    "parse_status": "partial",
+    "warnings": [
+      "Missing recommended H2 heading 'about'.",
+      "Missing recommended H2 heading 'conditionals'.",
+      "Missing recommended H2 heading 'paths'.",
+      "Missing recommended H2 heading 'ripple effects'.",
+      "Missing recommended H2 heading 'commit & pr'.",
+      "Missing recommended H2 heading 'out of scope'.",
+      "Missing recommended H2 heading 'caveats'."
+    ],
     "structured": {
       "required_checks": "- Run the tests."
     }

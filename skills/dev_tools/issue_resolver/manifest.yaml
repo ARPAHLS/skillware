@@ -27,10 +27,11 @@ parameters:
   properties:
     action:
       type: string
-      description: "Workflow action: prepare (default), load_repository_profile, workflow_overview, stage_checklist, validate_commit_message."
+      description: "Workflow action: prepare (default), load_repository_profile, validate_repository_profile, workflow_overview, stage_checklist, validate_commit_message."
       enum:
         - prepare
         - load_repository_profile
+        - validate_repository_profile
         - workflow_overview
         - stage_checklist
         - validate_commit_message
@@ -57,7 +58,7 @@ parameters:
       description: "Required for action load_repository_profile. Caller-asserted path or URL for the fetched ISSUE_RESOLVER.md content."
     profile_markdown:
       type: string
-      description: "Required for action load_repository_profile. Caller-fetched ISSUE_RESOLVER.md Markdown; execute() does not fetch it."
+      description: "Required for load_repository_profile and validate_repository_profile. Caller-fetched ISSUE_RESOLVER.md Markdown; execute() does not fetch it."
     github_token:
       type: string
       description: "Optional GitHub token at runtime. Takes precedence over GITHUB_TOKEN env var."
@@ -81,6 +82,24 @@ outputs:
   repository_profile_conditionals:
     type: array
     description: "For verify stage_checklist actions with applicable profile content, verbatim conditionals Markdown blocks kept separate from universal conditionals."
+  valid:
+    type: boolean
+    description: "Structural completeness: all eight recommended H2 headings non-empty, no duplicate H2 headings. Size warning is advisory. Not a safety or authority verdict."
+  line_count:
+    type: integer
+    description: "Number of splitlines() lines; empty text is zero and a terminal line break adds no extra line."
+  byte_size:
+    type: integer
+    description: "UTF-8 size of supplied profile Markdown."
+  recognized_headings:
+    type: array
+    description: "Normalized known H2 headings, in documented schema order."
+  missing_recommended_headings:
+    type: array
+    description: "Absent normalized recommended H2 headings in schema order."
+  syntax_issues:
+    type: array
+    description: "Structural diagnostics for duplicate H2s, empty recommended sections and advisory size above 8192 UTF-8 bytes. Not a general Markdown syntax check."
 constitution: |
   1. Apply to any public or authenticated GitHub repository; do not assume Skillware or fixed directory layouts.
   2. Follow workflow stages in order; use stage_checklist conditionals that apply to the target repository.

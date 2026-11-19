@@ -42,8 +42,16 @@ Output:
       "can_override_constitution": false,
       "can_grant_authority": false
     },
-    "parse_status": "ok",
-    "warnings": [],
+    "parse_status": "partial",
+    "warnings": [
+      "Missing recommended H2 heading 'about'.",
+      "Missing recommended H2 heading 'conditionals'.",
+      "Missing recommended H2 heading 'paths'.",
+      "Missing recommended H2 heading 'ripple effects'.",
+      "Missing recommended H2 heading 'commit & pr'.",
+      "Missing recommended H2 heading 'out of scope'.",
+      "Missing recommended H2 heading 'caveats'."
+    ],
     "structured": {
       "required_checks": "- Run the tests."
     },
@@ -82,7 +90,7 @@ Recommended headings are:
 
 Known H2 names are matched case-insensitively after trimming whitespace and map to snake-case structured keys (`required_checks`, `ripple_effects`, `commit_and_pr`, and so on). Content remains a verbatim Markdown string. Unknown and nested headings remain only in `document.sections`.
 
-Repositories may add, omit, repeat, or reorder sections. The first occurrence of a repeated known H2 supplies structured content and a warning records the duplicate; all occurrences remain in the generic document. `parse_status` is `ok` for recognized content without diagnostics, `partial` for recognized content with duplicate or empty known sections, and `empty` when there is no recognized non-empty content.
+Repositories may add, omit, repeat, or reorder sections. The first occurrence of a repeated known H2 supplies structured content and a warning records the duplicate; all occurrences remain in the generic document. `parse_status` is `ok` for recognized content without diagnostics, `partial` for recognized content with missing recommended, duplicate or empty known sections, and `empty` when there is no recognized non-empty content.
 
 ## Verify checklist augmentation
 
@@ -175,6 +183,16 @@ Small Python library using a `src/` layout and pytest.
 
 - Release publication and package-version changes without maintainer approval.
 ```
+
+## Structural profile validation
+
+Call `validate_repository_profile` with `profile_markdown` (no source or network access needed). It returns `valid`, `line_count`, `byte_size`, `recognized_headings`, `missing_recommended_headings`, and `syntax_issues`, alongside status/action/workflow version.
+
+`valid` means all eight recommended H2 headings exist with non-empty content and no duplicate H2 headings (including unknown headings). It is not a safety, semantic correctness, or authorization verdict. Headings are normalized case-insensitively with whitespace collapsed; heading lists use documented schema order. Fenced code and nested headings remain generic Markdown. Empty text is accepted for validation and reports all recommended headings missing; non-string or non-UTF-8-encodable inputs return an error.
+
+Size strictly above 8192 UTF-8 bytes adds an advisory `syntax_issues` warning without changing `valid`. This action checks the supported profile structure, not general Markdown syntax, and does not filter prompt content or block profile loading. Missing recommended headings also appear in loader warnings: recognized non-empty content with omissions is `partial`; no recognized non-empty content is `empty`; a complete diagnostic-free profile is `ok`.
+
+`line_count` is `len(profile_markdown.splitlines())`: empty text has zero lines, and a terminal line break does not create an extra line. CRLF is treated as one line boundary.
 
 ## Deferred beyond v0.4
 

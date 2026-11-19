@@ -53,14 +53,22 @@
           "can_override_constitution": false,
           "can_grant_authority": false
         },
-        "parse_status": "ok",
-        "warnings": [],
+        "parse_status": "partial",
+        "warnings": [
+          "Missing recommended H2 heading 'about'.",
+          "Missing recommended H2 heading 'conditionals'.",
+          "Missing recommended H2 heading 'paths'.",
+          "Missing recommended H2 heading 'ripple effects'.",
+          "Missing recommended H2 heading 'commit & pr'.",
+          "Missing recommended H2 heading 'out of scope'.",
+          "Missing recommended H2 heading 'caveats'."
+        ],
         "structured": {
           "required_checks": "- Run the issue resolver bundle tests."
         },
         "document": {
           "format": "markdown",
-          "title": "Issue resolver profile — Skillware",
+          "title": "Issue resolver profile \u2014 Skillware",
           "preamble": "",
           "sections": [
             {
@@ -81,6 +89,26 @@
       "repository_profile_steps": [
         "- Run the issue resolver bundle tests."
       ]
+    },
+    {
+      "status": "ready",
+      "action": "validate_repository_profile",
+      "workflow_version": "0.3",
+      "valid": false,
+      "byte_size": 0,
+      "recognized_headings": [],
+      "missing_recommended_headings": [
+        "about",
+        "required checks",
+        "conditionals",
+        "paths",
+        "ripple effects",
+        "commit & pr",
+        "out of scope",
+        "caveats"
+      ],
+      "syntax_issues": [],
+      "line_count": 0
     }
   ]
 }

@@ -47,6 +47,26 @@
             {
                 "key": "profile_applied",
                 "label": "Profile Applied"
+            },
+            {
+                "key": "valid",
+                "label": "Structurally Complete"
+            },
+            {
+                "key": "byte_size",
+                "label": "Profile Bytes"
+            },
+            {
+                "key": "recognized_headings",
+                "label": "Recognized Headings"
+            },
+            {
+                "key": "missing_recommended_headings",
+                "label": "Missing Recommended Headings"
+            },
+            {
+                "key": "syntax_issues",
+                "label": "Structural Diagnostics"
             }
         ]
     }
