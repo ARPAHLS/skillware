@@ -1,6 +1,5 @@
 from skillware.core.loader import SkillLoader
 
-
 def run_demo():
     print("Loading Prompt Compressor...")
     # Load the skill via the global loader just like an LLM agent would
@@ -15,9 +14,22 @@ def run_demo():
 
     print(f"\n[TEXT]: {massive_prompt}")
 
-    # Execute the offline compression logic
+    # Step 1: audit the prompt before changing anything
+    analysis = skill_instance.execute(
+        {"action": "analyze_prompt_density", "text": massive_prompt}
+    )
+
+    print("\n[ANALYSIS]")
+    print(f"  [TOTAL TOKENS]:       {analysis['total_tokens']}")
+    print(f"  [STRUCTURAL TOKENS]:  {analysis['structural_tokens']}")
+    print(f"  [SEMANTIC TOKENS]:    {analysis['semantic_tokens']}")
+    print(f"  [INFORMATION DENSITY]: {analysis['information_density']}")
+    for mode, s in analysis["potential_savings"].items():
+        print(f"  {mode:<10} would save {s['tokens_saved']} tokens ({s['reduction_percentage']}%)")
+
+    # Step 2: compress using the mode chosen from the audit
     result = skill_instance.execute(
-        {"text": massive_prompt, "mode": "aggressive"}
+        {"action": "compress_prompt", "text": massive_prompt, "mode": "aggressive"}
     )
 
     print(f"\n[COMPRESSED TEXT]: {result['compressed_text']}")
@@ -25,6 +37,33 @@ def run_demo():
         f"[REDUCTION]: {result['original_tokens']} tokens -> {result['compressed_tokens']} tokens"
     )
     print(f"[SAVED]: {result['tokens_saved']} tokens")
+
+
+
+# def run_demo():
+#     print("Loading Prompt Compressor...")
+#     # Load the skill via the global loader just like an LLM agent would
+#     skill_bundle = SkillLoader.load_skill("optimization/prompt_compressor")
+#     skill_instance = skill_bundle["module"].PromptCompressor()
+#
+#     massive_prompt = (
+#         "Hello, could you please make sure to read this entirely? "
+#         "The and a this that is very important. "
+#         "I want you to kindly ensure that all elements are processed."
+#     )
+#
+#     print(f"\n[TEXT]: {massive_prompt}")
+#
+#     # Execute the offline compression logic
+#     result = skill_instance.execute(
+#         {"text": massive_prompt, "mode": "aggressive"}
+#     )
+#
+#     print(f"\n[COMPRESSED TEXT]: {result['compressed_text']}")
+#     print(
+#         f"[REDUCTION]: {result['original_tokens']} tokens -> {result['compressed_tokens']} tokens"
+#     )
+#     print(f"[SAVED]: {result['tokens_saved']} tokens")
 
 
 if __name__ == "__main__":

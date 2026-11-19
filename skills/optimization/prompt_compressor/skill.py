@@ -102,6 +102,8 @@ _HRULE_RE = re.compile(r"^[ \t]*([-=_*])\1{2,}[ \t]*$", re.MULTILINE)
 
 class PromptCompressor(BaseSkill):
 
+    VALID_ACTIONS = {"compress_prompt", "analyze_prompt_density"}
+
     VALID_MODES = {
         "lossless": "lossless",
         "balanced": "balanced",
@@ -151,8 +153,10 @@ class PromptCompressor(BaseSkill):
         return pattern.sub(repl, text)
 
     @staticmethod
-    def _restore(text: str, store: List[str]) -> str:
-        return _SENT_RE.sub(lambda m: store[int(m.group(2))], text)
+    def _restore(text, store):
+        while _SENT_RE.search(text):
+            text = _SENT_RE.sub(lambda m: store[int(m.group(2))], text)
+        return text
 
     # compression
     @staticmethod
@@ -235,8 +239,17 @@ class PromptCompressor(BaseSkill):
         text = re.sub(r"([,;:])\1+", r"\1", text)
         return self._lossless(self, text)
 
-    # execute
     def execute(self, params: Dict[str, Any]) -> Any:
+        action = params.get("action", "compress_prompt")
+        if action == "analyze_prompt_density":
+            return self._analyze_density(params)
+        if action == "compress_prompt":
+            return self._compress(params)
+        return {"status": "error",
+                "error": f"action must be one of {sorted(self.VALID_ACTIONS)}, got '{action}'."}
+
+    # compress
+    def _compress(self, params: Dict[str, Any]) -> Any:
         text = params.get("text", params.get("raw_text", ""))
         mode = params.get("mode", params.get("compression_aggression", "balanced")).lower()
 
@@ -321,11 +334,6 @@ class PromptCompressor(BaseSkill):
 
             if lead:
                 leading_prefix = lead.group(0)
-
-                # Restore the original system instructions
-                cache_prefix = self._restore(
-                    leading_prefix, store
-                ).rstrip()
 
                 # Remove the system prefix from the text being compressed
                 text_to_compress = text[lead.end():]
@@ -443,10 +451,52 @@ class PromptCompressor(BaseSkill):
                 "target_tokens": target_tokens if target_tokens else None,
                 "stages_applied": stages_applied if stages_applied and target_tokens else [],
                 "target_met": target_met if target_tokens else None,
-                "warnings": warnings,
+                "warnings": warns,
                 "lossy": mode == self.VALID_MODES['aggressive'],
                 "deprecated_mode": mode if mode in self.DEPRECATED_MODES else None
             }
         }
 
         return result
+
+    def _analyze_density(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        text = params.get("text", "")
+        if not isinstance(text, str) or not text.strip():
+            return {"status": "error", "error": "text cannot be empty."}
+
+        text = re.sub(r"[\ue000-\ue003]", "", text)
+        total = self._estimate_tokens(text)
+
+        # Structural = whitespace, rules, decorative punctuation, filler phrases.
+        # Protected spans (code, templates, URLs) are never counted as structural.
+        store: List[str] = []
+        work = text
+        for p in (_OTHER_PROTECT_PATTERNS + _CODE_PROTECT_PATTERNS + _TEMPLATE_PROTECT_PATTERNS):
+            work = self._protect(work, p, store, _GEN_OPEN, _GEN_CLOSE)
+        work = _HRULE_RE.sub("", work)
+        work = _DECOR_PUNCT_RE.sub("", work)
+        for _ in range(4):
+            new = _DELETE_RE.sub(self._delete_sub, work)
+            if new == work:
+                break
+            work = new
+        work = self._normalize_ws(work)
+        semantic = min(total, self._estimate_tokens(self._restore(work, store)))
+        structural = total - semantic
+
+        savings = {}
+        for m in ("lossless", "balanced", "aggressive"):
+            r = self._compress({"text": text, "mode": m})
+            savings[m] = {
+                "tokens_saved": r["tokens_saved"],
+                "reduction_percentage": r["reduction_percentage"],
+            }
+
+        return {
+            "status": "ready",
+            "total_tokens": total,
+            "structural_tokens": structural,
+            "semantic_tokens": semantic,
+            "information_density": round(semantic / max(1, total), 3),
+            "potential_savings": savings,
+        }
