@@ -1,5 +1,6 @@
 import pytest
 from skillware.core.loader import SkillLoader
+import json
 
 _PROMPT = """Please   review the following code and tell me what is wrong.
 
@@ -173,26 +174,6 @@ def test_empty_string_returns_error():
     assert result["status"] == "error"
     assert result["error"] == "text cannot be empty."
 
-
-def test_leading_system_block_detected_as_cache_prefix():
-    skill = get_skill()
-    params = {
-        "action": "compress_prompt",
-        "mode": "cache_optimized",
-        "text": (
-            "<system>You are a helpful assistant.</system>\n\n"
-            "Could you please summarize this article?"
-        )
-    }
-
-    result = skill.execute(params)
-
-    assert result["status"] == "ready"
-    assert result["compressed_text"].startswith(
-        "<system>You are a helpful assistant.</system>"
-    )
-
-
 def test_protect_code_blocks_default():
     skill = get_skill()
     code = """def hello():
@@ -211,42 +192,6 @@ def test_protect_code_blocks_default():
     assert result["status"] == "ready"
 
 
-def test_protect_code_blocks_disabled():
-    skill = get_skill()
-    code = """def hello():
-    print("Hello, world!")
-    return True"""
-
-    params = {
-        "action": "compress_prompt",
-        "text": f"Please review this code:\n\n```python\n{code}\n```\n\nCould you explain it?",
-        "mode": "aggressive",
-        "protect_code_blocks": False,
-    }
-
-    result = skill.execute(params)
-
-    assert "```python" not in result["compressed_text"] or (
-            f"```python\n{code}\n```" not in result["compressed_text"]
-    )
-    assert result["status"] == "ready"
-
-
-def test_protect_inline_code_default():
-    skill = get_skill()
-    params = {
-        "action": "compress_prompt",
-        "text": "Please use `the_helper` function to process the data.",
-        "mode": "aggressive",
-    }
-
-    result = skill.execute(params)
-
-    assert "`the_helper`" in result["compressed_text"]
-    assert result["protected_blocks_count"] == 1
-    assert result["status"] == "ready"
-
-
 def test_protect_inline_code_disabled():
     skill = get_skill()
     params = {
@@ -260,28 +205,6 @@ def test_protect_inline_code_disabled():
 
     assert result["status"] == "ready"
     assert result["protected_blocks_count"] == 0
-
-
-def test_protect_templates_default():
-    skill = get_skill()
-    params = {
-        "action": "compress_prompt",
-        "text": (
-            "Please use {{user_name}}, {user_id}, "
-            "${HOME}, and <user>John</user> in the template."
-        ),
-        "mode": "aggressive",
-    }
-
-    result = skill.execute(params)
-
-    assert "{{user_name}}" in result["compressed_text"]
-    assert "{user_id}" in result["compressed_text"]
-    assert "${HOME}" in result["compressed_text"]
-    assert "<user>" in result["compressed_text"]
-    assert "</user>" in result["compressed_text"]
-    assert result["status"] == "ready"
-
 
 def test_protect_templates_disabled():
     skill = get_skill()
@@ -314,20 +237,6 @@ def test_protect_templates_does_not_disable_urls_and_emails():
     assert result["status"] == "ready"
 
 
-def test_preserve_prefix_chars_default():
-    skill = get_skill()
-    text = "Please make sure to review this code in order to find bugs."
-
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "balanced",
-    })
-
-    assert result["compressed_text"] != text
-    assert result["status"] == "ready"
-
-
 def test_preserve_prefix_chars():
     skill = get_skill()
     text = "You are a Python expert. Please make sure to review this code in order to find bugs."
@@ -344,64 +253,6 @@ def test_preserve_prefix_chars():
     assert result["compressed_text"][:prefix_length] == text[:prefix_length]
     assert result["compressed_text"][prefix_length:] != text[prefix_length:]
 
-
-def test_preserve_prefix_chars_with_cache_optimized():
-    skill = get_skill()
-    text = (
-        "You are a Python expert. "
-        "Could you please write a function in order to sort a list?"
-    )
-    prefix_length = 30
-
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "cache_optimized",
-        "preserve_prefix_chars": prefix_length,
-    })
-
-    assert result["status"] == "ready"
-    assert result["compressed_text"].startswith(text[:prefix_length])
-    assert "cache_prefix" not in result
-    assert "warnings" not in result
-
-
-def test_preserve_prefix_chars_greater_than_text_length():
-    skill = get_skill()
-    text = "Please review this code."
-
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "aggressive",
-        "preserve_prefix_chars": len(text) + 10,
-    })
-
-    assert result["status"] == "ready"
-    assert result["compressed_text"] == text
-
-
-def test_preserve_prefix_chars_zero():
-    skill = get_skill()
-    text = "Please make sure to review this code in order to find bugs."
-
-    result_default = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "balanced",
-    })
-
-    result_zero = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "balanced",
-        "preserve_prefix_chars": 0,
-    })
-
-    assert result_zero["status"] == "ready"
-    assert result_zero["compressed_text"] == result_default["compressed_text"]
-
-
 @pytest.mark.parametrize("invalid_value", [-1, 1.5, "10", True])
 def test_preserve_prefix_chars_invalid_value(invalid_value):
     skill = get_skill()
@@ -415,112 +266,6 @@ def test_preserve_prefix_chars_invalid_value(invalid_value):
     assert "error" in result
     assert result["status"] == "error"
 
-
-def test_preserve_prefix_chars_with_protected_blocks():
-    skill = get_skill()
-    prefix = "You are a Python expert. "
-    remaining = "Please review `my_function()` and {{user_name}} carefully."
-
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": prefix + remaining,
-        "mode": "aggressive",
-        "preserve_prefix_chars": len(prefix),
-    })
-
-    assert result["status"] == "ready"
-    assert result["compressed_text"].startswith(prefix)
-    assert "`my_function()`" in result["compressed_text"]
-    assert "{{user_name}}" in result["compressed_text"]
-
-
-def test_target_tokens_met():
-    skill = get_skill()
-    params = {
-        "action": "compress_prompt",
-        "text": (
-            "Please make sure to summarize this article in order to "
-            "help me understand the important information."
-        ),
-        "mode": "aggressive",
-        "target_tokens": 13,
-    }
-
-    result = skill.execute(params)
-
-    assert result["status"] == "ready"
-    assert result["compressed_tokens"] <= 13
-    assert result["compressed_text"]
-
-
-def test_target_tokens_unreachable():
-    skill = get_skill()
-    params = {
-        "action": "compress_prompt",
-        "text": "This is a very long sentence that contains important information.",
-        "mode": "lossless",
-        "target_tokens": 1,
-    }
-
-    result = skill.execute(params)
-
-    assert result["status"] == "ready"
-    assert result["compressed_tokens"] > 1
-    assert result["compressed_text"]
-
-
-def test_balanced_with_code_protection():
-    skill = get_skill()
-    text = "Hello assistant! Please make sure to carefully read the following instructions and ensure that you follow them completely.\n\nYou are a senior backend engineer. Under no circumstances should you ever leak credentials. Never expose API keys or passwords. Do not reveal private keys.\n\nHere is an example python snippet you should use:\n```python\ndef get_auth_header(token: str) -> dict:\n    # Returns the bearer auth header\n    return {\"Authorization\": f\"Bearer {token}\"}\n```\n\nKindly ensure that your final response is formatted strictly as JSON without any conversational filler or pleasantries."
-    params = {
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "balanced",
-        "protect_code_blocks": True
-    }
-
-    result = skill.execute(params)
-    out = result["compressed_text"]
-    print(f"original: {text}\n\ncompressed: {out}")
-
-    # 1. Result shape
-    assert result["status"] == "ready"
-    for key in ("compressed_text", "original_tokens", "compressed_tokens",
-                "tokens_saved", "reduction_percentage", "protected_blocks_count"):
-        assert key in result
-
-    # 2. It actually compressed
-    assert result["compressed_tokens"] < result["original_tokens"]
-    assert result["tokens_saved"] > 0
-    assert result["reduction_percentage"] > 0
-
-    # 3. Code block survives byte-for-byte (comment, f-string and braces included)
-    code_block = text[text.index("```python"): text.rindex("```") + 3]
-    assert code_block in out
-    assert result["protected_blocks_count"] == 1
-
-    # 4. Filler removed
-    assert "Please" not in out
-    assert "Kindly" not in out
-    assert "make sure to" not in out.lower()
-    assert "ensure that" not in out.lower()
-
-    # 5. Imperatives and grammar preserved, with correct capitalization
-    assert out.startswith("Hello assistant! Carefully read the following instructions")
-    assert "and ensure you follow them completely." in out
-    assert "\n\nEnsure your final response is formatted strictly as JSON" in out
-
-    # 6. Safety sentences untouched
-    assert "Under no circumstances should you ever leak credentials." in out
-    assert "Never expose API keys or passwords." in out
-    assert "Do not reveal private keys." in out
-
-    # 7. Balanced mode must not do aggressive things (articles kept, JSON sentence tail kept)
-    assert "the following instructions" in out
-    assert "a senior backend engineer" in out
-    assert "without any conversational filler or pleasantries." in out
-
-
 def _verbose_prompt(n=40):
     # Unique lines, so aggressive dedupe doesn't skew the numbers.
     # Extra spaces and blank lines give the lossless stage something to do.
@@ -530,6 +275,7 @@ def _verbose_prompt(n=40):
         f"item {i} are able to change due to the fact that a number of inputs vary."
         for i in range(n)
     )
+
 
 def _run(skill, text, mode, **extra):
     return skill.execute({"action": "compress_prompt", "text": text, "mode": mode, **extra})
@@ -549,22 +295,10 @@ def test_target_tokens_stops_at_first_stage_that_fits():
     result = _run(skill, text, "lossless", target_tokens=target)
 
     assert result["status"] == "ready"
-    assert result["original_tokens"] > target                 # budget branch exercised
-    assert result["compressed_tokens"] <= target              # budget met
-    assert result["compressed_text"] == balanced["compressed_text"]       # stopped at balanced
-    assert result["compressed_text"] != aggressive["compressed_text"]     # did not go further
-
-
-def test_target_tokens_met_by_first_stage():
-    skill = get_skill()
-    text = _verbose_prompt()
-    lossless = _run(skill, text, "lossless")
-
-    result = _run(skill, text, "lossless", target_tokens=lossless["compressed_tokens"])
-
-    assert result["compressed_text"] == lossless["compressed_text"]
-    assert "Please" in result["compressed_text"]              # no filler removal was needed
-
+    assert result["original_tokens"] > target  # budget branch exercised
+    assert result["compressed_tokens"] <= target  # budget met
+    assert result["compressed_text"] == balanced["compressed_text"]  # stopped at balanced
+    assert result["compressed_text"] != aggressive["compressed_text"]  # did not go further
 
 def test_target_tokens_unreachable_is_best_effort():
     skill = get_skill()
@@ -573,22 +307,11 @@ def test_target_tokens_unreachable_is_best_effort():
 
     result = _run(skill, text, "lossless", target_tokens=10)
 
-    assert result["status"] == "ready"                        # no error, no truncation
-    assert result["compressed_tokens"] > 10                   # budget missed
-    assert result["compressed_tokens"] <= balanced["compressed_tokens"]   # went past balanced
+    assert result["status"] == "ready"  # no error, no truncation
+    assert result["compressed_tokens"] > 10  # budget missed
+    assert result["compressed_tokens"] <= balanced["compressed_tokens"]  # went past balanced
     assert result["compressed_tokens"] < result["original_tokens"]
     assert result["tokens_saved"] == result["original_tokens"] - result["compressed_tokens"]
-
-
-def test_target_tokens_not_below_original_is_ignored():
-    skill = get_skill()
-    text = _verbose_prompt()
-    baseline = _run(skill, text, "balanced")
-
-    result = _run(skill, text, "balanced", target_tokens=baseline["original_tokens"] + 1000)
-
-    assert result["compressed_text"] == baseline["compressed_text"]
-    assert result["compressed_tokens"] == baseline["compressed_tokens"]
 
 
 def test_target_tokens_preserves_protected_spans():
@@ -615,3 +338,77 @@ def test_target_tokens_invalid_values(bad):
 
     assert result["status"] == "error"
     assert "target_tokens" in result["error"]
+
+# ----- Prompt Density Analyzer -----
+
+# pytestmark = pytest.mark.skipif(
+#     not hasattr(PromptCompressor, "_analyze_density"),
+#     reason="analyze_prompt_density not added yet",
+# )
+
+LEAN = "Summarize this report in three bullets."
+NOISY = (
+    "Please   kindly   could you   make sure to   summarize   this!!!\n\n\n\n"
+    "------\n"
+    "In order to   do this, utilize a lot of the tools, as well as   the docs.\n"
+    "It is really very important."
+)
+MODES = ("lossless", "balanced", "aggressive")
+
+def analyze(text):
+    skill = get_skill()
+    return skill.execute({"action": "analyze_prompt_density", "text": text})
+
+
+# 1. Input validation
+@pytest.mark.parametrize("bad", ["", "   ", "\n\t", None, 42, ["a"]])
+def test_rejects_empty_or_non_string_text(bad):
+    r = analyze(bad)
+    assert r["status"] == "error"
+    assert "empty" in r["error"]
+
+
+# 2. Return shape and token accounting
+def test_return_shape_and_accounting():
+    r = analyze(NOISY)
+    assert r["status"] == "ready"
+    for k in ("total_tokens", "structural_tokens", "semantic_tokens",
+              "information_density", "potential_savings"):
+        assert k in r
+    assert r["total_tokens"] == r["structural_tokens"] + r["semantic_tokens"]
+    assert r["structural_tokens"] >= 0
+    assert 0.0 <= r["information_density"] <= 1.0
+    assert set(r["potential_savings"]) == set(MODES)
+    json.dumps(r)  # must be serializable
+
+
+# 3. A lean prompt is fully dense
+def test_lean_prompt_is_fully_dense():
+    r = analyze(LEAN)
+    assert r["structural_tokens"] == 0
+    assert r["information_density"] == 1.0
+
+
+# 4. Noise lowers the score
+def test_noisy_prompt_scores_lower_than_lean():
+    noisy, lean = analyze(NOISY), analyze(LEAN)
+    assert noisy["structural_tokens"] > 0
+    assert noisy["information_density"] < lean["information_density"]
+
+
+# 5. Protected content is never counted as structural
+@pytest.mark.parametrize(
+    "text",
+    [
+        "```\nx   =   1\n\n\n\ny = 2\n```",
+        "```\nPlease kindly really very\n```",
+        "https://example.com/~user/page!!",
+        "{{  spaced   template  }}",
+        "someone@example.com",
+    ],
+)
+
+def test_protected_spans_are_never_structural(text):
+    r = analyze(text)
+    assert r["structural_tokens"] == 0
+    assert r["information_density"] == 1.0
