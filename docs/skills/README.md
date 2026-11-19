@@ -13,7 +13,7 @@ Skills for document processing, email automation, and productivity.
 
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `workflow` | `0.2.0` (18 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction. |
+| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `workflow` | `0.2.1` (18 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction. |
 | **[Gmail Handler](office/gmail_handler.md)** | `office/gmail_handler` | `workflow` | `0.2.0` (19 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
 | **[Web Form Mapper](office/web_form_mapper.md)** | `office/web_form_mapper` | `workflow` | `0.1.0` (04 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministically maps identity profiles to HTML web forms and submits with CSRF preservation and confirmation gates. |
 
@@ -34,6 +34,7 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| **[Ephemeral Wallet](finance/ephemeral_wallet.md)** | `finance/ephemeral_wallet` | `workflow` | `0.1.0` (11 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Spend-capped x402 v2 sessions with handshake, CAIP-2, SSRF/allowlist, and idempotency. |
 | **[Wallet Screening](finance/wallet_screening.md)** | `finance/wallet_screening` | `workflow` | `2.1.0` (1 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). Schema v2 verdicts, hop-1 exposure, offline-direct and optional live providers. |
 | **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `workflow` | `2.0.0` (19 Nov 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, charges, insolvency, filing history/item lookup, 1-hop officer appointments, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 

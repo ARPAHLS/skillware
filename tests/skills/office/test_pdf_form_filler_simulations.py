@@ -263,3 +263,64 @@ def test_w8ben_scenario_audit_matrix(pdf_skill, tmp_path):
     assert widgets["topmostSubform[0].Page1[0].f_10[0]"] == "CA-55443322"
     assert widgets["topmostSubform[0].Page1[0].Date[0]"]  # auto-populated MM-DD-YYYY
     assert len(audit_log) == 4
+
+
+def test_session_restart_resilience_and_batch_stress(pdf_skill, tmp_path):
+    """Simulate process-restart session resume and 5-session concurrent/batch isolation."""
+    from skillware.core.loader import SkillLoader
+
+    sdir = str(tmp_path / "sessions")
+    session_ids = []
+
+    # Create 5 independent sessions
+    for i in range(5):
+        init_res = pdf_skill.execute(
+            {
+                "action": "session_init",
+                "template_id": "us_irs_w8ben",
+                "session_dir": sdir,
+            }
+        )
+        assert init_res["status"] == "ok"
+        sid = init_res["session_id"]
+        session_ids.append(sid)
+
+        upd = pdf_skill.execute(
+            {
+                "action": "session_update",
+                "session_id": sid,
+                "session_dir": sdir,
+                "values": {
+                    "beneficial_owner_name": f"Session User {i}",
+                    "country_of_citizenship": "Greece",
+                    "permanent_residence_street": f"{i} Ermou St",
+                    "permanent_residence_city_state_postal": "Athens 10563",
+                    "permanent_residence_country": "Greece",
+                    "capacity_to_sign": True,
+                    "signature": f"Session User {i}",
+                    "signer_name": f"Session User {i}",
+                },
+                "skip_fields": ["us_tin"],
+            }
+        )
+        assert upd["status"] == "ready"
+
+    # Simulate fresh SkillLoader instance (process restart)
+    fresh_skill = SkillLoader.load_skill("office/pdf_form_filler")["class"]()
+    for i, sid in enumerate(session_ids):
+        out_pdf = str(tmp_path / f"session_{i}.pdf")
+        fin = fresh_skill.execute(
+            {
+                "action": "session_finalize",
+                "session_id": sid,
+                "session_dir": sdir,
+                "output_path": out_pdf,
+                "confirmed": True,
+            }
+        )
+        assert fin["status"] == "success"
+        doc = fitz.open(out_pdf)
+        text = doc[0].get_text()
+        doc.close()
+        assert f"Session User {i}" in text
+        assert f"/s/ Session User {i}" in text

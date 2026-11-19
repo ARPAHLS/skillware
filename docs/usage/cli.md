@@ -374,6 +374,9 @@ are skipped, and bundled skills from `pip install skillware` remain available.
 | Flag | Description |
 | :--- | :--- |
 | `--skills-root <path>` | Override the skills directory for this command only (shows a single override root). |
+| `--json` | Emit machine-readable JSON to stdout instead of Rich tables (for CI and agents). |
+
+`--json` prints one object with `cwd`, `roots` (`order`, `tier`, `path`, `exists`, `skill_count`), `shadowing` (`skill_id`, `winner`, `shadowed`), `resolution_order`, and `config` (`project`, `global`, `loaded`). Exit code stays `0` when at least one root resolves and `1` otherwise.
 
 Non-interactive `skillware paths` is read-only. To **persist** project and external roots, use the interactive **paths submenu** (`config -> paths`, or the `paths` shortcut) or edit `.skillware.yaml` manually.
 
@@ -410,6 +413,7 @@ Check whether skills are valid and can load in the current environment — Manif
 | `--category <name>` | Diagnose all skills in a category |
 | `--skills-root <path>` | Override the skills directory for discovery and load |
 | `--install` | Check Python package install health (editable vs PyPI conflicts); ignores skill args |
+| `--json` | Emit machine-readable JSON to stdout instead of the Rich table |
 
 **SCHEMA** validates the manifest against the Manifest v2 JSON Schema and tag governance policy. **DEPS** validates manifest `requirements`. **LOAD** imports `skill.py`; skipped (`—`) when **DEPS** fails. **ENVS** checks required manifest `env_vars` via `EnvSecretProvider` (your shell, `.env`, or CI secrets — see [API keys](api_keys.md)). Skills with no `env_vars` show `—`.
 
@@ -418,6 +422,8 @@ At the end of the diagnostic table, `skillware doctor` prints a summary of compl
 Exit code is non-zero (`1`) when any skill fails hard integrity checks (**SCHEMA**, **DEPS**, or **LOAD**). Missing **ENVS** produces an informational notice advising which keys are required before executing those skills, returning exit code `0` so offline health audits succeed without requiring full sets of third-party API keys. For full bundle behavior, use `skillware test`.
 
 **`doctor --install`** reports duplicate/orphan `skillware` distributions, suggests Unix and Windows recovery commands, and exits `0` when install metadata is healthy. Also summarized in **`skillware config show`** under **install (this Python)**.
+
+`--json` emits one object on stdout: `command`, `healthy`, `skills[]` (`id`, `schema`, `deps`, `load`, `envs`, `detail`), and `summary` (`total`, `schema_valid`, `fatal_failures`, `missing_envs`). `doctor --install --json` instead returns `mode: "install"`, `display_version`, `distribution_count`, `issues[]`, and `fix_commands`. Exit codes are unchanged (`0` healthy, `1` unhealthy, `2` conflicting filters).
 
 Interactive menu: **`5` / `doctor`**.
 
@@ -719,6 +725,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| [`bc1033e`](https://github.com/ARPAHLS/skillware/commit/bc1033e432) | feat(cli): add --json output to doctor and paths (#476) (#488) | 18 Nov 2026 | `0.6.2` | [@rise11hx-cmyk](https://github.com/rise11hx-cmyk) |
 | [`ad55a64`](https://github.com/ARPAHLS/skillware/commit/ad55a64ea4) | feat(cli): consolidate configuration under option 4 config and prioritize find (#455) (#458) | 31 Oct 2026 | `0.6.1` | [@ect2000](https://github.com/ect2000) |
 | [`0edccfc`](https://github.com/ARPAHLS/skillware/commit/0edccfc23d) | feat(core,cli): add SkillMatcher engine and skillware find command (#456) | 26 Oct 2026 | `0.6.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`d2a306c`](https://github.com/ARPAHLS/skillware/commit/d2a306cffc) | chore(release): cut v0.6.0 with bio category, sequence_ops foundational engine, wallet_screening v2, and 4.8s startup optimizations (#454) | 24 Oct 2026 | `0.6.0` | [@rosspeili](https://github.com/rosspeili) |

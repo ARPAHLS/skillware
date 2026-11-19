@@ -17,6 +17,7 @@ from skillware.cli import (
     cmd_paths,
     cmd_paths_submenu,
     cmd_doctor,
+    cmd_doctor_install,
     cmd_info,
     cmd_theme_picker,
     cmd_theme,
@@ -1124,6 +1125,166 @@ def test_main_doctor_subcommand(monkeypatch):
         assert exc.value.code == 0
     finally:
         sys.argv = argv
+
+
+def _write_demo_skill(tmp_path, skill_id="office/demo", extra_manifest=""):
+    category, name = skill_id.split("/")
+    skill_dir = tmp_path / "skills" / category / name
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "manifest.yaml").write_text(
+        f"name: {skill_id}\nversion: 0.1.0\ndescription: test\n"
+        "parameters:\n  type: object\n  properties: {}\n" + extra_manifest,
+        encoding="utf-8",
+    )
+    (skill_dir / "skill.py").write_text(
+        "from skillware.core.base_skill import BaseSkill\n"
+        "class DemoSkill(BaseSkill):\n"
+        "    def execute(self, **kwargs):\n"
+        "        return {}\n",
+        encoding="utf-8",
+    )
+    return skill_dir
+
+
+def test_cmd_paths_json_lists_tiers(tmp_path, monkeypatch, capsys):
+    import json
+
+    _write_demo_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    assert cmd_paths(json_output=True) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["command"] == "paths"
+    assert payload["roots"], "expected at least one resolved root"
+    for entry in payload["roots"]:
+        assert {"order", "tier", "path", "exists", "skill_count"} <= set(entry)
+    assert "project" in {entry["tier"] for entry in payload["roots"]}
+    assert {"project", "global", "loaded"} <= set(payload["config"])
+
+
+def test_cmd_paths_json_without_roots_reports_empty_list(tmp_path, monkeypatch, capsys):
+    import json
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "skillware.cli.get_skill_roots",
+        lambda override=None, for_display=False: [],
+    )
+
+    assert cmd_paths(json_output=True) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["roots"] == []
+
+
+def test_cmd_doctor_json_reports_healthy_skill(tmp_path, monkeypatch, capsys):
+    import json
+
+    _write_demo_skill(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    assert cmd_doctor(skill_id="office/demo", json_output=True) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["command"] == "doctor"
+    assert payload["healthy"] is True
+    assert payload["error"] is None
+    assert payload["skills"][0]["id"] == "office/demo"
+    assert payload["skills"][0]["schema"] == "ok"
+    assert payload["summary"]["total"] == 1
+    assert payload["summary"]["fatal_failures"] == 0
+
+
+def test_cmd_doctor_json_marks_failures(tmp_path, monkeypatch, capsys):
+    import json
+
+    _write_demo_skill(
+        tmp_path,
+        skill_id="demo/needs_pkg",
+        extra_manifest="requirements:\n  - totally_missing_pkg_xyz\n",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(importlib.util, "find_spec", lambda name, package=None: None)
+
+    assert cmd_doctor(skill_id="demo/needs_pkg", json_output=True) == 1
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["healthy"] is False
+    assert payload["skills"][0]["deps"] == "fail"
+    assert payload["summary"]["fatal_failures"] == 1
+
+
+def test_cmd_doctor_json_rejects_conflicting_filters(capsys):
+    import json
+
+    assert cmd_doctor(skill_id="office/demo", category="office", json_output=True) == 2
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["healthy"] is False
+    assert payload["error"]
+
+
+def test_cmd_doctor_install_json(tmp_path, monkeypatch, capsys):
+    import json
+
+    monkeypatch.chdir(tmp_path)
+
+    rc = cmd_doctor_install(json_output=True)
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc in (0, 1)
+    assert payload["command"] == "doctor"
+    assert payload["mode"] == "install"
+    assert isinstance(payload["healthy"], bool)
+    assert {"unix", "windows"} <= set(payload["fix_commands"])
+    assert isinstance(payload["issues"], list)
+
+
+def test_main_doctor_json_flag_passes_through(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    captured = {}
+
+    def fake_doctor(**kwargs):
+        captured.update(kwargs)
+        return 0
+
+    monkeypatch.setattr("skillware.cli.cmd_doctor", fake_doctor)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "doctor", "--json"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+    assert captured.get("json_output") is True
+
+
+def test_main_paths_json_flag_passes_through(monkeypatch):
+    import sys
+    from skillware.cli import main
+
+    captured = {}
+
+    def fake_paths(**kwargs):
+        captured.update(kwargs)
+        return 0
+
+    monkeypatch.setattr("skillware.cli.cmd_paths", fake_paths)
+
+    argv = sys.argv
+    sys.argv = ["skillware", "paths", "--json"]
+    try:
+        with pytest.raises(SystemExit) as exc:
+            main()
+        assert exc.value.code == 0
+    finally:
+        sys.argv = argv
+
+    assert captured.get("json_output") is True
 
 
 def test_main_config_subcommand(monkeypatch):

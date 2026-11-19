@@ -189,6 +189,8 @@ defi_token_security_scanner = []
 
 dev_tools_issue_resolver = []
 
+finance_ephemeral_wallet = []
+
 finance_uk_companies_house_handler = []
 
 finance_wallet_screening = []
