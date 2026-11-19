@@ -93,11 +93,17 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         self.companies_house_api_key = self.credential("COMPANIES_HOUSE_API_KEY")
 
         if not self.companies_house_api_key:
-            raise ValueError("COMPANIES_HOUSE_API_KEY must be provided through environment variables or config.")
+            raise ValueError(
+                "COMPANIES_HOUSE_API_KEY must be provided through environment variables or config."
+            )
 
         # Load bundled reference data
-        self.api_index = self._load_json(os.path.join(_SKILL_DIR, "data", "api_index.json"))
-        self.terminology_map = self._load_yaml(os.path.join(_SKILL_DIR, "data", "terminology_map.yaml"))
+        self.api_index = self._load_json(
+            os.path.join(_SKILL_DIR, "data", "api_index.json")
+        )
+        self.terminology_map = self._load_yaml(
+            os.path.join(_SKILL_DIR, "data", "terminology_map.yaml")
+        )
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -129,7 +135,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             )
 
         if action in _ACTIONS_REQUIRING_COMPANY_NUMBER:
-            company_number = params.get("company_number") or context.get("company_number")
+            company_number = params.get("company_number") or context.get(
+                "company_number"
+            )
             if not company_number or not company_number.strip():
                 return self._error_response(
                     "missing_company_number",
@@ -172,14 +180,20 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
             # Carry forward and merge context
             ctx_num = context.get("company_number")
-            company_number = result.get("company_number") or params.get("company_number") or ctx_num
+            company_number = (
+                result.get("company_number") or params.get("company_number") or ctx_num
+            )
             # Only inherit context company_name if company_number matches context
             inherited_name = (
                 context.get("company_name")
                 if (not ctx_num or not company_number or ctx_num == company_number)
                 else None
             )
-            company_name = result.get("company_name") or params.get("company_name") or inherited_name
+            company_name = (
+                result.get("company_name")
+                or params.get("company_name")
+                or inherited_name
+            )
 
             if not company_name and company_number:
                 try:
@@ -397,7 +411,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             if norm_officer in role_categories.get("secretaries", []):
                 return True
         elif mapped_target_norm == "corporate" or norm_target == "corporate":
-            if norm_officer in role_categories.get("corporate", []) or norm_officer.startswith("corporate-"):
+            if norm_officer in role_categories.get(
+                "corporate", []
+            ) or norm_officer.startswith("corporate-"):
                 return True
 
         # Check exact role match
@@ -411,7 +427,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         """List officers (directors, secretaries) for a company with deterministic filtering."""
         company_number = params["company_number"].strip()
         active_only = params.get("active_only", True)
-        officer_name = (params.get("officer_name") or params.get("officer_filter") or "").strip().lower()
+        officer_name = (
+            (params.get("officer_name") or params.get("officer_filter") or "")
+            .strip()
+            .lower()
+        )
         officer_role = (params.get("officer_role") or "").strip().lower()
         role_hint = (params.get("role_hint") or "").strip().lower()
         start_index = int(params.get("start_index") or 0)
@@ -453,13 +473,18 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                         continue
 
                     role = item.get("officer_role", "")
-                    if officer_role and not self._match_officer_role(role, officer_role):
+                    if officer_role and not self._match_officer_role(
+                        role, officer_role
+                    ):
                         continue
 
                     name = item.get("name", "")
                     if officer_name:
                         name_lower = name.lower()
-                        if not all(part in name_lower for part in officer_name.replace(",", " ").split()):
+                        if not all(
+                            part in name_lower
+                            for part in officer_name.replace(",", " ").split()
+                        ):
                             continue
 
                     matched_count += 1
@@ -473,7 +498,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                                 "resigned_on": item.get("resigned_on"),
                                 "nationality": item.get("nationality", ""),
                                 "occupation": item.get("occupation", ""),
-                                "country_of_residence": item.get("country_of_residence", ""),
+                                "country_of_residence": item.get(
+                                    "country_of_residence", ""
+                                ),
                             }
                         )
 
@@ -518,7 +545,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                             "resigned_on": item.get("resigned_on"),
                             "nationality": item.get("nationality", ""),
                             "occupation": item.get("occupation", ""),
-                            "country_of_residence": item.get("country_of_residence", ""),
+                            "country_of_residence": item.get(
+                                "country_of_residence", ""
+                            ),
                         }
                     )
             items_per_page = page_size
@@ -526,10 +555,12 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         company_name = params.get("context", {}).get("company_name", "")
 
         if any(
-            term in role_hint or term in officer_role for term in ("ceo", "chief_executive", "president", "coo", "cfo")
+            term in role_hint or term in officer_role
+            for term in ("ceo", "chief_executive", "president", "coo", "cfo")
         ):
             terminology_note = (
-                "UK companies use directors, not CEOs; this list includes statutory directors and secretaries."
+                "UK companies use directors, not CEOs; this list "
+                "includes statutory directors and secretaries."
             )
         elif not active_only:
             terminology_note = (
@@ -740,7 +771,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _extract_officer_id(cls, item: Dict[str, Any]) -> str:
         """Extract officer_id from Companies House officer or search links."""
         links = item.get("links") or {}
-        appointments_path = (links.get("officer") or {}).get("appointments") or links.get("self") or ""
+        appointments_path = (
+            (links.get("officer") or {}).get("appointments") or links.get("self") or ""
+        )
         return cls._sanitize_path_id(
             appointments_path,
             prefix="/officers/",
@@ -753,7 +786,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         context: Dict[str, Any],
     ) -> Optional[str]:
         """Verify company existence via context cache or profile lookup; None on 404."""
-        if context.get("company_number") == company_number and context.get("company_name"):
+        if context.get("company_number") == company_number and context.get(
+            "company_name"
+        ):
             return str(context["company_name"])
         try:
             profile = self._request("GET", f"/company/{company_number}")
@@ -772,7 +807,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             charge_id = str(links["self"]).strip("/").rsplit("/", 1)[-1]
         elif item.get("charge_code"):
             charge_id = str(item["charge_code"])
-        persons = [p.get("name", "") for p in item.get("persons_entitled", []) if isinstance(p, dict) and p.get("name")]
+        persons = [
+            p.get("name", "")
+            for p in item.get("persons_entitled", [])
+            if isinstance(p, dict) and p.get("name")
+        ]
         particulars = item.get("particulars") or {}
         classification = item.get("classification") or {}
         return {
@@ -798,7 +837,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if raw_charge_id is not None and str(raw_charge_id).strip():
             charge_id = self._sanitize_path_id(str(raw_charge_id))
             try:
-                data = self._request("GET", f"/company/{company_number}/charges/{charge_id}")
+                data = self._request(
+                    "GET", f"/company/{company_number}/charges/{charge_id}"
+                )
             except requests.exceptions.HTTPError as exc:
                 if exc.response is not None and exc.response.status_code == 404:
                     return self._error_response(
@@ -851,7 +892,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         charges = [self._format_charge(item) for item in data.get("items", [])]
         if status_filter:
-            charges = [c for c in charges if c.get("status", "").lower() == status_filter]
+            charges = [
+                c for c in charges if c.get("status", "").lower() == status_filter
+            ]
 
         return self._ready_response(
             {
@@ -944,7 +987,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             )
 
         try:
-            data = self._request("GET", f"/company/{company_number}/filing-history/{tx_id}")
+            data = self._request(
+                "GET", f"/company/{company_number}/filing-history/{tx_id}"
+            )
         except requests.exceptions.HTTPError as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 return self._error_response(
@@ -1011,7 +1056,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         for item in data.get("items", []):
             officer_id = self._extract_officer_id(item)
             dob = item.get("date_of_birth") or {}
-            safe_dob = {"month": dob.get("month"), "year": dob.get("year")} if dob else None
+            safe_dob = (
+                {"month": dob.get("month"), "year": dob.get("year")} if dob else None
+            )
             candidates.append(
                 {
                     "title": item.get("title", ""),
@@ -1083,7 +1130,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             req_params["filter"] = "active"
 
         try:
-            data = self._request("GET", f"/officers/{officer_id}/appointments", params=req_params)
+            data = self._request(
+                "GET", f"/officers/{officer_id}/appointments", params=req_params
+            )
         except requests.exceptions.HTTPError as exc:
             if exc.response is not None and exc.response.status_code == 404:
                 return self._error_response(
@@ -1151,7 +1200,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         incoming_pipeline = dict(params.get("pipeline") or {})
         prior_completed = int(incoming_pipeline.get("completed_steps") or 0)
-        prior_total = int(incoming_pipeline.get("total_steps") or (len(steps) + prior_completed))
+        prior_total = int(
+            incoming_pipeline.get("total_steps") or (len(steps) + prior_completed)
+        )
 
         # Pop the current step from the stack
         step = steps.pop(0)
@@ -1161,7 +1212,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         # Resolve parameters (e.g. company_number from context / previous step)
         if (
             not step_params.get("company_number")
-            or step_params.get("company_number") in ("<from_resolve>", "<from resolve>", "<from-resolve>")
+            or step_params.get("company_number")
+            in ("<from_resolve>", "<from resolve>", "<from-resolve>")
         ) and company_number:
             step_params["company_number"] = company_number
 
@@ -1179,7 +1231,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         # As soon as company_number is resolved, update all remaining steps in the stack
         # up until the next company resolution step.
-        resolved_number = result.get("company_number") or company_number or context.get("company_number")
+        resolved_number = (
+            result.get("company_number")
+            or company_number
+            or context.get("company_number")
+        )
         if resolved_number:
             for rem_step in steps:
                 if rem_step.get("action") in (
@@ -1190,7 +1246,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 ):
                     break
                 rem_params = rem_step.setdefault("params", {})
-                if not rem_params.get("company_number") or rem_params.get("company_number") in (
+                if not rem_params.get("company_number") or rem_params.get(
+                    "company_number"
+                ) in (
                     "<from_resolve>",
                     "<from resolve>",
                     "<from-resolve>",
@@ -1236,8 +1294,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _resolve_and_get_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Resolve company and fetch officers in an orchestrated composite action."""
         context = dict(params.get("context") or {})
-        company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
-        query = params.get("query") or params.get("company_query") or context.get("company_name")
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        query = (
+            params.get("query")
+            or params.get("company_query")
+            or context.get("company_name")
+        )
 
         if not company_number and not query:
             return self._error_response(
@@ -1286,8 +1350,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _resolve_and_get_filings(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Resolve company and fetch filing history in an orchestrated composite action."""
         context = dict(params.get("context") or {})
-        company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
-        query = params.get("query") or params.get("company_query") or context.get("company_name")
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        query = (
+            params.get("query")
+            or params.get("company_query")
+            or context.get("company_name")
+        )
 
         if not company_number and not query:
             return self._error_response(
@@ -1334,8 +1404,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _resolve_company_officer(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Resolve company and filter officers by role and/or name in an orchestrated composite action."""
         context = dict(params.get("context") or {})
-        company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
-        query = params.get("query") or params.get("company_query") or context.get("company_name")
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
+        query = (
+            params.get("query")
+            or params.get("company_query")
+            or context.get("company_name")
+        )
 
         if not company_number and not query:
             return self._error_response(
@@ -1384,7 +1460,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     def _list_downloadable_documents(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Filter filing history to filings with document_metadata links."""
         context = dict(params.get("context") or {})
-        company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
         if not company_number:
             return self._needs_input_response(
                 "missing_company_number",
@@ -1460,7 +1538,10 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         documents = documents[:limit]
 
         company_name = (
-            filing_result.get("company_name") or context.get("company_name") or params.get("company_name") or ""
+            filing_result.get("company_name")
+            or context.get("company_name")
+            or params.get("company_name")
+            or ""
         )
 
         if not documents:
@@ -1599,7 +1680,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             except (TypeError, ValueError):
                 pass
 
-        company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
+        company_number = str(
+            params.get("company_number") or context.get("company_number") or ""
+        ).strip()
         category = resolved.get("category") or "document"
         date_part = significant_date or "unknown-date"
         ext = self._extension_for_content_type(content_type)
@@ -1654,10 +1737,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             source="companies_house_document_api",
         )
 
-    def _resolve_document_target(self, params: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_document_target(
+        self, params: Dict[str, Any], context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Resolve metadata_url / transaction_id from params or prior candidates."""
         metadata_url = str(params.get("metadata_url") or "").strip()
-        transaction_id = str(params.get("transaction_id") or context.get("selected_transaction_id") or "").strip()
+        transaction_id = str(
+            params.get("transaction_id") or context.get("selected_transaction_id") or ""
+        ).strip()
         significant_date = ""
         category = ""
 
@@ -1672,7 +1759,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if not metadata_url and transaction_id:
             # Filing transaction ids differ from Document API ids. Resolve the
             # metadata link from the single filing-history item when possible.
-            company_number = str(params.get("company_number") or context.get("company_number") or "").strip()
+            company_number = str(
+                params.get("company_number") or context.get("company_number") or ""
+            ).strip()
             if not company_number:
                 return self._error_response(
                     "unknown_transaction_id",
@@ -1686,7 +1775,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "GET",
                 f"/company/{company_number}/filing-history/{transaction_id}",
             )
-            metadata_url = str((item.get("links") or {}).get("document_metadata") or "").strip()
+            metadata_url = str(
+                (item.get("links") or {}).get("document_metadata") or ""
+            ).strip()
             significant_date = significant_date or str(item.get("date") or "")
             category = category or str(item.get("category") or "")
             if not metadata_url:
@@ -1862,7 +1953,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         if max_bytes >= _HARD_MAX_BYTES or size_bytes > _HARD_MAX_BYTES:
             advice = (
-                "This exceeds the 10 MB hard ceiling; use include_content false and share the download_url instead."
+                "This exceeds the 10 MB hard ceiling; use include_content false "
+                "and share the download_url instead."
             )
         else:
             advice = f"Set a higher max_bytes (up to {_fmt(_HARD_MAX_BYTES)}) or retrieve metadata only."
@@ -1898,7 +1990,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         """Make an authenticated request to the Companies House API."""
         clean_params = None
         if params:
-            clean_params = {key: value for key, value in params.items() if value is not None}
+            clean_params = {
+                key: value for key, value in params.items() if value is not None
+            }
 
         response = requests.request(
             method,

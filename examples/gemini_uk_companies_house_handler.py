@@ -76,7 +76,9 @@ def main() -> None:
     client = genai.Client()
 
     tool = SkillLoader.to_gemini_tool(bundle)
-    expected_tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
+    expected_tool_name = SkillLoader._sanitize_gemini_tool_name(
+        bundle["manifest"]["name"]
+    )
     model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
     system_instruction = bundle["instructions"]
@@ -89,7 +91,9 @@ def main() -> None:
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
     print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
     print("  - 'Does Monzo Bank have any registered charges or insolvency history?'")
-    print("  - 'What other active companies does BP director Murray Auchincloss sit on?'")
+    print(
+        "  - 'What other active companies does BP director Murray Auchincloss sit on?'"
+    )
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)
@@ -137,7 +141,9 @@ def main() -> None:
 
             response = _send_with_retry(
                 chat,
-                types.Part.from_function_response(name=fn_name, response={"result": api_result}),
+                types.Part.from_function_response(
+                    name=fn_name, response={"result": api_result}
+                ),
             )
 
         if response.text:

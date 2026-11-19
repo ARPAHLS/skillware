@@ -41,7 +41,9 @@ from skillware.core.loader import SkillLoader  # noqa: E402
 def demo_skill() -> Iterator[Any]:
     """Yield a skill instance with mocked URL-routed HTTP responses."""
     bundle = SkillLoader.load_skill(SKILL_ID)
-    skill = bundle["module"].UkCompaniesHouseHandlerSkill(config={"COMPANIES_HOUSE_API_KEY": "demo_key"})
+    skill = bundle["module"].UkCompaniesHouseHandlerSkill(
+        config={"COMPANIES_HOUSE_API_KEY": "demo_key"}
+    )
 
     def mock_request(method: str, url: str, **kwargs: Any) -> MagicMock:
         mock_resp = MagicMock()
@@ -59,7 +61,9 @@ def demo_skill() -> Iterator[Any]:
             err_resp = MagicMock()
             err_resp.status_code = 404
             mock_resp.status_code = 404
-            mock_resp.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found", response=err_resp)
+            mock_resp.raise_for_status.side_effect = requests.exceptions.HTTPError(
+                "404 Not Found", response=err_resp
+            )
         elif "/filing-history/" in url:
             mock_resp.json.return_value = MOCK_FILING_ITEM_RESPONSE
         elif url.endswith("/company/00102498"):
@@ -84,12 +88,21 @@ def main() -> None:
         pipeline_state = None
         steps = [
             {"action": "resolve_company", "params": {"query": "BP"}},
-            {"action": "get_company_profile", "params": {"company_number": "<from_resolve>"}},
+            {
+                "action": "get_company_profile",
+                "params": {"company_number": "<from_resolve>"},
+            },
             {
                 "action": "get_company_charges",
-                "params": {"company_number": "<from_resolve>", "status_filter": "outstanding"},
+                "params": {
+                    "company_number": "<from_resolve>",
+                    "status_filter": "outstanding",
+                },
             },
-            {"action": "get_insolvency", "params": {"company_number": "<from_resolve>"}},
+            {
+                "action": "get_insolvency",
+                "params": {"company_number": "<from_resolve>"},
+            },
         ]
         while steps:
             res = skill.execute(
@@ -108,7 +121,9 @@ def main() -> None:
                 break
 
         print("\n--- Step 2: 1-Hop Officer Search & Appointments ---")
-        search_res = skill.execute({"action": "search_officers", "query": "Bernard Looney"})
+        search_res = skill.execute(
+            {"action": "search_officers", "query": "Bernard Looney"}
+        )
         print(json.dumps(search_res, indent=2))
         officer_id = search_res.get("officer_id")
         if officer_id:

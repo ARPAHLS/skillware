@@ -183,7 +183,9 @@ def run_scripted_flow(skill: Any) -> None:
     """Deterministic v1.3.0 flows: composites, role/name filtering, filing helpers, disambiguation, pagination."""
     print("=== uk_companies_house_handler v1.3.0 scripted flows ===\n")
 
-    print("--- Flow A: composite resolve_and_get_officers (clean query + role_hint) ---")
+    print(
+        "--- Flow A: composite resolve_and_get_officers (clean query + role_hint) ---"
+    )
     print('User: "Who is the CEO of BP?" -> agent passes query="BP", role_hint="ceo"\n')
     composite = skill.execute(
         {
@@ -195,7 +197,9 @@ def run_scripted_flow(skill: Any) -> None:
     print(json.dumps(composite, indent=2))
     context = composite.get("context", {})
 
-    print("\n--- Flow A2: composite resolve_company_officer with role and name filter ---")
+    print(
+        "\n--- Flow A2: composite resolve_company_officer with role and name filter ---"
+    )
     print(
         'User: "Find director Looney at BP" -> agent passes '
         'query="BP", officer_role="director", officer_name="Looney"\n'
@@ -257,7 +261,9 @@ def run_scripted_flow(skill: Any) -> None:
         )
         print(json.dumps(resumed, indent=2))
 
-    print("\n--- Flow D: filing helper (latest_per_category) and truncated officers list ---")
+    print(
+        "\n--- Flow D: filing helper (latest_per_category) and truncated officers list ---"
+    )
     latest_filings = skill.execute(
         {
             "action": "get_filing_history",

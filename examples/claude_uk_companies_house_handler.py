@@ -74,7 +74,9 @@ def main() -> None:
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
     print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
     print("  - 'Does Monzo Bank have any registered charges or insolvency history?'")
-    print("  - 'What other active companies does BP director Murray Auchincloss sit on?'")
+    print(
+        "  - 'What other active companies does BP director Murray Auchincloss sit on?'"
+    )
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)
