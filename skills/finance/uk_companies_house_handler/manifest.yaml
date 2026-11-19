@@ -1,5 +1,5 @@
 name: finance/uk_companies_house_handler
-version: 1.4.0
+version: 2.0.0
 tier: core
 shape: workflow
 target:
@@ -13,14 +13,16 @@ tags:
 description: |
   Deterministic UK Companies House API handler for agents. Provides structured
   operations for company search, profile lookup, officer and PSC listing with
-  deterministic role/name filters, filing history with helpers, Document API
+  deterministic role/name filters, company charges, statutory insolvency
+  proceedings, filing history and single filing item inspection, nationwide
+  officer search and cross-company appointment histories, Document API
   discover/pick/download flow (list_downloadable_documents, get_document_metadata,
   fetch_document), and turn-by-turn pipeline orchestration. Returns status-based
   responses (ready, partial, needs_input, error) with disambiguation support. The
   agent owns natural-language dialogue; the skill returns structured candidates
   and records. Downloaded document bytes are returned in-memory as bounded base64
   and are never persisted to disk.
-short_description: "UK Companies House search, officers, PSC, filings, Document API download, and pipeline orchestration via structured actions."
+short_description: "UK Companies House search, officers, PSC, charges, insolvency, filings, officer appointments, Document API download, and pipeline orchestration."
 issuer:
   name: Areen Agrawal
   email: agrawalareen09@gmail.com
@@ -33,7 +35,9 @@ parameters:
       type: string
       description: >
         The operation to perform. One of: resolve_company, get_company_profile,
-        get_officers, get_pscs, get_filing_history, list_downloadable_documents,
+        get_officers, get_pscs, get_filing_history, get_company_charges,
+        get_insolvency, get_filing_item, search_officers,
+        get_officer_appointments, list_downloadable_documents,
         get_document_metadata, fetch_document, run_pipeline,
         resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer.
       enum:
@@ -42,6 +46,11 @@ parameters:
         - get_officers
         - get_pscs
         - get_filing_history
+        - get_company_charges
+        - get_insolvency
+        - get_filing_item
+        - search_officers
+        - get_officer_appointments
         - list_downloadable_documents
         - get_document_metadata
         - fetch_document
@@ -51,16 +60,16 @@ parameters:
         - resolve_company_officer
     query:
       type: string
-      description: "Company name or partial name for search (resolve_company)."
+      description: "Company name or partial name (resolve_company), or officer name (search_officers)."
     company_query:
       type: string
       description: "Company name query for composite actions (resolve_and_get_officers, resolve_and_get_filings, resolve_company_officer)."
     company_number:
       type: string
-      description: "8-character UK company number (required for profile/officers/pscs/filing/list_downloadable_documents)."
+      description: "8-character UK company number (required for profile/officers/pscs/filing/charges/insolvency/filing_item/list_downloadable_documents)."
     active_only:
       type: boolean
-      description: "Filter to current/active records only. Default true for get_officers and get_pscs."
+      description: "Filter to current/active records only. Default true for get_officers, get_pscs, and get_officer_appointments."
     limit:
       type: integer
       description: "Max results to return. Default 5 for resolve_company, 10 for officers/filings/documents (documents max 25)."
@@ -87,7 +96,16 @@ parameters:
       description: "Requested role or title hint (e.g. 'ceo', 'cfo', 'chairman') for officers lookup and UK terminology note."
     transaction_id:
       type: string
-      description: "Filing/document transaction id for get_document_metadata or fetch_document."
+      description: "Filing/document transaction id for get_filing_item, get_document_metadata, or fetch_document."
+    charge_id:
+      type: string
+      description: "Single charge id for get_company_charges."
+    status_filter:
+      type: string
+      description: "Filter charges by status (outstanding, fully-satisfied, part-satisfied) for get_company_charges."
+    officer_id:
+      type: string
+      description: "Companies House officer id for get_officer_appointments."
     metadata_url:
       type: string
       description: "Document API metadata URL from filing links.document_metadata (get_document_metadata, fetch_document)."
@@ -160,6 +178,36 @@ outputs:
   documents:
     type: array
     description: "Downloadable document candidates from list_downloadable_documents."
+  charges:
+    type: array
+    description: "Registered mortgages and charges from get_company_charges."
+  charge:
+    type: object
+    description: "Single registered charge record from get_company_charges when charge_id is provided."
+  total_count:
+    type: integer
+    description: "Total count of charges returned by get_company_charges."
+  satisfied_count:
+    type: integer
+    description: "Count of satisfied charges returned by get_company_charges."
+  part_satisfied_count:
+    type: integer
+    description: "Count of part-satisfied charges returned by get_company_charges."
+  has_insolvency_history:
+    type: boolean
+    description: "Whether the company has statutory insolvency history (get_insolvency)."
+  cases:
+    type: array
+    description: "Insolvency cases from get_insolvency."
+  filing:
+    type: object
+    description: "Single filing transaction record from get_filing_item."
+  downloadable:
+    type: boolean
+    description: "Whether the filing item has a Document API metadata link (get_filing_item)."
+  appointments:
+    type: array
+    description: "Cross-company officer appointment records from get_officer_appointments."
   content_base64:
     type: string
     description: "Base64-encoded document bytes from fetch_document when include_content is true."

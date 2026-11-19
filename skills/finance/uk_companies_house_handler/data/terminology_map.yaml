@@ -133,3 +133,17 @@ document_types:
   annual_filing: confirmation-statement
   registration: incorporation
 
+debt_instruments:
+  mortgage: "Registered charge securing debt against company assets"
+  fixed_charge: "Charge attached to specific identifiable assets (e.g. property, machinery)"
+  floating_charge: "Charge over changing classes of company assets (e.g. stock, receivables)"
+  debenture: "Written debt instrument typically creating fixed and/or floating charges"
+  satisfaction_certificate: "Filing confirming a registered charge has been repaid in full or part"
+
+insolvency_terms:
+  compulsory_liquidation: "Court-ordered winding up of a company unable to pay its debts"
+  creditors_voluntary_liquidation: "Shareholder-initiated winding up of an insolvent company (CVL)"
+  administration: "Statutory rescue procedure placing the company under an insolvency practitioner"
+  winding_up_petition: "Court petition filed by a creditor seeking compulsory liquidation"
+  company_voluntary_arrangement: "Binding debt repayment agreement with creditors (CVA)"
+

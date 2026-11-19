@@ -50,9 +50,7 @@ SCENARIOS: List[Dict[str, Any]] = [
     {
         "id": "ceo_bp",
         "query": "Who is the CEO of BP?",
-        "follow_ups": [
-            f"Use BP P.L.C. (company number {BP_PLC}) and list the current directors."
-        ],
+        "follow_ups": [f"Use BP P.L.C. (company number {BP_PLC}) and list the current directors."],
         "company_number": BP_PLC,
         "expect_actions": {
             "resolve_company_officer",
@@ -80,8 +78,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "officer_name_barclays",
         "query": "Does Barclays Bank PLC have an officer named John Perkins?",
         "follow_ups": [
-            f"Barclays Bank PLC only — company number {BARCLAYS_BANK}. "
-            "Search the officer list and say yes or no."
+            f"Barclays Bank PLC only — company number {BARCLAYS_BANK}. Search the officer list and say yes or no."
         ],
         "company_number": BARCLAYS_BANK,
         "expect_actions": {
@@ -97,8 +94,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "multi_hsbc",
         "query": "Show me the directors and the most recent accounts filings for HSBC.",
         "follow_ups": [
-            f"HSBC Holdings PLC, company number {HSBC_HOLDINGS}. "
-            "I want both officers and recent account filings."
+            f"HSBC Holdings PLC, company number {HSBC_HOLDINGS}. I want both officers and recent account filings."
         ],
         "company_number": HSBC_HOLDINGS,
         "expect_actions": {
@@ -136,8 +132,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "ambiguous_barclays",
         "query": "Tell me about Barclays.",
         "follow_ups": [
-            f"I mean Barclays Bank PLC, company number {BARCLAYS_BANK}. "
-            "Give me the company profile summary."
+            f"I mean Barclays Bank PLC, company number {BARCLAYS_BANK}. Give me the company profile summary."
         ],
         "company_number": BARCLAYS_BANK,
         "expect_actions": {
@@ -189,11 +184,38 @@ SCENARIOS: List[Dict[str, Any]] = [
         "expect_answer_any": ["chair", "director", "tesco", "officer"],
         "expect_tool_fields_any": ["officers"],
     },
+    {
+        "id": "charges_monzo",
+        "query": f"Does Monzo Bank Limited ({MONZO_BANK}) have any registered charges or mortgages?",
+        "follow_ups": [f"Monzo Bank Limited, company number {MONZO_BANK}."],
+        "company_number": MONZO_BANK,
+        "expect_actions": {"get_company_charges", "run_pipeline"},
+        "expect_answer_any": ["charge", "mortgage", "monzo", "none", "0", "no"],
+        "expect_tool_fields_any": ["charges"],
+    },
+    {
+        "id": "insolvency_clean",
+        "query": f"Check whether BP P.L.C. ({BP_PLC}) has any insolvency history.",
+        "follow_ups": [f"BP P.L.C., company number {BP_PLC}."],
+        "company_number": BP_PLC,
+        "expect_actions": {"get_insolvency", "run_pipeline"},
+        "expect_answer_any": ["insolvency", "no", "none", "clean", "bp"],
+        "expect_tool_fields_any": ["has_insolvency_history", "cases"],
+    },
+    {
+        "id": "officer_appointments_bp",
+        "query": (
+            f"List the current directors of BP P.L.C. ({BP_PLC}) and check what other "
+            "active companies the first director sits on."
+        ),
+        "follow_ups": [f"BP P.L.C., company number {BP_PLC}."],
+        "expect_actions": {"get_officers", "get_officer_appointments", "search_officers"},
+        "expect_answer_any": ["director", "appointment", "company", "bp"],
+        "expect_tool_fields_any": ["appointments"],
+    },
 ]
 
-CONVERSATIONAL_QUERY_RE = re.compile(
-    r"^(who|what|when|does|can you|tell me|show me|is there|i'm|i am)\b", re.I
-)
+CONVERSATIONAL_QUERY_RE = re.compile(r"^(who|what|when|does|can you|tell me|show me|is there|i'm|i am)\b", re.I)
 
 
 @dataclass
@@ -261,26 +283,20 @@ def last_ready_result(traces: Sequence[ToolTrace]) -> Optional[Dict[str, Any]]:
     return None
 
 
-def validate_api_payload(
-    scenario: Dict[str, Any], traces: List[ToolTrace]
-) -> List[str]:
+def validate_api_payload(scenario: Dict[str, Any], traces: List[ToolTrace]) -> List[str]:
     notes: List[str] = []
     cn = scenario.get("company_number")
     ready = last_ready_result(traces)
 
     if cn:
         matched = any(
-            str(trace.result.get("company_number", "")).strip() == cn
-            or trace.params.get("company_number") == cn
+            str(trace.result.get("company_number", "")).strip() == cn or trace.params.get("company_number") == cn
             for trace in traces
             if trace.result or trace.params.get("company_number")
         )
         if ready and str(ready.get("company_number", "")).strip() not in ("", cn):
             if str(ready.get("company_number", "")).strip() != cn:
-                notes.append(
-                    f"WARN: ready payload company_number={ready.get('company_number')!r} "
-                    f"expected {cn!r}"
-                )
+                notes.append(f"WARN: ready payload company_number={ready.get('company_number')!r} expected {cn!r}")
         elif not matched and not any(t.status == "needs_input" for t in traces):
             notes.append(f"WARN: no tool call used expected company_number {cn}")
 
@@ -298,9 +314,7 @@ def validate_api_payload(
         got = collect_result_fields(traces)
         if not set(expected_fields) & got:
             if not any(t.status == "needs_input" for t in traces[:-1]):
-                notes.append(
-                    f"FAIL: tool results missing any of {expected_fields}; got keys {sorted(got)}"
-                )
+                notes.append(f"FAIL: tool results missing any of {expected_fields}; got keys {sorted(got)}")
 
     if ready:
         if "officers" in (scenario.get("expect_tool_fields_any") or []):
@@ -315,9 +329,7 @@ def validate_api_payload(
     return notes
 
 
-def validate_answer(
-    scenario: Dict[str, Any], final_text: str, provider: str
-) -> List[str]:
+def validate_answer(scenario: Dict[str, Any], final_text: str, provider: str) -> List[str]:
     notes: List[str] = []
     if provider == "host":
         return notes
@@ -329,9 +341,7 @@ def validate_answer(
 
     needles = [s.lower() for s in scenario.get("expect_answer_any", [])]
     if needles and not any(n in text for n in needles):
-        notes.append(
-            f"FAIL: answer missing expected terms (any of {scenario.get('expect_answer_any')})"
-        )
+        notes.append(f"FAIL: answer missing expected terms (any of {scenario.get('expect_answer_any')})")
 
     return notes
 
@@ -351,9 +361,7 @@ def evaluate_scenario(
     actions = {t.action for t in traces if t.action}
     expected = scenario.get("expect_actions") or set()
     if expected and not (actions & expected):
-        notes.append(
-            f"FAIL: expected actions {sorted(expected)}, got {sorted(actions)}"
-        )
+        notes.append(f"FAIL: expected actions {sorted(expected)}, got {sorted(actions)}")
 
     for trace in traces:
         dirty = dirty_query_in_params(trace.params)
@@ -367,9 +375,7 @@ def evaluate_scenario(
 
     if provider != "host" and any(t.status == "needs_input" for t in traces):
         if not final_text.strip():
-            notes.append(
-                "FAIL: stopped at needs_input without final user-facing answer"
-            )
+            notes.append("FAIL: stopped at needs_input without final user-facing answer")
 
     failed = any(n.startswith("FAIL:") for n in notes)
     if not failed:
@@ -388,9 +394,7 @@ def execute_and_trace(skill: Any, params: Dict[str, Any]) -> ToolTrace:
     )
 
 
-def run_pipeline_to_completion(
-    skill: Any, first_result: Dict[str, Any]
-) -> List[ToolTrace]:
+def run_pipeline_to_completion(skill: Any, first_result: Dict[str, Any]) -> List[ToolTrace]:
     traces: List[ToolTrace] = []
     result = first_result
     for _ in range(8):
@@ -413,9 +417,7 @@ def needs_disambiguation(traces: List[ToolTrace]) -> bool:
     return bool(traces) and traces[-1].status == "needs_input"
 
 
-def host_disambiguate(
-    skill: Any, scenario: Dict[str, Any], traces: List[ToolTrace]
-) -> None:
+def host_disambiguate(skill: Any, scenario: Dict[str, Any], traces: List[ToolTrace]) -> None:
     """Ideal host: pick intended company and continue."""
     cn = scenario.get("company_number")
     last = traces[-1].result if traces else {}
@@ -459,21 +461,11 @@ def host_disambiguate(
             )
         )
     elif sid == "profile_by_number":
-        traces.append(
-            execute_and_trace(
-                skill, {"action": "get_company_profile", "company_number": cn}
-            )
-        )
+        traces.append(execute_and_trace(skill, {"action": "get_company_profile", "company_number": cn}))
     elif sid == "ambiguous_barclays":
-        traces.append(
-            execute_and_trace(
-                skill, {"action": "get_company_profile", "company_number": cn}
-            )
-        )
+        traces.append(execute_and_trace(skill, {"action": "get_company_profile", "company_number": cn}))
     elif sid == "psc_arm":
-        traces.append(
-            execute_and_trace(skill, {"action": "get_pscs", "company_number": cn})
-        )
+        traces.append(execute_and_trace(skill, {"action": "get_pscs", "company_number": cn}))
     elif sid == "multi_hsbc":
         traces.append(
             execute_and_trace(
@@ -608,21 +600,13 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
             )
         )
     elif sid == "profile_by_number":
-        traces.append(
-            execute_and_trace(
-                skill, {"action": "get_company_profile", "company_number": TESCO_PLC}
-            )
-        )
+        traces.append(execute_and_trace(skill, {"action": "get_company_profile", "company_number": TESCO_PLC}))
     elif sid == "ambiguous_barclays":
-        traces.append(
-            execute_and_trace(skill, {"action": "resolve_company", "query": "Barclays"})
-        )
+        traces.append(execute_and_trace(skill, {"action": "resolve_company", "query": "Barclays"}))
         if needs_disambiguation(traces):
             host_disambiguate(skill, scenario, traces)
     elif sid == "psc_arm":
-        traces.append(
-            execute_and_trace(skill, {"action": "get_pscs", "company_number": ARM_LTD})
-        )
+        traces.append(execute_and_trace(skill, {"action": "get_pscs", "company_number": ARM_LTD}))
     elif sid == "complex_natural":
         traces.append(
             execute_and_trace(
@@ -658,19 +642,61 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
                 },
             )
         )
-    else:
-        return ScenarioResult(
-            sid, "host", scenario["query"], False, ["unknown scenario"], traces
+    elif sid == "charges_monzo":
+        traces.append(
+            execute_and_trace(
+                skill,
+                {
+                    "action": "get_company_charges",
+                    "company_number": MONZO_BANK,
+                },
+            )
         )
+    elif sid == "insolvency_clean":
+        traces.append(
+            execute_and_trace(
+                skill,
+                {
+                    "action": "get_insolvency",
+                    "company_number": BP_PLC,
+                },
+            )
+        )
+    elif sid == "officer_appointments_bp":
+        off_trace = execute_and_trace(
+            skill,
+            {
+                "action": "get_officers",
+                "company_number": BP_PLC,
+                "officer_role": "director",
+                "active_only": True,
+                "limit": 5,
+            },
+        )
+        traces.append(off_trace)
+        officers = off_trace.result.get("officers") or []
+        first_id = officers[0].get("officer_id") if officers else ""
+        if first_id:
+            traces.append(
+                execute_and_trace(
+                    skill,
+                    {
+                        "action": "get_officer_appointments",
+                        "officer_id": first_id,
+                        "active_only": True,
+                        "limit": 10,
+                    },
+                )
+            )
+    else:
+        return ScenarioResult(sid, "host", scenario["query"], False, ["unknown scenario"], traces)
 
     summary = locals().get("summary", "ideal host completed")
     ok, notes = evaluate_scenario(scenario, traces, summary, "host")
     return ScenarioResult(sid, "host", scenario["query"], ok, notes, traces, summary)
 
 
-def _process_tool_result(
-    skill: Any, args: Dict[str, Any], traces: List[ToolTrace]
-) -> Dict[str, Any]:
+def _process_tool_result(skill: Any, args: Dict[str, Any], traces: List[ToolTrace]) -> Dict[str, Any]:
     trace = execute_and_trace(skill, args)
     traces.append(trace)
     result = trace.result
@@ -736,9 +762,7 @@ def _queue_follow_up(
     if follow_ups:
         pending_user.append(follow_ups.pop(0))
     elif scenario.get("company_number"):
-        pending_user.append(
-            f"Use company number {scenario['company_number']} and complete my original question."
-        )
+        pending_user.append(f"Use company number {scenario['company_number']} and complete my original question.")
 
 
 def run_model_loop(
@@ -809,11 +833,7 @@ def run_model_loop(
                     )
                     continue
                 result = _process_tool_result(skill, dict(fc.args), traces)
-                fr_parts.append(
-                    types.Part.from_function_response(
-                        name=fc.name, response={"result": result}
-                    )
-                )
+                fr_parts.append(types.Part.from_function_response(name=fc.name, response={"result": result}))
             chat_messages.append(fr_parts)
 
             if needs_disambiguation(traces) and not pending_user:
@@ -821,9 +841,7 @@ def run_model_loop(
             time.sleep(1.0)
 
         if not final_text.strip() and traces:
-            final_text = _request_final_synthesis_gemini(
-                client, model, chat_messages, bundle["instructions"]
-            )
+            final_text = _request_final_synthesis_gemini(client, model, chat_messages, bundle["instructions"])
 
     elif provider == "claude":
         import anthropic
@@ -855,9 +873,7 @@ def run_model_loop(
                     raise
 
             if response.stop_reason != "tool_use":
-                final_text = "".join(
-                    b.text for b in response.content if getattr(b, "text", None)
-                )
+                final_text = "".join(b.text for b in response.content if getattr(b, "text", None))
                 break
 
             tool_uses = [b for b in response.content if b.type == "tool_use"]
@@ -865,9 +881,7 @@ def run_model_loop(
             tool_results = []
             for tool_use in tool_uses:
                 if tool_use.name != tool_name:
-                    traces.append(
-                        ToolTrace("unknown_tool", {"name": tool_use.name}, "error")
-                    )
+                    traces.append(ToolTrace("unknown_tool", {"name": tool_use.name}, "error"))
                     tool_results.append(
                         {
                             "type": "tool_result",
@@ -891,9 +905,7 @@ def run_model_loop(
             time.sleep(1.0)
 
         if not final_text.strip() and traces:
-            final_text = _request_final_synthesis_claude(
-                client, model, messages, bundle["instructions"]
-            )
+            final_text = _request_final_synthesis_claude(client, model, messages, bundle["instructions"])
 
     ok, notes = evaluate_scenario(scenario, traces, final_text, provider)
     return ScenarioResult(
@@ -910,9 +922,7 @@ def run_model_loop(
 
 def print_result(result: ScenarioResult) -> None:
     mark = "PASS" if result.passed else "FAIL"
-    print(
-        f"\n[{mark}] {result.provider} :: {result.scenario_id}  (turns={result.turns})"
-    )
+    print(f"\n[{mark}] {result.provider} :: {result.scenario_id}  (turns={result.turns})")
     print(f"  Q: {result.query}")
     for note in result.notes:
         print(f"  - {note}")

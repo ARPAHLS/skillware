@@ -10,6 +10,16 @@ This skill wraps the UK Companies House REST API (`api.company-information.servi
 
 `data/terminology_map.yaml` is a **reference lexicon** for UK/US/finance term equivalents and keyword hints; it is not a substitute for your reasoning. Prefer explicit parameters over relying on keyword routing alone.
 
+## v2 Host Agent Contract
+
+Follow these 5 rules on every multi-turn session:
+
+1. **Working Memory Retention:** Retain prior tool results (`charges`, `officers`, `insolvency`, `filings`, `context`) in your conversation memory across turns. Do not re-query the same endpoint for the same `company_number` unless the user asks for fresh or differently filtered data.
+2. **Direct Answering from Structured Data:** Answer directly from structured fields (`charges[]`, `cases[]`, `appointments[]`, `filing`) and translate UK legal terms (e.g. `debenture`, `fixed charge`, `floating charge`, `CVL`, `administration`) using `data/terminology_map.yaml` rather than US bankruptcy terms.
+3. **Context Carry-Forward:** Pass `context` back on subsequent company and document calls so `company_number`, `company_name`, `selected_transaction_id`, and `document_candidates` stay intact. `search_officers` and `get_officer_appointments` are person-scoped and require explicit `query` / `officer_id`.
+4. **Proactive Document Offering:** When `get_filing_history`, `get_filing_item`, or `list_downloadable_documents` shows `downloadable: true` for relevant accounts or incorporation filings, proactively offer to download them via `fetch_document`.
+5. **1-Hop Cross-Entity Exploration Boundary:** When tracing an officer via `get_officer_appointments`, stop at 1 hop (the officer's list of appointed companies). Do **not** recursively query officers or filings of those other companies unless the user explicitly asks you to inspect a specific company.
+
 ## When to use
 
 Use this skill when the user:
@@ -41,6 +51,11 @@ Only explain terminology when the user used informal or US-centric wording. Do n
 | `get_officers` | Directors and secretaries with deterministic filtering | `company_number` | `active_only` (default **true**), `limit`, `start_index`, `role_hint`, `officer_name`, `officer_role` |
 | `get_pscs` | Persons with significant control | `company_number` | `active_only` |
 | `get_filing_history` | Filings with deterministic sorting and helpers | `company_number` | `category`, `limit`, `start_index`, `latest_only`, `latest_per_category` |
+| `get_company_charges` | Registered mortgages, debentures, and charges (or single charge) | `company_number` | `charge_id`, `status_filter` (`outstanding`, `fully-satisfied`, `part-satisfied`), `limit`, `start_index` |
+| `get_insolvency` | Statutory insolvency cases, petitions, and practitioners | `company_number` | |
+| `get_filing_item` | Full metadata and annotations for one filing transaction | `company_number`, `transaction_id` | |
+| `search_officers` | Nationwide officer search by name (returns `needs_input` if >1 match) | `query` (or `officer_name`) | `limit`, `start_index` |
+| `get_officer_appointments` | Cross-company appointments for one officer (1-hop boundary) | `officer_id` | `active_only` (default **true**), `limit`, `start_index` |
 | `list_downloadable_documents` | Pick list of filings that have Document API metadata links | `company_number` (or context) | `category`, `limit` (max 25), `latest_only`, `latest_per_category` |
 | `get_document_metadata` | Inspect Document API metadata (MIME types, size, pages) | `transaction_id` **or** `metadata_url` | |
 | `fetch_document` | Stream document bytes as bounded base64 (no disk) | `transaction_id` **or** `metadata_url` | `content_type` (default PDF), `include_content` (default true), `max_bytes` (default 5 MB, hard ceiling 10 MB) |
@@ -55,7 +70,9 @@ Only explain terminology when the user used informal or US-centric wording. Do n
 - **Pipeline Step Construction**: For multi-intent queries, construct the `steps` array directly for `run_pipeline`. Put `resolve_company` first and use `company_number: "<from_resolve>"` in subsequent retrieval steps.
 - **Roles & Filters**: Pass conversational role intent via `role_hint` (e.g. `"ceo"`, `"chairman"`), canonical category or exact statutory role via `officer_role` (`"director"`, `"secretary"`, `"corporate"`, or exact Companies House role like `"cic-manager"`), specific officer name or surname via `officer_name` (e.g. `"John McFarlane"`, `"McFarlane"`, or `"John"`; the skill checks all parts against registry format), and filing categories via `category`.
 - **Filing Helpers**: Use `latest_only: true` when the user asks for the single newest filing (e.g. "latest accounts" or "newest filing") or `latest_per_category: true` for the latest filing per distinct category (e.g. "newest filing per category").
-- **Active vs. Resigned Officers**: Pass `active_only: false` when the user asks for historical, former, or resigned officers.
+- **Active vs. Resigned Officers**: Pass `active_only: false` when the user asks for historical, former, or resigned officers (applies to `get_officers`, `get_pscs`, and `get_officer_appointments`).
+- **Choosing Officer Actions**: Use `get_officers` for a known company's board (returns `officer_id` on each row). Use `search_officers` to find an officer nationwide when no company is specified. Use `get_officer_appointments` with `officer_id` to see all companies an officer directs (1-hop only).
+- **Filing Item vs. Document Metadata**: Use `get_filing_item` for REST API filing details, descriptions, and annotations (and to check `downloadable: true`); use `get_document_metadata` for Document API MIME types, page counts, and byte sizes.
 - Strip trailing punctuation (`?`, `.`) yourself or rely on the skill's light normalization.
 
 ## Playbook — disambiguation and multi-step queries
@@ -129,6 +146,12 @@ When the user asks for more than one registry aspect (e.g. *"get me the officers
 - Officers only: `resolve_company_officer` or `resolve_and_get_officers` with `company_number` (if known) or clean `query` + optional `officer_role` / `officer_name` / `role_hint`.
 - Filings only: `resolve_and_get_filings` with `company_number` (if known) or clean `query` + optional `category` / `latest_only`.
 
+### Due Diligence, Charges, Insolvency & Officer Tracing (v2)
+
+- **Counterparty Health Check (`run_pipeline`)**: Chain `resolve_company` → `get_company_profile` → `get_company_charges` (`status_filter: "outstanding"`) → `get_insolvency`. Note that `get_insolvency` and `get_company_charges` normalize HTTP 404 on valid companies to `status: "ready"` with `has_insolvency_history: false` / `charges: []`.
+- **1-Hop Director Tracing**: Read `officer_id` from `get_officers` (or disambiguate via `search_officers`), then call `get_officer_appointments` (`active_only: true`). Do not crawl second-order companies unless asked.
+- **Single Filing Inspection**: Call `get_filing_item` with `company_number` and `transaction_id`; if `downloadable: true`, offer `fetch_document`.
+
 
 ## Playbook — Document Mode (discover → pick → download)
 
@@ -172,12 +195,12 @@ After tool results return `ready` or `partial`, **stop calling tools** unless yo
 | :--- | :--- | :--- |
 | `ready` | Complete result for standalone/composite actions or completed pipelines. | Present data clearly; cite `company_number` / `company_name` and `fetched_at` when useful. List all returned records and state `total_results` / `active_count` when truncated. |
 | `partial` | In-flight `run_pipeline` only — intermediate step finished, remaining steps pending. | Summarize completed step output; explain remaining pipeline work or ask for disambiguation if halted. |
-| `needs_input` | Ambiguous search or missing company name for pipeline. | Show `candidates` or paraphrase `agent_hint`; ask the user to choose or supply a company number. |
+| `needs_input` | Ambiguous search or missing company name for pipeline. | **Stop calling tools**, show `candidates` or paraphrase `agent_hint`, and ask the user to confirm before proceeding — even if one candidate looks like an exact match. |
 | `error` | Request failed. | Explain `message` / `error_code`; suggest retry or different params (`rate_limited`, `timeout`, etc.). |
 
 Every response includes `fetched_at`, `source`, and usually `context`. Pipeline responses may include `pipeline: {"completed_steps": N, "total_steps": M}`.
 
-Common `error_code` values: `not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`, `missing_document_target`, `document_too_large`, `invalid_metadata_url`, `unsupported_content_type`.
+Common `error_code` values: `not_found`, `company_not_found`, `charge_not_found`, `filing_not_found`, `officer_not_found`, `no_results`, `rate_limited`, `timeout`, `connection_error`, `missing_query`, `missing_company_number`, `missing_transaction_id`, `missing_officer_id`, `missing_document_target`, `document_too_large`, `invalid_metadata_url`, `unsupported_content_type`.
 
 ## Empty or missing registry data
 
@@ -196,6 +219,7 @@ Use `agent_hint` when present; it summarizes machine-oriented guidance — trans
 ## Limitations
 
 - Read-only public registry data; supports Document API downloads as in-memory base64. No filing submission or local disk persistence of documents.
+- Disqualified-officer search (`/search/disqualified-officers`) and personal financial/credit records are not supported.
 - Rate limit: [600 requests per 5 minutes per API key](https://developer.company-information.service.gov.uk/documentation/rate-limiting) across Public Data and Document API hosts. On `rate_limited`, tell the user the Retry-After hint and retry later — the skill does not sleep.
 - Document payloads are capped (`max_bytes`, default 5 MB, hard ceiling 10 MB). Oversized files return `document_too_large`.
 - Not legal or accounting advice — cite `company_number` and `fetched_at` when presenting data.

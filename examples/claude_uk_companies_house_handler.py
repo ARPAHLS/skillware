@@ -1,5 +1,5 @@
 """
-Interactive Claude agent loop for finance/uk_companies_house_handler (v1.3.0).
+Interactive Claude agent loop for finance/uk_companies_house_handler (v2.0.0).
 
 Demonstrates an interactive flow with turn-by-turn pipeline orchestration and composites:
   - run_pipeline with direct step lists for multi-intent queries
@@ -73,6 +73,8 @@ def main() -> None:
     print("Try asking:")
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
     print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
+    print("  - 'Does Monzo Bank have any registered charges or insolvency history?'")
+    print("  - 'What other active companies does BP director Murray Auchincloss sit on?'")
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)

@@ -1,5 +1,5 @@
 """
-Interactive Gemini agent loop for finance/uk_companies_house_handler (v1.3.0).
+Interactive Gemini agent loop for finance/uk_companies_house_handler (v2.0.0).
 
 Demonstrates an interactive flow with turn-by-turn pipeline orchestration and composites:
   - run_pipeline with direct step construction for multi-intent queries
@@ -24,7 +24,9 @@ Usage:
 import json
 import os
 import sys
+import time
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -45,10 +47,22 @@ def _print_needs_input_hint(result: dict) -> None:
     print("\n--- Disambiguation needed ---")
     for idx, candidate in enumerate(candidates[:5], 1):
         print(
-            f"  {idx}. {candidate.get('title')} "
-            f"({candidate.get('company_number')}) — {candidate.get('company_status')}"
+            f"  {idx}. {candidate.get('title')} ({candidate.get('company_number')}) — {candidate.get('company_status')}"
         )
     print("Reply with the company number or full name to continue.\n")
+
+
+def _send_with_retry(chat: Any, payload: Any, max_retries: int = 3) -> Any:
+    """Send a message to Gemini with backoff on transient 503 ServerError."""
+    from google.genai.errors import ServerError
+
+    for attempt in range(max_retries):
+        try:
+            return chat.send_message(payload)
+        except ServerError as exc:
+            if getattr(exc, "code", None) != 503 or attempt == max_retries - 1:
+                raise
+            time.sleep(2**attempt)
 
 
 def main() -> None:
@@ -62,9 +76,7 @@ def main() -> None:
     client = genai.Client()
 
     tool = SkillLoader.to_gemini_tool(bundle)
-    expected_tool_name = SkillLoader._sanitize_gemini_tool_name(
-        bundle["manifest"]["name"]
-    )
+    expected_tool_name = SkillLoader._sanitize_gemini_tool_name(bundle["manifest"]["name"])
     model = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
     system_instruction = bundle["instructions"]
@@ -76,7 +88,8 @@ def main() -> None:
     print("Try asking:")
     print("  - 'Who is the CEO of BP?' (agent should pass query='BP', role_hint='ceo')")
     print("  - 'Show me officers and filings for Tesco' (run_pipeline)")
-    print("  - 'Get me the CEO of Tesco and its 10-K' (run_pipeline)")
+    print("  - 'Does Monzo Bank have any registered charges or insolvency history?'")
+    print("  - 'What other active companies does BP director Murray Auchincloss sit on?'")
     print("  - 'Who owns Monzo?'")
     print("\nType 'exit' or 'quit' to stop.")
     print("=" * 60)
@@ -101,7 +114,7 @@ def main() -> None:
         if user_query.lower() in ("exit", "quit"):
             break
 
-        response = chat.send_message(user_query)
+        response = _send_with_retry(chat, user_query)
 
         while response.function_calls:
             tool_call = response.function_calls[0]
@@ -122,10 +135,9 @@ def main() -> None:
             print(json.dumps(api_result, indent=2))
             _print_needs_input_hint(api_result)
 
-            response = chat.send_message(
-                types.Part.from_function_response(
-                    name=fn_name, response={"result": api_result}
-                )
+            response = _send_with_retry(
+                chat,
+                types.Part.from_function_response(name=fn_name, response={"result": api_result}),
             )
 
         if response.text:

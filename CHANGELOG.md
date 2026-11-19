@@ -10,7 +10,11 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/uk_companies_house_handler` v2.0.0):** Expanded deterministic API surface (Phase v2e) with `get_company_charges`, `get_insolvency`, `get_filing_item`, `search_officers`, and `get_officer_appointments` (native `?filter=active`), `officer_id` extraction in `get_officers`, local 404 normalization with context-cached company-existence checks, `run_pipeline` `company_number` auto-binding for charges/insolvency/filing items, UK debt & insolvency terminology in `data/terminology_map.yaml`, and `examples/uk_companies_house_due_diligence_demo.py` (Parent [#220](https://github.com/ARPAHLS/skillware/issues/220)).
+
 ### Changed
+
+- **Skill (`finance/uk_companies_house_handler` v2.0.0):** Codified the 5-point v2 Host Agent Playbook in `instructions.md` (working memory retention, direct answering, context carry-forward, proactive document offering, 1-hop cross-entity boundary), updated `data/api_index.json` and `scripts/uk_companies_house_host_simulation.py` scenarios, and bumped version from `1.4.0` to `2.0.0` (Phase v2f, Parent [#220](https://github.com/ARPAHLS/skillware/issues/220)).
 
 ### Fixed
 

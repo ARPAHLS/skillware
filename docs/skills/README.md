@@ -35,7 +35,7 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **[Wallet Screening](finance/wallet_screening.md)** | `finance/wallet_screening` | `workflow` | `2.1.0` (1 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). Schema v2 verdicts, hop-1 exposure, offline-direct and optional live providers. |
-| **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `workflow` | `1.4.0` (15 Oct 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, filing history with helpers, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
+| **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `workflow` | `2.0.0` (19 Nov 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, charges, insolvency, filing history/item lookup, 1-hop officer appointments, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 
 ## DeFi
 On-chain execution and trading for dedicated agent wallets (structured intent, previews, confirmations).
