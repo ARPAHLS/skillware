@@ -121,7 +121,7 @@ Available commands:
 | `1` / [`find`](#skillware-find) | Search and rank skills by intent, action, or keywords | Available |
 | `2` / [`list`](#skillware-list) | List all locally installed skills | Available |
 | `3` / [`examples`](#skillware-examples) | Browse runnable example scripts (index from `examples/README.md`, or from GitHub when no local copy exists) | Available |
-| `4` / [`config`](#interactive-config-submenu) | Configure paths, theme, EVM, mail and shared contacts; show or open configuration | Available |
+| `4` / [`config`](#interactive-config-submenu) | Configure paths, theme, EVM, mail, shared contacts, and PDF templates; show or open configuration | Available |
 | `5` / [`test`](#skillware-test) | Run bundle tests (`test_skill.py`) for one or all skills | Available |
 | `6` / [`doctor`](#skillware-doctor) | Check manifest deps and skill.py import readiness | Available |
 | `7` / [`help`](#grouped-help) | Grouped help topics and doc links | Available |
@@ -137,12 +137,13 @@ Choose `4` / `config` to open the configuration menu:
 | `3` / `evm` | Configure EVM chains, RPC endpoints and tokens |
 | `4` / `mail` | Configure the mail address book and signature |
 | `5` / `addressbook` | Manage shared contacts and EVM wallets |
-| `6` / `show` | Print merged global and project YAML configuration |
-| `7` / `open` | Open the configuration file or directory in the OS file manager |
+| `6` / `pdf` | Manage PDF form templates, XFA audit, auto-mapping, and validation |
+| `7` / `show` | Print merged global and project YAML configuration |
+| `8` / `open` | Open the configuration file or directory in the OS file manager |
 
 Use `b` / `back` to return to the main menu, or `0` / `q` to exit Skillware.
 Returning from a nested setup menu brings you back to config. Typing `paths`,
-`theme`, `evm`, `mail` or `addressbook` directly at the main prompt remains a
+`theme`, `evm`, `mail`, `addressbook` or `pdf` directly at the main prompt remains a
 shortcut to the corresponding submenu. Direct CLI commands are unchanged,
 including `skillware config show` and `skillware config open`.
 
@@ -162,10 +163,11 @@ including `skillware config show` and `skillware config open`.
 | `8` / `mail` | address book and signature setup |
 | `9` / `evm` | chains, tokens, and RPC config |
 | `10` / `addressbook` | shared contacts, identity, and wallets |
-| `11` / `general` | menu, `--help`, `--version` |
-| `12` / `install` | pip install skillware |
-| `13` / `docs` | link to this CLI guide |
-| `14` / `interactive` | numbered splash menu |
+| `11` / `pdf` | PDF form templates, XFA audit, mapping, validation |
+| `12` / `general` | menu, `--help`, `--version` |
+| `13` / `install` | pip install skillware |
+| `14` / `docs` | link to this CLI guide |
+| `15` / `interactive` | numbered splash menu |
 
 Brief `--help` topic index matches the table above. Each topic expands to the command groups below when you choose **`7` / `help`** in the interactive menu:
 
@@ -181,6 +183,7 @@ Brief `--help` topic index matches the table above. Each topic expands to the co
 | **[Mail](#skillware-mail)** | `mail`, interactive mail submenu |
 | **[EVM](#skillware-evm)** | `evm`, `evm init`, `evm chains list`, `evm chain add`, `evm tokens list`, `evm token add`, `evm rpc enable`, `evm validate`, `evm open` |
 | **[Addressbook](#skillware-addressbook)** | `addressbook list`, `addressbook add`, `addressbook edit`, `addressbook set-wallet`, `addressbook open` |
+| **[PDF](#skillware-pdf)** | `pdf init`, `pdf output-dir`, `pdf import`, `pdf status`, `pdf templates list`, `pdf map-generate`, `pdf inspect`, `pdf map-validate`, `pdf guide`, `pdf open` |
 | **[General](#interactive-menu)** | interactive menu, `--help`, `--version` |
 
 ## Commands
@@ -621,6 +624,60 @@ List, inspect, validate, and run **named chains** from merged config (`chains:` 
 
 See [Skill chaining](skill_chaining.md#named-chains-yaml--api).
 
+### `skillware pdf`
+
+Manage custom PDF form template directories, batch-import forms, audit XFA/schema status, auto-generate YAML schema maps, inspect AcroForm widgets, and validate maps for `office/pdf_form_filler`.
+
+```bash
+skillware pdf init
+skillware pdf init --dir ./my_forms --output-dir ./filled_forms
+skillware pdf output-dir ./filled_forms
+skillware pdf output-dir ./filled_forms --global
+skillware pdf import /path/to/company/forms/ --copy
+skillware pdf import /path/to/company/forms/ --auto-map
+skillware pdf status
+skillware pdf status --json
+skillware pdf templates list --json
+skillware pdf map-generate --missing
+skillware pdf map-generate path/to/form.pdf --out map.yaml
+skillware pdf inspect path/to/form.pdf --json
+skillware pdf map-validate path/to/form.pdf map.yaml
+skillware pdf guide
+skillware pdf open
+```
+
+| Subcommand | Description |
+| :--- | :--- |
+| `init [--dir <path>] [--output-dir <path>]` | Create user template dir (`~/.config/skillware/pdf_templates/` or `%APPDATA%/skillware/pdf_templates`) or set project `pdf.templates_dir` / `pdf.output_dir` in `.skillware.yaml` (auto-creates missing folders) |
+| `output-dir [<path>] [--global]` | View or set the default output folder for filled PDFs in `.skillware.yaml` or global `config.yaml` (auto-creates missing folders) |
+| `import <folder> [--copy\|--link] [--auto-map]` | Batch-import PDFs, flag dynamic XFA forms, and optionally scaffold missing YAML maps without overwriting existing ones |
+| `status [--json]` | Audit active search paths, output dir, and bundled/user templates (`[MAPPED - VALID]`, `[UNMAPPED]`, `[MAP INVALID]` with error details, `[UNSUPPORTED]` for XFA) |
+| `templates list [--json]` | List bundled and user PDF form templates |
+| `map-generate [--missing\|<pdf>] [--out <yaml>] [--force]` | Auto-generate boilerplate YAML maps with proximity labels, multi-section heading chunking, radio groups, and PII sensitivity detection (never overwrites without `--force`) |
+| `inspect <pdf> [--json]` | Inspect AcroForm widgets, XFA status, and radio button groups |
+| `map-validate <pdf> <yaml>` | Validate schema map widgets, page numbers, field types, radio states, and dropdown choices (exit `0` on success, `1` on error) |
+| `guide` | Print quick-reference YAML schema specification and authoring tips |
+| `open` | Open the active PDF templates directory in the OS file manager |
+
+Also available interactively via `skillware` -> `config` -> `pdf` (or typing `pdf` directly at the main menu prompt).
+
+**Template directory precedence:**
+
+1. `PDF_TEMPLATES_DIR` environment variable
+2. Project `.skillware.yaml` -> `pdf.templates_dir`
+3. User config directory (`~/.config/skillware/pdf_templates/` or `%APPDATA%/skillware/pdf_templates` on Windows)
+4. Bundled fallback (`skills/office/pdf_form_filler/kb/`)
+
+**Output directory precedence (when explicit `output_path` is omitted):**
+
+1. Per-call `output_dir` parameter
+2. `PDF_OUTPUT_DIR` environment variable
+3. Project `.skillware.yaml` -> `pdf.output_dir`
+4. Global `config.yaml` -> `pdf.output_dir`
+5. Default fallback: current working directory (template mode) or alongside input PDF (ad-hoc mode)
+
+If PyMuPDF is not installed, commands that inspect or validate PDFs print an install hint (`pip install "skillware[office_pdf_form_filler]"`) and exit with code `1`.
+
 ## Path resolution
 
 `skillware list`, `load_skill`, `test`, and `doctor` share the same roots as `SkillLoader`.
@@ -725,6 +782,7 @@ Commits that touched the `skillware` CLI tool, its subcommands, or its documenta
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| TBD | feat(cli,core): add `skillware pdf` command group (`output-dir`, `status --json`, `config -> pdf` submenu), `pdf_templates.py`, XFA detection, multi-section auto-mapping, and validation (#406) | 19 Nov 2026 | `Unreleased` | [@rosspeili](https://github.com/rosspeili) |
 | [`bc1033e`](https://github.com/ARPAHLS/skillware/commit/bc1033e432) | feat(cli): add --json output to doctor and paths (#476) (#488) | 18 Nov 2026 | `0.6.2` | [@rise11hx-cmyk](https://github.com/rise11hx-cmyk) |
 | [`ad55a64`](https://github.com/ARPAHLS/skillware/commit/ad55a64ea4) | feat(cli): consolidate configuration under option 4 config and prioritize find (#455) (#458) | 31 Oct 2026 | `0.6.1` | [@ect2000](https://github.com/ect2000) |
 | [`0edccfc`](https://github.com/ARPAHLS/skillware/commit/0edccfc23d) | feat(core,cli): add SkillMatcher engine and skillware find command (#456) | 26 Oct 2026 | `0.6.1` | [@rosspeili](https://github.com/rosspeili) |

@@ -127,6 +127,30 @@ class PDFFormFillerSkill(BaseSkill):
                 return yaml.safe_load(f) or {}
         return {}
 
+    def _resolve_effective_output_dir(
+        self, explicit_output_dir: Optional[str]
+    ) -> Optional[str]:
+        """
+        Resolve output directory precedence:
+        1. Explicit tool param ``output_dir``
+        2. ``PDF_OUTPUT_DIR`` via ``self.credential()``
+        3. Project ``.skillware.yaml`` or global ``config.yaml`` ``pdf.output_dir``
+        4. None (default fallback: CWD for templates / alongside input for ad-hoc PDFs)
+        """
+        if explicit_output_dir and str(explicit_output_dir).strip():
+            return str(Path(str(explicit_output_dir).strip()).expanduser())
+        env_out = self.credential("PDF_OUTPUT_DIR")
+        try:
+            from skillware.core.pdf_templates import resolve_output_dir
+
+            _, resolved = resolve_output_dir(env_output_dir=env_out or "")
+            if resolved is not None:
+                return str(resolved)
+        except Exception:
+            if env_out and str(env_out).strip():
+                return str(Path(str(env_out).strip()).expanduser())
+        return None
+
     def execute(self, params: Dict[str, Any]) -> Any:
         if not isinstance(params, dict):
             return {"status": "error", "message": "Parameters must be a dictionary."}
@@ -406,12 +430,19 @@ class PDFFormFillerSkill(BaseSkill):
                 }
 
         if not output_path:
+            effective_output_dir = self._resolve_effective_output_dir(output_dir)
             if template_id:
                 output_path = build_default_output_path(
                     template_id,
                     edits,
                     filler_name=filler_name,
-                    output_dir=output_dir,
+                    output_dir=effective_output_dir,
+                )
+            elif effective_output_dir:
+                p_in = Path(pdf_path)
+                ext = p_in.suffix or ".pdf"
+                output_path = str(
+                    Path(effective_output_dir) / f"{p_in.stem}_filled{ext}"
                 )
             else:
                 base, ext = os.path.splitext(pdf_path)
@@ -797,12 +828,21 @@ class PDFFormFillerSkill(BaseSkill):
         flatten = bool(params.get("flatten", True))
         output_path = params.get("output_path")
         if not output_path:
+            effective_output_dir = self._resolve_effective_output_dir(
+                params.get("output_dir")
+            )
             if record.get("template_id"):
                 output_path = build_default_output_path(
                     str(record["template_id"]),
                     semantic_edits,
                     filler_name=params.get("filler_name"),
-                    output_dir=params.get("output_dir"),
+                    output_dir=effective_output_dir,
+                )
+            elif effective_output_dir:
+                p_in = Path(pdf_path)
+                ext = p_in.suffix or ".pdf"
+                output_path = str(
+                    Path(effective_output_dir) / f"{p_in.stem}_filled{ext}"
                 )
             else:
                 base, ext = os.path.splitext(pdf_path)

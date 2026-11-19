@@ -43,6 +43,7 @@ from skillware.core.config import (
 )
 from skillware.core.mail_config import format_mail_config_lines
 from skillware.core.evm_config import format_evm_config_lines
+from skillware.core.pdf_templates import format_pdf_config_lines
 from skillware.cli_addressbook import (
     cmd_addressbook,
     cmd_addressbook_dispatch,
@@ -51,6 +52,7 @@ from skillware.cli_addressbook import (
 )
 from skillware.cli_mail import cmd_mail, cmd_mail_submenu
 from skillware.cli_evm import cmd_evm, cmd_evm_dispatch, cmd_evm_submenu
+from skillware.cli_pdf import cmd_pdf_dispatch, cmd_pdf_submenu
 from skillware.cli_theme import THEMES, ThemePalette, active_theme
 from skillware.core.discovery import (
     SKILLWARE_SKILL_PATH_ENV,
@@ -129,6 +131,7 @@ _DOCS_CLI_CHAIN = f"{_DOCS_CLI}#skillware-chain"
 _DOCS_CLI_THEME = f"{_DOCS_CLI}#color-themes"
 _DOCS_CLI_MAIL = f"{_DOCS_CLI}#skillware-mail"
 _DOCS_CLI_EVM = f"{_DOCS_CLI}#skillware-evm"
+_DOCS_CLI_PDF = f"{_DOCS_CLI}#skillware-pdf"
 _DOCS_CLI_ADDRESSBOOK = f"{_DOCS_CLI}#skillware-addressbook"
 
 HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
@@ -279,6 +282,51 @@ HELP_GROUPS: List[Tuple[str, List[Tuple[str, str]], str]] = [
         _DOCS_CLI_ADDRESSBOOK,
     ),
     (
+        "PDF",
+        [
+            (
+                "skillware pdf init [--dir <path>] [--output-dir <path>]",
+                "initialize PDF templates dir and optional output dir",
+            ),
+            (
+                "skillware pdf output-dir [<path>] [--global]",
+                "view or configure default filled PDF output folder",
+            ),
+            (
+                "skillware pdf import <folder> [--link] [--auto-map]",
+                "batch-import PDF forms",
+            ),
+            (
+                "skillware pdf status [--json]",
+                "audit active paths, templates, maps, and XFA forms",
+            ),
+            (
+                "skillware pdf templates list [--json]",
+                "list bundled and user PDF templates",
+            ),
+            (
+                "skillware pdf map-generate --missing",
+                "scaffold schema maps for unmapped forms",
+            ),
+            (
+                "skillware pdf map-generate <pdf> [--out <yaml>]",
+                "generate schema map for one PDF",
+            ),
+            (
+                "skillware pdf inspect <pdf> [--json]",
+                "inspect widgets, XFA status, radio groups",
+            ),
+            (
+                "skillware pdf map-validate <pdf> <yaml>",
+                "validate schema map against PDF widgets",
+            ),
+            ("skillware pdf guide", "print schema spec and manual authoring tips"),
+            ("skillware pdf open", "open active PDF templates dir in OS file manager"),
+            ("skillware (config -> pdf)", "interactive pdf submenu"),
+        ],
+        _DOCS_CLI_PDF,
+    ),
+    (
         "General",
         [
             ("skillware", "interactive menu (splash + numbered options)"),
@@ -319,10 +367,11 @@ _HELP_MENU: List[Tuple[str, str, str, Union[int, str]]] = [
     ("8", "mail", "address book and signature setup", 7),
     ("9", "evm", "chains, tokens, and RPC config", 8),
     ("10", "addressbook", "shared contacts, identity, and wallets", 9),
-    ("11", "general", "menu, help, version", 10),
-    ("12", "install", "pip install skillware", "install"),
-    ("13", "docs", "full CLI guide online", "docs"),
-    ("14", "interactive", "numbered splash menu", "interactive"),
+    ("11", "pdf", "PDF form templates, XFA audit, mapping, validation", 10),
+    ("12", "general", "menu, help, version", 11),
+    ("13", "install", "pip install skillware", "install"),
+    ("14", "docs", "full CLI guide online", "docs"),
+    ("15", "interactive", "numbered splash menu", "interactive"),
 ]
 
 _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
@@ -1714,6 +1763,10 @@ def cmd_config_show(console: Optional[Console] = None) -> int:
         console.print(Text("evm (resolved defaults)", style=f"bold {TABLE_STYLE}"))
         for line in format_evm_config_lines(config.evm):
             console.print(line, style=MENU_STYLE)
+        console.print()
+        console.print(Text("pdf (resolved defaults)", style=f"bold {TABLE_STYLE}"))
+        for line in format_pdf_config_lines(config.pdf):
+            console.print(line, style=MENU_STYLE)
         return 0
 
     console.print(Text("paths (active)", style=TABLE_STYLE))
@@ -1741,6 +1794,11 @@ def cmd_config_show(console: Optional[Console] = None) -> int:
 
     console.print(Text("evm (active)", style=f"bold {TABLE_STYLE}"))
     for line in format_evm_config_lines(config.evm):
+        console.print(line, style=MENU_STYLE)
+    console.print()
+
+    console.print(Text("pdf (active)", style=f"bold {TABLE_STYLE}"))
+    for line in format_pdf_config_lines(config.pdf):
         console.print(line, style=MENU_STYLE)
     console.print()
 
@@ -2369,8 +2427,9 @@ def cmd_config_submenu(
         ("3", "evm", "EVM chains, RPC endpoints, and tokens"),
         ("4", "mail", "address book and signature setup"),
         ("5", "addressbook", "shared contacts and EVM wallets"),
-        ("6", "show", "print merged global and project configuration"),
-        ("7", "open", "open configuration in the OS file manager"),
+        ("6", "pdf", "PDF form templates, XFA audit, mapping, and validation"),
+        ("7", "show", "print merged global and project configuration"),
+        ("8", "open", "open configuration in the OS file manager"),
     ]
     commands = {number: name for number, name, _ in menu}
     commands.update({name: name for _, name, _ in menu})
@@ -2404,6 +2463,8 @@ def cmd_config_submenu(
             child_nav = cmd_addressbook_interactive(
                 console=console, input_fn=input_fn, return_navigation=True
             )
+        elif command == "pdf":
+            child_nav = cmd_pdf_submenu(console=console, input_fn=input_fn)
         elif command == "show":
             cmd_config_show(console=console)
         elif command == "open":
@@ -2575,7 +2636,7 @@ def cmd_interactive(
         ("1", "find", "search and rank skills by intent, action, or keywords"),
         ("2", "list", "discover and display all locally installed skills"),
         ("3", "examples", "browse runnable scripts from examples/README.md"),
-        ("4", "config", "configure paths, theme, evm, mail, and addressbook"),
+        ("4", "config", "configure paths, theme, evm, mail, addressbook, and pdf"),
         ("5", "test", "run bundle tests (test_skill.py) for one or all skills"),
         ("6", "doctor", "check manifest deps and skill.py import readiness"),
         ("7", "help", "grouped help topics and doc links"),
@@ -2600,6 +2661,7 @@ def cmd_interactive(
         "theme": "theme",
         "evm": "evm",
         "addressbook": "addressbook",
+        "pdf": "pdf",
         "find": "find",
         "search": "find",
     }
@@ -2690,6 +2752,11 @@ def cmd_interactive(
                 console=console, return_navigation=True
             )
             if addressbook_nav == _NAV_EXIT:
+                console.print("  Bye.", style="dim")
+                return
+        elif command == "pdf":
+            pdf_nav = cmd_pdf_submenu(console=console)
+            if pdf_nav == _NAV_EXIT:
                 console.print("  Bye.", style="dim")
                 return
         else:
@@ -3343,6 +3410,132 @@ def main() -> None:
         help="Open the containing directory instead of the file.",
     )
 
+    pdf_parser = subparsers.add_parser(
+        "pdf",
+        help="PDF form template management, inspection, auto-mapping, and validation.",
+    )
+    pdf_sub = pdf_parser.add_subparsers(dest="pdf_area")
+    pdf_init = pdf_sub.add_parser(
+        "init", help="Initialize user or project PDF templates directory."
+    )
+    pdf_init.add_argument(
+        "--dir",
+        dest="pdf_dir",
+        default=None,
+        help="Custom project templates directory (recorded in .skillware.yaml).",
+    )
+    pdf_init.add_argument(
+        "--output-dir",
+        dest="pdf_output_dir",
+        default=None,
+        help="Optional default output directory for filled PDFs (auto-created, recorded in .skillware.yaml).",
+    )
+    pdf_out = pdf_sub.add_parser(
+        "output-dir",
+        help="View or configure default output directory for filled PDFs.",
+    )
+    pdf_out.add_argument(
+        "output_dir",
+        nargs="?",
+        default=None,
+        help="Output folder path (auto-created if missing; omit to view current setting).",
+    )
+    pdf_out.add_argument(
+        "--global",
+        action="store_true",
+        dest="global_scope",
+        help="Persist pdf.output_dir in global config.yaml instead of project .skillware.yaml.",
+    )
+    pdf_import = pdf_sub.add_parser(
+        "import", help="Batch-import PDF forms into the template directory."
+    )
+    pdf_import.add_argument("source", help="Folder or single PDF file to import.")
+    pdf_import.add_argument(
+        "--copy",
+        action="store_true",
+        help="Copy PDF files into the template directory (default).",
+    )
+    pdf_import.add_argument(
+        "--link",
+        action="store_true",
+        help="Symlink PDF files instead of copying.",
+    )
+    pdf_import.add_argument(
+        "--auto-map",
+        action="store_true",
+        help="Auto-generate schema maps for imported forms lacking a .yaml map.",
+    )
+    pdf_status = pdf_sub.add_parser(
+        "status", help="Audit template directory status and detect XFA forms."
+    )
+    pdf_status.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Emit machine-readable JSON.",
+    )
+    pdf_templates = pdf_sub.add_parser(
+        "templates", help="List bundled and user PDF templates."
+    )
+    pdf_templates_sub = pdf_templates.add_subparsers(dest="pdf_action")
+    pdf_templates_list = pdf_templates_sub.add_parser(
+        "list", help="List bundled and user PDF templates."
+    )
+    pdf_templates_list.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Emit machine-readable JSON.",
+    )
+    pdf_map_gen = pdf_sub.add_parser(
+        "map-generate",
+        help="Auto-generate boilerplate YAML schema maps (never overwrites without --force).",
+    )
+    pdf_map_gen.add_argument(
+        "pdf_path",
+        nargs="?",
+        default=None,
+        help="Path to a single PDF form (omit when using --missing).",
+    )
+    pdf_map_gen.add_argument(
+        "--out",
+        default=None,
+        help="Output path for the generated YAML schema map.",
+    )
+    pdf_map_gen.add_argument(
+        "--missing",
+        action="store_true",
+        help="Batch-generate maps for all unmapped forms in the active template directory.",
+    )
+    pdf_map_gen.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing YAML schema map.",
+    )
+    pdf_inspect = pdf_sub.add_parser(
+        "inspect",
+        help="Inspect a single PDF's widgets, XFA status, and radio groups.",
+    )
+    pdf_inspect.add_argument("pdf_path", help="Path to the PDF form to inspect.")
+    pdf_inspect.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Emit machine-readable JSON.",
+    )
+    pdf_validate = pdf_sub.add_parser(
+        "map-validate",
+        help="Validate a YAML schema map against a PDF's physical widgets.",
+    )
+    pdf_validate.add_argument("pdf_path", help="Path to the PDF form.")
+    pdf_validate.add_argument("schema_path", help="Path to the YAML schema map.")
+    pdf_sub.add_parser(
+        "guide", help="Print schema specification and manual authoring tips."
+    )
+    pdf_sub.add_parser(
+        "open", help="Open active PDF templates directory in the OS file manager."
+    )
+
     args = parser.parse_args()
 
     if args.help and args.command is None:
@@ -3624,6 +3817,83 @@ def main() -> None:
                 )
             )
         evm_parser.print_help()
+        raise SystemExit(2)
+    elif args.command == "pdf":
+        area = getattr(args, "pdf_area", None)
+        action = getattr(args, "pdf_action", None)
+        if area is None:
+            raise SystemExit(cmd_pdf_dispatch("status"))
+        if area == "init":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "init",
+                    dir=getattr(args, "pdf_dir", None),
+                    output_dir=getattr(args, "pdf_output_dir", None),
+                )
+            )
+        if area == "output-dir":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "output-dir",
+                    output_dir=getattr(args, "output_dir", None),
+                    global_scope=getattr(args, "global_scope", False),
+                )
+            )
+        if area == "import":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "import",
+                    source=args.source,
+                    link=getattr(args, "link", False),
+                    auto_map=getattr(args, "auto_map", False),
+                )
+            )
+        if area == "status":
+            raise SystemExit(
+                cmd_pdf_dispatch("status", as_json=getattr(args, "as_json", False))
+            )
+        if area == "templates":
+            if action in (None, "list"):
+                raise SystemExit(
+                    cmd_pdf_dispatch(
+                        "templates",
+                        "list",
+                        as_json=getattr(args, "as_json", False),
+                    )
+                )
+            pdf_templates.print_help()
+            raise SystemExit(2)
+        if area == "map-generate":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "map-generate",
+                    pdf_path=getattr(args, "pdf_path", None),
+                    out=getattr(args, "out", None),
+                    missing=getattr(args, "missing", False),
+                    force=getattr(args, "force", False),
+                )
+            )
+        if area == "inspect":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "inspect",
+                    pdf_path=args.pdf_path,
+                    as_json=getattr(args, "as_json", False),
+                )
+            )
+        if area == "map-validate":
+            raise SystemExit(
+                cmd_pdf_dispatch(
+                    "map-validate",
+                    pdf_path=args.pdf_path,
+                    schema_path=args.schema_path,
+                )
+            )
+        if area == "guide":
+            raise SystemExit(cmd_pdf_dispatch("guide"))
+        if area == "open":
+            raise SystemExit(cmd_pdf_dispatch("open"))
+        pdf_parser.print_help()
         raise SystemExit(2)
     else:
         cmd_interactive(parser=parser)

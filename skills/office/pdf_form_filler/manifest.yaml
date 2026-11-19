@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.2.1
+version: 0.2.2
 tier: core
 shape: workflow
 target:
@@ -68,7 +68,7 @@ parameters:
       description: "Optional destination path for the filled PDF. Defaults to '<template_id>_<timestamp>_<filler>.pdf' or '<original>_filled.pdf'."
     output_dir:
       type: string
-      description: "Optional directory for auto-named template outputs."
+      description: "Optional directory for auto-named outputs (overrides PDF_OUTPUT_DIR / pdf.output_dir; auto-created if missing)."
     filler_name:
       type: string
       description: "Optional filler/entity label used in default output filename '<template_id>_<timestamp>_<filler>.pdf'."
@@ -157,6 +157,9 @@ outputs:
 env_vars:
   PDF_TEMPLATES_DIR:
     description: "Optional directory overriding bundled/user/project PDF form templates and YAML schemas."
+    required: false
+  PDF_OUTPUT_DIR:
+    description: "Optional default directory for filled PDF outputs (overrides pdf.output_dir in config; auto-created if missing)."
     required: false
   PDF_SESSIONS_DIR:
     description: "Optional directory for file-backed interview session JSON files (default ~/.config/skillware/pdf_sessions)."
