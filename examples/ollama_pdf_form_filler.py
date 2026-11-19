@@ -23,7 +23,7 @@ def main() -> None:
     print(f"Loaded Skill: {skill_bundle['manifest']['name']}")
 
     pdf_skill = skill_bundle["class"]()
-    system_prompt = SkillLoader.to_prompt_mode(skill_bundle)
+    system_prompt = SkillLoader.to_ollama_prompt(skill_bundle)
     model = os.environ.get("OLLAMA_MODEL", "llama3.1")
 
     user_query = (
