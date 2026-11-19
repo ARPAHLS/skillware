@@ -307,6 +307,18 @@ class SkillLoader:
         return {}
 
     @staticmethod
+    def _normalize_tool_parameters(parameters: Any) -> Dict[str, Any]:
+        """Ensure provider tool schemas always include an object root."""
+        if not isinstance(parameters, dict) or not parameters:
+            return {"type": "object", "properties": {}}
+        if "type" not in parameters:
+            normalized = dict(parameters)
+            normalized["type"] = "object"
+            normalized.setdefault("properties", {})
+            return normalized
+        return parameters
+
+    @staticmethod
     def to_claude_tool(skill_bundle: Dict[str, Any]) -> Dict[str, Any]:
         """
         Converts a skill manifest to an Anthropic Claude tool definition.
@@ -316,7 +328,9 @@ class SkillLoader:
             manifest.get("name", "unknown_tool")
         )
         description = manifest.get("description", "")
-        parameters = manifest.get("parameters", {})
+        parameters = SkillLoader._normalize_tool_parameters(
+            manifest.get("parameters", {})
+        )
 
         return {"name": name, "description": description, "input_schema": parameters}
 
@@ -368,17 +382,30 @@ class SkillLoader:
         raw_name = manifest.get("name", "unknown_tool")
         name = SkillLoader._sanitize_gemini_tool_name(raw_name)
         description = manifest.get("description", "")
-        parameters = manifest.get("parameters", {})
+        parameters = SkillLoader._normalize_tool_parameters(
+            manifest.get("parameters", {})
+        )
 
-        # Helper to recursively upper-case 'type' fields
-        def sanitize_schema(schema):
+        # Helper to recursively upper-case 'type' fields (including array items and unions)
+        def sanitize_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
             new_schema = schema.copy()
-            if "type" in new_schema:
+            if "type" in new_schema and isinstance(new_schema["type"], str):
                 new_schema["type"] = new_schema["type"].upper()
-            if "properties" in new_schema:
+            if "properties" in new_schema and isinstance(
+                new_schema["properties"], dict
+            ):
                 new_schema["properties"] = {
-                    k: sanitize_schema(v) for k, v in new_schema["properties"].items()
+                    k: sanitize_schema(v) if isinstance(v, dict) else v
+                    for k, v in new_schema["properties"].items()
                 }
+            if "items" in new_schema and isinstance(new_schema["items"], dict):
+                new_schema["items"] = sanitize_schema(new_schema["items"])
+            for union_key in ("anyOf", "oneOf"):
+                if union_key in new_schema and isinstance(new_schema[union_key], list):
+                    new_schema[union_key] = [
+                        sanitize_schema(sub) if isinstance(sub, dict) else sub
+                        for sub in new_schema[union_key]
+                    ]
             return new_schema
 
         return types.Tool(
@@ -402,7 +429,9 @@ class SkillLoader:
         manifest = skill_bundle.get("manifest", {})
         raw_name = manifest.get("name", "unknown_tool")
         description = manifest.get("description", "")
-        parameters = manifest.get("parameters", {})
+        parameters = SkillLoader._normalize_tool_parameters(
+            manifest.get("parameters", {})
+        )
 
         return {
             "type": "function",
@@ -423,7 +452,9 @@ class SkillLoader:
         manifest = skill_bundle.get("manifest", {})
         raw_name = manifest.get("name", "unknown_tool")
         description = manifest.get("description", "")
-        parameters = manifest.get("parameters", {})
+        parameters = SkillLoader._normalize_tool_parameters(
+            manifest.get("parameters", {})
+        )
 
         return {
             "type": "function",
@@ -447,11 +478,14 @@ class SkillLoader:
         """
         manifest = skill_bundle.get("manifest", {})
         raw_name = manifest.get("name", "unknown_tool")
+        parameters = SkillLoader._normalize_tool_parameters(
+            manifest.get("parameters", {})
+        )
         return {
             "toolSpec": {
                 "name": SkillLoader._sanitize_bedrock_tool_name(raw_name),
                 "description": manifest.get("description", ""),
-                "inputSchema": {"json": manifest.get("parameters", {})},
+                "inputSchema": {"json": parameters},
             }
         }
 

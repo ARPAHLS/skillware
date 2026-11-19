@@ -20,6 +20,9 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Fixed
 
+- **Core adapters (`skillware/core/loader.py`):** Normalized empty or typeless manifest `parameters` to `{"type": "object", "properties": {}}` across `to_claude_tool`, `to_gemini_tool`, `to_openai_tool`, `to_deepseek_tool`, and `to_bedrock_tool` (preventing HTTP 400 errors on zero-parameter skills), and recursively uppercased `type` inside `array` `items` and `anyOf`/`oneOf` schemas in `to_gemini_tool()`.
+- **Examples (`examples/ollama_pdf_form_filler.py`):** Fixed `SkillLoader.to_prompt_mode()` typo to `SkillLoader.to_ollama_prompt()`.
+
 ## [0.6.2] - 2026-11-18
 
 ### Added
