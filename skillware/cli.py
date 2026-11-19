@@ -20,6 +20,14 @@ from rich.status import Status
 from rich import box
 
 from skillware.core.loader import SkillLoader
+from skillware.core.integrity import (
+    STATUS_DRIFT,
+    STATUS_MISSING,
+    STATUS_NEW,
+    BundleVerdict,
+    VerifyReport,
+    verify_bundle_fingerprints,
+)
 from skillware.core.matcher import SkillMatcher
 from skillware.context import SkillContext
 from skillware.chains import (
@@ -2116,6 +2124,86 @@ def _doctor_load_target(
     return skill_id
 
 
+def _doctor_bundle_dir(
+    skill_id: str, skills_root_override: Optional[Path] = None
+) -> Optional[Path]:
+    """Resolve the on-disk bundle directory for a skill ID, or None if it is unknown."""
+    if skills_root_override is not None:
+        candidate = skills_root_override.expanduser().resolve() / skill_id
+        if candidate.is_dir() and SkillLoader._is_skill_dir(candidate):
+            return candidate
+
+    for root in _get_skill_roots():
+        candidate = root / skill_id
+        if candidate.is_dir() and SkillLoader._is_skill_dir(candidate):
+            return candidate
+    return None
+
+
+def _doctor_verify_report(
+    skill_ids: List[str],
+    skills_root_override: Optional[Path],
+    lockfile: Optional[Path],
+    update: bool,
+    all_files: bool,
+) -> VerifyReport:
+    """Build the ``--verify`` report for the selected skills.
+
+    A skill that cannot be mapped to a directory on disk is reported as missing rather
+    than silently skipped, so a typo in the skill ID cannot pass a CI gate.
+    """
+    bundle_dirs: Dict[str, Path] = {}
+    unresolved: List[str] = []
+    for skill_id in skill_ids:
+        bundle_dir = _doctor_bundle_dir(skill_id, skills_root_override)
+        if bundle_dir is None:
+            unresolved.append(skill_id)
+        else:
+            bundle_dirs[skill_id] = bundle_dir
+
+    report = verify_bundle_fingerprints(
+        bundle_dirs,
+        lockfile_path=lockfile,
+        all_files=all_files,
+        update=update,
+    )
+    if unresolved:
+        extra = tuple(
+            BundleVerdict(bundle_id=skill_id, status=STATUS_MISSING, digest="")
+            for skill_id in unresolved
+        )
+        report = VerifyReport(
+            lockfile=report.lockfile,
+            written=report.written,
+            verdicts=report.verdicts + extra,
+        )
+    return report
+
+
+def _print_verify_summary(console: Console, report: VerifyReport) -> None:
+    """Print the human-readable ``--verify`` summary."""
+    if report.written:
+        console.print(
+            f"verify: wrote {len(report.verdicts)} bundle digest(s) to {report.lockfile}",
+            style="dim",
+        )
+    elif report.lockfile is None:
+        console.print(
+            f"verify: computed {len(report.verdicts)} bundle digest(s) (no lockfile given, nothing compared)",
+            style="dim",
+        )
+    else:
+        style = ID_STYLE if report.ok else ERROR_STYLE
+        console.print(
+            f"verify: {report.matched} matched, {report.drifted} drifted, "
+            f"{report.new} untracked, {report.missing} incomplete ({report.lockfile})",
+            style=style,
+        )
+    for verdict in report.verdicts:
+        if verdict.status in (STATUS_DRIFT, STATUS_NEW, STATUS_MISSING):
+            console.print(f"  {verdict.status}: {verdict.bundle_id}", style=ERROR_STYLE)
+
+
 def _resolve_doctor_skill_ids(
     skills_root_override: Optional[Path] = None,
     skill_id: Optional[str] = None,
@@ -2195,11 +2283,46 @@ def cmd_doctor(
     category: Optional[str] = None,
     console: Optional[Console] = None,
     json_output: bool = False,
+    verify: bool = False,
+    lockfile: Optional[Path] = None,
+    update: bool = False,
+    all_files: bool = False,
 ) -> int:
-    """Check manifest deps and skill.py import without running execute()."""
+    """Check manifest deps and skill.py import without running execute().
+
+    With ``verify`` the selected bundles are also hashed: a lockfile is compared when
+    one exists (drift exits 1), written when it is missing or ``update`` is set.
+    """
     _apply_active_theme()
     if console is None:
         console = Console(stderr=True)
+
+    if update and lockfile is None:
+        message = "--update requires --lockfile PATH."
+        if json_output:
+            print(
+                json.dumps(
+                    {
+                        "command": "doctor",
+                        "healthy": False,
+                        "skills": [],
+                        "summary": {
+                            "total": 0,
+                            "schema_valid": 0,
+                            "fatal_failures": 0,
+                            "missing_envs": 0,
+                        },
+                        "error": message,
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            console.print(message, style=ERROR_STYLE)
+        return 2
+
+    verify_enabled = verify or lockfile is not None or update
 
     skill_ids, error = _resolve_doctor_skill_ids(
         skills_root_override=skills_root_override,
@@ -2322,26 +2445,34 @@ def cmd_doctor(
 
     valid_schema_count = sum(1 for record in records if record["schema"] == "ok")
 
-    if json_output:
-        print(
-            json.dumps(
-                {
-                    "command": "doctor",
-                    "healthy": not fatal_failures,
-                    "skills": records,
-                    "summary": {
-                        "total": len(records),
-                        "schema_valid": valid_schema_count,
-                        "fatal_failures": fatal_failures,
-                        "missing_envs": missing_envs_count,
-                    },
-                    "error": None,
-                },
-                indent=2,
-                ensure_ascii=False,
-            )
+    verify_report: Optional[VerifyReport] = None
+    if verify_enabled:
+        verify_report = _doctor_verify_report(
+            skill_ids,
+            skills_root_override=skills_root_override,
+            lockfile=lockfile,
+            update=update,
+            all_files=all_files,
         )
-        return 1 if fatal_failures else 0
+    verify_failed = verify_report is not None and not verify_report.ok
+
+    if json_output:
+        payload: Dict[str, Any] = {
+            "command": "doctor",
+            "healthy": not fatal_failures and not verify_failed,
+            "skills": records,
+            "summary": {
+                "total": len(records),
+                "schema_valid": valid_schema_count,
+                "fatal_failures": fatal_failures,
+                "missing_envs": missing_envs_count,
+            },
+            "error": None,
+        }
+        if verify_report is not None:
+            payload["verify"] = verify_report.as_dict()
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 1 if fatal_failures or verify_failed else 0
 
     for sid, schema_cell, deps_cell, load_cell, envs_cell, detail in rows:
         table.add_row(sid, schema_cell, deps_cell, load_cell, envs_cell, detail)
@@ -2369,7 +2500,9 @@ def cmd_doctor(
             "Configure required keys before executing these skills (see docs/usage/api_keys.md).",
             style="dim",
         )
-    return 1 if fatal_failures else 0
+    if verify_report is not None:
+        _print_verify_summary(console, verify_report)
+    return 1 if fatal_failures or verify_failed else 0
 
 
 def cmd_doctor_install(
@@ -3030,6 +3163,28 @@ def main() -> None:
         dest="json_output",
         help="Emit machine-readable JSON to stdout.",
     )
+    doctor_parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Hash the selected bundles and compare them against a lockfile.",
+    )
+    doctor_parser.add_argument(
+        "--lockfile",
+        type=Path,
+        default=None,
+        help="Path to a bundle lockfile; written when missing, compared when present.",
+    )
+    doctor_parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Rewrite the lockfile passed via --lockfile (requires --lockfile).",
+    )
+    doctor_parser.add_argument(
+        "--all-files",
+        action="store_true",
+        dest="all_files",
+        help="Hash every file in the bundle instead of the four core files.",
+    )
 
     config_parser = subparsers.add_parser(
         "config",
@@ -3614,6 +3769,10 @@ def main() -> None:
                 skill_id=args.skill_id,
                 category=args.category,
                 json_output=getattr(args, "json_output", False),
+                verify=getattr(args, "verify", False),
+                lockfile=getattr(args, "lockfile", None),
+                update=getattr(args, "update", False),
+                all_files=getattr(args, "all_files", False),
             )
         )
     elif args.command == "config":
