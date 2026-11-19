@@ -29,7 +29,7 @@ def main() -> None:
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     claude_tool = SkillLoader.to_claude_tool(skill_bundle)
     tool_name = claude_tool["name"]
-    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-0")
 
     user_query = (
         "Inspect the curated 'us_irs_w9' template schema, validate a draft for "
