@@ -1662,17 +1662,18 @@ def test_cmd_help_brief_and_submenu_mapping():
     from rich.console import Console
     from skillware.cli import HELP_GROUPS, _HELP_MENU, cmd_help
 
-    assert len(_HELP_MENU) == 14
+    assert len(_HELP_MENU) == 15
     slugs = [slug for _, slug, _, _ in _HELP_MENU]
     assert "evm" in slugs
     assert "addressbook" in slugs
+    assert "pdf" in slugs
     assert "general" in slugs
 
     for _key, slug, _summary, target in _HELP_MENU:
         if isinstance(target, int):
             assert 0 <= target < len(HELP_GROUPS)
             group_title = HELP_GROUPS[target][0].lower()
-            if slug in ("evm", "addressbook", "general"):
+            if slug in ("evm", "addressbook", "pdf", "general"):
                 assert slug in group_title
         else:
             assert target in ("install", "docs", "interactive")
@@ -1735,8 +1736,9 @@ def test_cli_docs_history_and_menu_sync():
         ("3", "evm", "cmd_evm_submenu"),
         ("4", "mail", "cmd_mail_submenu"),
         ("5", "addressbook", "cmd_addressbook_interactive"),
-        ("6", "show", "cmd_config_show"),
-        ("7", "open", "cmd_config_open"),
+        ("6", "pdf", "cmd_pdf_submenu"),
+        ("7", "show", "cmd_config_show"),
+        ("8", "open", "cmd_config_open"),
     ],
 )
 def test_config_submenu_dispatches_number_and_name(monkeypatch, number, name, handler):

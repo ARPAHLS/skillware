@@ -3,7 +3,7 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.2.1` — 18 Nov 2026
+- **Version**: `0.2.2` — 19 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -28,7 +28,7 @@ A deterministic productivity skill that inspects, validates, and fills AcroForm-
 *   **Multi-Action Protocol**: Discrete actions (`list_templates`, `get_template_schema`, `inspect`, `validate`, `fill`) giving host models full visibility and control over field discovery and form filling.
 *   **XFA Dynamic Form Guard**: Early detection and graceful error handling for unsupported Adobe LiveCycle dynamic forms.
 *   **Radio Button Group Normalization**: Accurately aggregates shared-name radio widgets, mapping on-state export values and nearby labels without field collision.
-*   **Confirmation Safety Gate & Safe Output Naming**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to `<template_id>_<timestamp>_<filler>.pdf` (never modifying bundled blank templates).
+*   **Confirmation Safety Gate & Configurable Output Directory**: Enforces explicit operator confirmation (`confirmed: true`) before persisting edits to `<template_id>_<timestamp>_<filler>.pdf` (never modifying bundled blank templates). Supports configurable output routing via explicit `output_dir`, `PDF_OUTPUT_DIR`, or `pdf.output_dir` (set via `skillware pdf output-dir <path>`), auto-creating missing folders.
 *   **Tamper-Proof Flattening**: Optional vector baking (`flatten: true`) converts interactive form fields into permanent page graphics for formal compliance submissions.
 
 ## Bundle layout
@@ -292,6 +292,32 @@ The skill returns a JSON object with the result of the operation.
 }
 ```
 
+## Authoring custom maps
+
+Use the `skillware pdf` CLI to manage proprietary or internal company PDF forms outside `site-packages` and configure a default output directory:
+
+```bash
+skillware pdf init --dir ./my_forms --output-dir ./filled_forms
+skillware pdf output-dir ./filled_forms
+skillware pdf import /path/to/company/forms/ --auto-map
+skillware pdf status
+skillware pdf status --json
+skillware pdf inspect ./my_forms/vendor_nda.pdf --json
+skillware pdf map-validate ./my_forms/vendor_nda.pdf ./my_forms/vendor_nda.yaml
+```
+
+Each `*.yaml` schema map defines top-level metadata (`form_id`, `template_id`, `title`, `source_pdf`, `pages`) and a `sections` list of fields (`id`, `pdf_field_name`, `field_type`, `page`, `label`, `required`, optional `sensitive: true` for PII, `export_value`, and `options` for radio/combobox widgets). When multi-part structural headings (such as `Part I` / `Part II` or `Section 1` / `Section 2`) appear on a page, `map-generate` automatically splits widgets into logical sections. Run `skillware pdf guide` for the full terminal quick-reference.
+
+### Environment variables
+
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `PDF_TEMPLATES_DIR` | No | Overrides project/user/bundled template directory precedence. |
+| `PDF_OUTPUT_DIR` | No | Default folder for filled PDF outputs (overrides `pdf.output_dir`; auto-created if missing). |
+| `PDF_SESSIONS_DIR` | No | Directory for file-backed interview session JSON files (default `~/.config/skillware/pdf_sessions`). |
+
+See [API keys for skills](../../usage/api_keys.md) and [CLI guide (`skillware pdf`)](../../usage/cli.md#skillware-pdf).
+
 ## Limitations
 
 *   **AcroForms Only**: Does not support dynamic XFA forms; returns explicit `unsupported_xfa_form` error for LiveCycle forms.
@@ -306,6 +332,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| TBD | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`e66d3cd`](https://github.com/ARPAHLS/skillware/commit/e66d3cd282) | feat(pdf_form_filler): v0.2.1 file-backed interview sessions, PII masking, and e-sign rendering (#405) (#492) | 18 Nov 2026 | `0.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`9b05cc7`](https://github.com/ARPAHLS/skillware/commit/9b05cc74ff) | feat(pdf_form_filler): v0.2.0 curated tax/FATCA KB (W-8BEN, W-9, W-8BEN-E, 8966), section-chunked schemas, and PII redaction (#404) (#486) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `0.1.2` | [@rosspeili](https://github.com/rosspeili) |

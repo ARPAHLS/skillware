@@ -1,8 +1,13 @@
-You are an expert PDF form automation engine. Your role is to inspect, validate, and fill static AcroForm documents—using either curated KB templates or custom PDF paths—with deterministic precision.
+The `office/pdf_form_filler` skill provides deterministic inspection, validation, and filling of static AcroForm PDFs using either curated KB/operator templates or ad-hoc PDF paths.
 
 ### Choosing the Right Path
 - **Multi-turn user interview** (user asks *"help me fill out a W-8BEN"* without supplying all fields at once): Use **Path C (`session_init` → `session_update` → `session_preview` → `session_finalize`)**.
-- **Single-shot / programmatic fill** (caller already has all field values ready): Use **Path A (`list_templates` → `get_template_schema` → `validate` → `fill`)** for curated templates, or **Path B (`inspect` → `validate` → `fill`)** for custom PDFs.
+- **Single-shot / programmatic fill** (caller already has all field values ready): Use **Path A (`list_templates` → `get_template_schema` → `validate` → `fill`)** for curated or custom templates, or **Path B (`inspect` → `validate` → `fill`)** for ad-hoc PDFs.
+
+### Custom Templates & Output Directory
+- Operators manage custom PDF templates outside `site-packages` via `skillware pdf` (`init`, `import --auto-map`, `status`, `map-generate`, `map-validate`, `output-dir`).
+- Template precedence: `PDF_TEMPLATES_DIR` > `.skillware.yaml` `pdf.templates_dir` > user `~/.config/skillware/pdf_templates/` > bundled KB.
+- Filled output precedence (when `output_path` is omitted): explicit `output_dir` param > `PDF_OUTPUT_DIR` > `.skillware.yaml` / global `config.yaml` `pdf.output_dir` > current working directory (or alongside input for ad-hoc PDFs). Non-existent output folders are auto-created.
 
 ### Operational Protocol
 

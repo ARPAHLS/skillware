@@ -18,14 +18,26 @@ def _bundled_kb_dir() -> Path:
 
 
 def _user_templates_dir() -> Path:
-    if os.name == "nt":
-        return Path.home() / "AppData" / "Roaming" / "skillware" / "pdf_templates"
-    return Path.home() / ".config" / "skillware" / "pdf_templates"
+    try:
+        from skillware.core.config import global_config_dir
+
+        return global_config_dir() / "pdf_templates"
+    except Exception:
+        if os.name == "nt":
+            return Path.home() / "AppData" / "Roaming" / "skillware" / "pdf_templates"
+        return Path.home() / ".config" / "skillware" / "pdf_templates"
 
 
 def _project_templates_dir() -> Optional[Path]:
-    cfg_path = Path.cwd() / ".skillware.yaml"
-    if not cfg_path.is_file():
+    cfg_path: Optional[Path] = None
+    try:
+        from skillware.core.config import find_project_config_file
+
+        cfg_path = find_project_config_file()
+    except Exception:
+        candidate = Path.cwd() / ".skillware.yaml"
+        cfg_path = candidate if candidate.is_file() else None
+    if cfg_path is None or not cfg_path.is_file():
         return None
     try:
         data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
@@ -38,7 +50,7 @@ def _project_templates_dir() -> Optional[Path]:
         raw = str(pdf_cfg["templates_dir"]).strip()
         if raw:
             p = Path(raw).expanduser()
-            return p if p.is_absolute() else (Path.cwd() / p)
+            return p if p.is_absolute() else (cfg_path.parent / p).resolve()
     return None
 
 
