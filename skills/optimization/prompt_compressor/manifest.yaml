@@ -1,4 +1,4 @@
-name: "optimization/prompt_rewriter"
+name: "optimization/prompt_compressor"
 version: "0.1.0"
 tier: core
 shape: middleware
@@ -25,8 +25,8 @@ parameters:
       description: "The bloated, repetitive prompt or extensive conversation history to compress."
     compression_aggression:
       type: "string"
-      description: "The level of compression: 'low', 'medium', or 'high'."
-      enum: ["low", "medium", "high"]
+      description: "The level of compression: 'lossless', 'balanced', or 'aggressive'."
+      enum: ["lossless", "balanced", "aggressive"]
   required:
     - raw_text
 requirements: []

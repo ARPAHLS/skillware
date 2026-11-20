@@ -10,7 +10,7 @@ load_env_file()
 SKILL_IDS = [
     "finance/wallet_screening",
     "office/pdf_form_filler",
-    "optimization/prompt_rewriter",
+    "optimization/prompt_" "compressor",
 ]
 
 ctx = SkillContext(skills=SKILL_IDS, mode="brief")

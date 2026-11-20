@@ -64,7 +64,7 @@ as Python is installed):
     python -m skillware
     python -m skillware list
     python -m skillware test finance/wallet_screening
-    python -m skillware doctor optimization/prompt_rewriter
+    python -m skillware doctor optimization/prompt_compressor
     python -m skillware list --category compliance
     python -m skillware --help
 
@@ -589,7 +589,7 @@ Interactive menu: **`config -> evm`**, or the **`evm`** shortcut. RPC secrets: [
 Show **SkillContext** registry brief (discovered skills, compact blurbs). Does not execute skills.
 
     skillware context show
-    skillware context show --skill optimization/prompt_rewriter
+    skillware context show --skill optimization/prompt_compressor
     skillware context show --categories security,compliance --roots bundled --mode brief
     skillware context show --export ctx.md
 

@@ -107,7 +107,7 @@ from skillware import SkillContext
 ctx = SkillContext(
     skills=[
         "finance/wallet_screening",
-        "optimization/prompt_rewriter",
+        "optimization/prompt_compressor",
     ],
     mode="brief",  # one-line registry summary in system; full Directive on prepare/execute
 )

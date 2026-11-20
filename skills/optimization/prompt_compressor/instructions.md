@@ -1,6 +1,6 @@
-# Cognition Instructions: Prompt Rewriter Middleware
+# Cognition Instructions: Prompt Compressor Middleware
 
-You have access to the `optimization/prompt_rewriter` tool.
+You have access to the `optimization/prompt_compressor` tool.
 This tool is crucial for saving context window budget and drastically lowering operational costs during extensive loops.
 
 ## When to use this skill
@@ -9,7 +9,7 @@ If the user provides you with an extremely long prompt, a massive document, or a
 ## How to use it
 1. Place the full, unedited text into the `raw_text` parameter.
 2. Select your `compression_aggression`:
-   - `low`: Just drops massive whitespaces and line breaks. (Safe for strict code)
-   - `medium`: Strips conversational filler and normalizes structure. (Good for instructions)
-   - `high`: Aggressively drops articles, stop-words, and non-essential punctuation. (Best for machine-to-machine context)
+   - `lossless`: Just drops massive whitespaces and line breaks. (Safe for strict code)
+   - `balanced`: Strips conversational filler and normalizes structure. (Good for instructions)
+   - `aggressive`: Aggressively drops articles, stop-words, and non-essential punctuation. (Best for machine-to-machine context)
 3. Use the `compressed_text` returned by the tool as your new internal representation of the text. Do not output the uncompressed text anymore.

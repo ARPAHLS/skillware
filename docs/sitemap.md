@@ -127,7 +127,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 
 - [Optimization hub](skills/optimization/README.md)
 - [`optimization/context_optimizer`](skills/optimization/context_optimizer.md)
-- [`optimization/prompt_rewriter`](skills/optimization/prompt_rewriter.md)
+- [`optimization/prompt_compressor`](skills/optimization/prompt_compressor.md)
 
 ### Security
 

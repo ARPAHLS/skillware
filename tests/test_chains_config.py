@@ -21,7 +21,7 @@ def test_parse_sanitize_input_chain():
                     "map_out": {"sanitized_text": "next.raw_text"},
                 },
                 {
-                    "skill": "optimization/prompt_rewriter",
+                    "skill": "optimization/prompt_compressor",
                     "when": {
                         "prior_step": "scan",
                         "field": "is_safe",

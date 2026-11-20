@@ -3,12 +3,12 @@ import os
 import pytest
 import yaml
 
-from .skill import PromptRewriter
+from .skill import PromptCompressor
 
 
 @pytest.fixture
 def skill():
-    return PromptRewriter()
+    return PromptCompressor()
 
 
 @pytest.fixture
@@ -24,22 +24,22 @@ def test_skill_manifest_consistency(skill, manifest):
     assert skill_manifest["version"] == manifest["version"]
 
 
-def test_rewriter_execution_low(skill):
+def test_compressor_execution_lossless(skill):
     result = skill.execute(
         {
             "raw_text": "This   is a    very\n\n\nspaced out  prompt.",
-            "compression_aggression": "low",
+            "compression_aggression": "lossless",
         }
     )
     assert result["compressed_text"] == "This is a very spaced out prompt."
     assert result["original_tokens"] >= result["new_tokens"]
 
 
-def test_rewriter_execution_high(skill):
+def test_compressor_execution_aggressive(skill):
     result = skill.execute(
         {
             "raw_text": "Please make sure to read this and analyze the data.",
-            "compression_aggression": "high",
+            "compression_aggression": "aggressive",
         }
     )
     assert "Please" not in result["compressed_text"]

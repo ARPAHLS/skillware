@@ -27,13 +27,13 @@ Use **chain / chains / chaining** for cross-skill host orchestration. Do **not**
 Choose the host path based on who owns skill selection and when the model needs
 the full playbook:
 
-| Scenario | Recommended path | Why |
-| :--- | :--- | :--- |
-| One dedicated skill | `SkillLoader.load_skill()` + full `bundle["instructions"]` | The model needs the skill's gates and stage order up front |
-| Agent exposes about 10 registry tools | `SkillContext(mode="brief")` + `merge_system()` + `tools()` | Brief lines save tokens while schemas carry parameter detail |
-| Small fixed skill set (≤ 3) | `SkillContext(mode="directives")` or manual concatenation | Full playbooks fit in the system budget |
-| Untrusted text arrives before the model sees it | `run_chain(...)` or a manual chain before the agent loop | The model must not choose middleware order |
-| Deterministic middleware (firewall → rewriter) | Manual chain or named YAML chain | The host owns the order and branching |
+| Scenario                                           | Recommended path | Why |
+|:---------------------------------------------------| :--- | :--- |
+| One dedicated skill                                | `SkillLoader.load_skill()` + full `bundle["instructions"]` | The model needs the skill's gates and stage order up front |
+| Agent exposes about 10 registry tools              | `SkillContext(mode="brief")` + `merge_system()` + `tools()` | Brief lines save tokens while schemas carry parameter detail |
+| Small fixed skill set (≤ 3)                        | `SkillContext(mode="directives")` or manual concatenation | Full playbooks fit in the system budget |
+| Untrusted text arrives before the model sees it    | `run_chain(...)` or a manual chain before the agent loop | The model must not choose middleware order |
+| Deterministic middleware (firewall → compressor)   | Manual chain or named YAML chain | The host owns the order and branching |
 | Full Directive is needed only after tool selection | `prepare()` then host-inject `prep.directive` on the next turn | Progressive disclosure is host-driven |
 
 ### Glossary
@@ -68,16 +68,16 @@ Project-wide role and anatomy terms live in the [glossary](../glossary.md). This
 
 ### Filter matrix
 
-| Goal | Constructor | Example |
-| :--- | :--- | :--- |
-| **Entire registry** | Default (no filters) | `SkillContext()` |
-| **One skill** | `skill=` | `SkillContext(skill="optimization/prompt_rewriter")` |
-| **Explicit list** | `skills=` | `SkillContext(skills=["security/prompt_injection_firewall", "optimization/prompt_rewriter"])` |
-| **Category(ies)** | `categories=` | `SkillContext(categories=["security", "compliance"])` |
-| **Root tier** | `roots=` | `SkillContext(roots="project")` or `"bundled"`, `"external"`, `"override"` |
-| **Custom path** | `roots=` | `SkillContext(roots="/opt/my-skills")` |
-| **Exclude tiers** | `exclude_roots=` | `SkillContext(exclude_roots=["external"])` |
-| **Optional cap** | `max_skills=` | `SkillContext(max_skills=32)` — emits a warning listing omitted IDs |
+| Goal | Constructor | Example                                                                                         |
+| :--- | :--- |:------------------------------------------------------------------------------------------------|
+| **Entire registry** | Default (no filters) | `SkillContext()`                                                                                |
+| **One skill** | `skill=` | `SkillContext(skill="optimization/prompt_compressor")`                                          |
+| **Explicit list** | `skills=` | `SkillContext(skills=["security/prompt_injection_firewall", "optimization/prompt_compressor"])` |
+| **Category(ies)** | `categories=` | `SkillContext(categories=["security", "compliance"])`                                           |
+| **Root tier** | `roots=` | `SkillContext(roots="project")` or `"bundled"`, `"external"`, `"override"`                      |
+| **Custom path** | `roots=` | `SkillContext(roots="/opt/my-skills")`                                                          |
+| **Exclude tiers** | `exclude_roots=` | `SkillContext(exclude_roots=["external"])`                                                      |
+| **Optional cap** | `max_skills=` | `SkillContext(max_skills=32)` — emits a warning listing omitted IDs                             |
 
 Combine filters: `SkillContext(categories=["security"], roots="project", max_skills=10)`.
 
@@ -110,7 +110,7 @@ CLI mirror:
 ```bash
 skillware context show
 skillware context show --categories security,compliance --roots project --mode brief
-skillware context show --skill optimization/prompt_rewriter --mode directives
+skillware context show --skill optimization/prompt_compressor --mode directives
 skillware context show --export ctx.md
 ```
 
@@ -165,7 +165,7 @@ from skillware import SkillContext
 
 ctx = SkillContext(skills=[
     "security/prompt_injection_firewall",
-    "optimization/prompt_rewriter",
+    "optimization/prompt_compressor",
 ])
 
 fw = ctx.execute(
@@ -178,12 +178,12 @@ if not fw.get("is_safe"):
     return fw
 
 rw = ctx.execute(
-    "optimization/prompt_rewriter",
-    {"raw_text": fw["sanitized_text"], "compression_aggression": "medium"},
+    "optimization/prompt_compressor",
+    {"raw_text": fw["sanitized_text"], "compression_aggression": "balanced"},
 )
 ```
 
-For **large documents**, insert `optimization/context_optimizer` after the firewall and **before** the main LLM (and optionally before `prompt_rewriter`):
+For **large documents**, insert `optimization/context_optimizer` after the firewall and **before** the main LLM (and optionally before `prompt_compressor`):
 
 ```python
 opt = ctx.execute(
@@ -195,7 +195,7 @@ opt = ctx.execute(
     },
 )
 # Pass opt["optimized_context"] to the main model; optionally compress further:
-# rw = ctx.execute("optimization/prompt_rewriter", {"raw_text": opt["optimized_context"], ...})
+# rw = ctx.execute("optimization/prompt_compressor", {"raw_text": opt["optimized_context"], ...})
 ```
 
 See `examples/context_optimizer_chain_demo.py`.
@@ -245,9 +245,9 @@ Single-skill loops remain valid ([agent_loops.md](agent_loops.md)):
 ```python
 from skillware.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
-result = skill.execute({"raw_text": text, "compression_aggression": "low"})
+result = skill.execute({"raw_text": text, "compression_aggression": "lossless"})
 ```
 
 Use `SkillContext` when you need **multiple tools**, **registry brief**, or **shared instances** in one session.
@@ -260,15 +260,15 @@ Define repeatable order under **`chains:`** in project `.skillware.yaml` or glob
 
 See [`.skillware.yaml.example`](../../.skillware.yaml.example) for reference chains:
 
-| Chain | Purpose |
-| :--- | :--- |
-| `sanitize_input` | Firewall → rewriter (rewriter skipped when `is_safe` is false) |
-| `optimize_document_context` | Firewall → context optimizer (optimizer skipped when `is_safe` is false) |
-| `preflight_untrusted_html` | HTML-mode firewall only |
-| `scan_then_gate` | Firewall → token limiter check |
-| `deck_build_pipeline` | Validate → lint → render deck spec |
+| Chain | Purpose                                                                                           |
+| :--- |:--------------------------------------------------------------------------------------------------|
+| `sanitize_input` | Firewall → compressor (compressor skipped when `is_safe` is false)                                |
+| `optimize_document_context` | Firewall → context optimizer (optimizer skipped when `is_safe` is false)                          |
+| `preflight_untrusted_html` | HTML-mode firewall only                                                                           |
+| `scan_then_gate` | Firewall → token limiter check                                                                    |
+| `deck_build_pipeline` | Validate → lint → render deck spec                                                                |
 | `secure_web_form_intake` | Deceptive UI guard → Web form mapper (mapper skipped when dark patterns or deceptive UI detected) |
-| `kyc_document_authenticity_gate` | Deepfake guard → PII masker (masker skipped when document is not authentic) |
+| `kyc_document_authenticity_gate` | Deepfake guard → PII masker (masker skipped when document is not authentic)                       |
 
 ### Python API
 
@@ -285,7 +285,7 @@ result = run_chain(
 )
 # result.status: ok | partial | failed
 # result.steps[i].status: ok | skipped | failed
-# result.final — last executed step output (firewall output when rewriter skipped)
+# result.final — last executed step output (firewall output when compressor skipped)
 # result.errors — tuple of error strings
 
 # Asynchronous execution in async agent runtimes / FastAPI:
@@ -332,13 +332,13 @@ chains:
           source_text: host.source_text
         map_out:
           sanitized_text: next.raw_text
-      - skill: optimization/prompt_rewriter
+      - skill: optimization/prompt_compressor
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: medium
+          compression_aggression: balanced
 ```
 
 ### Bindings

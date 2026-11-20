@@ -218,7 +218,7 @@ optimization_context_optimizer = [
     "numpy",
 ]
 
-optimization_prompt_rewriter = []
+optimization_prompt_compressor = []
 
 security_deceptive_ui_guard = []
 
