@@ -290,3 +290,86 @@ def run_scripted_flow(skill: Any) -> None:
 def handle_tool_call(skill: Any, tool_input: Dict[str, Any]) -> Dict[str, Any]:
     """Dispatch a single uk_companies_house_handler tool call payload."""
     return skill.execute(tool_input)
+
+
+MOCK_CHARGES_RESPONSE = {
+    "total_count": 1,
+    "satisfied_count": 0,
+    "part_satisfied_count": 0,
+    "items": [
+        {
+            "charge_code": "094462310001",
+            "charge_number": 1,
+            "status": "outstanding",
+            "created_on": "2021-05-10",
+            "delivered_on": "2021-05-12",
+            "classification": {"description": "A registered charge"},
+            "particulars": {"description": "Fixed and floating debenture"},
+            "persons_entitled": [{"name": "Barclays Bank PLC"}],
+            "links": {"self": "/company/00102498/charges/chg-001"},
+        }
+    ],
+}
+
+MOCK_INSOLVENCY_ACTIVE_RESPONSE = {
+    "status": ["liquidation"],
+    "cases": [
+        {
+            "type": "compulsory-liquidation",
+            "number": "1",
+            "dates": [{"type": "wound-up-on", "date": "2023-06-15"}],
+            "practitioners": [{"name": "Jane Insolvency", "role": "final-liquidator"}],
+        }
+    ],
+}
+
+MOCK_FILING_ITEM_RESPONSE = {
+    "transaction_id": "MzM1",
+    "date": "2024-03-15",
+    "category": "accounts",
+    "type": "AA",
+    "description": "accounts-with-accounts-type-full",
+    "links": {
+        "self": "/company/00102498/filing-history/MzM1",
+        "document_metadata": "https://document-api.company-information.service.gov.uk/document/doc-123",
+    },
+}
+
+MOCK_SEARCH_OFFICERS_RESPONSE = {
+    "total_results": 1,
+    "items": [
+        {
+            "title": "Bernard LOONEY",
+            "appointment_count": 3,
+            "date_of_birth": {"month": 8, "year": 1970},
+            "address_snippet": "1 St James's Square, London",
+            "links": {"self": "/officers/off-looney-001/appointments"},
+        }
+    ],
+}
+
+MOCK_OFFICER_APPOINTMENTS_RESPONSE = {
+    "name": "LOONEY, Bernard",
+    "total_results": 2,
+    "active_count": 2,
+    "items": [
+        {
+            "appointed_to": {
+                "company_name": "BP P.L.C.",
+                "company_number": "00102498",
+                "company_status": "active",
+            },
+            "officer_role": "director",
+            "appointed_on": "2020-04-02",
+        },
+        {
+            "appointed_to": {
+                "company_name": "BP EXPLORATION OPERATING COMPANY LIMITED",
+                "company_number": "00305943",
+                "company_status": "active",
+            },
+            "officer_role": "director",
+            "appointed_on": "2020-04-02",
+        },
+    ],
+}

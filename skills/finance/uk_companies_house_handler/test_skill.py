@@ -78,6 +78,9 @@ def test_missing_company_number(skill):
         "get_officers",
         "get_pscs",
         "get_filing_history",
+        "get_company_charges",
+        "get_insolvency",
+        "get_filing_item",
     ]:
         result = skill.execute({"action": action})
         assert result["status"] == "error"
@@ -2179,8 +2182,7 @@ _MOCK_FILINGS_WITH_DOCS = {
             "barcode": "B1",
             "links": {
                 "document_metadata": (
-                    "https://document-api.company-information.service.gov.uk"
-                    "/document/doc-accounts-001"
+                    "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
                 )
             },
         },
@@ -2193,8 +2195,7 @@ _MOCK_FILINGS_WITH_DOCS = {
             "barcode": "B2",
             "links": {
                 "document_metadata": (
-                    "https://document-api.company-information.service.gov.uk"
-                    "/document/doc-cs-001"
+                    "https://document-api.company-information.service.gov.uk/document/doc-cs-001"
                 )
             },
         },
@@ -2226,12 +2227,10 @@ _MOCK_DOC_METADATA = {
     },
     "links": {
         "self": (
-            "https://document-api.company-information.service.gov.uk"
-            "/document/doc-accounts-001"
+            "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
         ),
         "document": (
-            "https://document-api.company-information.service.gov.uk"
-            "/document/doc-accounts-001/content"
+            "https://document-api.company-information.service.gov.uk/document/doc-accounts-001/content"
         ),
     },
 }
@@ -2321,8 +2320,7 @@ def test_get_document_metadata(mock_request, skill):
         {
             "action": "get_document_metadata",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
             "transaction_id": "tx-accounts-001",
         }
@@ -2342,8 +2340,7 @@ def test_get_document_metadata_404(mock_request, skill):
         {
             "action": "get_document_metadata",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/missing"
+                "https://document-api.company-information.service.gov.uk/document/missing"
             ),
         }
     )
@@ -2359,8 +2356,7 @@ def test_get_document_metadata_410(mock_request, skill):
         {
             "action": "get_document_metadata",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/gone"
+                "https://document-api.company-information.service.gov.uk/document/gone"
             ),
         }
     )
@@ -2376,8 +2372,7 @@ def test_document_api_429_includes_retry_after(mock_request, skill):
         {
             "action": "get_document_metadata",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
         }
     )
@@ -2416,8 +2411,7 @@ def test_fetch_document_with_redirect_drops_auth(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
             "transaction_id": "tx-accounts-001",
             "company_number": "00102498",
@@ -2426,8 +2420,7 @@ def test_fetch_document_with_redirect_drops_auth(mock_request, skill):
                 "document_candidates": {
                     "tx-accounts-001": {
                         "metadata_url": (
-                            "https://document-api.company-information.service.gov.uk"
-                            "/document/doc-accounts-001"
+                            "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
                         ),
                         "date": "2024-03-15",
                         "category": "accounts",
@@ -2463,8 +2456,7 @@ def test_fetch_document_oversize_from_metadata(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
             "max_bytes": 5_242_880,
         }
@@ -2506,8 +2498,7 @@ def test_fetch_document_oversize_during_stream(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
             "max_bytes": 2048,
         }
@@ -2525,8 +2516,7 @@ def test_fetch_document_include_content_false(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
             "include_content": False,
         }
@@ -2630,8 +2620,7 @@ def test_fetch_document_404_on_content(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
         }
     )
@@ -2653,8 +2642,7 @@ def test_fetch_document_410_on_content(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
         }
     )
@@ -2676,8 +2664,7 @@ def test_fetch_document_429_on_content(mock_request, skill):
         {
             "action": "fetch_document",
             "metadata_url": (
-                "https://document-api.company-information.service.gov.uk"
-                "/document/doc-accounts-001"
+                "https://document-api.company-information.service.gov.uk/document/doc-accounts-001"
             ),
         }
     )
@@ -2686,8 +2673,8 @@ def test_fetch_document_429_on_content(mock_request, skill):
     assert result["retry_after"] == "30"
 
 
-def test_manifest_version_140(manifest):
-    assert manifest["version"] == "1.4.0"
+def test_manifest_version_200(manifest):
+    assert manifest["version"] == "2.0.0"
     actions = manifest["parameters"]["properties"]["action"]["enum"]
     assert "list_downloadable_documents" in actions
     assert "get_document_metadata" in actions
@@ -2754,3 +2741,560 @@ def test_fetch_document_unknown_transaction_without_company(skill):
     result = skill.execute({"action": "fetch_document", "transaction_id": "tx-x"})
     assert result["status"] == "error"
     assert result["error_code"] == "unknown_transaction_id"
+
+
+# --- v2e Tests: Charges, Insolvency, Filing Item, Officer Search & Appointments ---
+
+
+def _mock_http_error(status_code: int) -> requests.exceptions.HTTPError:
+    resp = MagicMock()
+    resp.status_code = status_code
+    err = requests.exceptions.HTTPError(f"HTTP {status_code}", response=resp)
+    return err
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_officers_extracts_officer_id(mock_request, skill):
+    """get_officers extracts officer_id from links.officer.appointments."""
+    mock_request.return_value = _mock_response(
+        {
+            "total_results": 1,
+            "active_count": 1,
+            "items": [
+                {
+                    "name": "AUCHINCLOSS, Murray",
+                    "officer_role": "director",
+                    "appointed_on": "2020-07-01",
+                    "links": {
+                        "officer": {
+                            "appointments": "/officers/off-murray-123/appointments"
+                        }
+                    },
+                }
+            ],
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_officers",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["officers"][0]["officer_id"] == "off-murray-123"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_company_charges_collection_and_status_filter(mock_request, skill):
+    """get_company_charges returns formatted charges and applies status_filter."""
+    mock_request.return_value = _mock_response(
+        {
+            "total_count": 2,
+            "satisfied_count": 1,
+            "part_satisfied_count": 0,
+            "items": [
+                {
+                    "charge_code": "094462310001",
+                    "charge_number": 1,
+                    "status": "outstanding",
+                    "created_on": "2021-05-10",
+                    "delivered_on": "2021-05-12",
+                    "classification": {"description": "A registered charge"},
+                    "particulars": {"description": "Fixed and floating debenture"},
+                    "persons_entitled": [{"name": "Barclays Bank PLC"}],
+                    "links": {"self": "/company/09446231/charges/chg-001"},
+                },
+                {
+                    "charge_code": "094462310002",
+                    "charge_number": 2,
+                    "status": "fully-satisfied",
+                    "created_on": "2019-01-10",
+                    "delivered_on": "2019-01-11",
+                    "satisfied_on": "2022-03-01",
+                    "persons_entitled": [{"name": "HSBC UK Bank PLC"}],
+                    "links": {"self": "/company/09446231/charges/chg-002"},
+                },
+            ],
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "09446231",
+            "status_filter": "outstanding",
+            "context": {
+                "company_number": "09446231",
+                "company_name": "MONZO BANK LIMITED",
+            },
+        }
+    )
+    assert res["status"] == "ready"
+    assert len(res["charges"]) == 1
+    assert res["charges"][0]["charge_id"] == "chg-001"
+    assert res["charges"][0]["persons_entitled"] == ["Barclays Bank PLC"]
+    assert res["total_count"] == 2
+    assert res["satisfied_count"] == 1
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_company_charges_single_and_404(mock_request, skill):
+    """get_company_charges handles single charge_id lookup and 404 charge_not_found."""
+    mock_request.return_value = _mock_response(
+        {
+            "charge_code": "094462310001",
+            "status": "outstanding",
+            "persons_entitled": [{"name": "Barclays Bank PLC"}],
+            "links": {"self": "/company/09446231/charges/chg-001"},
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "09446231",
+            "charge_id": "/company/09446231/charges/chg-001",
+            "context": {
+                "company_number": "09446231",
+                "company_name": "MONZO BANK LIMITED",
+            },
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["charge_id"] == "chg-001"
+    assert res["charge"]["charge_id"] == "chg-001"
+
+    mock_request.side_effect = _mock_http_error(404)
+    err_res = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "09446231",
+            "charge_id": "chg-missing",
+            "context": {
+                "company_number": "09446231",
+                "company_name": "MONZO BANK LIMITED",
+            },
+        }
+    )
+    assert err_res["status"] == "error"
+    assert err_res["error_code"] == "charge_not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_company_charges_404_normalization(mock_request, skill):
+    """404 on charges collection verifies existence unless context already cached."""
+    # Context bypass: 1 HTTP call (charges -> 404), no profile probe
+    mock_request.side_effect = [_mock_http_error(404)]
+    res = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["charges"] == []
+    assert res["total_count"] == 0
+    assert mock_request.call_count == 1
+
+    # Unverified context: charges 404 -> profile 404 -> company_not_found
+    mock_request.reset_mock()
+    mock_request.side_effect = [_mock_http_error(404), _mock_http_error(404)]
+    err_res = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "99999999",
+        }
+    )
+    assert err_res["status"] == "error"
+    assert err_res["error_code"] == "company_not_found"
+
+    # Live API behavior: HTTP 200 with empty items on non-existent company -> company_not_found
+    mock_request.reset_mock()
+    mock_request.side_effect = [
+        _mock_response({"items": [], "total_count": 0}),
+        _mock_http_error(404),
+    ]
+    empty_missing = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "99999999",
+        }
+    )
+    assert empty_missing["status"] == "error"
+    assert empty_missing["error_code"] == "company_not_found"
+    assert mock_request.call_count == 2
+
+    # Live API behavior: HTTP 200 empty items on existing company (uncached context) -> profile check succeeds
+    mock_request.reset_mock()
+    mock_request.side_effect = [
+        _mock_response({"items": [], "total_count": 0}),
+        _mock_response({"company_name": "BP P.L.C.", "company_number": "00102498"}),
+    ]
+    empty_valid = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "00102498",
+        }
+    )
+    assert empty_valid["status"] == "ready"
+    assert empty_valid["charges"] == []
+    assert empty_valid["company_name"] == "BP P.L.C."
+    assert mock_request.call_count == 2
+
+    # Live API behavior: HTTP 200 empty items with cached context -> free (1 HTTP call)
+    mock_request.reset_mock()
+    mock_request.side_effect = [_mock_response({"items": [], "total_count": 0})]
+    empty_cached = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert empty_cached["status"] == "ready"
+    assert empty_cached["charges"] == []
+    assert empty_cached["company_name"] == "BP P.L.C."
+    assert mock_request.call_count == 1
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_insolvency_cases_and_404_normalization(mock_request, skill):
+    """get_insolvency parses active cases and normalizes 404s with existence check."""
+    mock_request.return_value = _mock_response(
+        {
+            "status": ["liquidation"],
+            "cases": [
+                {
+                    "type": "compulsory-liquidation",
+                    "number": "1",
+                    "dates": [{"type": "wound-up-on", "date": "2023-06-15"}],
+                    "practitioners": [
+                        {"name": "Jane Insolvency", "role": "final-liquidator"}
+                    ],
+                }
+            ],
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_insolvency",
+            "company_number": "11112222",
+            "context": {"company_number": "11112222", "company_name": "ACME LTD"},
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["has_insolvency_history"] is True
+    assert len(res["cases"]) == 1
+    assert res["cases"][0]["practitioners"][0]["name"] == "Jane Insolvency"
+
+    # Context bypass on 404
+    mock_request.reset_mock()
+    mock_request.side_effect = [_mock_http_error(404)]
+    clean_res = skill.execute(
+        {
+            "action": "get_insolvency",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert clean_res["status"] == "ready"
+    assert clean_res["has_insolvency_history"] is False
+    assert clean_res["cases"] == []
+
+    # Unverified context: insolvency 404 -> profile 200 -> clean
+    mock_request.reset_mock()
+    mock_request.side_effect = [
+        _mock_http_error(404),
+        _mock_response({"company_name": "BP P.L.C."}),
+    ]
+    probe_ok = skill.execute(
+        {
+            "action": "get_insolvency",
+            "company_number": "00102498",
+        }
+    )
+    assert probe_ok["status"] == "ready"
+    assert probe_ok["has_insolvency_history"] is False
+    assert probe_ok["company_name"] == "BP P.L.C."
+
+    # Unverified context: insolvency 404 -> profile 404 -> company_not_found
+    mock_request.reset_mock()
+    mock_request.side_effect = [_mock_http_error(404), _mock_http_error(404)]
+    probe_404 = skill.execute(
+        {
+            "action": "get_insolvency",
+            "company_number": "99999999",
+        }
+    )
+    assert probe_404["status"] == "error"
+    assert probe_404["error_code"] == "company_not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_filing_item(mock_request, skill):
+    """get_filing_item validates transaction_id, sanitizes path, and sets downloadable."""
+    missing = skill.execute({"action": "get_filing_item", "company_number": "00102498"})
+    assert missing["status"] == "error"
+    assert missing["error_code"] == "missing_transaction_id"
+
+    mock_request.return_value = _mock_response(
+        {
+            "transaction_id": "MzM1",
+            "date": "2024-03-15",
+            "category": "accounts",
+            "type": "AA",
+            "description": "accounts-with-accounts-type-full",
+            "links": {
+                "self": "/company/00102498/filing-history/MzM1",
+                "document_metadata": "https://document-api.company-information.service.gov.uk/document/doc-123",
+            },
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_filing_item",
+            "company_number": "00102498",
+            "transaction_id": "/company/00102498/filing-history/MzM1",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["transaction_id"] == "MzM1"
+    assert res["downloadable"] is True
+    assert res["filing"]["category"] == "accounts"
+
+    mock_request.side_effect = _mock_http_error(404)
+    not_found = skill.execute(
+        {
+            "action": "get_filing_item",
+            "company_number": "00102498",
+            "transaction_id": "missing-tx",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert not_found["status"] == "error"
+    assert not_found["error_code"] == "filing_not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_search_officers_disambiguation_and_context_isolation(mock_request, skill):
+    """search_officers handles multi-match, single-match, zero-match without inheriting company_number."""
+    missing = skill.execute({"action": "search_officers"})
+    assert missing["status"] == "error"
+    assert missing["error_code"] == "missing_query"
+
+    # Multi-match -> needs_input
+    mock_request.return_value = _mock_response(
+        {
+            "total_results": 2,
+            "items": [
+                {
+                    "title": "John MCFARLANE",
+                    "appointment_count": 5,
+                    "date_of_birth": {"month": 6, "year": 1947},
+                    "address_snippet": "1 Churchill Place, London",
+                    "links": {"self": "/officers/off-111/appointments"},
+                },
+                {
+                    "title": "John MCFARLANE",
+                    "appointment_count": 2,
+                    "date_of_birth": {"month": 1, "year": 1965},
+                    "address_snippet": "10 George Street, Edinburgh",
+                    "links": {"self": "/officers/off-222/appointments"},
+                },
+            ],
+        }
+    )
+    multi = skill.execute(
+        {
+            "action": "search_officers",
+            "query": "John McFarlane",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert multi["status"] == "needs_input"
+    assert multi["reason"] == "multiple_matches"
+    assert len(multi["candidates"]) == 2
+    assert multi["candidates"][0]["officer_id"] == "off-111"
+    assert multi["officers"] == multi["candidates"]
+    assert multi["total_results"] == 2
+    assert "officer_id" not in multi["context"]
+    assert mock_request.call_count == 1  # No extra profile fetch
+
+    # Single match -> ready
+    mock_request.reset_mock()
+    mock_request.return_value = _mock_response(
+        {
+            "total_results": 1,
+            "items": [
+                {
+                    "title": "Murray AUCHINCLOSS",
+                    "appointment_count": 3,
+                    "links": {"self": "/officers/off-333/appointments"},
+                }
+            ],
+        }
+    )
+    single = skill.execute({"action": "search_officers", "query": "Murray Auchincloss"})
+    assert single["status"] == "ready"
+    assert single["officer_id"] == "off-333"
+    assert "officer_id" not in single["context"]
+
+    # Zero match -> ready empty
+    mock_request.return_value = _mock_response({"total_results": 0, "items": []})
+    empty = skill.execute({"action": "search_officers", "query": "Nobody XYZ"})
+    assert empty["status"] == "ready"
+    assert empty["officers"] == []
+    assert empty["total_results"] == 0
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_get_officer_appointments_filter_and_404(mock_request, skill):
+    """get_officer_appointments passes filter=active by default, sanitizes id, and handles 404."""
+    missing = skill.execute({"action": "get_officer_appointments"})
+    assert missing["status"] == "error"
+    assert missing["error_code"] == "missing_officer_id"
+
+    mock_request.return_value = _mock_response(
+        {
+            "name": "AUCHINCLOSS, Murray",
+            "total_results": 1,
+            "active_count": 1,
+            "items": [
+                {
+                    "appointed_to": {
+                        "company_name": "BP P.L.C.",
+                        "company_number": "00102498",
+                        "company_status": "active",
+                    },
+                    "officer_role": "director",
+                    "appointed_on": "2020-07-01",
+                }
+            ],
+        }
+    )
+    res = skill.execute(
+        {
+            "action": "get_officer_appointments",
+            "officer_id": "/officers/off-333/appointments",
+            "context": {
+                "company_number": "09446231",
+                "company_name": "MONZO BANK LIMITED",
+            },
+        }
+    )
+    assert res["status"] == "ready"
+    assert res["officer_id"] == "off-333"
+    assert res["appointments"][0]["company_number"] == "00102498"
+    assert res["appointments"][0]["is_active"] is True
+    assert "officer_id" not in res["context"]
+    assert "company_number" not in res or res.get("company_number") != "09446231"
+    # Verify filter=active was sent
+    _, kwargs = mock_request.call_args
+    assert kwargs["params"]["filter"] == "active"
+
+    # active_only=False omits filter param
+    mock_request.reset_mock()
+    skill.execute(
+        {
+            "action": "get_officer_appointments",
+            "officer_id": "off-333",
+            "active_only": False,
+        }
+    )
+    _, kwargs = mock_request.call_args
+    assert "filter" not in kwargs["params"]
+
+    # 404 -> officer_not_found
+    mock_request.side_effect = _mock_http_error(404)
+    err = skill.execute(
+        {
+            "action": "get_officer_appointments",
+            "officer_id": "off-missing",
+        }
+    )
+    assert err["status"] == "error"
+    assert err["error_code"] == "officer_not_found"
+
+
+@patch("skills.finance.uk_companies_house_handler.skill.requests.request")
+def test_run_pipeline_chains_charges_and_insolvency(mock_request, skill):
+    """run_pipeline auto-binds company_number across charges and insolvency steps."""
+    mock_request.side_effect = [
+        _mock_response(
+            {
+                "items": [
+                    {
+                        "company_number": "09446231",
+                        "title": "MONZO BANK LIMITED",
+                        "company_status": "active",
+                    }
+                ]
+            }
+        ),
+        _mock_response(
+            {
+                "company_name": "MONZO BANK LIMITED",
+                "company_number": "09446231",
+                "company_status": "active",
+            }
+        ),
+        _mock_response({"total_count": 0, "items": []}),
+        _mock_http_error(404),
+    ]
+    step1 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": [
+                {"action": "resolve_company", "params": {"query": "Monzo Bank"}},
+                {
+                    "action": "get_company_profile",
+                    "params": {"company_number": "<from_resolve>"},
+                },
+                {
+                    "action": "get_company_charges",
+                    "params": {"company_number": "<from_resolve>"},
+                },
+                {
+                    "action": "get_insolvency",
+                    "params": {"company_number": "<from_resolve>"},
+                },
+            ],
+        }
+    )
+    assert step1["status"] == "partial"
+    assert step1["steps"][0]["params"]["company_number"] == "09446231"
+    assert step1["steps"][1]["params"]["company_number"] == "09446231"
+    assert step1["steps"][2]["params"]["company_number"] == "09446231"
+
+    step2 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": step1["steps"],
+            "context": step1["context"],
+            "pipeline": step1["pipeline"],
+        }
+    )
+    assert step2["status"] == "partial"
+
+    step3 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": step2["steps"],
+            "context": step2["context"],
+            "pipeline": step2["pipeline"],
+        }
+    )
+    assert step3["status"] == "partial"
+    assert step3["charges"] == []
+
+    step4 = skill.execute(
+        {
+            "action": "run_pipeline",
+            "steps": step3["steps"],
+            "context": step3["context"],
+            "pipeline": step3["pipeline"],
+        }
+    )
+    assert step4["status"] == "ready"
+    assert step4["has_insolvency_history"] is False

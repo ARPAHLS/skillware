@@ -10,6 +10,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 ### Added
 
+- **Skill (`finance/uk_companies_house_handler` v2.0.0):** Expanded deterministic API surface (Phase v2e) with `get_company_charges`, `get_insolvency`, `get_filing_item`, `search_officers`, and `get_officer_appointments` (native `?filter=active`), `officer_id` extraction in `get_officers`, local 404 normalization with context-cached company-existence checks, `run_pipeline` `company_number` auto-binding for charges/insolvency/filing items, UK debt & insolvency terminology in `data/terminology_map.yaml`, and `examples/uk_companies_house_due_diligence_demo.py` ([#469](https://github.com/ARPAHLS/skillware/issues/469), Parent [#220](https://github.com/ARPAHLS/skillware/issues/220)).
 - **CLI & Skill (`skillware pdf`, `office/pdf_form_filler` v0.2.2):** Added `skillware pdf` command group (`init [--dir] [--output-dir]`, `output-dir [--global]`, `import`, `status [--json]`, `templates list [--json]`, `map-generate`, `inspect [--json]`, `map-validate`, `guide`, `open`), interactive `config -> pdf` submenu, and `skillware/core/pdf_templates.py` for 3-tier custom PDF template & output directory management (`PDF_TEMPLATES_DIR`, `PDF_OUTPUT_DIR`, `.skillware.yaml` / `config.yaml` `pdf.*`, auto-created folders), batch ingestion, dynamic XFA detection, multi-section auto-mapping with PII sensitivity detection, and physical widget validation ([#406](https://github.com/ARPAHLS/skillware/issues/406)).
 - **Skill (`office/pdf_form_filler` v0.2.1):** Added file-backed conversational interview session state machine (`session_init`, `session_update`, `session_preview`, `session_finalize`) with atomic JSON persistence (`~/.config/skillware/pdf_sessions/`, 48h TTL), per-field lifecycle states (`empty`, `filled`, `skipped`, `to_revise`), PII-masked previews (`unmask=False`), `"/s/ Name"` typed e-sign formatting, and `flatten=True` default on finalization ([#405](https://github.com/ARPAHLS/skillware/issues/405)).
 
@@ -17,6 +18,8 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **CLI:** `skillware doctor` (including `doctor --install`) and `skillware paths` accept `--json` and emit machine-readable JSON on stdout, so CI pipelines, scripts, and coding agents can read install health and resolved root tiers without scraping Rich tables ([#476](https://github.com/ARPAHLS/skillware/issues/476)).
 
 ### Changed
+
+- **Skill (`finance/uk_companies_house_handler` v2.0.0):** Codified the 5-point v2 Host Agent Playbook in `instructions.md` (working memory retention, direct answering, context carry-forward, proactive document offering, 1-hop cross-entity boundary), updated `data/api_index.json` and `scripts/uk_companies_house_host_simulation.py` scenarios, and bumped version from `1.4.0` to `2.0.0` (Phase v2f, Parent [#220](https://github.com/ARPAHLS/skillware/issues/220)).
 
 ### Fixed
 

@@ -3,14 +3,14 @@
 **ID**: `finance/uk_companies_house_handler`
 **Issuer**: [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `1.4.0` — 15 Oct 2026
+- **Version**: `2.0.0` — 19 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
 - **Tags**: `kyc`, `companies_house`, `uk`, `corporate`, `filings`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
-**Solves:** Deterministic UK Companies House search, officers, PSC, filing history, and Document API download for compliance agents.
+**Solves:** Deterministic UK Companies House search, officers, PSC, charges, insolvency, filing history/item lookup, officer appointments, and Document API download for compliance agents.
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
 **Runtime:** Needs `COMPANIES_HOUSE_API_KEY`.
 <!-- skill-intent:end -->
@@ -47,8 +47,9 @@ Skill-context instructions (registry ID opener, not a persona). The host agent:
 - **Always replies in plain language** — never ends with an empty or one-word answer; explains empty registry results and asks focused follow-ups when data is missing.
 
 ### Effect (`skill.py`)
-A single `execute()` entry point dispatches to twelve action handlers:
-- **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`.
+A single `execute()` entry point dispatches to seventeen action handlers:
+- **Core actions**: `resolve_company`, `get_company_profile`, `get_officers`, `get_pscs`, `get_filing_history`, `get_company_charges`, `get_insolvency`, `get_filing_item`.
+- **Cross-entity officer actions**: `search_officers`, `get_officer_appointments` (1-hop boundary, native `?filter=active`, person-scoped context isolation).
 - **Document actions**: `list_downloadable_documents`, `get_document_metadata`, `fetch_document`.
 - **Pipeline orchestration & composites**: `run_pipeline`, `resolve_and_get_officers`, `resolve_and_get_filings`, `resolve_company_officer`.
 - **HTTP layer**: Authenticated requests to the Public Data API and Document API using the API key as HTTP Basic username; Authorization is dropped when following redirects to external storage.
@@ -86,9 +87,18 @@ Companies House enforces **600 requests per 5 minutes per API key**. See the off
 - Officer lists default to 10 active records; standalone actions return `ready` with `total_results` / `active_count` when truncated — render all returned rows. `partial` is reserved for in-flight `run_pipeline` only.
 - For stress testing NLP hosts, see `scripts/uk_companies_house_host_simulation.py` (`--provider host|gemini|claude|all`). Gemini free tier may need `--gemini-delay 15` between scenarios.
 
-## Direct execute — pipeline, documents, and composites (v1.4.0)
+## Direct execute — pipeline, documents, and due diligence (v2.0.0)
 
-Use these patterns when calling `skill.execute()` directly (no LLM) or when building deterministic hosts. Mocked flows: [`examples/uk_companies_house_handler_demo.py`](../../../examples/uk_companies_house_handler_demo.py). Interactive agent loops: [`examples/gemini_uk_companies_house_handler.py`](../../../examples/gemini_uk_companies_house_handler.py), [`examples/claude_uk_companies_house_handler.py`](../../../examples/claude_uk_companies_house_handler.py).
+Use these patterns when calling `skill.execute()` directly (no LLM) or when building deterministic hosts. Mocked flows: [`examples/uk_companies_house_handler_demo.py`](../../../examples/uk_companies_house_handler_demo.py), [`examples/uk_companies_house_due_diligence_demo.py`](../../../examples/uk_companies_house_due_diligence_demo.py). Interactive agent loops: [`examples/gemini_uk_companies_house_handler.py`](../../../examples/gemini_uk_companies_house_handler.py), [`examples/claude_uk_companies_house_handler.py`](../../../examples/claude_uk_companies_house_handler.py).
+
+**Due diligence (charges, insolvency, 1-hop appointments, single filing item):**
+
+```python
+charges = skill.execute({"action": "get_company_charges", "company_number": "09446231", "status_filter": "outstanding"})
+insolvency = skill.execute({"action": "get_insolvency", "company_number": "00102498"})
+filing_item = skill.execute({"action": "get_filing_item", "company_number": "00102498", "transaction_id": "MzM1"})
+appointments = skill.execute({"action": "get_officer_appointments", "officer_id": "DN10sEuPtFVgnsdAC_ik2_ccfnY", "active_only": True})
+```
 
 **Composite (single intent):**
 
@@ -730,6 +740,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| TBD | feat(finance/uk_companies_house_handler): upgrade to v2.0.0 with expanded API and v2 agent playbook (#220) (#469) (#494) | 19 Nov 2026 | `2.0.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.4.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`1ba0675`](https://github.com/ARPAHLS/skillware/commit/1ba0675684a525230e7a59a94d667777526f9d0c) | feat(finance/uk_companies_house_handler): Document API flow v2d (#421) (#434) | 15 Oct 2026 | `1.4.0` | [@2409324124](https://github.com/2409324124) |
 | [`769f817`](https://github.com/ARPAHLS/skillware/commit/769f8177195f6160ac93924ac09eda6fd8c8220e) | feat(finance/uk_companies_house_handler): upgrade to v1.3.0 with deterministic matchers, filing helpers, and turn-by-turn orchestration (#220) (#310) (#359) | 17 Sep 2026 | `1.3.0` | [@Areen-09](https://github.com/Areen-09) |

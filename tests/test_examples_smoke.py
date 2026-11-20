@@ -157,6 +157,14 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "uk_companies_house_due_diligence_demo.py",
+        [
+            "Step 1: Due Diligence Pipeline (Profile + Charges + Insolvency)",
+            "Step 2: 1-Hop Officer Search & Appointments",
+            "=== due diligence demo complete ===",
+        ],
+    ),
+    (
         "gmail_handler_demo.py",
         ["DEMO MODE: mocked IMAP/SMTP", "resolve_recipients", "Demo complete."],
     ),

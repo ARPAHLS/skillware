@@ -136,15 +136,107 @@
       },
       "params": {},
       "response_key": null
+    },
+    "charges": {
+      "method": "GET",
+      "path": "/company/{company_number}/charges",
+      "description": "List registered mortgages and charges for a company (may return 404 or 200 with empty items when none exist).",
+      "params": {
+        "items_per_page": {
+          "type": "integer",
+          "required": false,
+          "default": 25,
+          "max": 100,
+          "description": "Number of results per page"
+        },
+        "start_index": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "description": "Offset for pagination"
+        }
+      },
+      "response_key": "items"
+    },
+    "charge_item": {
+      "method": "GET",
+      "path": "/company/{company_number}/charges/{charge_id}",
+      "description": "Get details for a single registered charge.",
+      "params": {},
+      "response_key": null
+    },
+    "insolvency": {
+      "method": "GET",
+      "path": "/company/{company_number}/insolvency",
+      "description": "Get statutory insolvency cases for a company (404 when no insolvency history exists).",
+      "params": {},
+      "response_key": "cases"
+    },
+    "filing_item": {
+      "method": "GET",
+      "path": "/company/{company_number}/filing-history/{transaction_id}",
+      "description": "Get full metadata for a single filing transaction.",
+      "params": {},
+      "response_key": null
+    },
+    "search_officers": {
+      "method": "GET",
+      "path": "/search/officers",
+      "description": "Search for officers nationwide by name.",
+      "params": {
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Officer name search query"
+        },
+        "items_per_page": {
+          "type": "integer",
+          "required": false,
+          "default": 10,
+          "max": 50,
+          "description": "Number of results per page"
+        },
+        "start_index": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "description": "Offset for pagination"
+        }
+      },
+      "response_key": "items"
+    },
+    "officer_appointments": {
+      "method": "GET",
+      "path": "/officers/{officer_id}/appointments",
+      "description": "List cross-company appointments for an officer.",
+      "params": {
+        "filter": {
+          "type": "string",
+          "required": false,
+          "enum": [
+            "active"
+          ],
+          "description": "Filter appointments server-side (pass 'active' for current directorships)"
+        },
+        "items_per_page": {
+          "type": "integer",
+          "required": false,
+          "default": 20,
+          "max": 50,
+          "description": "Number of results per page"
+        },
+        "start_index": {
+          "type": "integer",
+          "required": false,
+          "default": 0,
+          "description": "Offset for pagination"
+        }
+      },
+      "response_key": "items"
     }
   },
   "v2_planned": [
-    "charges",
     "registers",
-    "insolvency",
-    "document_metadata",
-    "document_fetch",
-    "search_officers",
     "search_disqualified_officers"
   ],
   "document_api_base_url": "https://document-api.company-information.service.gov.uk"

@@ -40,6 +40,11 @@ _VALID_ACTIONS = {
     "resolve_and_get_officers",
     "resolve_and_get_filings",
     "resolve_company_officer",
+    "get_company_charges",
+    "get_insolvency",
+    "get_filing_item",
+    "search_officers",
+    "get_officer_appointments",
 }
 
 _ACTIONS_REQUIRING_COMPANY_NUMBER = {
@@ -47,6 +52,15 @@ _ACTIONS_REQUIRING_COMPANY_NUMBER = {
     "get_officers",
     "get_pscs",
     "get_filing_history",
+    "get_company_charges",
+    "get_insolvency",
+    "get_filing_item",
+}
+
+# Person-scoped / cross-company actions that must not inherit company_number from context.
+_PERSON_SCOPED_ACTIONS = {
+    "search_officers",
+    "get_officer_appointments",
 }
 
 # Pipeline auto-fills company_number for these steps (includes document list).
@@ -80,8 +94,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
 
         if not self.companies_house_api_key:
             raise ValueError(
-                "COMPANIES_HOUSE_API_KEY must be provided "
-                "through environment variables or config."
+                "COMPANIES_HOUSE_API_KEY must be provided through environment variables or config."
             )
 
         # Load bundled reference data
@@ -117,8 +130,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if action not in _VALID_ACTIONS:
             return self._error_response(
                 "invalid_action",
-                f"Unknown action '{action}'. "
-                f"Valid actions: {sorted(_VALID_ACTIONS)}",
+                f"Unknown action '{action}'. Valid actions: {sorted(_VALID_ACTIONS)}",
                 context=context,
             )
 
@@ -149,10 +161,22 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             "resolve_and_get_officers": self._resolve_and_get_officers,
             "resolve_and_get_filings": self._resolve_and_get_filings,
             "resolve_company_officer": self._resolve_company_officer,
+            "get_company_charges": self._get_company_charges,
+            "get_insolvency": self._get_insolvency,
+            "get_filing_item": self._get_filing_item,
+            "search_officers": self._search_officers,
+            "get_officer_appointments": self._get_officer_appointments,
         }
 
         try:
             result = dispatch[action](params)
+
+            if action in _PERSON_SCOPED_ACTIONS:
+                # Person-scoped actions must not inherit stale company_number or store officer PII in context.
+                new_context = dict(context)
+                new_context["last_action"] = action
+                result["context"] = new_context
+                return result
 
             # Carry forward and merge context
             ctx_num = context.get("company_number")
@@ -171,7 +195,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 or inherited_name
             )
 
-            if not company_name and company_number:
+            if not company_name and company_number and result.get("status") != "error":
                 try:
                     profile_data = self._request("GET", f"/company/{company_number}")
                     company_name = profile_data.get("company_name", "")
@@ -264,14 +288,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if not query or not str(query).strip():
             return self._error_response(
                 "missing_query",
-                "The 'query' parameter is required for " "resolve_company.",
+                "The 'query' parameter is required for resolve_company.",
             )
 
         query = self._normalize_company_query(str(query))
         if not query:
             return self._error_response(
                 "missing_query",
-                "The 'query' parameter is required for " "resolve_company.",
+                "The 'query' parameter is required for resolve_company.",
             )
 
         limit = min(params.get("limit", 5), 20)
@@ -287,8 +311,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             return self._error_response(
                 "no_results",
                 f"No companies found matching '{query}'.",
-                agent_hint="Ask the user to refine their search "
-                "query or check spelling.",
+                agent_hint="Ask the user to refine their search query or check spelling.",
             )
 
         candidates = []
@@ -324,8 +347,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return self._needs_input_response(
             "multiple_matches",
             candidates,
-            agent_hint="Ask the user which company they mean "
-            "before calling further actions.",
+            agent_hint="Ask the user which company they mean before calling further actions.",
         )
 
     def _get_company_profile(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -470,6 +492,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                         officers.append(
                             {
                                 "name": name,
+                                "officer_id": self._extract_officer_id(item),
                                 "officer_role": role,
                                 "appointed_on": item.get("appointed_on", ""),
                                 "resigned_on": item.get("resigned_on"),
@@ -516,6 +539,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                     officers.append(
                         {
                             "name": item.get("name", ""),
+                            "officer_id": self._extract_officer_id(item),
                             "officer_role": item.get("officer_role", ""),
                             "appointed_on": item.get("appointed_on", ""),
                             "resigned_on": item.get("resigned_on"),
@@ -544,10 +568,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "secretaries. Includes both active and resigned officers on record."
             )
         else:
-            terminology_note = (
-                "Statutory company officers in the UK comprise directors "
-                "and secretaries."
-            )
+            terminology_note = "Statutory company officers in the UK comprise directors and secretaries."
 
         result = {
             "company_number": company_number,
@@ -723,6 +744,450 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             source="companies_house_api",
         )
 
+    @staticmethod
+    def _sanitize_path_id(
+        value: str,
+        prefix: str = "",
+        suffix: str = "",
+    ) -> str:
+        """Strip whitespace, URL prefixes/paths, and optional suffixes from an ID."""
+        cleaned = str(value or "").strip()
+        if not cleaned:
+            return ""
+        if prefix and cleaned.startswith(prefix):
+            cleaned = cleaned[len(prefix) :]
+        cleaned = cleaned.strip("/")
+        if suffix:
+            trimmed_suffix = suffix.strip("/")
+            if trimmed_suffix and cleaned.endswith(f"/{trimmed_suffix}"):
+                cleaned = cleaned[: -len(trimmed_suffix) - 1]
+            elif trimmed_suffix and cleaned == trimmed_suffix:
+                return ""
+        if "/" in cleaned:
+            cleaned = cleaned.rsplit("/", 1)[-1]
+        return cleaned.strip()
+
+    @classmethod
+    def _extract_officer_id(cls, item: Dict[str, Any]) -> str:
+        """Extract officer_id from Companies House officer or search links."""
+        links = item.get("links") or {}
+        appointments_path = (
+            (links.get("officer") or {}).get("appointments") or links.get("self") or ""
+        )
+        return cls._sanitize_path_id(
+            appointments_path,
+            prefix="/officers/",
+            suffix="/appointments",
+        )
+
+    def _verify_company_exists(
+        self,
+        company_number: str,
+        context: Dict[str, Any],
+    ) -> Optional[str]:
+        """Verify company existence via context cache or profile lookup; None on 404."""
+        if context.get("company_number") == company_number and context.get(
+            "company_name"
+        ):
+            return str(context["company_name"])
+        try:
+            profile = self._request("GET", f"/company/{company_number}")
+            return str(profile.get("company_name", ""))
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                return None
+            raise
+
+    @staticmethod
+    def _format_charge(item: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize a Companies House charge record."""
+        links = item.get("links") or {}
+        charge_id = ""
+        if links.get("self"):
+            charge_id = str(links["self"]).strip("/").rsplit("/", 1)[-1]
+        elif item.get("charge_code"):
+            charge_id = str(item["charge_code"])
+        persons = [
+            p.get("name", "")
+            for p in item.get("persons_entitled", [])
+            if isinstance(p, dict) and p.get("name")
+        ]
+        particulars = item.get("particulars") or {}
+        classification = item.get("classification") or {}
+        return {
+            "charge_id": charge_id,
+            "charge_code": item.get("charge_code", ""),
+            "charge_number": item.get("charge_number"),
+            "status": item.get("status", ""),
+            "created_on": item.get("created_on", ""),
+            "delivered_on": item.get("delivered_on", ""),
+            "satisfied_on": item.get("satisfied_on"),
+            "classification": classification.get("description", ""),
+            "particulars": particulars.get("description", ""),
+            "persons_entitled": persons,
+            "links": links,
+        }
+
+    def _get_company_charges(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve registered mortgages/charges for a company or a single charge."""
+        company_number = params["company_number"]
+        context = params.get("context") or {}
+        raw_charge_id = params.get("charge_id")
+
+        if raw_charge_id is not None and str(raw_charge_id).strip():
+            charge_id = self._sanitize_path_id(str(raw_charge_id))
+            try:
+                data = self._request(
+                    "GET", f"/company/{company_number}/charges/{charge_id}"
+                )
+            except requests.exceptions.HTTPError as exc:
+                if exc.response is not None and exc.response.status_code == 404:
+                    return self._error_response(
+                        "charge_not_found",
+                        f"Charge '{charge_id}' not found for company {company_number}.",
+                        context=context,
+                    )
+                raise
+            return self._ready_response(
+                {
+                    "company_number": company_number,
+                    "company_name": context.get("company_name", ""),
+                    "charge_id": charge_id,
+                    "charge": self._format_charge(data),
+                },
+                source="companies_house_api",
+            )
+
+        limit = min(int(params.get("limit") or 25), 100)
+        start_index = int(params.get("start_index") or 0)
+        status_filter = str(params.get("status_filter") or "").strip().lower()
+
+        try:
+            data = self._request(
+                "GET",
+                f"/company/{company_number}/charges",
+                params={"items_per_page": limit, "start_index": start_index},
+            )
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                verified_name = self._verify_company_exists(company_number, context)
+                if verified_name is None:
+                    return self._error_response(
+                        "company_not_found",
+                        f"Company {company_number} not found.",
+                        context=context,
+                    )
+                return self._ready_response(
+                    {
+                        "company_number": company_number,
+                        "company_name": verified_name,
+                        "charges": [],
+                        "total_count": 0,
+                        "satisfied_count": 0,
+                        "part_satisfied_count": 0,
+                    },
+                    source="companies_house_api",
+                )
+            raise
+
+        items = data.get("items") or []
+        company_name = context.get("company_name", "")
+        if not items:
+            verified_name = self._verify_company_exists(company_number, context)
+            if verified_name is None:
+                return self._error_response(
+                    "company_not_found",
+                    f"Company {company_number} not found.",
+                    context=context,
+                )
+            if not company_name:
+                company_name = verified_name
+
+        charges = [self._format_charge(item) for item in items]
+        if status_filter:
+            charges = [
+                c for c in charges if c.get("status", "").lower() == status_filter
+            ]
+
+        return self._ready_response(
+            {
+                "company_number": company_number,
+                "company_name": company_name,
+                "charges": charges,
+                "total_count": data.get("total_count", len(charges)),
+                "satisfied_count": data.get("satisfied_count", 0),
+                "part_satisfied_count": data.get("part_satisfied_count", 0),
+                "start_index": start_index,
+                "items_per_page": limit,
+            },
+            source="companies_house_api",
+        )
+
+    def _get_insolvency(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve statutory insolvency cases, normalizing 404 for solvent companies."""
+        company_number = params["company_number"]
+        context = params.get("context") or {}
+
+        try:
+            data = self._request("GET", f"/company/{company_number}/insolvency")
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                verified_name = self._verify_company_exists(company_number, context)
+                if verified_name is None:
+                    return self._error_response(
+                        "company_not_found",
+                        f"Company {company_number} not found.",
+                        context=context,
+                    )
+                return self._ready_response(
+                    {
+                        "company_number": company_number,
+                        "company_name": verified_name,
+                        "has_insolvency_history": False,
+                        "cases": [],
+                        "status_flags": [],
+                    },
+                    source="companies_house_api",
+                )
+            raise
+
+        raw_cases = data.get("cases", [])
+        cases: List[Dict[str, Any]] = []
+        for case in raw_cases:
+            practitioners = [
+                {
+                    "name": p.get("name", ""),
+                    "role": p.get("role", ""),
+                    "appointed_on": p.get("appointed_on"),
+                    "ceased_to_act_on": p.get("ceased_to_act_on"),
+                }
+                for p in case.get("practitioners", [])
+                if isinstance(p, dict)
+            ]
+            cases.append(
+                {
+                    "type": case.get("type", ""),
+                    "number": case.get("number"),
+                    "dates": case.get("dates", []),
+                    "practitioners": practitioners,
+                    "notes": case.get("notes", []),
+                }
+            )
+
+        status_flags = data.get("status", [])
+        return self._ready_response(
+            {
+                "company_number": company_number,
+                "company_name": context.get("company_name", ""),
+                "has_insolvency_history": bool(cases or status_flags),
+                "cases": cases,
+                "status_flags": status_flags,
+            },
+            source="companies_house_api",
+        )
+
+    def _get_filing_item(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve a single filing transaction by transaction_id."""
+        company_number = params["company_number"]
+        context = params.get("context") or {}
+        raw_tx = params.get("transaction_id")
+        tx_id = self._sanitize_path_id(str(raw_tx or ""))
+        if not tx_id:
+            return self._error_response(
+                "missing_transaction_id",
+                "Action 'get_filing_item' requires a 'transaction_id' parameter.",
+                context=context,
+            )
+
+        try:
+            data = self._request(
+                "GET", f"/company/{company_number}/filing-history/{tx_id}"
+            )
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                return self._error_response(
+                    "filing_not_found",
+                    f"Filing transaction '{tx_id}' not found for company {company_number}.",
+                    context=context,
+                )
+            raise
+
+        links = data.get("links") or {}
+        doc_metadata_url = links.get("document_metadata")
+        downloadable = bool(doc_metadata_url)
+
+        filing = {
+            "transaction_id": data.get("transaction_id", tx_id),
+            "date": data.get("date", ""),
+            "action_date": data.get("action_date"),
+            "category": data.get("category", ""),
+            "type": data.get("type", ""),
+            "description": data.get("description", ""),
+            "description_values": data.get("description_values", {}),
+            "paper_filed": data.get("paper_filed", False),
+            "pages": data.get("pages"),
+            "barcode": data.get("barcode"),
+            "annotations": data.get("annotations", []),
+            "resolutions": data.get("resolutions", []),
+            "links": links,
+        }
+
+        return self._ready_response(
+            {
+                "company_number": company_number,
+                "company_name": context.get("company_name", ""),
+                "transaction_id": filing["transaction_id"],
+                "filing": filing,
+                "downloadable": downloadable,
+                "document_metadata_url": doc_metadata_url,
+            },
+            source="companies_house_api",
+        )
+
+    def _search_officers(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Search for officers nationwide by name."""
+        context = params.get("context") or {}
+        raw_query = params.get("query") or params.get("officer_name")
+        if not raw_query or not str(raw_query).strip():
+            return self._error_response(
+                "missing_query",
+                "Action 'search_officers' requires a 'query' (or 'officer_name') parameter.",
+                context=context,
+            )
+
+        query = str(raw_query).strip()
+        limit = min(int(params.get("limit") or 10), 50)
+        start_index = int(params.get("start_index") or 0)
+
+        data = self._request(
+            "GET",
+            "/search/officers",
+            params={"q": query, "items_per_page": limit, "start_index": start_index},
+        )
+
+        candidates: List[Dict[str, Any]] = []
+        for item in data.get("items", []):
+            officer_id = self._extract_officer_id(item)
+            dob = item.get("date_of_birth") or {}
+            safe_dob = (
+                {"month": dob.get("month"), "year": dob.get("year")} if dob else None
+            )
+            candidates.append(
+                {
+                    "title": item.get("title", ""),
+                    "officer_id": officer_id,
+                    "appointment_count": item.get("appointment_count"),
+                    "date_of_birth": safe_dob,
+                    "address_snippet": item.get("address_snippet", ""),
+                    "appointments_url": (item.get("links") or {}).get("self", ""),
+                }
+            )
+
+        if len(candidates) > 1:
+            resp = self._needs_input_response(
+                reason="multiple_matches",
+                candidates=candidates,
+                agent_hint=(
+                    f"Found {len(candidates)} matching officers for '{query}'. "
+                    "Disambiguate using birth month/year, address snippet, or "
+                    "appointment count, then pass the chosen officer_id to "
+                    "get_officer_appointments."
+                ),
+                context=context,
+            )
+            resp["officers"] = candidates
+            resp["total_results"] = data.get("total_results", len(candidates))
+            return resp
+
+        if len(candidates) == 1:
+            return self._ready_response(
+                {
+                    "officer_id": candidates[0]["officer_id"],
+                    "officers": candidates,
+                    "total_results": data.get("total_results", 1),
+                },
+                source="companies_house_api",
+            )
+
+        return self._ready_response(
+            {
+                "officers": [],
+                "total_results": 0,
+            },
+            agent_hint=f"No officers matched query '{query}'.",
+            source="companies_house_api",
+        )
+
+    def _get_officer_appointments(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Retrieve cross-company appointments for a specific officer_id."""
+        context = params.get("context") or {}
+        raw_id = params.get("officer_id")
+        officer_id = self._sanitize_path_id(
+            str(raw_id or ""),
+            prefix="/officers/",
+            suffix="/appointments",
+        )
+        if not officer_id:
+            return self._error_response(
+                "missing_officer_id",
+                "Action 'get_officer_appointments' requires an 'officer_id' parameter.",
+                context=context,
+            )
+
+        active_only = params.get("active_only", True)
+        limit = min(int(params.get("limit") or 20), 50)
+        start_index = int(params.get("start_index") or 0)
+
+        req_params: Dict[str, Any] = {
+            "items_per_page": limit,
+            "start_index": start_index,
+        }
+        if active_only:
+            req_params["filter"] = "active"
+
+        try:
+            data = self._request(
+                "GET", f"/officers/{officer_id}/appointments", params=req_params
+            )
+        except requests.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                return self._error_response(
+                    "officer_not_found",
+                    f"Officer '{officer_id}' not found.",
+                    context=context,
+                )
+            raise
+
+        appointments: List[Dict[str, Any]] = []
+        for item in data.get("items", []):
+            appointed_to = item.get("appointed_to") or {}
+            resigned_on = item.get("resigned_on")
+            appointments.append(
+                {
+                    "company_name": appointed_to.get("company_name", ""),
+                    "company_number": appointed_to.get("company_number", ""),
+                    "company_status": appointed_to.get("company_status", ""),
+                    "officer_role": item.get("officer_role", ""),
+                    "appointed_on": item.get("appointed_on", ""),
+                    "resigned_on": resigned_on,
+                    "is_active": not bool(resigned_on),
+                }
+            )
+
+        return self._ready_response(
+            {
+                "officer_id": officer_id,
+                "name": data.get("name", ""),
+                "total_results": data.get("total_results", len(appointments)),
+                "active_count": data.get("active_count"),
+                "active_only": active_only,
+                "appointments": appointments,
+                "start_index": start_index,
+                "items_per_page": limit,
+            },
+            source="companies_house_api",
+        )
+
     def _run_pipeline(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute ordered steps as a stack (single-step execution); pause on needs_input / error."""
         steps = params.get("steps")
@@ -799,7 +1264,11 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 rem_params = rem_step.setdefault("params", {})
                 if not rem_params.get("company_number") or rem_params.get(
                     "company_number"
-                ) in ("<from_resolve>", "<from resolve>", "<from-resolve>"):
+                ) in (
+                    "<from_resolve>",
+                    "<from resolve>",
+                    "<from-resolve>",
+                ):
                     if rem_step.get("action") in _PIPELINE_COMPANY_NUMBER_ACTIONS:
                         rem_params["company_number"] = resolved_number
 
@@ -1208,8 +1677,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             available = ", ".join(sorted(resources.keys()))
             return self._error_response(
                 "unsupported_content_type",
-                f"Content type '{content_type}' is not available. "
-                f"Available: {available}.",
+                f"Content type '{content_type}' is not available. Available: {available}.",
                 context=context,
             )
 
@@ -1338,16 +1806,14 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         if not metadata_url and not transaction_id:
             return self._error_response(
                 "missing_document_target",
-                "Provide transaction_id or metadata_url "
-                "(from list_downloadable_documents).",
+                "Provide transaction_id or metadata_url (from list_downloadable_documents).",
                 context=context,
             )
 
         if metadata_url and not self._is_document_api_url(metadata_url):
             return self._error_response(
                 "invalid_metadata_url",
-                "metadata_url must be a Companies House Document API URL "
-                f"under {_DOCUMENT_API_BASE}.",
+                f"metadata_url must be a Companies House Document API URL under {_DOCUMENT_API_BASE}.",
                 context=context,
             )
 
@@ -1507,14 +1973,8 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 "and share the download_url instead."
             )
         else:
-            advice = (
-                f"Set a higher max_bytes (up to {_fmt(_HARD_MAX_BYTES)}) or "
-                "retrieve metadata only."
-            )
-        message = (
-            f"Document exceeds max_bytes limit of {_fmt(max_bytes)} "
-            f"(actual: {_fmt(size_bytes)}). {advice}"
-        )
+            advice = f"Set a higher max_bytes (up to {_fmt(_HARD_MAX_BYTES)}) or retrieve metadata only."
+        message = f"Document exceeds max_bytes limit of {_fmt(max_bytes)} (actual: {_fmt(size_bytes)}). {advice}"
         response = self._error_response(
             "document_too_large",
             message,
@@ -1532,10 +1992,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
     @staticmethod
     def _rate_limit_hint(retry_after: Optional[str] = None) -> str:
         if retry_after:
-            return (
-                f"Rate limited by Companies House. Retry-After: {retry_after} "
-                f"seconds. {_OPERATIONAL_RETRY_HINT}"
-            )
+            return f"Rate limited by Companies House. Retry-After: {retry_after} seconds. {_OPERATIONAL_RETRY_HINT}"
         return _OPERATIONAL_RETRY_HINT
 
     # --- HTTP Layer ---

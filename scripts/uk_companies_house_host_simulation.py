@@ -80,8 +80,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "officer_name_barclays",
         "query": "Does Barclays Bank PLC have an officer named John Perkins?",
         "follow_ups": [
-            f"Barclays Bank PLC only — company number {BARCLAYS_BANK}. "
-            "Search the officer list and say yes or no."
+            f"Barclays Bank PLC only — company number {BARCLAYS_BANK}. Search the officer list and say yes or no."
         ],
         "company_number": BARCLAYS_BANK,
         "expect_actions": {
@@ -97,8 +96,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "multi_hsbc",
         "query": "Show me the directors and the most recent accounts filings for HSBC.",
         "follow_ups": [
-            f"HSBC Holdings PLC, company number {HSBC_HOLDINGS}. "
-            "I want both officers and recent account filings."
+            f"HSBC Holdings PLC, company number {HSBC_HOLDINGS}. I want both officers and recent account filings."
         ],
         "company_number": HSBC_HOLDINGS,
         "expect_actions": {
@@ -136,8 +134,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "id": "ambiguous_barclays",
         "query": "Tell me about Barclays.",
         "follow_ups": [
-            f"I mean Barclays Bank PLC, company number {BARCLAYS_BANK}. "
-            "Give me the company profile summary."
+            f"I mean Barclays Bank PLC, company number {BARCLAYS_BANK}. Give me the company profile summary."
         ],
         "company_number": BARCLAYS_BANK,
         "expect_actions": {
@@ -188,6 +185,39 @@ SCENARIOS: List[Dict[str, Any]] = [
         },
         "expect_answer_any": ["chair", "director", "tesco", "officer"],
         "expect_tool_fields_any": ["officers"],
+    },
+    {
+        "id": "charges_monzo",
+        "query": f"Does Monzo Bank Limited ({MONZO_BANK}) have any registered charges or mortgages?",
+        "follow_ups": [f"Monzo Bank Limited, company number {MONZO_BANK}."],
+        "company_number": MONZO_BANK,
+        "expect_actions": {"get_company_charges", "run_pipeline"},
+        "expect_answer_any": ["charge", "mortgage", "monzo", "none", "0", "no"],
+        "expect_tool_fields_any": ["charges"],
+    },
+    {
+        "id": "insolvency_clean",
+        "query": f"Check whether BP P.L.C. ({BP_PLC}) has any insolvency history.",
+        "follow_ups": [f"BP P.L.C., company number {BP_PLC}."],
+        "company_number": BP_PLC,
+        "expect_actions": {"get_insolvency", "run_pipeline"},
+        "expect_answer_any": ["insolvency", "no", "none", "clean", "bp"],
+        "expect_tool_fields_any": ["has_insolvency_history", "cases"],
+    },
+    {
+        "id": "officer_appointments_bp",
+        "query": (
+            f"List the current directors of BP P.L.C. ({BP_PLC}) and check what other "
+            "active companies the first director sits on."
+        ),
+        "follow_ups": [f"BP P.L.C., company number {BP_PLC}."],
+        "expect_actions": {
+            "get_officers",
+            "get_officer_appointments",
+            "search_officers",
+        },
+        "expect_answer_any": ["director", "appointment", "company", "bp"],
+        "expect_tool_fields_any": ["appointments"],
     },
 ]
 
@@ -278,8 +308,7 @@ def validate_api_payload(
         if ready and str(ready.get("company_number", "")).strip() not in ("", cn):
             if str(ready.get("company_number", "")).strip() != cn:
                 notes.append(
-                    f"WARN: ready payload company_number={ready.get('company_number')!r} "
-                    f"expected {cn!r}"
+                    f"WARN: ready payload company_number={ready.get('company_number')!r} expected {cn!r}"
                 )
         elif not matched and not any(t.status == "needs_input" for t in traces):
             notes.append(f"WARN: no tool call used expected company_number {cn}")
@@ -658,6 +687,52 @@ def run_host_ideal(scenario: Dict[str, Any], skill: Any) -> ScenarioResult:
                 },
             )
         )
+    elif sid == "charges_monzo":
+        traces.append(
+            execute_and_trace(
+                skill,
+                {
+                    "action": "get_company_charges",
+                    "company_number": MONZO_BANK,
+                },
+            )
+        )
+    elif sid == "insolvency_clean":
+        traces.append(
+            execute_and_trace(
+                skill,
+                {
+                    "action": "get_insolvency",
+                    "company_number": BP_PLC,
+                },
+            )
+        )
+    elif sid == "officer_appointments_bp":
+        off_trace = execute_and_trace(
+            skill,
+            {
+                "action": "get_officers",
+                "company_number": BP_PLC,
+                "officer_role": "director",
+                "active_only": True,
+                "limit": 5,
+            },
+        )
+        traces.append(off_trace)
+        officers = off_trace.result.get("officers") or []
+        first_id = officers[0].get("officer_id") if officers else ""
+        if first_id:
+            traces.append(
+                execute_and_trace(
+                    skill,
+                    {
+                        "action": "get_officer_appointments",
+                        "officer_id": first_id,
+                        "active_only": True,
+                        "limit": 10,
+                    },
+                )
+            )
     else:
         return ScenarioResult(
             sid, "host", scenario["query"], False, ["unknown scenario"], traces
