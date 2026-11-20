@@ -111,7 +111,7 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     ),
     (
         "prompt_compression_demo.py",
-        ["Prompt Compressor", "[RAW TEXT]:", "[COMPRESSED TEXT]:", "[REDUCTION]:"],
+        ["Prompt Compressor", "[TEXT]:", "[COMPRESSED TEXT]:", "[REDUCTION]:"],
     ),
     (
         "deceptive_ui_guard_demo.py",

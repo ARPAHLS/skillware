@@ -225,8 +225,13 @@ class SkillLoader:
         Set ``execute_module=False`` for inspect-only loads (manifest, instructions,
         card, and optional requirement pre-flight) without executing ``skill.py``.
         """
-        if skill_path == "optimization/prompt_rewriter":
-            skill_path = "optimization/prompt_compressor"
+
+        skill_aliases = {"optimization/prompt_rewriter": "optimization/prompt_compressor"}
+
+        if skill_path in skill_aliases:
+            warnings.warn(f"'{skill_path}' is deprecated; use '{skill_aliases[skill_path]}'.",
+                          DeprecationWarning, stacklevel=2)
+            skill_path = skill_aliases[skill_path]
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
 

@@ -129,8 +129,8 @@ sys_prompt = "You are a very helpful assistant serving a bank..."
 
 # Use python logic offline before starting the chat session
 optimized_ctx_result = compressor["class"]().execute({
-    "raw_text": sys_prompt,
-    "compression_aggression": "aggressive"
+    "text": sys_prompt,
+    "mode": "aggressive"
 })
 # Or: compressor["module"].PromptCompressor().execute({...})
 

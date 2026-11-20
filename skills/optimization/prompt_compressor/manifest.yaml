@@ -20,15 +20,15 @@ category: "optimization"
 parameters:
   type: object
   properties:
-    raw_text:
+    text:
       type: "string"
       description: "The bloated, repetitive prompt or extensive conversation history to compress."
-    compression_aggression:
+    mode:
       type: "string"
       description: "The level of compression: 'lossless', 'balanced', or 'aggressive'."
       enum: ["lossless", "balanced", "aggressive"]
   required:
-    - raw_text
+    - text
 requirements: []
 constitution: |
   1. SEMANTIC INTEGRITY: Never remove keywords that change the core intent or instructions of the prompt.

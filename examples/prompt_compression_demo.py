@@ -13,16 +13,16 @@ def run_demo():
         "I want you to kindly ensure that all elements are processed."
     )
 
-    print(f"\n[RAW TEXT]: {massive_prompt}")
+    print(f"\n[TEXT]: {massive_prompt}")
 
     # Execute the offline compression logic
     result = skill_instance.execute(
-        {"raw_text": massive_prompt, "compression_aggression": "high"}
+        {"text": massive_prompt, "mode": "aggressive"}
     )
 
     print(f"\n[COMPRESSED TEXT]: {result['compressed_text']}")
     print(
-        f"[REDUCTION]: {result['original_tokens']} tokens -> {result['new_tokens']} tokens"
+        f"[REDUCTION]: {result['original_tokens']} tokens -> {result['compressed_tokens']} tokens"
     )
     print(f"[SAVED]: {result['tokens_saved']} tokens")
 
