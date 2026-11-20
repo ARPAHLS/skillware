@@ -324,3 +324,92 @@ def test_session_restart_resilience_and_batch_stress(pdf_skill, tmp_path):
         doc.close()
         assert f"Session User {i}" in text
         assert f"/s/ Session User {i}" in text
+
+
+def test_cli_batch_import_auto_map_to_skill_fill_simulation(
+    pdf_skill, tmp_path, monkeypatch
+):
+    """End-to-end simulation: CLI batch import + auto-map -> audit -> skill list & fill."""
+    from skillware.core.pdf_templates import (
+        ENV_PDF_TEMPLATES_DIR,
+        audit_templates,
+        import_pdf_forms,
+    )
+
+    templates_dir = tmp_path / "company_templates"
+    incoming_dir = tmp_path / "incoming_forms"
+    incoming_dir.mkdir()
+
+    # Create 3 custom company AcroForm PDFs
+    for idx in range(3):
+        doc = fitz.open()
+        page = doc.new_page(width=612, height=792)
+        page.insert_text((50, 70), "Employee Name", fontsize=11)
+        w1 = fitz.Widget()
+        w1.field_name = "emp_name"
+        w1.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+        w1.rect = fitz.Rect(50, 75, 280, 95)
+        page.add_widget(w1)
+
+        page.insert_text((50, 125), "Employee SSN", fontsize=11)
+        w2 = fitz.Widget()
+        w2.field_name = "emp_ssn"
+        w2.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+        w2.rect = fitz.Rect(50, 130, 220, 150)
+        page.add_widget(w2)
+
+        doc.save(str(incoming_dir / f"hr_onboarding_{idx}.pdf"))
+        doc.close()
+
+    monkeypatch.setenv(ENV_PDF_TEMPLATES_DIR, str(templates_dir))
+
+    # 1. Batch import with --auto-map
+    dest, results = import_pdf_forms(incoming_dir, auto_map=True)
+    assert dest == templates_dir.resolve()
+    assert len(results) == 3
+    assert all(r.status == "imported" and r.map_status == "generated" for r in results)
+
+    # 2. Audit verifies all 3 are [MAPPED - VALID]
+    entries = audit_templates(include_bundled=False)
+    assert len(entries) == 3
+    assert all(e.map_status == "[MAPPED - VALID]" for e in entries)
+
+    # 3. Skill discovers custom templates via PDF_TEMPLATES_DIR and fills one with PII redaction
+    listed = pdf_skill.execute({"action": "list_templates"})
+    assert listed["status"] == "ok"
+    tids = {t["template_id"] for t in listed["templates"]}
+    assert {"hr_onboarding_0", "hr_onboarding_1", "hr_onboarding_2"}.issubset(tids)
+
+    preview = pdf_skill.execute(
+        {
+            "action": "fill",
+            "template_id": "hr_onboarding_0",
+            "edits": {
+                "employee_name": "Elena Papadopoulos",
+                "employee_ssn": "999-88-7766",
+            },
+            "output_dir": str(tmp_path),
+            "confirmed": False,
+        }
+    )
+    assert preview["status"] == "needs_input"
+    assert preview["preview"]["proposed_edits"]["employee_ssn"] == "***7766"
+
+    filled = pdf_skill.execute(
+        {
+            "action": "fill",
+            "template_id": "hr_onboarding_0",
+            "edits": {
+                "employee_name": "Elena Papadopoulos",
+                "employee_ssn": "999-88-7766",
+            },
+            "output_dir": str(tmp_path),
+            "confirmed": True,
+        }
+    )
+    assert filled["status"] == "success"
+    out_doc = fitz.open(filled["output_path"])
+    vals = {w.field_name: w.field_value for w in out_doc[0].widgets()}
+    out_doc.close()
+    assert vals["emp_name"] == "Elena Papadopoulos"
+    assert vals["emp_ssn"] == "999-88-7766"

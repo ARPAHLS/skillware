@@ -1,89 +1,85 @@
-import os
+# Copyright (c) 2026 ARPA Hellenic Logical Systems
+# SPDX-License-Identifier: MIT
+
+"""
+Multi-turn Claude agent loop for office/pdf_form_filler v0.2.2.
+
+Demonstrates curated IRS Form W-9 discovery, tax classification radio group
+selection, PII-masked preview, and explicit confirmation gating.
+"""
+
 import json
-import anthropic
-from skillware.core.loader import SkillLoader
-from skillware.core.env import load_env_file
+import os
+import sys
 
-# Load Env (Requires ANTHROPIC_API_KEY for both Agent and Skill)
-load_env_file()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# 1. Load the Skill
-skill_bundle = SkillLoader.load_skill("office/pdf_form_filler")
-print(f"Loaded Skill: {skill_bundle['manifest']['name']}")
+import anthropic  # noqa: E402
+from skillware.core.env import load_env_file  # noqa: E402
+from skillware.core.loader import SkillLoader  # noqa: E402
 
-# 2. Instantiate Skill
-PDFFormFillerSkill = skill_bundle["module"].PDFFormFillerSkill
-pdf_skill = PDFFormFillerSkill()
 
-# 3. Setup Claude Client
-client = anthropic.Anthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY"),
-)
+def main() -> None:
+    load_env_file()
 
-claude_tool = SkillLoader.to_claude_tool(skill_bundle)
-tools = [claude_tool]
-TOOL_NAME = claude_tool["name"]
+    skill_bundle = SkillLoader.load_skill("office/pdf_form_filler")
+    print(f"Loaded Skill: {skill_bundle['manifest']['name']}")
 
-# 4. Run Agent Loop
-pdf_path = os.path.abspath("test_form.pdf")
-user_query = f"Please fill out the form at {pdf_path}. My name is John Smith and I want to enable notifications."
+    pdf_skill = skill_bundle["class"]()
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    claude_tool = SkillLoader.to_claude_tool(skill_bundle)
+    tool_name = claude_tool["name"]
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-0")
 
-print(f"User: {user_query}")
+    user_query = (
+        "Inspect the curated 'us_irs_w9' template schema, validate a draft for "
+        "John Smith (Individual/sole proprietor) at 123 Main St, Austin, TX 78701, "
+        "and return a PII-redacted fill preview without writing the final file yet."
+    )
+    print(f"User: {user_query}")
 
-message = client.messages.create(
-    model="claude-3-opus-20240229",
-    max_tokens=1024,
-    system=skill_bundle["instructions"],
-    messages=[{"role": "user", "content": user_query}],
-    tools=tools,
-)
+    messages = [{"role": "user", "content": user_query}]
 
-if message.stop_reason == "tool_use":
-    tool_use = next(block for block in message.content if block.type == "tool_use")
-    tool_name = tool_use.name
-    tool_input = tool_use.input
-
-    print(f"\nClaude requested tool: {tool_name}")
-    print(f"Input: {tool_input}")
-
-    if tool_name == TOOL_NAME:
-        # Check file
-        if not os.path.exists(tool_input.get("pdf_path", "")):
-            print(
-                f"⚠️ Warning: File {tool_input.get('pdf_path')} does not exist. Execution might fail."
-            )
-
-        # Execute
-        print("⚙️ Executing skill...")
-        try:
-            result = pdf_skill.execute(tool_input)
-            print("✅ Skill Execution Result:")
-            print(json.dumps(result, indent=2))
-        except Exception as e:
-            result = {"error": str(e)}
-            print(f"❌ Error: {e}")
-
-        # Feed back to Claude
-        response = client.messages.create(
-            model="claude-3-opus-20240229",
+    for _turn in range(6):
+        message = client.messages.create(
+            model=model,
             max_tokens=1024,
             system=skill_bundle["instructions"],
-            tools=tools,
-            messages=[
-                {"role": "user", "content": user_query},
-                {"role": "assistant", "content": message.content},
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": tool_use.id,
-                            "content": json.dumps(result),
-                        }
-                    ],
-                },
-            ],
+            messages=messages,
+            tools=[claude_tool],
         )
 
-        print("\nAgent Final Response:")
-        print(response.content[0].text)
+        if message.stop_reason != "tool_use":
+            text_blocks = [b.text for b in message.content if hasattr(b, "text")]
+            print("\nClaude:", "\n".join(text_blocks))
+            break
+
+        messages.append({"role": "assistant", "content": message.content})
+        tool_results = []
+
+        for block in message.content:
+            if block.type != "tool_use":
+                continue
+            print(f"\nClaude calls: {block.name}({json.dumps(block.input)})")
+            if block.name == tool_name:
+                try:
+                    result = pdf_skill.execute(block.input)
+                except Exception as exc:
+                    result = {"status": "error", "message": str(exc)}
+            else:
+                result = {"status": "error", "message": f"Unknown tool: {block.name}"}
+
+            print(f"Tool result: {json.dumps(result, indent=2)}")
+            tool_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(result),
+                }
+            )
+
+        messages.append({"role": "user", "content": tool_results})
+
+
+if __name__ == "__main__":
+    main()

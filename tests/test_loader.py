@@ -519,6 +519,43 @@ def test_to_gemini_tool():
     assert decl.parameters.type.name == "OBJECT"
     assert decl.parameters.properties["param1"].type.name == "STRING"
 
+    # Array items must also be recursively uppercased
+    array_bundle = {
+        "manifest": {
+            "name": "office/pdf_form_filler",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "skip_fields": {"type": "array", "items": {"type": "string"}}
+                },
+            },
+        }
+    }
+    arr_decl = SkillLoader.to_gemini_tool(array_bundle).function_declarations[0]
+    assert arr_decl.parameters.properties["skip_fields"].type.name == "ARRAY"
+    assert arr_decl.parameters.properties["skip_fields"].items.type.name == "STRING"
+
+
+def test_adapters_normalize_empty_parameters():
+    empty_bundle = {"manifest": {"name": "office/ping", "description": "No-arg skill"}}
+    assert SkillLoader.to_claude_tool(empty_bundle)["input_schema"] == {
+        "type": "object",
+        "properties": {},
+    }
+    assert SkillLoader.to_openai_tool(empty_bundle)["function"]["parameters"] == {
+        "type": "object",
+        "properties": {},
+    }
+    assert SkillLoader.to_deepseek_tool(empty_bundle)["function"]["parameters"] == {
+        "type": "object",
+        "properties": {},
+    }
+    assert SkillLoader.to_bedrock_tool(empty_bundle)["toolSpec"]["inputSchema"][
+        "json"
+    ] == {"type": "object", "properties": {}}
+    gem_decl = SkillLoader.to_gemini_tool(empty_bundle).function_declarations[0]
+    assert gem_decl.parameters.type.name == "OBJECT"
+
 
 def test_sanitize_gemini_tool_name():
     assert (

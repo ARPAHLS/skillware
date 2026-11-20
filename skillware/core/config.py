@@ -19,6 +19,11 @@ from skillware.core.mail_config import (
     merge_mail_settings,
     parse_mail_block,
 )
+from skillware.core.pdf_templates import (
+    PdfSettings,
+    merge_pdf_settings,
+    parse_pdf_block,
+)
 
 GLOBAL_CONFIG_DIR_ENV = "SKILLWARE_CONFIG_DIR"
 PROJECT_CONFIG_FILENAME = ".skillware.yaml"
@@ -36,6 +41,7 @@ _KNOWN_TOP_LEVEL_KEYS = _PATH_TOP_LEVEL_KEYS | {
     "chains",
     "evm",
     "web3",
+    "pdf",
 }
 
 
@@ -81,6 +87,7 @@ class SkillwareConfig:
     mail: MailSettings = field(default_factory=MailSettings)
     presentation: PresentationSettings = field(default_factory=PresentationSettings)
     evm: EvmSettings = field(default_factory=EvmSettings)
+    pdf: PdfSettings = field(default_factory=PdfSettings)
     chains: Dict[str, ChainDefinition] = field(default_factory=dict)
     extra: Dict[str, Any] = field(default_factory=dict)
     layers: Tuple[ConfigLayer, ...] = ()
@@ -193,6 +200,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
     presentation = PresentationSettings()
     mail_layers: List[MailSettings] = []
     evm_layers: List[EvmSettings] = []
+    pdf_layers: List[PdfSettings] = []
     extra: Dict[str, Any] = {}
 
     for layer in layers:
@@ -206,6 +214,10 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
             evm_raw = layer.data.get(evm_key)
             if evm_raw is not None:
                 evm_layers.append(parse_evm_block(evm_raw))
+
+        pdf_raw = layer.data.get("pdf")
+        if pdf_raw is not None:
+            pdf_layers.append(parse_pdf_block(pdf_raw))
 
         paths_block = layer.data.get("paths")
         if isinstance(paths_block, dict):
@@ -249,6 +261,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
 
     mail = merge_mail_settings(mail_layers)
     evm = merge_evm_settings(evm_layers)
+    pdf = merge_pdf_settings(pdf_layers)
     chains, chains_legacy = merge_chain_layers([layer.data for layer in layers])
     if chains_legacy:
         extra = {**extra, "chains": chains_legacy}
@@ -258,6 +271,7 @@ def _merge_layers(layers: Sequence[ConfigLayer]) -> SkillwareConfig:
         mail=mail,
         presentation=presentation,
         evm=evm,
+        pdf=pdf,
         chains=chains,
         extra=extra,
         layers=tuple(layers),

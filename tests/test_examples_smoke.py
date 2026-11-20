@@ -304,6 +304,8 @@ LIVE_PROVIDER_SCRIPTS = {
     "gemini_issue_resolver.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
     "gemini_novelty_extractor.py": "Requires GOOGLE_API_KEY for Gemini function calling.",
     "gemini_pdf_form_filler.py": "Requires GOOGLE_API_KEY for Gemini agent loop.",
+    "ollama_pdf_form_filler.py": "Requires local Ollama daemon for offline PDF agent loop.",
+    "openai_pdf_form_filler.py": "Requires OPENAI_API_KEY for OpenAI tool loop.",
     "gemini_token_limiter.py": "Requires GOOGLE_API_KEY for Phase 2 live loop.",
     "gemini_tos_evaluator.py": "Requires GOOGLE_API_KEY for Gemini function calling.",
     "gemini_uk_companies_house_handler.py": "Requires GOOGLE_API_KEY and live Companies House key.",
