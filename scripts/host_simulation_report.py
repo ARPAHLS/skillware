@@ -40,7 +40,7 @@ def main() -> int:
 
     rw = ctx.execute(
         COMPRESSOR,
-        {"raw_text": fw["sanitized_text"], "compression_aggression": "balanced"},
+        {"text": fw["sanitized_text"], "mode": "balanced"},
     )
     print(f"  compressor: {len(rw['compressed_text'])} chars compressed")
 
@@ -76,10 +76,7 @@ def main() -> int:
         if scan.get("is_safe"):
             out = pipe.execute(
                 COMPRESSOR,
-                {
-                    "raw_text": scan["sanitized_text"],
-                    "compression_aggression": "lossless",
-                },
+                {"text": scan["sanitized_text"], "mode": "lossless"},
             )
             print(
                 f"  [{label}] firewall safe -> compressor -> {len(out['compressed_text'])} chars"
@@ -95,14 +92,14 @@ def main() -> int:
                 skill=FIREWALL,
                 step_id="scan",
                 input_from={"source_text": "host.source_text"},
-                map_out={"sanitized_text": "next.raw_text"},
+                map_out={"sanitized_text": "next.text"},
             ),
             ChainStep(
                 skill=COMPRESSOR,
                 when=__import__(
                     "skillware.core.chains_config", fromlist=["StepWhen"]
                 ).StepWhen(prior_step="scan", field="is_safe", equals=True),
-                params={"compression_aggression": "lossless"},
+                params={"mode": "lossless"},
             ),
         ),
     )

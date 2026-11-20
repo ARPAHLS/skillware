@@ -32,8 +32,8 @@ The skill lives in `skills/optimization/prompt_compressor/`. [Skill anatomy](../
 ## Manifest Details
 
 **Parameters Schema:**
-*   `raw_text` (string): The bloated, repetitive prompt or extensive conversation history to compress.
-*   `compression_aggression` (string): The level of compression: 'lossless', 'balanced', or 'aggressive'.
+*   `text` (string): The bloated, repetitive prompt or extensive conversation history to compress.
+*   `mode` (string): The level of compression: 'lossless', 'balanced', or 'aggressive'.
 
 **Outputs Schema:**
 *   `compressed_text` (string): The aggressively shortened prompt retaining semantic constraints.
@@ -62,8 +62,8 @@ from skillware.core.loader import SkillLoader
 bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 compressor = bundle["class"]()
 result = compressor.execute({
-    "raw_text": "Hello, could you please make sure to read this documentation...",
-    "compression_aggression": "high",
+    "text": "Hello, could you please make sure to read this documentation...",
+    "mode": "aggressive",
 })
 print(result["compressed_text"])
 ```
@@ -213,8 +213,8 @@ prompt = (
 )
 print(prompt)
 result = skill.execute({
-    "raw_text": "Hello, could you please make sure to read this documentation...",
-    "compression_aggression": "high",
+    "text": "Hello, could you please make sure to read this documentation...",
+    "mode": "aggressive",
 })
 print(json.dumps(result, indent=2))
 ```

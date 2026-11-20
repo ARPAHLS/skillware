@@ -18,7 +18,7 @@ def test_parse_sanitize_input_chain():
                     "id": "scan",
                     "skill": "security/prompt_injection_firewall",
                     "input_from": {"source_text": "host.source_text"},
-                    "map_out": {"sanitized_text": "next.raw_text"},
+                    "map_out": {"sanitized_text": "next.text"},
                 },
                 {
                     "skill": "optimization/prompt_compressor",

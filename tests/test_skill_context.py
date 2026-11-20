@@ -53,8 +53,8 @@ def test_skill_context_prepare_and_execute():
     out = ctx.execute(
         "optimization/prompt_compressor",
         {
-            "raw_text": "Please summarize this long repetitive prompt about compliance.",
-            "compression_aggression": "lossless",
+            "text": "Please summarize this long repetitive prompt about compliance.",
+            "mode": "lossless",
         },
     )
     assert "compressed_text" in out

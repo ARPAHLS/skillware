@@ -60,14 +60,14 @@ chains:
         input_from:
           source_text: host.source_text
         map_out:
-          sanitized_text: next.raw_text
+          sanitized_text: next.text
       - skill: optimization/prompt_compressor
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: lossless
+          mode: lossless
   preflight_untrusted_html:
     description: HTML-mode scan only.
     steps:
@@ -158,7 +158,7 @@ def test_scenario_open_agent_full_registry():
             ),
             (
                 COMPRESSOR,
-                {"raw_text": SAFE_TEXT, "compression_aggression": "lossless"},
+                {"text": SAFE_TEXT, "mode": "lossless"},
             ),
             (
                 TOKEN_LIMITER,
@@ -204,7 +204,7 @@ def test_scenario_explicit_skill_list_session():
     )
     rw = ctx.execute(
         COMPRESSOR,
-        {"raw_text": fw["sanitized_text"], "compression_aggression": "balanced"},
+        {"text": fw["sanitized_text"], "mode": "balanced"},
     )
     assert "compressed_text" in rw
     assert len(rw["compressed_text"]) <= len(fw["sanitized_text"]) + 50
@@ -223,7 +223,7 @@ def test_scenario_host_branching_skips_compressor_when_unsafe():
     if fw.get("is_safe"):
         ctx.execute(
             COMPRESSOR,
-            {"raw_text": fw["sanitized_text"], "compression_aggression": "lossless"},
+            {"text": fw["sanitized_text"], "mode": "lossless"},
         )
         executed.append(COMPRESSOR)
 
@@ -289,7 +289,7 @@ def test_scenario_progressive_disclosure_brief_to_directive():
 
     out = ctx.execute(
         COMPRESSOR,
-        {"raw_text": SAFE_TEXT * 3, "compression_aggression": "aggressive"},
+        {"text": SAFE_TEXT * 3, "mode": "aggressive"},
     )
     assert "compressed_text" in out
 
@@ -304,7 +304,7 @@ def test_scenario_lazy_skill_expansion_outside_filter():
 
     rw = ctx.execute(
         COMPRESSOR,
-        {"raw_text": SAFE_TEXT, "compression_aggression": "lossless"},
+        {"text": SAFE_TEXT, "mode": "lossless"},
     )
     assert "compressed_text" in rw
 
@@ -417,7 +417,7 @@ def test_scenario_named_chain_scan_then_gate_live(chain_config_repo):
 
 
 def test_scenario_map_out_passes_sanitized_to_compressor(chain_config_repo):
-    """map_out: sanitized_text → next.raw_text binding reaches compressor."""
+    """map_out: sanitized_text → next.text binding reaches compressor."""
     result = run_chain("sanitize_input", host_input={"source_text": SAFE_TEXT})
     assert result.steps[0].status == "ok"
     if result.steps[1].status == "ok":

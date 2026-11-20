@@ -179,7 +179,7 @@ if not fw.get("is_safe"):
 
 rw = ctx.execute(
     "optimization/prompt_compressor",
-    {"raw_text": fw["sanitized_text"], "compression_aggression": "balanced"},
+    {"text": fw["sanitized_text"], "mode": "balanced"},
 )
 ```
 
@@ -195,7 +195,7 @@ opt = ctx.execute(
     },
 )
 # Pass opt["optimized_context"] to the main model; optionally compress further:
-# rw = ctx.execute("optimization/prompt_compressor", {"raw_text": opt["optimized_context"], ...})
+# rw = ctx.execute("optimization/prompt_compressor", {"text": opt["optimized_context"], ...})
 ```
 
 See `examples/context_optimizer_chain_demo.py`.
@@ -247,7 +247,7 @@ from skillware.core.loader import SkillLoader
 
 bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
-result = skill.execute({"raw_text": text, "compression_aggression": "lossless"})
+result = skill.execute({"text": text, "mode": "lossless"})
 ```
 
 Use `SkillContext` when you need **multiple tools**, **registry brief**, or **shared instances** in one session.
@@ -331,14 +331,14 @@ chains:
         input_from:
           source_text: host.source_text
         map_out:
-          sanitized_text: next.raw_text
+          sanitized_text: next.text
       - skill: optimization/prompt_compressor
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: balanced
+          mode: balanced
 ```
 
 ### Bindings

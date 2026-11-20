@@ -57,14 +57,14 @@ chains:
         input_from:
           source_text: host.source_text
         map_out:
-          sanitized_text: next.raw_text
+          sanitized_text: next.text
       - skill: optimization/prompt_compressor
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: lossless
+          mode: lossless
   preflight_untrusted_html:
     description: HTML-mode scan only.
     steps:
@@ -171,8 +171,8 @@ def test_context_execute_without_prepare():
     out = ctx.execute(
         COMPRESSOR,
         {
-            "raw_text": "Repeat repeat repeat compliance summary please.",
-            "compression_aggression": "lossless",
+            "text": "Repeat repeat repeat compliance summary please.",
+            "mode": "lossless",
         },
     )
     assert "compressed_text" in out
@@ -184,7 +184,7 @@ def test_context_prepare_then_execute_same_instance():
     assert "compression" in prep.directive.lower() or prep.directive
     out = ctx.call(
         COMPRESSOR,
-        {"raw_text": "Long prompt text here.", "compression_aggression": "balanced"},
+        {"text": "Long prompt text here.", "mode": "balanced"},
     )
     assert "compressed_text" in out
 
@@ -208,7 +208,7 @@ def test_manual_chain_firewall_then_compressor_safe():
     assert fw.get("is_safe") is True
     rw = ctx.execute(
         COMPRESSOR,
-        {"raw_text": fw["sanitized_text"], "compression_aggression": "lossless"},
+        {"text": fw["sanitized_text"], "mode": "lossless"},
     )
     assert "compressed_text" in rw
 
@@ -375,17 +375,11 @@ def test_loader_single_skill_still_works_alongside_context():
     bundle = SkillLoader.load_skill(COMPRESSOR)
     skill = bundle["class"]()
     direct = skill.execute(
-        {
-            "raw_text": "Test prompt for loader path.",
-            "compression_aggression": "lossless",
-        }
+        {"text": "Test prompt for loader path.", "mode": "lossless"}
     )
     ctx = SkillContext(skill=COMPRESSOR)
     via_ctx = ctx.execute(
         COMPRESSOR,
-        {
-            "raw_text": "Test prompt for loader path.",
-            "compression_aggression": "lossless",
-        },
+        {"text": "Test prompt for loader path.", "mode": "lossless"},
     )
     assert direct["compressed_text"] == via_ctx["compressed_text"]

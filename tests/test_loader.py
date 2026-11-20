@@ -173,7 +173,7 @@ def test_load_skill_accepts_satisfied_version_specifier(tmp_path, monkeypatch):
 def test_load_skill_class_is_instantiable():
     bundle = SkillLoader.load_skill("optimization/prompt_compressor")
     skill = bundle["class"]()
-    result = skill.execute({"raw_text": "hello world"})
+    result = skill.execute({"text": "hello world"})
     assert "error" not in result
 
 
