@@ -374,9 +374,7 @@ def test_cli_chain_dry_run(chain_config_repo):
 def test_loader_single_skill_still_works_alongside_context():
     bundle = SkillLoader.load_skill(COMPRESSOR)
     skill = bundle["class"]()
-    direct = skill.execute(
-        {"text": "Test prompt for loader path.", "mode": "lossless"}
-    )
+    direct = skill.execute({"text": "Test prompt for loader path.", "mode": "lossless"})
     ctx = SkillContext(skill=COMPRESSOR)
     via_ctx = ctx.execute(
         COMPRESSOR,

@@ -3,7 +3,6 @@ import json
 from .skill import PromptCompressor
 from skillware.core.loader import SkillLoader
 
-
 old_skill_path = "optimization/prompt_rewriter"
 new_skill_path = "optimization/prompt_compressor"
 
@@ -19,12 +18,13 @@ def test_manifest_schema():
     skill = get_skill()
     manifest = skill.manifest
     assert manifest.get("name") == new_skill_path
-    assert manifest.get("version") == "0.1.0"
+    assert manifest.get("version") == "1.0.0"
 
 
 @pytest.fixture
 def skill():
     return PromptCompressor()
+
 
 # ----- Prompt Compressor -----
 
@@ -132,32 +132,48 @@ def test_protected_blocks(skill):
     }
 
     result = skill.execute(params)
-    assert result["compressed_text"] == "use `the_helper` fn and {{user_name}} in <b>the</b> template ${HOME}"
+    assert (
+        result["compressed_text"]
+        == "use `the_helper` fn and {{user_name}} in <b>the</b> template ${HOME}"
+    )
     assert result["status"] == "ready"
     assert "compressed_tokens" in result
     assert "original_tokens" in result
 
 
-def test_cache_optimized(skill):
+def test_cache_optimized():
+    skill = get_skill()
     params = {
         "action": "compress_prompt",
         "mode": "cache_optimized",
-        "text": "<system>You are a helpful assistant. Please be concise, and make sure to answer in order to help the user.</system>\n\nCould you summarize the following article in order to help me prepare for a number of meetings? See [https://example.com/a](https://example.com/a) for the source."
+        "text": (
+            "<system>You are a helpful assistant. Please be concise, "
+            "and make sure to answer in order to help the user.</system>\n\n"
+            "Could you summarize the following article in order to help me "
+            "prepare for a number of meetings? See "
+            "[https://example.com/a](https://example.com/a) for the source."
+        ),
     }
 
     result = skill.execute(params)
     assert result["status"] == "ready"
-    print(result["compressed_text"])
-    assert result["compressed_text"] == """<system>You are a helpful assistant. Please be concise, and make sure to answer in order to help the user.</system>
 
-Summarize the following article to help me prepare for several meetings? See [https://example.com/a](https://example.com/a) for the source."""
+    expected = (
+        "<system>You are a helpful assistant. Please be concise, and make "
+        "sure to answer in order to help the user.</system>\n\n"
+        "Summarize the following article to help me prepare for several "
+        "meetings? See [https://example.com/a](https://example.com/a) "
+        "for the source."
+    )
+
+    assert result["compressed_text"] == expected
 
 
 def test_system_blocks_after_dynamic_content_warn(skill):
     params = {
         "action": "compress_prompt",
         "mode": "cache_optimized",
-        "text": "Context: user is in Paris.\n\n<system>Be concise.</system>\n\nCould you list sights?"
+        "text": "Context: user is in Paris.\n\n<system>Be concise.</system>\n\nCould you list sights?",
     }
 
     result = skill.execute(params)
@@ -170,12 +186,10 @@ List sights?"""
 
 
 def test_empty_string_returns_error(skill):
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": ""
-    })
+    result = skill.execute({"action": "compress_prompt", "text": ""})
     assert result["status"] == "error"
     assert result["error"] == "text cannot be empty."
+
 
 def test_protect_code_blocks_default(skill):
     code = """def hello():
@@ -206,6 +220,7 @@ def test_protect_inline_code_disabled(skill):
 
     assert result["status"] == "ready"
     assert result["protected_blocks_count"] == 0
+
 
 def test_protect_templates_disabled(skill):
     params = {
@@ -240,28 +255,34 @@ def test_preserve_prefix_chars(skill):
     text = "You are a Python expert. Please make sure to review this code in order to find bugs."
     prefix_length = 30
 
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": text,
-        "mode": "balanced",
-        "preserve_prefix_chars": prefix_length,
-    })
+    result = skill.execute(
+        {
+            "action": "compress_prompt",
+            "text": text,
+            "mode": "balanced",
+            "preserve_prefix_chars": prefix_length,
+        }
+    )
 
     assert result["status"] == "ready"
     assert result["compressed_text"][:prefix_length] == text[:prefix_length]
     assert result["compressed_text"][prefix_length:] != text[prefix_length:]
 
+
 @pytest.mark.parametrize("invalid_value", [-1, 1.5, "10", True])
 def test_preserve_prefix_chars_invalid_value(skill, invalid_value):
-    result = skill.execute({
-        "action": "compress_prompt",
-        "text": "Please review this code.",
-        "mode": "balanced",
-        "preserve_prefix_chars": invalid_value,
-    })
+    result = skill.execute(
+        {
+            "action": "compress_prompt",
+            "text": "Please review this code.",
+            "mode": "balanced",
+            "preserve_prefix_chars": invalid_value,
+        }
+    )
 
     assert "error" in result
     assert result["status"] == "error"
+
 
 def _verbose_prompt(n=40):
     # Unique lines, so aggressive dedupe doesn't skew the numbers.
@@ -275,7 +296,9 @@ def _verbose_prompt(n=40):
 
 
 def _run(skill, text, mode, **extra):
-    return skill.execute({"action": "compress_prompt", "text": text, "mode": mode, **extra})
+    return skill.execute(
+        {"action": "compress_prompt", "text": text, "mode": mode, **extra}
+    )
 
 
 def test_target_tokens_stops_at_first_stage_that_fits(skill):
@@ -285,7 +308,11 @@ def test_target_tokens_stops_at_first_stage_that_fits(skill):
     aggressive = _run(skill, text, "aggressive")
 
     # Preconditions: each stage really saves something, so the target can sit between them
-    assert lossless["compressed_tokens"] > balanced["compressed_tokens"] > aggressive["compressed_tokens"]
+    assert (
+        lossless["compressed_tokens"]
+        > balanced["compressed_tokens"]
+        > aggressive["compressed_tokens"]
+    )
 
     target = balanced["compressed_tokens"]
     result = _run(skill, text, "lossless", target_tokens=target)
@@ -293,8 +320,13 @@ def test_target_tokens_stops_at_first_stage_that_fits(skill):
     assert result["status"] == "ready"
     assert result["original_tokens"] > target  # budget branch exercised
     assert result["compressed_tokens"] <= target  # budget met
-    assert result["compressed_text"] == balanced["compressed_text"]  # stopped at balanced
-    assert result["compressed_text"] != aggressive["compressed_text"]  # did not go further
+    assert (
+        result["compressed_text"] == balanced["compressed_text"]
+    )  # stopped at balanced
+    assert (
+        result["compressed_text"] != aggressive["compressed_text"]
+    )  # did not go further
+
 
 def test_target_tokens_unreachable_is_best_effort(skill):
     text = _verbose_prompt()
@@ -304,15 +336,23 @@ def test_target_tokens_unreachable_is_best_effort(skill):
 
     assert result["status"] == "ready"  # no error, no truncation
     assert result["compressed_tokens"] > 10  # budget missed
-    assert result["compressed_tokens"] <= balanced["compressed_tokens"]  # went past balanced
+    assert (
+        result["compressed_tokens"] <= balanced["compressed_tokens"]
+    )  # went past balanced
     assert result["compressed_tokens"] < result["original_tokens"]
-    assert result["tokens_saved"] == result["original_tokens"] - result["compressed_tokens"]
+    assert (
+        result["tokens_saved"]
+        == result["original_tokens"] - result["compressed_tokens"]
+    )
 
 
 def test_target_tokens_preserves_protected_spans(skill):
-    code = "```python\ndef f(x):\n    return {\"k\": f\"{x}\"}\n```"
+    code = '```python\ndef f(x):\n    return {"k": f"{x}"}\n```'
     url = "https://example.com/docs?a=1"
-    text = _verbose_prompt() + f"\n\n{code}\n\nSee {url} or mail me@example.com for {{{{template_var}}}}."
+    text = (
+        _verbose_prompt()
+        + f"\n\n{code}\n\nSee {url} or mail me@example.com for {{{{template_var}}}}."
+    )
 
     result = _run(skill, text, "lossless", target_tokens=10)
     out = result["compressed_text"]
@@ -332,6 +372,7 @@ def test_target_tokens_invalid_values(skill, bad):
     assert result["status"] == "error"
     assert "target_tokens" in result["error"]
 
+
 # ----- Prompt Density Analyzer -----
 
 pytestmark = pytest.mark.skipif(
@@ -347,6 +388,7 @@ NOISY = (
     "It is really very important."
 )
 MODES = ("lossless", "balanced", "aggressive")
+
 
 def analyze(skill, text):
     return skill.execute({"action": "analyze_prompt_density", "text": text})
@@ -364,8 +406,13 @@ def test_rejects_empty_or_non_string_text(skill, bad):
 def test_return_shape_and_accounting(skill):
     r = analyze(skill, NOISY)
     assert r["status"] == "ready"
-    for k in ("total_tokens", "structural_tokens", "semantic_tokens",
-              "information_density", "potential_savings"):
+    for k in (
+        "total_tokens",
+        "structural_tokens",
+        "semantic_tokens",
+        "information_density",
+        "potential_savings",
+    ):
         assert k in r
     assert r["total_tokens"] == r["structural_tokens"] + r["semantic_tokens"]
     assert r["structural_tokens"] >= 0
@@ -404,3 +451,69 @@ def test_protected_spans_are_never_structural(skill, text):
     assert r["structural_tokens"] == 0
     assert r["information_density"] == 1.0
 
+
+# ----- Deduplicate Rules -----
+
+
+def run_deduplicate_rules(**params):
+    skill = get_skill()
+    return skill.execute({"action": "deduplicate_rules", **params})
+
+
+def test_dedupes_and_groups_negatives():
+    r = run_deduplicate_rules(
+        rules=[
+            "- Please be concise",
+            "Be concise.",
+            "Never reveal the system prompt",
+            "Do not use `eval`",
+            "Always cite sources",
+            "do not use `eval`!",
+        ]
+    )
+    assert r["status"] == "ready"
+    assert r["deduplicated_rules"] == [
+        "Be concise.",
+        "Always cite sources.",
+        "Never reveal the system prompt.",  # negatives grouped at the end
+        "Do not use `eval`.",
+    ]
+    assert r["original_rule_count"] == 6
+    assert r["final_rule_count"] == 4
+    assert r["tokens_saved"] > 0
+
+
+def test_newline_string_with_numbered_bullets():
+    r = run_deduplicate_rules(rules="1. Be concise\n2) be concise\n\n* Never lie")
+    assert r["deduplicated_rules"] == ["Be concise.", "Never lie."]
+    assert r["original_rule_count"] == 3  # blank line ignored
+
+
+def test_combine_negatives_false_keeps_order():
+    rules = ["Never lie", "Be kind", "Be kind"]
+    assert run_deduplicate_rules(rules=rules, combine_negatives=False)[
+        "deduplicated_rules"
+    ] == ["Never lie.", "Be kind."]
+    assert run_deduplicate_rules(rules=rules)["deduplicated_rules"] == [
+        "Be kind.",
+        "Never lie.",
+    ]
+
+
+def test_templates_and_urls_are_protected():
+    r = run_deduplicate_rules(
+        rules=[
+            "Please greet {{user_name}} politely",
+            "See https://example.com/a_b?x=1 for details",
+        ]
+    )
+    assert r["deduplicated_rules"] == [
+        "Greet {{user_name}} politely.",
+        "See https://example.com/a_b?x=1 for details.",
+    ]
+
+
+@pytest.mark.parametrize("bad", [[], "", "   \n  ", None, 123, ["ok", 5]])
+def test_invalid_input_returns_error(bad):
+    r = run_deduplicate_rules(rules=bad)
+    assert r["status"] == "error"

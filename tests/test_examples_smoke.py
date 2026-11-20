@@ -120,6 +120,9 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
             "[STRUCTURAL TOKENS]:",
             "[SEMANTIC TOKENS]:",
             "[INFORMATION DENSITY]:",
+            "[RULES BEFORE]",
+            "[RULES AFTER]",
+            "[RULE COUNT]:",
         ],
     ),
     (
