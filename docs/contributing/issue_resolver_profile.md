@@ -2,16 +2,17 @@
 
 `ISSUE_RESOLVER.md` is an optional, repository-admin-maintained Markdown file for agents using `dev_tools/issue_resolver`. It provides local conventions, required checks, paths, ripple effects, and caveats without replacing `README.md`, `CONTRIBUTING.md`, or the skill's universal workflow.
 
-## v0.3 contract
+## v0.4 contract
 
-Profile handling is deliberately narrow in v0.3:
+Profile handling remains deterministic and caller-managed in v0.4:
 
 1. The caller checks `.github/ISSUE_RESOLVER.md` first, then the repository root `ISSUE_RESOLVER.md` as a legacy fallback.
 2. The caller fetches the first profile that exists. `execute()` makes no network request and does not verify the source.
 3. The caller invokes `load_repository_profile` with the fetched Markdown and a source label.
-4. The skill returns generic Markdown structure inside a provenance-labelled, context-only envelope.
+4. The skill preserves generic Markdown structure and extracts recognized H2 sections into a typed `structured` block with `parse_status` and `warnings`.
 5. The host forwards that envelope to the agent separately from universal workflow output.
-6. When no profile exists, callers skip the action and all v0.2 workflow outputs remain unchanged.
+6. For the `verify` stage, the caller may pass either `profile_context` or its `structured` block as `repository_profile`; matching guidance is returned under separate repository-profile keys.
+7. When no profile exists, callers skip the action and universal steps, conditionals, stage order, and approval gates remain unchanged.
 
 Input:
 
@@ -29,7 +30,7 @@ Output:
 {
   "status": "ready",
   "action": "load_repository_profile",
-  "workflow_version": "0.2",
+  "workflow_version": "0.3",
   "profile_context": {
     "label": "Repository ISSUE_RESOLVER.md profile",
     "provenance": {
@@ -40,6 +41,19 @@ Output:
       "classification": "repository_context_only",
       "can_override_constitution": false,
       "can_grant_authority": false
+    },
+    "parse_status": "partial",
+    "warnings": [
+      "Missing recommended H2 heading 'about'.",
+      "Missing recommended H2 heading 'conditionals'.",
+      "Missing recommended H2 heading 'paths'.",
+      "Missing recommended H2 heading 'ripple effects'.",
+      "Missing recommended H2 heading 'commit & pr'.",
+      "Missing recommended H2 heading 'out of scope'.",
+      "Missing recommended H2 heading 'caveats'."
+    ],
+    "structured": {
+      "required_checks": "- Run the tests."
     },
     "document": {
       "format": "markdown",
@@ -61,7 +75,7 @@ Output:
 
 ## Supported Markdown structure
 
-The parser recognizes ATX headings from `#` through `######`, with a leading H1 used as the document title. It preserves preamble text, ordered sections, duplicate or unknown headings, lists, tables, nested Markdown, and heading-like text inside fenced code blocks. It does not interpret heading names or map sections to workflow stages.
+The parser recognizes ATX headings from `#` through `######`, with a leading H1 used as the document title. It preserves preamble text, ordered sections, duplicate or unknown headings, lists, tables, nested Markdown, and heading-like text inside fenced code blocks.
 
 Recommended headings are:
 
@@ -74,13 +88,32 @@ Recommended headings are:
 - `Out of scope`
 - `Caveats`
 
-These names are guidance, not a schema. Repositories may add, omit, repeat, or reorder sections.
+Known H2 names are matched case-insensitively after trimming whitespace and map to snake-case structured keys (`required_checks`, `ripple_effects`, `commit_and_pr`, and so on). Content remains a verbatim Markdown string. Unknown and nested headings remain only in `document.sections`.
+
+Repositories may add, omit, repeat, or reorder sections. The first occurrence of a repeated known H2 supplies structured content and a warning records the duplicate; all occurrences remain in the generic document. `parse_status` is `ok` for recognized content without diagnostics, `partial` for recognized content with missing recommended, duplicate or empty known sections, and `empty` when there is no recognized non-empty content.
+
+## Verify checklist augmentation
+
+`stage_checklist` accepts an optional `repository_profile` object. Pass either `profile_context` from `load_repository_profile` or its `structured` object:
+
+```json
+{
+  "action": "stage_checklist",
+  "stage": "verify",
+  "repository_profile": {
+    "required_checks": "- Run the tests.",
+    "conditionals": "- If docs changed, check links."
+  }
+}
+```
+
+Non-empty blocks are returned verbatim under `repository_profile_steps` and `repository_profile_conditionals`, with `profile_applied: true`. Every successful `stage_checklist` payload includes `profile_applied`; it is `false` when no profile block was added, including no-profile calls and stages other than `verify`. This additive status field is the only no-profile stage-payload shape change in workflow schema 0.3. The universal `steps` and `conditionals` arrays, stage order, and gates remain byte-for-byte unchanged from the prior contract. The host decides which repository conditionals match the observed change; the skill does not evaluate repository state it has not received.
 
 ## Authority and trust boundary
 
 A repository profile is context, not authority. It cannot override the Issue Resolver constitution, remove universal gates, authorize implementation or external actions, expand credentials, or supersede the operator's instructions. Hosts should retain the returned provenance and authority labels when supplying profile context to an agent.
 
-v0.3 does not include a prompt-injection firewall. Prompt-like content is preserved rather than filtered, and a model may still be influenced by it. Repository administrators are responsible for ensuring their profile is clean, sound, concise, current, and aligned with this standard. Skillware does not certify a profile's intent or guarantee resulting agent behaviour. Hosts remain responsible for their own context ordering, authorization checks, and token budgets.
+v0.4 does not include a prompt-injection firewall. Prompt-like content is preserved rather than filtered, and a model may still be influenced by it. Repository administrators are responsible for ensuring their profile is clean, sound, concise, current, and aligned with this standard. Skillware does not certify a profile's intent or guarantee resulting agent behaviour. Hosts remain responsible for their own context ordering, authorization checks, and token budgets.
 
 ## Profile versus other repository guidance
 
@@ -151,9 +184,20 @@ Small Python library using a `src/` layout and pytest.
 - Release publication and package-version changes without maintainer approval.
 ```
 
-## Deferred beyond v0.3
+## Structural profile validation
 
-- Smart section-to-stage mapping or checklist merging
+Call `validate_repository_profile` with `profile_markdown` (no source or network access needed). It returns `valid`, `line_count`, `byte_size`, `recognized_headings`, `missing_recommended_headings`, and `syntax_issues`, alongside status/action/workflow version.
+
+`valid` means all eight recommended H2 headings exist with non-empty content and no duplicate H2 headings (including unknown headings). It is not a safety, semantic correctness, or authorization verdict. Headings are normalized case-insensitively with whitespace collapsed; heading lists use documented schema order. Fenced code and nested headings remain generic Markdown. Empty text is accepted for validation and reports all recommended headings missing; non-string or non-UTF-8-encodable inputs return an error.
+
+Size strictly above 8192 UTF-8 bytes adds an advisory `syntax_issues` warning without changing `valid`. This action checks the supported profile structure, not general Markdown syntax, and does not filter prompt content or block profile loading. Missing recommended headings also appear in loader warnings: recognized non-empty content with omissions is `partial`; no recognized non-empty content is `empty`; a complete diagnostic-free profile is `ok`.
+
+`line_count` is `len(profile_markdown.splitlines())`: empty text has zero lines, and a terminal line break does not create an extra line. CRLF is treated as one line boundary.
+
+## Deferred beyond v0.4
+
+- Stage mappings beyond the explicit verify guidance
+- Markdown bullet parsing or automatic conditional evaluation
 - Compression, summarization, filtering, or ranking
 - YAML or other profile formats
 - Loader or provider-adapter changes

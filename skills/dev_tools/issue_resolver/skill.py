@@ -31,6 +31,21 @@ validate_commit_message = _wf.validate_commit_message
 _ATX_HEADING_RE = re.compile(r"^ {0,3}(?P<marks>#{1,6})(?:[ \t]+(?P<text>.*)|[ \t]*)$")
 _FENCE_RE = re.compile(r"^ {0,3}(?P<marker>`{3,}|~{3,})(?P<rest>.*)$")
 _CLOSING_HASHES_RE = re.compile(r"[ \t]+#+[ \t]*$")
+_PROFILE_HEADING_KEYS = {
+    "about": "about",
+    "required checks": "required_checks",
+    "conditionals": "conditionals",
+    "paths": "paths",
+    "ripple effects": "ripple_effects",
+    "commit & pr": "commit_and_pr",
+    "out of scope": "out_of_scope",
+    "caveats": "caveats",
+}
+_PROFILE_MERGE_STAGE = "verify"
+_PROFILE_ADOPTION_DOC_URL = (
+    "https://github.com/ARPAHLS/skillware/blob/main/"
+    "docs/contributing/issue_resolver_profile.md"
+)
 
 
 def _trim_blank_lines(lines: List[str]) -> str:
@@ -124,6 +139,78 @@ def _parse_profile_markdown(markdown: str) -> Dict[str, Any]:
     }
 
 
+def _normalize_profile_heading(heading: str) -> str:
+    """Normalize a profile heading for exact, case-insensitive matching."""
+    return " ".join(heading.strip().casefold().split())
+
+
+def _structure_profile_document(document: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract known H2 sections while preserving the generic document."""
+    structured: Dict[str, str] = {}
+    warnings: List[str] = []
+
+    for section in document["sections"]:
+        if section["level"] != 2:
+            continue
+        normalized = _normalize_profile_heading(section["heading"])
+        key = _PROFILE_HEADING_KEYS.get(normalized)
+        if key is None:
+            continue
+        content = section["content"]
+        if key in structured:
+            warnings.append(
+                f"Duplicate known H2 heading {section['heading']!r}; "
+                "the first occurrence is used in structured output."
+            )
+        else:
+            structured[key] = content
+        if not content.strip():
+            warnings.append(f"Known H2 heading {section['heading']!r} is empty.")
+
+    for heading, key in _PROFILE_HEADING_KEYS.items():
+        if key not in structured:
+            warnings.append(f"Missing recommended H2 heading {heading!r}.")
+
+    if not structured or not any(value.strip() for value in structured.values()):
+        parse_status = "empty"
+    elif warnings:
+        parse_status = "partial"
+    else:
+        parse_status = "ok"
+
+    result: Dict[str, Any] = {
+        "parse_status": parse_status,
+        "warnings": warnings,
+    }
+    if structured:
+        result["structured"] = structured
+    return result
+
+
+def _repository_profile_structured(profile: Any) -> Dict[str, str]:
+    """Accept either a structured mapping or a full profile_context object."""
+    if not isinstance(profile, dict):
+        raise ValueError("repository_profile must be an object when provided.")
+
+    candidate = profile.get("structured", profile)
+    if not isinstance(candidate, dict):
+        raise ValueError(
+            "repository_profile.structured must be an object when provided."
+        )
+
+    structured: Dict[str, str] = {}
+    for key in _PROFILE_HEADING_KEYS.values():
+        if key not in candidate:
+            continue
+        value = candidate[key]
+        if not isinstance(value, str):
+            raise ValueError(
+                f"repository_profile field {key!r} must be a string when provided."
+            )
+        structured[key] = value
+    return structured
+
+
 class IssueResolverSkill(BaseSkill):
     """
     Universal GitHub issue resolution assistant for any repository.
@@ -141,6 +228,7 @@ class IssueResolverSkill(BaseSkill):
         {
             "prepare",
             "load_repository_profile",
+            "validate_repository_profile",
             "workflow_overview",
             "stage_checklist",
             "validate_commit_message",
@@ -214,6 +302,16 @@ class IssueResolverSkill(BaseSkill):
                 "repositories or high-volume usage, set GITHUB_TOKEN."
             )
         )
+        profile_urls = [
+            (
+                f"https://raw.githubusercontent.com/{parsed['owner']}"
+                f"/{parsed['repo']}/HEAD/.github/ISSUE_RESOLVER.md"
+            ),
+            (
+                f"https://raw.githubusercontent.com/{parsed['owner']}"
+                f"/{parsed['repo']}/HEAD/ISSUE_RESOLVER.md"
+            ),
+        ]
 
         return {
             "status": "ready",
@@ -237,16 +335,13 @@ class IssueResolverSkill(BaseSkill):
                     f"https://raw.githubusercontent.com/{parsed['owner']}"
                     f"/{parsed['repo']}/HEAD/CONTRIBUTING.md"
                 ),
-                "profile_urls": [
-                    (
-                        f"https://raw.githubusercontent.com/{parsed['owner']}"
-                        f"/{parsed['repo']}/HEAD/.github/ISSUE_RESOLVER.md"
-                    ),
-                    (
-                        f"https://raw.githubusercontent.com/{parsed['owner']}"
-                        f"/{parsed['repo']}/HEAD/ISSUE_RESOLVER.md"
-                    ),
-                ],
+                "profile_urls": profile_urls,
+                "profile_discovery": {
+                    "canonical_path": ".github/ISSUE_RESOLVER.md",
+                    "fallback_path": "ISSUE_RESOLVER.md",
+                    "profile_urls": list(profile_urls),
+                    "adoption_doc_url": _PROFILE_ADOPTION_DOC_URL,
+                },
                 "tree_api_url": (
                     f"https://api.github.com/repos/{parsed['owner']}/{parsed['repo']}"
                     "/git/trees/HEAD?recursive=1"
@@ -281,23 +376,74 @@ class IssueResolverSkill(BaseSkill):
                 ),
             }
 
+        document = _parse_profile_markdown(profile_markdown)
+        structured_profile = _structure_profile_document(document)
+        profile_context = {
+            "label": "Repository ISSUE_RESOLVER.md profile",
+            "provenance": {
+                "kind": "caller_fetched_repository_profile",
+                "source": profile_source,
+            },
+            "authority": {
+                "classification": "repository_context_only",
+                "can_override_constitution": False,
+                "can_grant_authority": False,
+            },
+            "document": document,
+            **structured_profile,
+        }
+
         return {
             "status": "ready",
             "action": "load_repository_profile",
             "workflow_version": WORKFLOW_VERSION,
-            "profile_context": {
-                "label": "Repository ISSUE_RESOLVER.md profile",
-                "provenance": {
-                    "kind": "caller_fetched_repository_profile",
-                    "source": profile_source,
-                },
-                "authority": {
-                    "classification": "repository_context_only",
-                    "can_override_constitution": False,
-                    "can_grant_authority": False,
-                },
-                "document": _parse_profile_markdown(profile_markdown),
-            },
+            "profile_context": profile_context,
+        }
+
+    def _validate_repository_profile(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        markdown = params.get("profile_markdown")
+        if not isinstance(markdown, str):
+            return {"status": "error", "message": "profile_markdown must be a string."}
+        try:
+            byte_size = len(markdown.encode("utf-8"))
+        except UnicodeEncodeError:
+            return {
+                "status": "error",
+                "message": "profile_markdown must be UTF-8 encodable.",
+            }
+        document = _parse_profile_markdown(markdown)
+        seen = set()
+        recognized = set()
+        issues = []
+        for section in document["sections"]:
+            if section["level"] != 2:
+                continue
+            heading = _normalize_profile_heading(section["heading"])
+            if heading in seen:
+                issues.append(f"Duplicate H2 heading {heading!r}.")
+            seen.add(heading)
+            if heading in _PROFILE_HEADING_KEYS:
+                recognized.add(heading)
+                if not section["content"].strip():
+                    issues.append(f"Recommended H2 heading {heading!r} is empty.")
+        missing = [
+            heading for heading in _PROFILE_HEADING_KEYS if heading not in recognized
+        ]
+        valid = not missing and not issues
+        if byte_size > 8192:
+            issues.append("Profile exceeds the advisory 8192-byte UTF-8 size limit.")
+        return {
+            "status": "ready",
+            "action": "validate_repository_profile",
+            "workflow_version": WORKFLOW_VERSION,
+            "valid": valid,
+            "byte_size": byte_size,
+            "line_count": len(markdown.splitlines()),
+            "recognized_headings": [
+                heading for heading in _PROFILE_HEADING_KEYS if heading in recognized
+            ],
+            "missing_recommended_headings": missing,
+            "syntax_issues": issues,
         }
 
     def _stage_checklist(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -313,6 +459,24 @@ class IssueResolverSkill(BaseSkill):
                 "status": "error",
                 "message": f"Unknown stage {stage!r}. Call workflow_overview for valid names.",
             }
+        payload["profile_applied"] = False
+        repository_profile = params.get("repository_profile")
+        if repository_profile is not None:
+            try:
+                structured = _repository_profile_structured(repository_profile)
+            except ValueError as exc:
+                return {"status": "error", "message": str(exc)}
+
+            if stage == _PROFILE_MERGE_STAGE:
+                required_checks = structured.get("required_checks", "")
+                conditionals = structured.get("conditionals", "")
+                if required_checks.strip():
+                    payload["repository_profile_steps"] = [required_checks]
+                if conditionals.strip():
+                    payload["repository_profile_conditionals"] = [conditionals]
+                payload["profile_applied"] = bool(
+                    required_checks.strip() or conditionals.strip()
+                )
         payload["action"] = "stage_checklist"
         return payload
 
@@ -340,6 +504,8 @@ class IssueResolverSkill(BaseSkill):
             return self._prepare(params)
         if action == "load_repository_profile":
             return self._load_repository_profile(params)
+        if action == "validate_repository_profile":
+            return self._validate_repository_profile(params)
         if action == "workflow_overview":
             overview = get_workflow_overview()
             overview["action"] = "workflow_overview"
