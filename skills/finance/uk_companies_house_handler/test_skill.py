@@ -2908,6 +2908,54 @@ def test_get_company_charges_404_normalization(mock_request, skill):
     assert err_res["status"] == "error"
     assert err_res["error_code"] == "company_not_found"
 
+    # Live API behavior: HTTP 200 with empty items on non-existent company -> company_not_found
+    mock_request.reset_mock()
+    mock_request.side_effect = [
+        _mock_response({"items": [], "total_count": 0}),
+        _mock_http_error(404),
+    ]
+    empty_missing = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "99999999",
+        }
+    )
+    assert empty_missing["status"] == "error"
+    assert empty_missing["error_code"] == "company_not_found"
+    assert mock_request.call_count == 2
+
+    # Live API behavior: HTTP 200 empty items on existing company (uncached context) -> profile check succeeds
+    mock_request.reset_mock()
+    mock_request.side_effect = [
+        _mock_response({"items": [], "total_count": 0}),
+        _mock_response({"company_name": "BP P.L.C.", "company_number": "00102498"}),
+    ]
+    empty_valid = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "00102498",
+        }
+    )
+    assert empty_valid["status"] == "ready"
+    assert empty_valid["charges"] == []
+    assert empty_valid["company_name"] == "BP P.L.C."
+    assert mock_request.call_count == 2
+
+    # Live API behavior: HTTP 200 empty items with cached context -> free (1 HTTP call)
+    mock_request.reset_mock()
+    mock_request.side_effect = [_mock_response({"items": [], "total_count": 0})]
+    empty_cached = skill.execute(
+        {
+            "action": "get_company_charges",
+            "company_number": "00102498",
+            "context": {"company_number": "00102498", "company_name": "BP P.L.C."},
+        }
+    )
+    assert empty_cached["status"] == "ready"
+    assert empty_cached["charges"] == []
+    assert empty_cached["company_name"] == "BP P.L.C."
+    assert mock_request.call_count == 1
+
 
 @patch("skills.finance.uk_companies_house_handler.skill.requests.request")
 def test_get_insolvency_cases_and_404_normalization(mock_request, skill):
@@ -3068,6 +3116,8 @@ def test_search_officers_disambiguation_and_context_isolation(mock_request, skil
     assert multi["reason"] == "multiple_matches"
     assert len(multi["candidates"]) == 2
     assert multi["candidates"][0]["officer_id"] == "off-111"
+    assert multi["officers"] == multi["candidates"]
+    assert multi["total_results"] == 2
     assert "officer_id" not in multi["context"]
     assert mock_request.call_count == 1  # No extra profile fetch
 

@@ -140,7 +140,7 @@
     "charges": {
       "method": "GET",
       "path": "/company/{company_number}/charges",
-      "description": "List registered mortgages and charges for a company (404 when none exist).",
+      "description": "List registered mortgages and charges for a company (may return 404 or 200 with empty items when none exist).",
       "params": {
         "items_per_page": {
           "type": "integer",

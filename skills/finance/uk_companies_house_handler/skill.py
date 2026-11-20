@@ -195,7 +195,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 or inherited_name
             )
 
-            if not company_name and company_number:
+            if not company_name and company_number and result.get("status") != "error":
                 try:
                     profile_data = self._request("GET", f"/company/{company_number}")
                     company_name = profile_data.get("company_name", "")
@@ -890,7 +890,20 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 )
             raise
 
-        charges = [self._format_charge(item) for item in data.get("items", [])]
+        items = data.get("items") or []
+        company_name = context.get("company_name", "")
+        if not items:
+            verified_name = self._verify_company_exists(company_number, context)
+            if verified_name is None:
+                return self._error_response(
+                    "company_not_found",
+                    f"Company {company_number} not found.",
+                    context=context,
+                )
+            if not company_name:
+                company_name = verified_name
+
+        charges = [self._format_charge(item) for item in items]
         if status_filter:
             charges = [
                 c for c in charges if c.get("status", "").lower() == status_filter
@@ -899,7 +912,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
         return self._ready_response(
             {
                 "company_number": company_number,
-                "company_name": context.get("company_name", ""),
+                "company_name": company_name,
                 "charges": charges,
                 "total_count": data.get("total_count", len(charges)),
                 "satisfied_count": data.get("satisfied_count", 0),
@@ -1071,7 +1084,7 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
             )
 
         if len(candidates) > 1:
-            return self._needs_input_response(
+            resp = self._needs_input_response(
                 reason="multiple_matches",
                 candidates=candidates,
                 agent_hint=(
@@ -1082,6 +1095,9 @@ class UkCompaniesHouseHandlerSkill(BaseSkill):
                 ),
                 context=context,
             )
+            resp["officers"] = candidates
+            resp["total_results"] = data.get("total_results", len(candidates))
+            return resp
 
         if len(candidates) == 1:
             return self._ready_response(

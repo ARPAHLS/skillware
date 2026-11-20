@@ -740,6 +740,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/uk_compani
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| TBD | feat(finance/uk_companies_house_handler): upgrade to v2.0.0 with expanded API and v2 agent playbook (#220) (#469) (#494) | 19 Nov 2026 | `2.0.0` | [@Areen-09](https://github.com/Areen-09) |
 | [`05e3f04`](https://github.com/ARPAHLS/skillware/commit/05e3f04874cb8928afeea2844a8ad021667da3a0) | feat(catalog): backfill Manifest v2 taxonomy and establish tag governance policy (#440) | 19 Oct 2026 | `1.4.0` | [@rosspeili](https://github.com/rosspeili) |
 | [`1ba0675`](https://github.com/ARPAHLS/skillware/commit/1ba0675684a525230e7a59a94d667777526f9d0c) | feat(finance/uk_companies_house_handler): Document API flow v2d (#421) (#434) | 15 Oct 2026 | `1.4.0` | [@2409324124](https://github.com/2409324124) |
 | [`769f817`](https://github.com/ARPAHLS/skillware/commit/769f8177195f6160ac93924ac09eda6fd8c8220e) | feat(finance/uk_companies_house_handler): upgrade to v1.3.0 with deterministic matchers, filing helpers, and turn-by-turn orchestration (#220) (#310) (#359) | 17 Sep 2026 | `1.3.0` | [@Areen-09](https://github.com/Areen-09) |
