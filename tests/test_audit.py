@@ -132,7 +132,10 @@ def test_secret_and_pii_redaction(tmp_path: Path) -> None:
             "raw_text": "Use sk-proj-abcdefghijklmnopqrstuvwxyz123456 and Bearer my_secret_jwt_token",
             "compression_aggression": "low",
             "api_key": "super-secret-key",
-            "nested": {"authorization": "Basic abc", "items": [{"token": "ghp_1234567890abcdef1234"}]},
+            "nested": {
+                "authorization": "Basic abc",
+                "items": [{"token": "ghp_1234567890abcdef1234"}],
+            },
         },
     )
     args = events[0]["args"]

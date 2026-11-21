@@ -47,7 +47,9 @@ _SECRET_VALUE_PATTERNS = (
     re.compile(r"AIza[0-9A-Za-z\-_]{20,}"),
     re.compile(r"AKIA[0-9A-Z]{16}"),
     re.compile(r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*"),
-    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"),
+    re.compile(
+        r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"
+    ),
 )
 
 # Approximate USD per 1M tokens: (input_per_1m, output_per_1m).
@@ -191,7 +193,9 @@ class AuditDispatcher:
         self._on_dispatch = on_dispatch
         self._log_path = Path(audit_log_path) if audit_log_path is not None else None
         self._lock = threading.Lock()
-        self._prev_hash = self._load_tail_hash() if self._log_path is not None else GENESIS_HASH
+        self._prev_hash = (
+            self._load_tail_hash() if self._log_path is not None else GENESIS_HASH
+        )
 
     def _load_tail_hash(self) -> str:
         assert self._log_path is not None
@@ -207,7 +211,9 @@ class AuditDispatcher:
                     record = json.loads(line)
                 except json.JSONDecodeError:
                     break
-                if isinstance(record, dict) and isinstance(record.get("event_hash"), str):
+                if isinstance(record, dict) and isinstance(
+                    record.get("event_hash"), str
+                ):
                     last_hash = record["event_hash"]
         return last_hash
 

@@ -124,7 +124,9 @@ def _discover_skill_ids(
     if max_skills is not None and len(ids) > max_skills:
         omitted = ids[max_skills:]
         ids = ids[:max_skills]
-        warnings_list.append(f"max_skills={max_skills} cap omitted: {', '.join(omitted)}")
+        warnings_list.append(
+            f"max_skills={max_skills} cap omitted: {', '.join(omitted)}"
+        )
 
     return ids, warnings_list, tier_by_id
 
@@ -191,10 +193,20 @@ class SkillContext:
             if (on_dispatch is not None or audit_log_path is not None)
             else None
         )
-        self.allowed_shapes = {str(s).strip().lower() for s in allowed_shapes} if allowed_shapes is not None else None
-        self.allowed_tiers = {str(t).strip().lower() for t in allowed_tiers} if allowed_tiers is not None else None
+        self.allowed_shapes = (
+            {str(s).strip().lower() for s in allowed_shapes}
+            if allowed_shapes is not None
+            else None
+        )
+        self.allowed_tiers = (
+            {str(t).strip().lower() for t in allowed_tiers}
+            if allowed_tiers is not None
+            else None
+        )
         self.allowed_targets = (
-            {str(t).strip().lower() for t in allowed_targets} if allowed_targets is not None else None
+            {str(t).strip().lower() for t in allowed_targets}
+            if allowed_targets is not None
+            else None
         )
         self.tags = {str(t).strip().lower() for t in tags} if tags is not None else None
         self.allow_hardware_execution = allow_hardware_execution
@@ -275,7 +287,9 @@ class SkillContext:
         if self.mode == "directives":
             parts: List[str] = []
             for skill_id in self.skill_ids:
-                instructions = str(self._bundles[skill_id].get("instructions") or "").strip()
+                instructions = str(
+                    self._bundles[skill_id].get("instructions") or ""
+                ).strip()
                 if instructions:
                     parts.append(f"## {skill_id}\n{instructions}")
             return ("\n\n".join(parts) + "\n") if parts else ""
@@ -308,18 +322,25 @@ class SkillContext:
             elif provider_key == "bedrock":
                 tools.append(SkillLoader.to_bedrock_tool(bundle))
             else:
-                raise ValueError(f"Unknown provider {provider!r}; choose gemini, claude, openai, deepseek, or bedrock")
+                raise ValueError(
+                    f"Unknown provider {provider!r}; choose gemini, claude, openai, deepseek, or bedrock"
+                )
         return tools
 
     @property
     def ollama_prompt(self) -> str:
-        parts = [SkillLoader.to_ollama_prompt(self._bundles[sid]) for sid in self.skill_ids]
+        parts = [
+            SkillLoader.to_ollama_prompt(self._bundles[sid]) for sid in self.skill_ids
+        ]
         if self.mode == "tools_only":
             return "\n".join(parts)
         return self._system_append() + "\n" + "\n".join(parts)
 
     def prepare(self, skill_id: str) -> PreparedSkill:
-        if skill_id not in self._bundles or self._bundles[skill_id].get("class") is None:
+        if (
+            skill_id not in self._bundles
+            or self._bundles[skill_id].get("class") is None
+        ):
             bundle = SkillLoader.load_skill(
                 skill_id,
                 check_requirements=self._check_requirements,
@@ -334,7 +355,9 @@ class SkillContext:
         target = manifest.get("target") or ["software"]
         if not isinstance(target, list):
             target = [target]
-        has_physical = any(str(t).strip().lower() in ("hardware", "bioware") for t in target)
+        has_physical = any(
+            str(t).strip().lower() in ("hardware", "bioware") for t in target
+        )
         if has_physical and not self.allow_hardware_execution:
             warnings.warn(
                 f"Skill '{skill_id}' has physical execution target {target!r}. "
@@ -486,4 +509,6 @@ class SkillContext:
         audit_meta: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         """Alias for aexecute()."""
-        return await self.aexecute(skill_id, params, timeout=timeout, audit_meta=audit_meta)
+        return await self.aexecute(
+            skill_id, params, timeout=timeout, audit_meta=audit_meta
+        )
