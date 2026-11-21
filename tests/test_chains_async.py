@@ -21,10 +21,10 @@ def _sanitize_chain() -> ChainDefinition:
                 skill="security/prompt_injection_firewall",
                 step_id="scan",
                 input_from={"source_text": "host.source_text"},
-                map_out={"sanitized_text": "next.raw_text"},
+                map_out={"sanitized_text": "next.text"},
             ),
             ChainStep(
-                skill="optimization/prompt_rewriter",
+                skill="optimization/prompt_compressor",
                 when=StepWhen(prior_step="scan", field="is_safe", equals=True),
             ),
         ),
@@ -56,7 +56,7 @@ async def test_arun_chain_dry_run():
 
 
 @pytest.mark.asyncio
-async def test_arun_chain_skips_rewriter_when_unsafe():
+async def test_arun_chain_skips_compressor_when_unsafe():
     with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
         mock_skill = MagicMock()
         mock_skill.validate_params.return_value = True
@@ -81,7 +81,7 @@ async def test_arun_chain_skips_rewriter_when_unsafe():
 
 
 @pytest.mark.asyncio
-async def test_arun_chain_runs_rewriter_when_safe():
+async def test_arun_chain_runs_compressor_when_safe():
     with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
         firewall = MagicMock()
         firewall.validate_params.return_value = True
@@ -91,9 +91,9 @@ async def test_arun_chain_runs_rewriter_when_safe():
                 "sanitized_text": "clean text",
             }
         )
-        rewriter = MagicMock()
-        rewriter.validate_params.return_value = True
-        rewriter.aexecute = AsyncMock(return_value={"compressed_text": "clean"})
+        compressor = MagicMock()
+        compressor.validate_params.return_value = True
+        compressor.aexecute = AsyncMock(return_value={"compressed_text": "clean"})
 
         def _load(skill_id, **kwargs):
             if skill_id.startswith("security/"):
@@ -102,7 +102,7 @@ async def test_arun_chain_runs_rewriter_when_safe():
                     "manifest": {"name": skill_id},
                 }
             return {
-                "class": MagicMock(return_value=rewriter),
+                "class": MagicMock(return_value=compressor),
                 "manifest": {"name": skill_id},
             }
 

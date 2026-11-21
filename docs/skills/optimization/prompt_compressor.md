@@ -1,14 +1,14 @@
-# Prompt Token Rewriter
+# Prompt Compressor
 
 **Domain:** `optimization`
-**Skill ID:** `optimization/prompt_rewriter`
+**Skill ID:** `optimization/prompt_compressor`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.1.0` — 16 Jul 2026
+- **Version**: `1.0.0` — 20 Nov 2026
 - **Tier**: `core`
 - **Shape**: `middleware`
 - **Target**: `software`
-- **Tags**: `prompt_engineering`, `compression`, `refinement`, `llm`
+- **Tags**: `prompt_engineering`, `compression`, `refinement`, `llm`, `token_optimization`, `prompt_caching`, `rule_deduplication`
 <!-- skill-doc-meta:end -->
 <!-- skill-intent:begin -->
 **Solves:** Compress oversized prompts and conversation histories while retaining meaning so host agents spend fewer tokens.
@@ -16,10 +16,12 @@
 **Runtime:** Offline. No API keys.
 <!-- skill-intent:end -->
 
-**Recommended install:** `pip install "skillware[optimization_prompt_rewriter]"`. See [Install extras](../../usage/install_extras.md).
+> **Migration:** This skill was previously `optimization/prompt_rewriter`. The old ID still loads through a deprecated alias in `skillware/core/loader.py`, and the legacy modes `low` / `medium` / `high` still work but emit a `DeprecationWarning`. See [#436](https://github.com/ARPAHLS/skillware/issues/436).
+
+**Recommended install:** `pip install "skillware[optimization_prompt_compressor]"`. See [Install extras](../../usage/install_extras.md).
 [Skill Library](../README.md) · [Optimization](README.md) · [Testing](../../TESTING.md)
 
-A powerful middleware skill that acts as a deterministic compression logic gate for agents. It ingests a massive, bloated prompt or conversation history and "rewrites" it to use fewer tokens while aggressively retaining 100% of the semantic meaning and instructions.
+A middleware skill that acts as a deterministic compression gate for agents. It compresses bloated prompts and conversation histories into fewer tokens, analyzes how much of a prompt is structural versus semantic, and deduplicates overlapping instruction rules. Lossless, balanced, and cache-optimized modes preserve meaning; aggressive mode is lossy and is flagged as such in the result.
 
 This is critical for complex agents facing strict token constraints or high LLM API costs.
 
@@ -27,19 +29,30 @@ Often follows [`security/prompt_injection_firewall`](../security/prompt_injectio
 
 ## Bundle layout
 
-The skill lives in `skills/optimization/prompt_rewriter/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/optimization/prompt_compressor/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Manifest Details
 
+**Actions** (`action`, default `compress_prompt`): `compress_prompt`, `analyze_prompt_density`, `deduplicate_rules`.
+
 **Parameters Schema:**
-*   `raw_text` (string): The bloated, repetitive prompt or extensive conversation history to compress.
-*   `compression_aggression` (string): The level of compression: 'low', 'medium', or 'high'.
+*   `action` (string): Operation to perform. Default `compress_prompt`.
+*   `text` (string): Prompt text to compress or analyze. `raw_text` is accepted as an alias for `compress_prompt`.
+*   `mode` (string): `lossless`, `balanced` (default), `aggressive` (lossy), or `cache_optimized`. `cache_optimized` keeps leading `<system>...</system>` / `[SYSTEM]...[/SYSTEM]` blocks verbatim as a stable cache prefix and compresses the rest like `balanced`; a warning is returned if no system block is found or it is not at the start. Deprecated aliases: `low` → `lossless`, `medium` → `balanced`, `high` → `aggressive`. `compression_aggression` is accepted as an alias for the `mode` parameter.
+*   `target_tokens` (integer, optional): Token budget. Compression escalates through stronger stages until it is met (`lossless` → `balanced` → `aggressive`; `balanced`/`cache_optimized` → `aggressive`), keeping the best result.
+*   `preserve_prefix_chars` (integer, optional): Leading characters to leave untouched. When greater than 0, it takes precedence over `cache_optimized`: `<system>` / `[SYSTEM]` block detection is skipped and no cache-related warnings are emitted. Use `cache_optimized` alone for tagged system blocks, or `preserve_prefix_chars` alone for a fixed-length prefix.
+*   `protect_code_blocks` (boolean, default `true`): Keep fenced code blocks and inline code spans verbatim.
+*   `protect_templates` (boolean, default `true`): Keep `{placeholders}`, `{{...}}`, `${...}`, and XML/HTML-style tags verbatim.
+*   `rules` (array of strings, or newline-delimited string): Rules to deduplicate.
+*   `combine_negatives` (boolean, default `true`): Group "Do not..." / "Never..." rules at the end.
+
+URLs and email addresses are always kept verbatim.
 
 **Outputs Schema:**
-*   `compressed_text` (string): The aggressively shortened prompt retaining semantic constraints.
-*   `original_tokens` (integer): The approximate original length.
-*   `new_tokens` (integer): The approximate new length.
-*   `tokens_saved` (integer): The absolute number of tokens removed.
+*   `compress_prompt`: `status`, `compressed_text`, `original_tokens`, `compressed_tokens`, `tokens_saved`, `reduction_percentage`, `protected_blocks_count`, `agent_hint` (`mode_used`, `target_tokens`, `stages_applied`, `target_met`, `warnings`, `lossy`, `deprecated_mode`).
+*   `analyze_prompt_density`: `status`, `total_tokens`, `structural_tokens`, `semantic_tokens`, `information_density`, `potential_savings` (per mode).
+*   `deduplicate_rules`: `status`, `deduplicated_rules`, `original_rule_count`, `final_rule_count`, `tokens_saved`.
+*   On validation failure: `status: "error"` and `error`.
 
 ## Usage Examples
 
@@ -59,13 +72,13 @@ See [examples/README.md](../../../examples/README.md) for the current runnable-s
 ```python
 from skillware.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
-rewriter = bundle["class"]()
-result = rewriter.execute({
-    "raw_text": "Hello, could you please make sure to read this documentation...",
-    "compression_aggression": "high",
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
+compressor = bundle["class"]()
+result = compressor.execute({
+    "text": "Hello, could you please make sure to read this documentation...",
+    "mode": "aggressive",
 })
-print(result["compressed_text"])
+print(result.get('compressed_text', result))
 ```
 
 ### Gemini
@@ -78,13 +91,13 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
 response = client.models.generate_content(
     model="gemini-3.5-flash",
-    contents="Rewrite this support prompt for a concise, policy-safe assistant.",
+    contents="Compress this prompt before the main model call: 'Hello, could you please make sure to read this documentation...'",
     config=types.GenerateContentConfig(
         tools=[tool],
         system_instruction=bundle["instructions"],
@@ -121,7 +134,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
@@ -130,12 +143,12 @@ response = client.messages.create(
     max_tokens=1024,
     system=bundle["instructions"],
     tools=tools,
-    messages=[{"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."}],
+    messages=[{"role": "user", "content": "Compress this prompt before the main model call: 'Hello, could you please make sure to read this documentation...'"}],
 )
 for block in response.content:
     if block.type == "tool_use":
         result = skill.execute(dict(block.input))
-        print(result["compressed_text"])
+        print(result.get('compressed_text', result))
 ```
 
 ### OpenAI
@@ -148,7 +161,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 tool = SkillLoader.to_openai_tool(bundle)
@@ -156,7 +169,7 @@ response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
         {"role": "system", "content": bundle["instructions"]},
-        {"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."},
+        {"role": "user", "content": "Compress this prompt before the main model call: 'Hello, could you please make sure to read this documentation...'"},
     ],
     tools=[tool],
 )
@@ -164,8 +177,10 @@ message = response.choices[0].message
 if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
-    print(result["compressed_text"])
+    print(result.get('compressed_text', result))
+
 ```
+
 ### DeepSeek
 
 ```python
@@ -176,7 +191,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
@@ -187,7 +202,7 @@ response = client.chat.completions.create(
     model="deepseek-chat",
     messages=[
         {"role": "system", "content": bundle["instructions"]},
-        {"role": "user", "content": "Rewrite this support prompt for a concise, policy-safe assistant."},
+        {"role": "user", "content": "Compress this prompt before the main model call: 'Hello, could you please make sure to read this documentation...'"},
     ],
     tools=[tool],
 )
@@ -195,34 +210,36 @@ message = response.choices[0].message
 if message.tool_calls:
     args = json.loads(message.tool_calls[0].function.arguments)
     result = skill.execute(args)
-    print(result["compressed_text"])
+    print(result.get('compressed_text', result))
 ```
+
 ### Ollama (prompt mode)
 
 ```python
 import json
 from skillware.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 prompt = (
     "You may call tools as JSON blocks.\n"
     f"Tool: {bundle['manifest']['name']}\n"
     f"Instructions:\n{bundle['instructions']}\n"
-    f"User: Rewrite this support prompt for a concise, policy-safe assistant."
+    f"User: Compress this prompt before the main model call: 'Hello, could you please make sure to read this documentation...'"
 )
 print(prompt)
 result = skill.execute({
-    "raw_text": "Hello, could you please make sure to read this documentation...",
-    "compression_aggression": "high",
+    "text": "Hello, could you please make sure to read this documentation...",
+    "mode": "aggressive",
 })
 print(json.dumps(result, indent=2))
 ```
+
 ## Maintenance
 
 To run tests specifically for this skill:
 ```bash
-pytest tests/skills/optimization/test_prompt_rewriter.py
+pytest tests/skills/optimization/test_prompt_compressor.py
 ```
 
 ---
@@ -230,7 +247,7 @@ pytest tests/skills/optimization/test_prompt_rewriter.py
 <!-- skill-history:begin -->
 ## Skill history
 
-Commits that touched this skill bundle or its catalog page ([`optimization/prompt_rewriter`](https://github.com/ARPAHLS/skillware/tree/main/skills/optimization/prompt_rewriter)).
+Commits that touched this skill bundle or its catalog page ([`optimization/prompt_compressor`](https://github.com/ARPAHLS/skillware/tree/main/skills/optimization/prompt_compressor)).
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |

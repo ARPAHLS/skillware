@@ -89,7 +89,7 @@ result = ctx.execute(skill_id, arguments)  # auto-prepares and validates paramet
 
 **Ollama prompt mode:** use `ctx.ollama_prompt` instead of per-skill `to_ollama_prompt()` when wiring multiple skills ([ollama.md](ollama.md)).
 
-**Deterministic middleware** (firewall → rewriter, scan → token gate): use a [manual Python chain](skill_chaining.md#host-decides-the-chain-manual-tier-1) or a [named YAML chain](skill_chaining.md#named-chains--predefined-yaml-pipelines-tier-2) — the model does not pick step order in those tiers.
+**Deterministic middleware** (firewall → compressor, scan → token gate): use a [manual Python chain](skill_chaining.md#host-decides-the-chain-manual-tier-1) or a [named YAML chain](skill_chaining.md#named-chains--predefined-yaml-pipelines-tier-2) — the model does not pick step order in those tiers.
 
 **Hybrid:** run `run_chain("sanitize_input", ...)` on untrusted input, then start the agent loop with sanitized text and a filtered `SkillContext(categories=[...])`.
 
@@ -157,7 +157,7 @@ result = await ctx.aexecute(skill_id, arguments, timeout=30.0)
 | Bedrock Converse | `to_bedrock_tool(bundle)["toolSpec"]["name"]` (same sanitization rules) |
 | Ollama (prompt) | `"tool"` field in the JSON block the model emits (same as `manifest["name"]` when the manifest uses the full registry ID) |
 
-**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, DeepSeek, and Bedrock Converse (`office_pdf_form_filler`, `optimization_prompt_rewriter`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
+**Registry manifest names:** Every bundled skill uses `manifest["name"]` = `category/skill_name` (for example `office/pdf_form_filler`, `defi/evm_tx_handler`). Match tool calls with sanitized adapter names on Gemini, Claude, OpenAI, DeepSeek, and Bedrock Converse (`office_pdf_form_filler`, `optimization_prompt_compressor`), or compare against `SkillLoader.to_*_tool(bundle)` output rather than hardcoding. Do not hardcode legacy short names in examples. `SkillLoader.load_skill()` warns when `name` diverges from the folder path for registry-layout skills; use `bundle.get("registry_id")` for the path-derived ID when present.
 
 ## Minimal execute (no LLM)
 
@@ -212,7 +212,7 @@ the address book.
 | `security/deepfake_guard` | `deepfake_guard_demo.py`, `kyc_authenticity_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/bg_remover` | `bg_remover_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `creative/deck_builder` | `deck_builder_demo.py`, `deck_builder_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
-| `optimization/prompt_rewriter` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
+| `optimization/prompt_compressor` | `prompt_compression_demo.py`, `sanitize_input_chain_demo.py` (local execute) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | `ollama_skills_test.py` (multi-skill) |
 | `optimization/context_optimizer` | `context_optimizer_demo.py`, `context_optimizer_chain_demo.py` (local execute; fastembed) | `context_optimizer_gemini_loop.py` | `context_optimizer_claude_loop.py` | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/synthetic_generator` | `build_dataset_demo.py` (local execute, Gemini backend) | (catalog page) | (catalog page) | (catalog page) | (catalog page) | (catalog page) |
 | `data_engineering/novelty_extractor` | `novelty_extractor_demo.py` (local execute) | `gemini_novelty_extractor.py` | (catalog page) | (catalog page) | (catalog page) | `ollama_novelty_extractor.py` |

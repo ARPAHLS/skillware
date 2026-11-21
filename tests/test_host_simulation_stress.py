@@ -27,7 +27,7 @@ from skillware.core.config import (
 from skillware.core.loader import SkillLoader
 
 FIREWALL = "security/prompt_injection_firewall"
-REWRITER = "optimization/prompt_rewriter"
+COMPRESSOR = "optimization/prompt_compressor"
 TOKEN_LIMITER = "monitoring/token_limiter"
 KPI_GATE = "monitoring/kpi_gate"
 
@@ -60,14 +60,14 @@ chains:
         input_from:
           source_text: host.source_text
         map_out:
-          sanitized_text: next.raw_text
-      - skill: optimization/prompt_rewriter
+          sanitized_text: next.text
+      - skill: optimization/prompt_compressor
         when:
           prior_step: scan
           field: is_safe
           equals: true
         params:
-          compression_aggression: low
+          mode: lossless
   preflight_untrusted_html:
     description: HTML-mode scan only.
     steps:
@@ -157,8 +157,8 @@ def test_scenario_open_agent_full_registry():
                 },
             ),
             (
-                REWRITER,
-                {"raw_text": SAFE_TEXT, "compression_aggression": "low"},
+                COMPRESSOR,
+                {"text": SAFE_TEXT, "mode": "lossless"},
             ),
             (
                 TOKEN_LIMITER,
@@ -195,24 +195,24 @@ def test_scenario_security_category_agent():
 
 def test_scenario_explicit_skill_list_session():
     """Host preselects exactly two skills for a compression pipeline."""
-    ctx = SkillContext(skills=[FIREWALL, REWRITER], mode="brief")
-    assert set(ctx.skill_ids) == {FIREWALL, REWRITER}
+    ctx = SkillContext(skills=[FIREWALL, COMPRESSOR], mode="brief")
+    assert set(ctx.skill_ids) == {FIREWALL, COMPRESSOR}
 
     fw = ctx.execute(
         FIREWALL,
         {"source_text": SAFE_TEXT, "input_mode": "auto", "sensitivity": "balanced"},
     )
     rw = ctx.execute(
-        REWRITER,
-        {"raw_text": fw["sanitized_text"], "compression_aggression": "medium"},
+        COMPRESSOR,
+        {"text": fw["sanitized_text"], "mode": "balanced"},
     )
     assert "compressed_text" in rw
     assert len(rw["compressed_text"]) <= len(fw["sanitized_text"]) + 50
 
 
-def test_scenario_host_branching_skips_rewriter_when_unsafe():
-    """Host owns branching — rewriter never runs on unsafe firewall output."""
-    ctx = SkillContext(skills=[FIREWALL, REWRITER])
+def test_scenario_host_branching_skips_compressor_when_unsafe():
+    """Host owns branching — compressor never runs on unsafe firewall output."""
+    ctx = SkillContext(skills=[FIREWALL, COMPRESSOR])
     fw = ctx.execute(
         FIREWALL,
         {"source_text": UNSAFE_TEXT, "input_mode": "plain", "sensitivity": "balanced"},
@@ -222,12 +222,12 @@ def test_scenario_host_branching_skips_rewriter_when_unsafe():
     executed: List[str] = [FIREWALL]
     if fw.get("is_safe"):
         ctx.execute(
-            REWRITER,
-            {"raw_text": fw["sanitized_text"], "compression_aggression": "low"},
+            COMPRESSOR,
+            {"text": fw["sanitized_text"], "mode": "lossless"},
         )
-        executed.append(REWRITER)
+        executed.append(COMPRESSOR)
 
-    assert REWRITER not in executed
+    assert COMPRESSOR not in executed
 
 
 def test_scenario_host_picks_named_chain_by_content_type(chain_config_repo):
@@ -283,13 +283,13 @@ def test_scenario_progressive_disclosure_brief_to_directive():
     assert "Skill registry (brief)" in brief_system
     assert "# Cognition Instructions" not in brief_system
 
-    prep = ctx.prepare(REWRITER)
+    prep = ctx.prepare(COMPRESSOR)
     assert prep.directive
     assert "compression" in prep.directive.lower() or "prompt" in prep.directive.lower()
 
     out = ctx.execute(
-        REWRITER,
-        {"raw_text": SAFE_TEXT * 3, "compression_aggression": "high"},
+        COMPRESSOR,
+        {"text": SAFE_TEXT * 3, "mode": "aggressive"},
     )
     assert "compressed_text" in out
 
@@ -299,12 +299,12 @@ def test_scenario_lazy_skill_expansion_outside_filter():
     ctx = SkillContext(skill=FIREWALL)
     assert ctx.skill_ids == [FIREWALL]
 
-    ctx.prepare(REWRITER)
-    assert REWRITER in ctx.skill_ids
+    ctx.prepare(COMPRESSOR)
+    assert COMPRESSOR in ctx.skill_ids
 
     rw = ctx.execute(
-        REWRITER,
-        {"raw_text": SAFE_TEXT, "compression_aggression": "low"},
+        COMPRESSOR,
+        {"text": SAFE_TEXT, "mode": "lossless"},
     )
     assert "compressed_text" in rw
 
@@ -312,7 +312,7 @@ def test_scenario_lazy_skill_expansion_outside_filter():
 @pytest.mark.parametrize("mode", ["brief", "tools_only", "directives"])
 def test_scenario_context_modes(mode: str):
     """All three SkillContext modes assemble consistently."""
-    ctx = SkillContext(skills=[FIREWALL, REWRITER], mode=mode)
+    ctx = SkillContext(skills=[FIREWALL, COMPRESSOR], mode=mode)
     host = "Operator policy block."
     merged = ctx.merge_system(host)
 
@@ -322,7 +322,7 @@ def test_scenario_context_modes(mode: str):
     if mode == "tools_only":
         assert merged == host
     elif mode == "directives":
-        prep = ctx.prepare(REWRITER)
+        prep = ctx.prepare(COMPRESSOR)
         assert prep.directive.strip()[:30] in merged
     else:
         assert "Skill registry (brief)" in merged
@@ -331,7 +331,7 @@ def test_scenario_context_modes(mode: str):
 
 def test_scenario_ollama_host_prompt_block():
     """Ollama prompt-mode host gets brief + JSON tool blocks."""
-    ctx = SkillContext(skills=[FIREWALL, REWRITER])
+    ctx = SkillContext(skills=[FIREWALL, COMPRESSOR])
     prompt = ctx.ollama_prompt
     assert prompt
     assert "tool" in prompt.lower() or FIREWALL in prompt
@@ -376,7 +376,7 @@ def test_scenario_project_roots_filter():
 
 def test_scenario_provider_tool_parity_sample():
     """Context tools must match SkillLoader adapters for a skill sample."""
-    sample = [REWRITER, FIREWALL, TOKEN_LIMITER]
+    sample = [COMPRESSOR, FIREWALL, TOKEN_LIMITER]
     ctx = SkillContext(skills=sample)
     for sid in sample:
         bundle = SkillLoader.load_skill(sid, execute_module=False)
@@ -416,8 +416,8 @@ def test_scenario_named_chain_scan_then_gate_live(chain_config_repo):
     assert result.steps[1].skill_id == TOKEN_LIMITER
 
 
-def test_scenario_map_out_passes_sanitized_to_rewriter(chain_config_repo):
-    """map_out: sanitized_text → next.raw_text binding reaches rewriter."""
+def test_scenario_map_out_passes_sanitized_to_compressor(chain_config_repo):
+    """map_out: sanitized_text → next.text binding reaches compressor."""
     result = run_chain("sanitize_input", host_input={"source_text": SAFE_TEXT})
     assert result.steps[0].status == "ok"
     if result.steps[1].status == "ok":
@@ -481,7 +481,7 @@ def test_scenario_cli_subprocess_entrypoint(chain_config_repo):
             "context",
             "show",
             "--skill",
-            REWRITER,
+            COMPRESSOR,
             "--mode",
             "brief",
         ],
@@ -492,7 +492,7 @@ def test_scenario_cli_subprocess_entrypoint(chain_config_repo):
         check=False,
     )
     assert proc.returncode == 0, proc.stderr or proc.stdout
-    assert "prompt_rewriter" in proc.stdout.lower() or REWRITER in proc.stdout
+    assert "prompt_compressor" in proc.stdout.lower() or COMPRESSOR in proc.stdout
 
     proc2 = subprocess.run(
         [sys.executable, "-m", "skillware.cli", "chain", "list"],

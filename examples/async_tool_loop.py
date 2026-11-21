@@ -29,7 +29,7 @@ from skillware.core.chains_config import (  # noqa: E402
 
 FIREWALL = "security/prompt_injection_firewall"
 TOKEN_LIMITER = "monitoring/token_limiter"
-REWRITER = "optimization/prompt_rewriter"
+COMPRESSOR = "optimization/prompt_compressor"
 
 
 def sanitize_chain() -> ChainDefinition:
@@ -42,12 +42,12 @@ def sanitize_chain() -> ChainDefinition:
                 step_id="scan",
                 params={"sensitivity": "balanced", "input_mode": "auto"},
                 input_from={"source_text": "host.source_text"},
-                map_out={"sanitized_text": "next.raw_text"},
+                map_out={"sanitized_text": "next.text"},
             ),
             ChainStep(
-                skill=REWRITER,
+                skill=COMPRESSOR,
                 when=StepWhen(prior_step="scan", field="is_safe", equals=True),
-                params={"compression_aggression": "low"},
+                params={"mode": "lossless"},
             ),
         ),
     )

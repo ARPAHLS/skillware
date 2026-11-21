@@ -7,7 +7,7 @@ You are using **`optimization/context_optimizer`** — query-aware **extractive*
 Use this skill when:
 
 - A host agent holds a **large document** (policy PDF text, repo dump, web extract, email thread) but only needs **sections relevant to a goal**.
-- You want to **reduce tokens and cost** before the main LLM call without rewriting meaning (`prompt_rewriter` compresses prose; this skill **selects** spans).
+- You want to **reduce tokens and cost** before the main LLM call without rewriting meaning (`prompt_compressor` compresses prose; this skill **selects** spans).
 - You already have plain text — pair upstream with `data_engineering/semantic_web_proxy` for HTML → Markdown first.
 
 **Do not use when:**
@@ -47,7 +47,7 @@ Use this skill when:
 ## Recommended chains
 
 1. **Untrusted web → model:** `semantic_web_proxy` → `prompt_injection_firewall` → **`context_optimizer`** → main LLM.
-2. **After selection, compress prose:** `context_optimizer` → `prompt_rewriter` (only if further token savings needed).
+2. **After selection, compress prose:** `context_optimizer` → `prompt_compressor` (only if further token savings needed).
 
 See `examples/context_optimizer_chain_demo.py` and [Skill chaining](../../../docs/usage/skill_chaining.md).
 

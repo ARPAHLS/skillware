@@ -1,0 +1,131 @@
+name: "optimization/prompt_compressor"
+version: "1.0.0"
+tier: core
+shape: middleware
+target:
+  - software
+tags:
+  - prompt_engineering
+  - compression
+  - refinement
+  - llm
+  - token_optimization
+  - prompt_caching
+  - rule_deduplication
+description: "A middleware skill that compresses bloated prompts into fewer tokens, analyzes prompt token density, and deduplicates instruction rules. Supports lossless, balanced, aggressive (lossy), and cache-optimized compression modes, with protection for code blocks and template placeholders, prefix preservation, and progressive compression toward a target token budget."
+short_description: "Compresses prompts, analyzes token density, and deduplicates rules."
+issuer:
+  name: Ross Peili
+  email: vpeilivanidis@gmail.com
+  github: rosspeili
+  org: ARPAHLS
+category: "optimization"
+parameters:
+  type: object
+  properties:
+    action:
+      type: "string"
+      description: "Operation to perform: 'compress_prompt' compresses the text, 'analyze_prompt_density' reports token density and estimated savings per mode, 'deduplicate_rules' normalizes and deduplicates a list of rules."
+      enum: [ "compress_prompt", "analyze_prompt_density", "deduplicate_rules" ]
+      default: "compress_prompt"
+    text:
+      type: "string"
+      description: "The prompt text or conversation history to compress or analyze. Required for 'compress_prompt' and 'analyze_prompt_density'. 'raw_text' is accepted as an alias for compress_prompt."
+    mode:
+      type: "string"
+      description: "Compression level. 'lossless' only normalizes whitespace. 'balanced' also removes filler and rewrites verbose phrases. 'aggressive' is lossy and additionally strips decorative punctuation, intensifiers, articles, and duplicate lines. 'cache_optimized' behaves like 'balanced' but preserves a leading system prompt (<system>...</system> or [SYSTEM]...[/SYSTEM]) as a stable cache prefix. Deprecated aliases: 'low' -> lossless, 'medium' -> balanced, 'high' -> aggressive. 'compression_aggression' is accepted as an alias parameter name."
+      enum: [ "lossless", "balanced", "aggressive", "cache_optimized" ]
+      default: "balanced"
+    target_tokens:
+      type: "integer"
+      minimum: 1
+      description: "Optional token budget. When set and lower than the original token count, compression is applied progressively (escalating through stronger stages) and stops as soon as the target is met. The best result achieved is returned and agent_hint.target_met reports whether the target was reached."
+    preserve_prefix_chars:
+      type: "integer"
+      minimum: 0
+      default: 0
+      description: "Number of leading characters to leave untouched (e.g. a fixed system prompt for prompt caching). The remainder of the text is compressed."
+    protect_code_blocks:
+      type: "boolean"
+      default: true
+      description: "Preserve code blocks, inline code, and similar protected spans verbatim during compression."
+    protect_templates:
+      type: "boolean"
+      default: true
+      description: "Preserve template placeholders (e.g. {variable}) verbatim during compression."
+    rules:
+      type: "array"
+      items:
+        type: "string"
+      description: "Rules to deduplicate (used by 'deduplicate_rules'). A newline-delimited string is also accepted."
+    combine_negatives:
+      type: "boolean"
+      default: true
+      description: "For 'deduplicate_rules': group negative rules (e.g. 'Do not...', 'Never...') together at the end of the output list."
+  required: [ ]
+returns:
+  type: object
+  properties:
+    status:
+      type: "string"
+      description: "'ready' on success, 'error' on validation failure."
+    compressed_text:
+      type: "string"
+      description: "The compressed prompt (compress_prompt)."
+    original_tokens:
+      type: "integer"
+      description: "Estimated token count before compression (compress_prompt)."
+    compressed_tokens:
+      type: "integer"
+      description: "Estimated token count after compression (compress_prompt)."
+    tokens_saved:
+      type: "integer"
+      description: "Tokens saved (compress_prompt, deduplicate_rules)."
+    reduction_percentage:
+      type: "number"
+      description: "Percentage of tokens removed (compress_prompt)."
+    protected_blocks_count:
+      type: "integer"
+      description: "Number of spans protected from modification (compress_prompt)."
+    agent_hint:
+      type: "object"
+      description: "Compression metadata: mode_used, target_tokens, stages_applied, target_met, warnings, lossy, deprecated_mode."
+    total_tokens:
+      type: "integer"
+      description: "Total estimated tokens (analyze_prompt_density)."
+    structural_tokens:
+      type: "integer"
+      description: "Tokens attributed to whitespace, rules, decorative punctuation, and filler (analyze_prompt_density)."
+    semantic_tokens:
+      type: "integer"
+      description: "Tokens carrying meaning (analyze_prompt_density)."
+    information_density:
+      type: "number"
+      description: "Ratio of semantic to total tokens (analyze_prompt_density)."
+    potential_savings:
+      type: "object"
+      description: "Estimated tokens saved and reduction percentage per mode: lossless, balanced, aggressive (analyze_prompt_density)."
+    deduplicated_rules:
+      type: "array"
+      items:
+        type: "string"
+      description: "Normalized, deduplicated rules (deduplicate_rules)."
+    original_rule_count:
+      type: "integer"
+      description: "Number of non-empty input rules (deduplicate_rules)."
+    final_rule_count:
+      type: "integer"
+      description: "Number of rules after deduplication (deduplicate_rules)."
+    error:
+      type: "string"
+      description: "Error description when validation fails."
+requirements:
+  []
+constitution: |
+  1. SEMANTIC INTEGRITY: Never remove keywords that change the core intent or instructions of the prompt. Lossless, balanced, and cache_optimized modes preserve meaning; 'aggressive' mode is lossy and is flagged as such in agent_hint.lossy.
+  2. PROTECTED CONTENT: Code blocks, template placeholders, URLs, and explicitly preserved prefixes are restored verbatim and never altered by compression.
+  3. PRIVACY: Do not store or transmit the prompt content to external logging services beyond the execution result.
+  4. DETERMINISM: Use consistent compression rules to ensure stable behavior across agent loops.
+presentation:
+  icon: "minimize"
+  color: "#9b59b6"

@@ -22,10 +22,10 @@ def _sanitize_chain() -> ChainDefinition:
                 skill="security/prompt_injection_firewall",
                 step_id="scan",
                 input_from={"source_text": "host.source_text"},
-                map_out={"sanitized_text": "next.raw_text"},
+                map_out={"sanitized_text": "next.text"},
             ),
             ChainStep(
-                skill="optimization/prompt_rewriter",
+                skill="optimization/prompt_compressor",
                 when=StepWhen(prior_step="scan", field="is_safe", equals=True),
             ),
         ),
@@ -55,7 +55,7 @@ def test_run_chain_dry_run():
     assert result.steps[0].output["source_text"] == "hello"
 
 
-def test_run_chain_skips_rewriter_when_unsafe():
+def test_run_chain_skips_compressor_when_unsafe():
     with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
         mock_skill = MagicMock()
         mock_skill.validate_params.return_value = True
@@ -77,7 +77,7 @@ def test_run_chain_skips_rewriter_when_unsafe():
     assert result.steps[1].status == "skipped"
 
 
-def test_run_chain_runs_rewriter_when_safe():
+def test_run_chain_runs_compressor_when_safe():
     with patch("skillware.chains.SkillLoader.load_skill") as load_skill:
         firewall = MagicMock()
         firewall.validate_params.return_value = True
@@ -85,9 +85,9 @@ def test_run_chain_runs_rewriter_when_safe():
             "is_safe": True,
             "sanitized_text": "clean text",
         }
-        rewriter = MagicMock()
-        rewriter.validate_params.return_value = True
-        rewriter.execute.return_value = {"compressed_text": "clean"}
+        compressor = MagicMock()
+        compressor.validate_params.return_value = True
+        compressor.execute.return_value = {"compressed_text": "clean"}
 
         def _load(skill_id, **kwargs):
             if skill_id.startswith("security/"):
@@ -96,7 +96,7 @@ def test_run_chain_runs_rewriter_when_safe():
                     "manifest": {"name": skill_id},
                 }
             return {
-                "class": MagicMock(return_value=rewriter),
+                "class": MagicMock(return_value=compressor),
                 "manifest": {"name": skill_id},
             }
 
@@ -116,7 +116,7 @@ def test_validate_chain_bad_prior_step():
         name="bad",
         steps=(
             ChainStep(
-                skill="optimization/prompt_rewriter",
+                skill="optimization/prompt_compressor",
                 when=StepWhen(prior_step="missing", field="x", equals=True),
             ),
         ),

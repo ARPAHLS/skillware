@@ -70,14 +70,14 @@ legacy:
 #         input_from:
 #           source_text: host.source_text
 #         map_out:
-#           sanitized_text: next.raw_text
-#       - skill: optimization/prompt_rewriter
+#           sanitized_text: next.text
+#       - skill: optimization/prompt_compressor
 #         when:
 #           prior_step: scan
 #           field: is_safe
 #           equals: true
 #         params:
-#           compression_aggression: medium
+#           mode: balanced
 #   preflight_untrusted_html:
 #     description: HTML-mode injection scan before parsing or summarization.
 #     when: Raw HTML or rich markup from the web enters the agent.
