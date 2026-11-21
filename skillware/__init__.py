@@ -3,6 +3,7 @@
 
 """Skillware — installable agent skills framework."""
 
+from skillware.audit import verify_audit_log
 from skillware.context import SkillContext
 from skillware.core.matcher import (
     SkillMatcher,
@@ -14,6 +15,7 @@ from skillware.core.manifest_schema import SkillwareHardwareSafetyWarning
 
 __all__ = [
     "SkillContext",
+    "verify_audit_log",
     "SkillMatcher",
     "SkillMatchResult",
     "SkillwareHardwareSafetyWarning",

@@ -8,8 +8,11 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union
+import time
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 import warnings
+
+from skillware.audit import AuditDispatcher
 
 from skillware.core.discovery import (
     SkillRoot,
@@ -99,8 +102,7 @@ def _discover_skill_ids(
 
     for conflict in find_shadow_conflicts(roots_list):
         warnings_list.append(
-            f"Shadowed {conflict.skill_id!r} in {conflict.shadowed.path} "
-            f"(winner: {conflict.winner.path})"
+            f"Shadowed {conflict.skill_id!r} in {conflict.shadowed.path} (winner: {conflict.winner.path})"
         )
 
     for root in roots_list:
@@ -178,12 +180,19 @@ class SkillContext:
         check_requirements: bool = True,
         secret_provider: Optional[SecretProvider | Mapping[str, str]] = None,
         max_concurrency: Optional[int] = None,
+        on_dispatch: Optional[Callable[[Dict[str, Any]], None]] = None,
+        audit_log_path: Optional[Union[str, Path]] = None,
     ) -> None:
         self.mode = mode if mode in {"brief", "tools_only", "directives"} else "brief"
         self._check_requirements = check_requirements
         self._secret_provider = coerce_secret_provider(secret_provider)
         self._max_concurrency = max_concurrency
         self._semaphore: Optional[asyncio.Semaphore] = None
+        self._audit: Optional[AuditDispatcher] = (
+            AuditDispatcher(on_dispatch=on_dispatch, audit_log_path=audit_log_path)
+            if (on_dispatch is not None or audit_log_path is not None)
+            else None
+        )
         self.allowed_shapes = (
             {str(s).strip().lower() for s in allowed_shapes}
             if allowed_shapes is not None
@@ -314,8 +323,7 @@ class SkillContext:
                 tools.append(SkillLoader.to_bedrock_tool(bundle))
             else:
                 raise ValueError(
-                    f"Unknown provider {provider!r}; "
-                    "choose gemini, claude, openai, deepseek, or bedrock"
+                    f"Unknown provider {provider!r}; choose gemini, claude, openai, deepseek, or bedrock"
                 )
         return tools
 
@@ -388,14 +396,54 @@ class SkillContext:
             return self._semaphore
         return None
 
-    def execute(self, skill_id: str, params: Mapping[str, Any]) -> Any:
-        prep = self.prepare(skill_id)
-        instance = self._get_instance(prep)
-        instance.validate_params(dict(params))
-        return instance.execute(dict(params))
+    def execute(
+        self,
+        skill_id: str,
+        params: Mapping[str, Any],
+        *,
+        audit_meta: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        if self._audit is None:
+            prep = self.prepare(skill_id)
+            instance = self._get_instance(prep)
+            instance.validate_params(dict(params))
+            return instance.execute(dict(params))
 
-    def call(self, skill_id: str, params: Mapping[str, Any]) -> Any:
-        return self.execute(skill_id, params)
+        t0 = time.perf_counter()
+        try:
+            prep = self.prepare(skill_id)
+            instance = self._get_instance(prep)
+            instance.validate_params(dict(params))
+            result = instance.execute(dict(params))
+        except BaseException as exc:
+            self._audit.emit(
+                skill_id=skill_id,
+                params=params,
+                status="error",
+                duration_ms=(time.perf_counter() - t0) * 1000.0,
+                context_mode=self.mode,
+                error=exc,
+                audit_meta=audit_meta,
+            )
+            raise
+        self._audit.emit(
+            skill_id=prep.skill_id,
+            params=params,
+            status="ok",
+            duration_ms=(time.perf_counter() - t0) * 1000.0,
+            context_mode=self.mode,
+            audit_meta=audit_meta,
+        )
+        return result
+
+    def call(
+        self,
+        skill_id: str,
+        params: Mapping[str, Any],
+        *,
+        audit_meta: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        return self.execute(skill_id, params, audit_meta=audit_meta)
 
     async def aexecute(
         self,
@@ -403,27 +451,54 @@ class SkillContext:
         params: Mapping[str, Any],
         *,
         timeout: Optional[float] = None,
+        audit_meta: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         """
         Execute a registered skill asynchronously without blocking the event loop.
         """
-        prep = self.prepare(skill_id)
-        instance = self._get_instance(prep)
-        instance.validate_params(dict(params))
+        t0 = time.perf_counter() if self._audit is not None else 0.0
+        try:
+            prep = self.prepare(skill_id)
+            instance = self._get_instance(prep)
+            instance.validate_params(dict(params))
 
-        async def _run() -> Any:
-            return await instance.aexecute(dict(params))
+            async def _run() -> Any:
+                return await instance.aexecute(dict(params))
 
-        sem = self._get_semaphore()
-        if sem is not None:
-            async with sem:
+            sem = self._get_semaphore()
+            if sem is not None:
+                async with sem:
+                    if timeout is not None and timeout > 0:
+                        result = await asyncio.wait_for(_run(), timeout=timeout)
+                    else:
+                        result = await _run()
+            else:
                 if timeout is not None and timeout > 0:
-                    return await asyncio.wait_for(_run(), timeout=timeout)
-                return await _run()
-        else:
-            if timeout is not None and timeout > 0:
-                return await asyncio.wait_for(_run(), timeout=timeout)
-            return await _run()
+                    result = await asyncio.wait_for(_run(), timeout=timeout)
+                else:
+                    result = await _run()
+        except BaseException as exc:
+            if self._audit is not None:
+                self._audit.emit(
+                    skill_id=skill_id,
+                    params=params,
+                    status="error",
+                    duration_ms=(time.perf_counter() - t0) * 1000.0,
+                    context_mode=self.mode,
+                    error=exc,
+                    audit_meta=audit_meta,
+                )
+            raise
+        if self._audit is not None:
+            self._audit.emit(
+                skill_id=prep.skill_id,
+                params=params,
+                status="ok",
+                duration_ms=(time.perf_counter() - t0) * 1000.0,
+                context_mode=self.mode,
+                audit_meta=audit_meta,
+            )
+        return result
 
     async def acall(
         self,
@@ -431,6 +506,9 @@ class SkillContext:
         params: Mapping[str, Any],
         *,
         timeout: Optional[float] = None,
+        audit_meta: Optional[Mapping[str, Any]] = None,
     ) -> Any:
         """Alias for aexecute()."""
-        return await self.aexecute(skill_id, params, timeout=timeout)
+        return await self.aexecute(
+            skill_id, params, timeout=timeout, audit_meta=audit_meta
+        )
