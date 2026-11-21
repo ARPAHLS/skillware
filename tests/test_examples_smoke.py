@@ -22,6 +22,13 @@ EXAMPLES_DIR = REPO_ROOT / "examples"
 # Tuple format: (script_filename, [expected_output_substrings])
 LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     (
+        "skill_context_audit.py",
+        [
+            "Captured events: 1",
+            "Hash chain valid: True",
+        ],
+    ),
+    (
         "deepfake_guard_demo.py",
         [
             "security/deepfake_guard",
