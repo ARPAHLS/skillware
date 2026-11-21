@@ -32,6 +32,7 @@ with unchanged `SkillLoader.load_skill("<category>/<skill_name>")` IDs.
 - [Agent loops](usage/agent_loops.md)
 - [Skill chaining](usage/skill_chaining.md)
 - [CLI reference](usage/cli.md)
+- [Dispatch audit trail & telemetry](usage/audit_trail.md)
 - [Install extras](usage/install_extras.md)
 - [API keys](usage/api_keys.md)
 - [EVM operator config](usage/evm_operator_config.md)
