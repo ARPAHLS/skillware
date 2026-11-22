@@ -56,6 +56,18 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "rpc_health_chain_demo.py",
+        [
+            "monitoring/rpc_health_probe -> defi/evm_reader",
+            "all_healthy=True",
+            "USD Coin (USDC)",
+            "all_healthy=False",
+            "reasons=['chain_mismatch']",
+            "defi/evm_reader skipped",
+            "Pre-flight chain demo complete.",
+        ],
+    ),
+    (
         "token_security_scanner_demo.py",
         [
             "defi/token_security_scanner demo",
