@@ -7,17 +7,17 @@ from skillware.core.loader import SkillLoader
 
 
 def test_skill_context_single_skill():
-    ctx = SkillContext(skill="optimization/prompt_rewriter")
-    assert ctx.skill_ids == ["optimization/prompt_rewriter"]
+    ctx = SkillContext(skill="optimization/prompt_compressor")
+    assert ctx.skill_ids == ["optimization/prompt_compressor"]
     system = ctx.merge_system("Host prompt")
     assert "Host prompt" in system
-    assert "prompt_rewriter" in system.lower() or "optimization" in system
+    assert "prompt_compressor" in system.lower() or "optimization" in system
 
 
 def test_skill_context_tools_openai_matches_loader():
-    ctx = SkillContext(skill="optimization/prompt_rewriter", mode="brief")
+    ctx = SkillContext(skill="optimization/prompt_compressor", mode="brief")
     bundle = SkillLoader.load_skill(
-        "optimization/prompt_rewriter",
+        "optimization/prompt_compressor",
         execute_module=False,
     )
     expected = SkillLoader.to_openai_tool(bundle)
@@ -27,9 +27,9 @@ def test_skill_context_tools_openai_matches_loader():
 
 
 def test_skill_context_tools_bedrock_matches_loader():
-    ctx = SkillContext(skill="optimization/prompt_rewriter", mode="brief")
+    ctx = SkillContext(skill="optimization/prompt_compressor", mode="brief")
     bundle = SkillLoader.load_skill(
-        "optimization/prompt_rewriter",
+        "optimization/prompt_compressor",
         execute_module=False,
     )
     expected = SkillLoader.to_bedrock_tool(bundle)
@@ -39,7 +39,7 @@ def test_skill_context_tools_bedrock_matches_loader():
 
 
 def test_skill_context_tools_unknown_provider():
-    ctx = SkillContext(skill="optimization/prompt_rewriter")
+    ctx = SkillContext(skill="optimization/prompt_compressor")
     with pytest.raises(
         ValueError, match="choose gemini, claude, openai, deepseek, or bedrock"
     ):
@@ -47,23 +47,23 @@ def test_skill_context_tools_unknown_provider():
 
 
 def test_skill_context_prepare_and_execute():
-    ctx = SkillContext(skill="optimization/prompt_rewriter")
-    prep = ctx.prepare("optimization/prompt_rewriter")
+    ctx = SkillContext(skill="optimization/prompt_compressor")
+    prep = ctx.prepare("optimization/prompt_compressor")
     assert prep.directive
     out = ctx.execute(
-        "optimization/prompt_rewriter",
+        "optimization/prompt_compressor",
         {
             "raw_text": "Please summarize this long repetitive prompt about compliance.",
-            "compression_aggression": "low",
+            "compression_aggression": "lossless",
         },
     )
     assert "compressed_text" in out
 
 
 def test_skill_context_directives_mode_includes_instructions():
-    ctx = SkillContext(skill="optimization/prompt_rewriter", mode="directives")
+    ctx = SkillContext(skill="optimization/prompt_compressor", mode="directives")
     merged = ctx.merge_system("")
-    prep = ctx.prepare("optimization/prompt_rewriter")
+    prep = ctx.prepare("optimization/prompt_compressor")
     assert prep.directive.strip()[:40] in merged
 
 
@@ -75,16 +75,16 @@ def test_skill_context_filter_allowed_shapes():
     )
     assert ctx_atomic.skill_ids == ["creative/bg_remover"]
 
-    # Only middleware skills: should include prompt_rewriter, exclude wallet_screening
+    # Only middleware skills: should include prompt_compressor, exclude wallet_screening
     ctx_middleware = SkillContext(
-        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        skills=["optimization/prompt_compressor", "finance/wallet_screening"],
         allowed_shapes=["middleware"],
     )
-    assert ctx_middleware.skill_ids == ["optimization/prompt_rewriter"]
+    assert ctx_middleware.skill_ids == ["optimization/prompt_compressor"]
 
-    # Only workflow skills: should include wallet_screening, exclude prompt_rewriter
+    # Only workflow skills: should include wallet_screening, exclude prompt_compressor
     ctx_workflow = SkillContext(
-        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        skills=["optimization/prompt_compressor", "finance/wallet_screening"],
         allowed_shapes=["workflow"],
     )
     assert ctx_workflow.skill_ids == ["finance/wallet_screening"]
@@ -93,14 +93,14 @@ def test_skill_context_filter_allowed_shapes():
 def test_skill_context_filter_tags():
     # Tag 'aml' should match finance/wallet_screening
     ctx_aml = SkillContext(
-        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        skills=["optimization/prompt_compressor", "finance/wallet_screening"],
         tags=["aml"],
     )
     assert ctx_aml.skill_ids == ["finance/wallet_screening"]
 
     # Unknown tag matches nothing
     ctx_none = SkillContext(
-        skills=["optimization/prompt_rewriter", "finance/wallet_screening"],
+        skills=["optimization/prompt_compressor", "finance/wallet_screening"],
         tags=["nonexistent_xyz_tag"],
     )
     assert ctx_none.skill_ids == []
@@ -108,15 +108,15 @@ def test_skill_context_filter_tags():
 
 def test_skill_context_filter_allowed_targets():
     ctx = SkillContext(
-        skills=["optimization/prompt_rewriter"],
+        skills=["optimization/prompt_compressor"],
         allowed_targets=["software"],
     )
-    assert ctx.skill_ids == ["optimization/prompt_rewriter"]
+    assert ctx.skill_ids == ["optimization/prompt_compressor"]
 
 
 def test_skill_context_brief_taxonomy_badge():
-    ctx = SkillContext(skill="optimization/prompt_rewriter")
-    line = ctx.brief("optimization/prompt_rewriter")
+    ctx = SkillContext(skill="optimization/prompt_compressor")
+    line = ctx.brief("optimization/prompt_compressor")
     assert "[core:middleware:software]" in line
 
 

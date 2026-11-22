@@ -132,6 +132,9 @@ def _parse_install_extras_skill_table(
         extra_name = _parse_backtick_list(row[0])[0]
         registry_id = _parse_backtick_list(row[1])[0]
         packages = _parse_packages_cell(row[2])
+        print(
+            f"extra_name: {extra_name}, registry_id: {registry_id}, packages: {packages}"
+        )
         result[extra_name] = (registry_id, packages)
     return result
 

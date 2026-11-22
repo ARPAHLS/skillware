@@ -4,7 +4,7 @@ from typing import Any, Dict
 from skillware.core.base_skill import BaseSkill
 
 
-class PromptRewriter(BaseSkill):
+class PromptCompressor(BaseSkill):
     """
     A skill that heuristically compresses a prompt by removing unnecessary whitespace,
     low-value words, and optionally trimming grammar.
@@ -31,7 +31,7 @@ class PromptRewriter(BaseSkill):
         compressed = re.sub(r"\s+", " ", raw_text).strip()
 
         # Level 2: Remove Filler Words (Medium Aggression)
-        if aggression in ["medium", "high"]:
+        if aggression in ["balanced", "aggressive"]:
             fillers = [
                 "please",
                 "could you",
@@ -49,7 +49,7 @@ class PromptRewriter(BaseSkill):
             compressed = re.sub(r"\s+", " ", compressed).strip()
 
         # Level 3: Intense Vowel/Punctuation Dropping (High Aggression)
-        if aggression == "high":
+        if aggression == "aggressive":
             # Remove non-essential punctuation
             compressed = re.sub(r"[^\w\s\.\-]", "", compressed)
             # Remove common extremely high frequency stop words naively

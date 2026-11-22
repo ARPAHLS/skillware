@@ -225,6 +225,8 @@ class SkillLoader:
         Set ``execute_module=False`` for inspect-only loads (manifest, instructions,
         card, and optional requirement pre-flight) without executing ``skill.py``.
         """
+        if skill_path == "optimization/prompt_rewriter":
+            skill_path = "optimization/prompt_compressor"
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
 

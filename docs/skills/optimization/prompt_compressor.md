@@ -1,7 +1,7 @@
-# Prompt Token Rewriter
+# Prompt Compressor
 
 **Domain:** `optimization`
-**Skill ID:** `optimization/prompt_rewriter`
+**Skill ID:** `optimization/prompt_compressor`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
 - **Version**: `0.1.0` — 16 Jul 2026
@@ -16,7 +16,7 @@
 **Runtime:** Offline. No API keys.
 <!-- skill-intent:end -->
 
-**Recommended install:** `pip install "skillware[optimization_prompt_rewriter]"`. See [Install extras](../../usage/install_extras.md).
+**Recommended install:** `pip install "skillware[optimization_prompt_compressor]"`. See [Install extras](../../usage/install_extras.md).
 [Skill Library](../README.md) · [Optimization](README.md) · [Testing](../../TESTING.md)
 
 A powerful middleware skill that acts as a deterministic compression logic gate for agents. It ingests a massive, bloated prompt or conversation history and "rewrites" it to use fewer tokens while aggressively retaining 100% of the semantic meaning and instructions.
@@ -27,13 +27,13 @@ Often follows [`security/prompt_injection_firewall`](../security/prompt_injectio
 
 ## Bundle layout
 
-The skill lives in `skills/optimization/prompt_rewriter/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
+The skill lives in `skills/optimization/prompt_compressor/`. [Skill anatomy](../../introduction.md#skill-anatomy). Vocabulary: [glossary](../../glossary.md). **Contract** — see Manifest Details below. **Directive** — `instructions.md`. **Effect** — `skill.py`. **Assurance** — `test_skill.py`.
 
 ## Manifest Details
 
 **Parameters Schema:**
 *   `raw_text` (string): The bloated, repetitive prompt or extensive conversation history to compress.
-*   `compression_aggression` (string): The level of compression: 'low', 'medium', or 'high'.
+*   `compression_aggression` (string): The level of compression: 'lossless', 'balanced', or 'aggressive'.
 
 **Outputs Schema:**
 *   `compressed_text` (string): The aggressively shortened prompt retaining semantic constraints.
@@ -59,9 +59,9 @@ See [examples/README.md](../../../examples/README.md) for the current runnable-s
 ```python
 from skillware.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
-rewriter = bundle["class"]()
-result = rewriter.execute({
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
+compressor = bundle["class"]()
+result = compressor.execute({
     "raw_text": "Hello, could you please make sure to read this documentation...",
     "compression_aggression": "high",
 })
@@ -78,7 +78,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = genai.Client()
 tool = SkillLoader.to_gemini_tool(bundle)
@@ -121,7 +121,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 tools = [SkillLoader.to_claude_tool(bundle)]
@@ -148,7 +148,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 tool = SkillLoader.to_openai_tool(bundle)
@@ -176,7 +176,7 @@ from skillware.core.env import load_env_file
 from skillware.core.loader import SkillLoader
 
 load_env_file()
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 client = OpenAI(
     api_key=os.environ.get("DEEPSEEK_API_KEY"),
@@ -203,7 +203,7 @@ if message.tool_calls:
 import json
 from skillware.core.loader import SkillLoader
 
-bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+bundle = SkillLoader.load_skill("optimization/prompt_compressor")
 skill = bundle["class"]()
 prompt = (
     "You may call tools as JSON blocks.\n"
@@ -222,7 +222,7 @@ print(json.dumps(result, indent=2))
 
 To run tests specifically for this skill:
 ```bash
-pytest tests/skills/optimization/test_prompt_rewriter.py
+pytest tests/skills/optimization/test_prompt_compressor.py
 ```
 
 ---
@@ -230,7 +230,7 @@ pytest tests/skills/optimization/test_prompt_rewriter.py
 <!-- skill-history:begin -->
 ## Skill history
 
-Commits that touched this skill bundle or its catalog page ([`optimization/prompt_rewriter`](https://github.com/ARPAHLS/skillware/tree/main/skills/optimization/prompt_rewriter)).
+Commits that touched this skill bundle or its catalog page ([`optimization/prompt_compressor`](https://github.com/ARPAHLS/skillware/tree/main/skills/optimization/prompt_compressor)).
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |

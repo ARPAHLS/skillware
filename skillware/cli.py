@@ -386,7 +386,7 @@ _CLI_USAGE_EXAMPLES: Tuple[str, ...] = (
     "skillware list --category compliance",
     "skillware list --shape middleware",
     "skillware list --examples --category dev_tools",
-    "skillware info optimization/prompt_rewriter",
+    "skillware info optimization/prompt_compressor",
     'skillware find "send email with attachments"',
     'skillware find "verify deepfake" --inspect',
     "skillware examples compliance/tos_evaluator",

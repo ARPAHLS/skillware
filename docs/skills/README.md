@@ -56,9 +56,9 @@ Middleware skills that operate on text or state to increase performance, securit
 
 **Category hub:** [Optimization agent skills](optimization/README.md).
 
-| Skill | ID | Shape | Version | Issuer | Description |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **[Prompt Token Rewriter](optimization/prompt_rewriter.md)** | `optimization/prompt_rewriter` | `middleware` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Aggressively compresses massive prompts or context histories while retaining semantic meaning to save tokens. |
+| Skill                                                             | ID                               | Shape | Version | Issuer | Description |
+|:------------------------------------------------------------------|:---------------------------------| :--- | :--- | :--- | :--- |
+| **[Prompt Compressor](optimization/prompt_compressor.md)**        | `optimization/prompt_compressor` | `middleware` | `0.1.0` (16 Jul 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Aggressively compresses massive prompts or context histories while retaining semantic meaning to save tokens. |
 | **[Context Window Optimizer](optimization/context_optimizer.md)** | `optimization/context_optimizer` | `middleware` | `0.1.0` (16 Sep 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Query-aware extractive selection — local embeddings score document chunks against agent_goal and return only relevant spans. |
 
 ## Data Engineering

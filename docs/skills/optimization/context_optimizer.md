@@ -22,7 +22,7 @@
 
 Query-aware **extractive** context selection for large documents. The skill chunks `document_text`, scores each span against `agent_goal` with local `fastembed` embeddings, and returns only the highest-relevance source text up to `max_tokens_return` — a mini-RAG cycle **without paraphrase**.
 
-Use this **before** the main LLM when a document is far larger than the task needs. Pair with [`optimization/prompt_rewriter`](prompt_rewriter.md) **after** selection when the chosen spans still need compression. Do **not** confuse with the rewriter: the optimizer **selects** verbatim spans; the rewriter **compresses** text.
+Use this **before** the main LLM when a document is far larger than the task needs. Pair with [`optimization/prompt_compressor`](prompt_compressor.md) **after** selection when the chosen spans still need compression. Do **not** confuse with the compressor: the optimizer **selects** verbatim spans; the compressor **compresses** text.
 
 For untrusted documents, chain [`security/prompt_injection_firewall`](../security/prompt_injection_firewall.md) first — see [Skill chaining](../../usage/skill_chaining.md).
 

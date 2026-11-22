@@ -1,19 +1,24 @@
 from skillware.core.loader import SkillLoader
 
+old_skill_path = "optimization/prompt_rewriter"
+new_skill_path = "optimization/prompt_compressor"
+
 
 def get_skill():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
-    return bundle["module"].PromptRewriter()
+    old_bundle = SkillLoader.load_skill(old_skill_path)
+    new_bundle = SkillLoader.load_skill(new_skill_path)
+    assert old_bundle["manifest"]["name"] == new_bundle["manifest"]["name"]
+    return new_bundle["module"].PromptCompressor()
 
 
 def test_manifest_schema():
     skill = get_skill()
     manifest = skill.manifest
-    assert manifest.get("name") == "optimization/prompt_rewriter"
+    assert manifest.get("name") == new_skill_path
     assert manifest.get("version") == "0.1.0"
 
 
-def test_rewriter_execution_low():
+def test_compressor_execution_lossless():
     skill = get_skill()
     params = {
         "raw_text": "This   is a    very\n\n\nspaced out  prompt.",
@@ -24,11 +29,11 @@ def test_rewriter_execution_low():
     assert result["original_tokens"] >= result["new_tokens"]
 
 
-def test_rewriter_execution_high():
+def test_compressor_execution_aggressive():
     skill = get_skill()
     params = {
         "raw_text": "Please make sure to read this and analyze the data.",
-        "compression_aggression": "high",
+        "compression_aggression": "aggressive",
     }
     result = skill.execute(params)
     assert "Please" not in result["compressed_text"]

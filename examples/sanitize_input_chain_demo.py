@@ -1,5 +1,5 @@
 """
-Local execute demo for the sanitize_input chain pattern (firewall -> rewriter).
+Local execute demo for the sanitize_input chain pattern (firewall -> compressor).
 
 Uses an inline ChainDefinition so no .skillware.yaml is required. For project
 chains, see .skillware.yaml.example and `skillware chain run sanitize_input`.
@@ -9,7 +9,7 @@ from skillware.chains import run_chain, validate_chain
 from skillware.core.chains_config import ChainDefinition, ChainStep, StepWhen
 
 FIREWALL = "security/prompt_injection_firewall"
-REWRITER = "optimization/prompt_rewriter"
+COMPRESSOR = "optimization/prompt_compressor"
 
 SAFE_TEXT = "Summarize the Q3 board deck highlights for executives."
 UNSAFE_TEXT = (
@@ -30,9 +30,9 @@ def sanitize_input_chain() -> ChainDefinition:
                 map_out={"sanitized_text": "next.raw_text"},
             ),
             ChainStep(
-                skill=REWRITER,
+                skill=COMPRESSOR,
                 when=StepWhen(prior_step="scan", field="is_safe", equals=True),
-                params={"compression_aggression": "low"},
+                params={"compression_aggression": "lossless"},
             ),
         ),
     )
