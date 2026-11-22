@@ -1,8 +1,15 @@
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import warnings
 from skillware.core.base_skill import BaseSkill
+
+# deduplicate_rules helpers
+_BULLET_RE = re.compile(r"^\s*(?:[-*•]+|\d+[.)])\s+")
+_NEGATIVE_RE = re.compile(
+    r"^(?:do not|don't|never|must not|mustn't|should not|shouldn't|cannot|can't|avoid)\b",
+    re.IGNORECASE,
+)
 
 # Sentinels (private-use unicode, so they never collide with normal text)
 # General protected spans use \ue000..\ue001, system-prompt blocks use \ue002..\ue003.
@@ -39,18 +46,30 @@ _OTHER_PROTECT_PATTERNS = [
 # Level 2: phrases deleted outright (longest first, word-bounded)
 _DELETE_PHRASES = sorted(
     [
-        "please", "kindly", "could you", "would you", "can you", "will you",
-        "I want you to", "I need you to", "I would like you to", "I'd like you to",
-        "I was wondering if you could", "make sure to",
-        "be sure to", "feel free to", "it is important to",
-        "note that", "keep in mind that",
+        "please",
+        "kindly",
+        "could you",
+        "would you",
+        "can you",
+        "will you",
+        "I want you to",
+        "I need you to",
+        "I would like you to",
+        "I'd like you to",
+        "I was wondering if you could",
+        "make sure to",
+        "be sure to",
+        "feel free to",
+        "it is important to",
+        "note that",
+        "keep in mind that",
     ],
     key=len,
     reverse=True,
 )
 _DELETE_RE = re.compile(
     r"(?<![\w'])(?:" + "|".join(re.escape(p) for p in _DELETE_PHRASES) + r")(?![\w'])"
-                                                                         r"[,]?[ \t]*(?P<nxt>[a-z])?",
+    r"[,]?[ \t]*(?P<nxt>[a-z])?",
     re.IGNORECASE,
 )
 
@@ -101,8 +120,33 @@ _HRULE_RE = re.compile(r"^[ \t]*([-=_*])\1{2,}[ \t]*$", re.MULTILINE)
 
 
 class PromptCompressor(BaseSkill):
+    """
+    Compress prompts, analyze token density, and deduplicate rules.
 
-    VALID_ACTIONS = {"compress_prompt", "analyze_prompt_density"}
+    Parameters:
+        action (str): Operation to perform: compress_prompt, analyze_prompt_density,
+            or deduplicate_rules.
+        text (str): Prompt text to compress or analyze. Also accepts raw_text.
+        mode (str): Compression level: lossless, balanced, aggressive, or cache_optimized.
+        target_tokens (int, optional): Target token budget for progressive compression.
+        preserve_prefix_chars (int, optional): Number of leading characters to preserve.
+        protect_code_blocks (bool): Whether to preserve code blocks.
+        protect_templates (bool): Whether to preserve template placeholders.
+        rules (list[str], optional): Rules to deduplicate.
+        combine_negatives (bool): Whether to group negative rules together.
+
+    Returns:
+        dict: A result containing:
+            - status: "ready" or "error".
+            - compressed_text: Compressed prompt (compress_prompt).
+            - token statistics: Original tokens, compressed tokens, and savings.
+            - agent_hint: Compression metadata, warnings, and target status.
+            - potential_savings: Estimated savings by mode (analyze_prompt_density).
+            - deduplicated_rules: Processed rules (deduplicate_rules).
+            - error: Error description when validation fails.
+    """
+
+    VALID_ACTIONS = {"compress_prompt", "analyze_prompt_density", "deduplicate_rules"}
 
     VALID_MODES = {
         "lossless": "lossless",
@@ -115,7 +159,7 @@ class PromptCompressor(BaseSkill):
         "high": "aggressive",
     }
 
-    DEPRECATED_MODES = ['low', 'medium', 'high']
+    DEPRECATED_MODES = ["low", "medium", "high"]
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -145,7 +189,9 @@ class PromptCompressor(BaseSkill):
 
     # protection
     @staticmethod
-    def _protect(text: str, pattern: re.Pattern, store: List[str], o: str, c: str) -> str:
+    def _protect(
+        text: str, pattern: re.Pattern, store: List[str], o: str, c: str
+    ) -> str:
         def repl(m: re.Match) -> str:
             store.append(m.group(0))
             return f"{o}{len(store) - 1}{c}"
@@ -245,43 +291,53 @@ class PromptCompressor(BaseSkill):
             return self._analyze_density(params)
         if action == "compress_prompt":
             return self._compress(params)
-        return {"status": "error",
-                "error": f"action must be one of {sorted(self.VALID_ACTIONS)}, got '{action}'."}
+        if action == "deduplicate_rules":
+            return self._deduplicate_rules(params)
+        return {
+            "status": "error",
+            "error": f"action must be one of {sorted(self.VALID_ACTIONS)}, got '{action}'.",
+        }
 
     # compress
     def _compress(self, params: Dict[str, Any]) -> Any:
         text = params.get("text", params.get("raw_text", ""))
-        mode = params.get("mode", params.get("compression_aggression", "balanced")).lower()
+        requested_mode = params.get(
+            "mode", params.get("compression_aggression", "balanced")
+        ).lower()
 
         if not isinstance(text, str) or not text.strip():
             return {"status": "error", "error": "text cannot be empty."}
 
-        if mode in self.DEPRECATED_MODES:
+        if requested_mode in self.DEPRECATED_MODES:
             warnings.warn(
-                f"'{mode}' is deprecated; use '{self.VALID_MODES[mode]}'.",
+                f"'{requested_mode}' is deprecated; use '{self.VALID_MODES[requested_mode]}'.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
-        if mode not in self.VALID_MODES:
+        if requested_mode not in self.VALID_MODES:
             return {
                 "status": "error",
-                "error": f"mode must be one of {self.VALID_MODES.keys()}, got '{mode}'."}
+                "error": f"mode must be one of {self.VALID_MODES.keys()}, got '{requested_mode}'.",
+            }
 
-        mode = self.VALID_MODES[mode].lower()
+        mode = self.VALID_MODES[requested_mode].lower()
 
         preserve_prefix_chars = params.get("preserve_prefix_chars", 0)
 
-        if (not isinstance(preserve_prefix_chars, int)
-                or isinstance(preserve_prefix_chars, bool)
-                or preserve_prefix_chars < 0
+        if (
+            not isinstance(preserve_prefix_chars, int)
+            or isinstance(preserve_prefix_chars, bool)
+            or preserve_prefix_chars < 0
         ):
             return {
                 "status": "error",
-                "error": "preserve_prefix_chars must be a non-negative integer."
+                "error": "preserve_prefix_chars must be a non-negative integer.",
             }
 
-        cache_optimized = self.VALID_MODES['cache_optimized'] == mode and preserve_prefix_chars == 0
+        cache_optimized = (
+            self.VALID_MODES["cache_optimized"] == mode and preserve_prefix_chars == 0
+        )
         prefix_preservation = preserve_prefix_chars > 0
 
         original_tokens = self._estimate_tokens(text)
@@ -301,6 +357,7 @@ class PromptCompressor(BaseSkill):
 
         # 1. Protect inline system blocks
         if cache_optimized:
+
             def _protect_sys(m: re.Match) -> str:
                 nonlocal sys_blocks
                 sys_blocks += 1
@@ -336,10 +393,10 @@ class PromptCompressor(BaseSkill):
                 leading_prefix = lead.group(0)
 
                 # Remove the system prefix from the text being compressed
-                text_to_compress = text[lead.end():]
+                text_to_compress = text[lead.end() :]
 
-                if (lead.end() < len(text)
-                        and sys_blocks > len(_SENT_RE.findall(lead.group(0)))
+                if lead.end() < len(text) and sys_blocks > len(
+                    _SENT_RE.findall(lead.group(0))
                 ):
                     warns.append(
                         "Some system blocks appear after dynamic content; only the leading "
@@ -354,8 +411,8 @@ class PromptCompressor(BaseSkill):
 
             else:
                 warns.append(
-                    "cache_optimized=True but no system prompt found. Pass `system_prompt` "
-                    "or wrap it in <system>...</system> or [SYSTEM]...[/SYSTEM]."
+                    "cache_optimized=True but no system prompt found."
+                    "Wrap it in <system>...</system> or [SYSTEM]...[/SYSTEM]."
                 )
 
         # 4. Compress only the remaining text
@@ -363,13 +420,14 @@ class PromptCompressor(BaseSkill):
         target_tokens = params.get("target_tokens")
 
         if target_tokens is not None:
-            if (not isinstance(target_tokens, int)
-                    or isinstance(target_tokens, bool)
-                    or target_tokens <= 0
+            if (
+                not isinstance(target_tokens, int)
+                or isinstance(target_tokens, bool)
+                or target_tokens <= 0
             ):
                 return {
                     "status": "error",
-                    "error": "target_tokens must be a positive integer."
+                    "error": "target_tokens must be a positive integer.",
                 }
 
         best_compressed = ""
@@ -383,10 +441,7 @@ class PromptCompressor(BaseSkill):
             compression_stages = self._get_compression_stages(mode)
             body = text_to_compress
             for compression_mode in compression_stages:
-                body = self._compress_body(
-                    text=body,
-                    mode=compression_mode
-                )
+                body = self._compress_body(text=body, mode=compression_mode)
                 if not stages_applied:
                     stages_applied = []
                 stages_applied.append(compression_mode)
@@ -414,10 +469,7 @@ class PromptCompressor(BaseSkill):
                     break
 
         else:
-            body = self._compress_body(
-                text=text_to_compress,
-                mode=mode
-            )
+            body = self._compress_body(text=text_to_compress, mode=mode)
 
             # 5. Restore protected content
             compressed_body = self._restore(body, store)
@@ -449,12 +501,22 @@ class PromptCompressor(BaseSkill):
             "agent_hint": {
                 "mode_used": mode,
                 "target_tokens": target_tokens if target_tokens else None,
-                "stages_applied": stages_applied if stages_applied and target_tokens else [],
+                "stages_applied": (
+                    stages_applied if stages_applied and target_tokens else []
+                ),
                 "target_met": target_met if target_tokens else None,
                 "warnings": warns,
-                "lossy": mode == self.VALID_MODES['aggressive'],
-                "deprecated_mode": mode if mode in self.DEPRECATED_MODES else None
-            }
+                "lossy": bool(
+                    mode == self.VALID_MODES["aggressive"]
+                    or (
+                        stages_applied
+                        and self.VALID_MODES["aggressive"] in stages_applied
+                    )
+                ),
+                "deprecated_mode": (
+                    requested_mode if requested_mode in self.DEPRECATED_MODES else None
+                ),
+            },
         }
 
         return result
@@ -471,7 +533,11 @@ class PromptCompressor(BaseSkill):
         # Protected spans (code, templates, URLs) are never counted as structural.
         store: List[str] = []
         work = text
-        for p in (_OTHER_PROTECT_PATTERNS + _CODE_PROTECT_PATTERNS + _TEMPLATE_PROTECT_PATTERNS):
+        for p in (
+            _OTHER_PROTECT_PATTERNS
+            + _CODE_PROTECT_PATTERNS
+            + _TEMPLATE_PROTECT_PATTERNS
+        ):
             work = self._protect(work, p, store, _GEN_OPEN, _GEN_CLOSE)
         work = _HRULE_RE.sub("", work)
         work = _DECOR_PUNCT_RE.sub("", work)
@@ -499,4 +565,67 @@ class PromptCompressor(BaseSkill):
             "semantic_tokens": semantic,
             "information_density": round(semantic / max(1, total), 3),
             "potential_savings": savings,
+        }
+
+    def _canonical_rule(self, raw: str) -> str:
+        """Normalize one rule: strip bullets, filler, whitespace; protect code/templates."""
+        text = re.sub(r"[\ue000-\ue003]", "", raw)
+        text = _BULLET_RE.sub("", text)
+
+        store: List[str] = []
+        for p in (
+            _OTHER_PROTECT_PATTERNS
+            + _CODE_PROTECT_PATTERNS
+            + _TEMPLATE_PROTECT_PATTERNS
+        ):
+            text = self._protect(text, p, store, _GEN_OPEN, _GEN_CLOSE)
+
+        text = self._normalize_ws(text)
+        text = self._balanced(
+            self, text
+        )  # drops "please", "make sure to", rewrites verbose phrases
+        text = self._cleanup(self, text)
+        text = self._restore(text, store).strip().rstrip(".;").strip()
+        if not text:
+            return ""
+        return text[0].upper() + text[1:] + "."
+
+    def _deduplicate_rules(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        rules = params.get("rules")
+        if isinstance(rules, str):
+            rules = rules.splitlines()
+        if not isinstance(rules, list) or not all(isinstance(r, str) for r in rules):
+            return {
+                "status": "error",
+                "error": "rules must be a list of strings or a newline-delimited string.",
+            }
+        rules = [r for r in rules if r.strip()]
+        if not rules:
+            return {"status": "error", "error": "rules cannot be empty."}
+
+        combine = params.get("combine_negatives", True)
+        seen, positives, negatives = set(), [], []
+
+        for raw in rules:
+            canon = self._canonical_rule(raw)
+            if not canon:
+                continue
+            # dedupe key: case/punctuation/whitespace-insensitive
+            key = " ".join(re.sub(r"[^\w\s]", "", canon).casefold().split())
+            if key in seen:
+                continue
+            seen.add(key)
+            is_neg = combine and _NEGATIVE_RE.match(canon)
+            (negatives if is_neg else positives).append(canon)
+
+        final = positives + negatives  # negatives grouped contiguously at the end
+        before = self._estimate_tokens("\n".join(rules))
+        after = self._estimate_tokens("\n".join(final))
+
+        return {
+            "status": "ready",
+            "deduplicated_rules": final,
+            "original_rule_count": len(rules),
+            "final_rule_count": len(final),
+            "tokens_saved": before - after,
         }

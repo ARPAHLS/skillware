@@ -20,9 +20,19 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 - **CLI:** `skillware doctor` (including `doctor --install`) and `skillware paths` accept `--json` and emit machine-readable JSON on stdout, so CI pipelines, scripts, and coding agents can read install health and resolved root tiers without scraping Rich tables ([#476](https://github.com/ARPAHLS/skillware/issues/476)).
 - **CLI:** `skillware doctor --verify` hashes skill bundles (SHA-256 over bundle-relative paths and file bytes, so the digest is location-independent) and compares them against a `--lockfile`, reporting `match` / `drift` / `new` / `missing` with exit code `1` on any mismatch; `--update` regenerates the lockfile and `--all-files` widens the digest beyond the four core bundle files. With `--json` the payload gains a `verify` section and `healthy` reflects both the diagnostic table and the verification ([#482](https://github.com/ARPAHLS/skillware/issues/482)).
 
+- **Skill (`optimization/prompt_compressor` v1.0.0):** New compression modes `lossless`, `balanced`, `aggressive`, and `cache_optimized`. Adds `target_tokens` progressive escalation across stages and reports `target_met` and `stages_applied` in `agent_hint`. Adds `preserve_prefix_chars` for exact leading-prefix preservation and `protect_code_blocks` / `protect_templates` toggles. `cache_optimized` keeps leading `<system>` / `[SYSTEM]` blocks byte-stable for provider prefix caching, with warnings when the block is missing or misplaced.
+- **Skill (`optimization/prompt_compressor` v1.0.0):** New actions `analyze_prompt_density` (structural vs. semantic tokens, information density, per-mode `potential_savings`) and `deduplicate_rules` (bullet and filler normalization, case/punctuation-insensitive dedupe, negative rules grouped via `combine_negatives`).
+- **Skill (`optimization/prompt_compressor` v1.0.0):** Token counting uses `tiktoken` (`cl100k_base`) when installed, with a heuristic fallback.
+
+
 ### Changed
 
 - **Skill (`finance/uk_companies_house_handler` v2.0.0):** Codified the 5-point v2 Host Agent Playbook in `instructions.md` (working memory retention, direct answering, context carry-forward, proactive document offering, 1-hop cross-entity boundary), updated `data/api_index.json` and `scripts/uk_companies_house_host_simulation.py` scenarios, and bumped version from `1.4.0` to `2.0.0` (Phase v2f, Parent [#220](https://github.com/ARPAHLS/skillware/issues/220)).
+
+- **BREAKING: Skill (`optimization/prompt_rewriter` → `optimization/prompt_compressor` v1.0.0):** The skill bundle has been renamed and upgraded. The old ID `optimization/prompt_rewriter` still resolves through a deprecated alias in `skillware/core/loader.py`, but will be removed in a future release. Legacy modes `low` / `medium` / `high` map to `lossless` / `balanced` / `aggressive` and emit a `DeprecationWarning`. See the migration guide in [#436](https://github.com/ARPAHLS/skillware/issues/436).
+- **Skill (`optimization/prompt_compressor` v1.0.0):** The `compression_aggression` parameter is still accepted. Responses now include `agent_hint` (`mode_used`, `lossy`, `warnings`, `target_met`, `deprecated_mode`, `stages_applied`) and `protected_blocks_count`.
+- **Docs / Examples:** Updated the `prompt_compression_demo.py` row in `examples/README.md`, the catalog page, `manifest.yaml`, `card.json` and its fixture for the new actions, modes, and output fields.
+
 
 ### Fixed
 

@@ -21,8 +21,8 @@
                 "label": "Original Tokens"
             },
             {
-                "key": "new_tokens",
-                "label": "New Tokens"
+                "key": "compressed_tokens",
+                "label": "Compressed Tokens"
             },
             {
                 "key": "compressed_text",
