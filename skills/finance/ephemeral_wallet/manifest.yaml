@@ -1,5 +1,5 @@
 name: finance/ephemeral_wallet
-version: 0.1.0
+version: 0.2.0
 tier: core
 shape: workflow
 target:
@@ -12,10 +12,10 @@ tags:
   - finance
 description: |
   Spend-capped, short-lived agent payment sessions for x402 v2 HTTP micropayments
-  using a dedicated CDP-style wallet. create_session / status / pay / revoke with
-  402 handshake (PAYMENT-REQUIRED → PAYMENT-SIGNATURE → PAYMENT-RESPONSE), SSRF
-  guards, CAIP-2 networks, and idempotency. Mock HTTP in CI; live needs CDP env.
-short_description: "Spend-capped x402 v2 agent payment sessions with SSRF + CAIP-2."
+  using a dedicated CDP-style wallet. create_session / status / quote / pay / revoke
+  with 402 handshake, EIP-3009 live signing via CDP_WALLET_SECRET, SSRF guards,
+  CAIP-2 networks, and idempotency. Mock HTTP in CI.
+short_description: "x402 v2 sessions with quote, EIP-3009 live sign, SSRF + CAIP-2."
 category: finance
 issuer:
   name: Hendobox
@@ -31,6 +31,7 @@ parameters:
       enum:
         - create_session
         - status
+        - quote
         - pay
         - revoke
     spend_cap_usd:
@@ -54,7 +55,7 @@ parameters:
       description: "Host-held session id from create_session (status / pay / revoke)."
     url:
       type: string
-      description: "Resource URL for x402 pay (SSRF-checked; mock handshake in CI)."
+      description: "Resource URL for x402 quote/pay (SSRF-checked)."
     amount_usd:
       type: number
       description: >
@@ -66,8 +67,8 @@ parameters:
     live:
       type: boolean
       description: >
-        Request live HTTP x402 settle. Requires CDP_* env. Default mock
-        (in-process scripted 402 handshake).
+        Request live HTTP x402 + EIP-3009 signing. Requires CDP_* env
+        (CDP_WALLET_SECRET is the dedicated agent hex key). Default mock.
   required:
     - action
 outputs:
@@ -91,9 +92,9 @@ constitution: |
      full PANs/CVVs. Redact; teach agents not to echo secrets.
   3. FAIL CLOSED: Missing live config, unknown/expired/revoked session,
      over-cap, SSRF, or replay must abort pay — do not guess.
-  4. SOFT POLICY IN V0.1: spend_cap_usd, TTL, and revoke are in-process UX
-     policy. Funded-to-cap (or facilitator policy) is the real bound for live
-     settle — do not claim a cryptographic hard limit yet.
+  4. SOFT POLICY: spend_cap_usd, TTL, and revoke are in-process UX policy.
+     Fund the dedicated session wallet to the cap for a real bound; do not
+     claim a cryptographic hard limit from the counter alone.
   5. SSRF / ALLOWLIST: Block private, loopback, and metadata URLs; honor
      allowed_domains when set.
   6. NOT FINANCIAL ADVICE: Settlements are technical operations; on-chain
@@ -108,13 +109,15 @@ env_vars:
     description: "CDP API key secret for live pay (later slice). Never pass in tool args."
     required: false
   CDP_WALLET_SECRET:
-    description: "Dedicated agent wallet secret for live pay (later slice)."
+    description: >
+      Dedicated agent wallet hex private key for live EIP-3009 signing
+      (never tool args). Required when live=true.
     required: false
   EPHEMERAL_WALLET_NETWORK:
     description: "Default network label (e.g. base-sepolia). Optional."
     required: false
   EPHEMERAL_WALLET_FACILITATOR_URL:
-    description: "Optional x402 facilitator URL (used when live settle lands)."
+    description: "Optional x402 facilitator URL override."
     required: false
   EPHEMERAL_WALLET_SESSION_DIR:
     description: >
@@ -126,6 +129,7 @@ env_vars:
     required: false
 requirements:
   - requests
+  - eth_account
 presentation:
   icon: "credit-card"
   color: "#2D9CDB"

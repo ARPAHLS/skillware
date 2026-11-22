@@ -54,8 +54,10 @@ def test_manifest_contract():
     with manifest_path.open(encoding="utf-8") as handle:
         manifest = yaml.safe_load(handle)
     assert skill.manifest["name"] == manifest["name"] == "finance/ephemeral_wallet"
-    assert skill.manifest["version"] == "0.1.0"
+    assert skill.manifest["version"] == "0.2.0"
     assert "requests" in skill.manifest["requirements"]
+    assert "eth_account" in skill.manifest["requirements"]
+    assert "quote" in skill.manifest["parameters"]["properties"]["action"]["enum"]
     assert "constitution" in skill.manifest
 
 
@@ -293,14 +295,99 @@ def test_missing_config_when_live_without_cdp(skill, monkeypatch):
 
 
 def test_live_with_cdp_creates_http_session(skill, monkeypatch):
+    from eth_account import Account
+
+    acct = Account.create()
     monkeypatch.setenv("CDP_API_KEY_ID", "id")
     monkeypatch.setenv("CDP_API_KEY_SECRET", "secret")
-    monkeypatch.setenv("CDP_WALLET_SECRET", "wallet")
+    monkeypatch.setenv("CDP_WALLET_SECRET", acct.key.hex())
     out = skill.execute(
         {"action": "create_session", "spend_cap_usd": 1.0, "live": True}
     )
     assert out["status"] == "ready"
     assert out["settlement"] == "http_x402"
+    assert out["signing"] == "eip3009"
+    assert out["wallet_address"] == acct.address
+
+
+def test_quote_dry_run_no_spend(skill):
+    created = skill.execute({"action": "create_session", "spend_cap_usd": 5.0})
+    sid = created["session_id"]
+    quoted = skill.execute(
+        {
+            "action": "quote",
+            "session_id": sid,
+            "url": "https://api.example.com/v1/resource",
+        }
+    )
+    assert quoted["status"] == "quoted"
+    assert quoted["within_cap"] is True
+    assert quoted["quote"]["amount_usd"] == pytest.approx(0.5)
+    assert quoted["quote"]["network"] == "eip155:84532"
+    # quote must not debit
+    st = skill.execute({"action": "status", "session_id": sid})
+    assert st["remaining_usd"] == pytest.approx(5.0)
+    assert st["payments_count"] == 0
+
+
+def test_eip3009_signer_produces_recoverable_signature():
+    from eth_account import Account
+    from eth_account.messages import encode_typed_data
+
+    from skills.finance.ephemeral_wallet.signers import Eip3009ExactSigner
+
+    acct = Account.create()
+    signer = Eip3009ExactSigner(acct.key.hex())
+    accepted = {
+        "scheme": "exact",
+        "network": "eip155:84532",
+        "amount": "10000",
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "payTo": "0x209693Bc6afc0C5328bA36FaF03C514EF312287C",
+        "maxTimeoutSeconds": 60,
+        "extra": {"name": "USDC", "version": "2"},
+    }
+    payload = signer.sign_exact(
+        accepted=accepted, resource={"url": "https://api.example.com/x"}, extensions={}
+    )
+    auth = payload["authorization"]
+    typed = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+            "TransferWithAuthorization": [
+                {"name": "from", "type": "address"},
+                {"name": "to", "type": "address"},
+                {"name": "value", "type": "uint256"},
+                {"name": "validAfter", "type": "uint256"},
+                {"name": "validBefore", "type": "uint256"},
+                {"name": "nonce", "type": "bytes32"},
+            ],
+        },
+        "primaryType": "TransferWithAuthorization",
+        "domain": {
+            "name": "USDC",
+            "version": "2",
+            "chainId": 84532,
+            "verifyingContract": accepted["asset"],
+        },
+        "message": {
+            "from": auth["from"],
+            "to": auth["to"],
+            "value": int(auth["value"]),
+            "validAfter": int(auth["validAfter"]),
+            "validBefore": int(auth["validBefore"]),
+            "nonce": bytes.fromhex(auth["nonce"][2:]),
+        },
+    }
+    recovered = Account.recover_message(
+        encode_typed_data(full_message=typed), signature=payload["signature"]
+    )
+    assert recovered == acct.address
 
 
 def test_provider_injection_sanitizes_secrets():

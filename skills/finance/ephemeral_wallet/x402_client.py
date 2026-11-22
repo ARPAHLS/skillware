@@ -182,6 +182,57 @@ def select_accepted(
     )
 
 
+def inspect_payment_required(
+    *,
+    url: str,
+    session_caip2: str,
+    http_get: HttpGet,
+    timeout_s: float = 15.0,
+) -> Dict[str, Any]:
+    """Dry-run a 402 endpoint: parse PAYMENT-REQUIRED without signing or paying."""
+    challenge = http_get(url, headers={}, timeout=timeout_s)
+    if challenge.status_code != 402:
+        raise X402Error(
+            "expected_402",
+            f"Expected HTTP 402 Payment Required, got {challenge.status_code}.",
+        )
+    required_hdr = _header_get(challenge.headers, HEADER_PAYMENT_REQUIRED)
+    if not required_hdr:
+        raise X402Error(
+            "missing_payment_required",
+            "402 response missing PAYMENT-REQUIRED header.",
+        )
+    payment_required = b64json_decode(required_hdr)
+    if int(payment_required.get("x402Version") or 0) != 2:
+        raise X402Error(
+            "unsupported_version",
+            f"Unsupported x402Version {payment_required.get('x402Version')!r}; need 2.",
+        )
+    accepted = select_accepted(payment_required, session_caip2=session_caip2)
+    raw_extra = accepted.get("extra")
+    extra: Dict[str, Any] = raw_extra if isinstance(raw_extra, dict) else {}
+    decimals = default_asset_decimals(extra or None)
+    amount_usd = atomic_to_usd(str(accepted.get("amount")), decimals)
+    resource = payment_required.get("resource")
+    if not isinstance(resource, dict):
+        resource = {"url": url}
+    return {
+        "url": url,
+        "amount_usd": amount_usd,
+        "amount_atomic": str(accepted.get("amount")),
+        "asset": accepted.get("asset"),
+        "pay_to": accepted.get("payTo"),
+        "scheme": accepted.get("scheme"),
+        "network": accepted.get("network"),
+        "network_caip2": session_caip2,
+        "max_timeout_seconds": accepted.get("maxTimeoutSeconds"),
+        "asset_name": extra.get("name"),
+        "asset_version": extra.get("version"),
+        "resource": resource,
+        "x402_version": 2,
+    }
+
+
 def settle_x402(
     *,
     url: str,

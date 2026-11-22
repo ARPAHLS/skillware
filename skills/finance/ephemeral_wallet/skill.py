@@ -27,6 +27,7 @@ from providers import (  # noqa: E402
     PaymentProvider,
     X402Error,
 )
+from signers import build_live_signer  # noqa: E402
 from ssrf import is_safe_public_url, normalize_allowed_domains  # noqa: E402
 
 _CDP_ENV_KEYS = (
@@ -97,6 +98,8 @@ class EphemeralWalletSkill(BaseSkill):
             return self._create_session(payload)
         if action == "status":
             return self._status(payload)
+        if action == "quote":
+            return self._quote(payload)
         if action == "pay":
             return self._pay(payload)
         if action == "revoke":
@@ -104,7 +107,7 @@ class EphemeralWalletSkill(BaseSkill):
         return self._error(
             "error",
             f"Unsupported action {action!r}; "
-            "use create_session, status, pay, or revoke.",
+            "use create_session, status, quote, pay, or revoke.",
         )
 
     # ----- actions ---------------------------------------------------------
@@ -168,6 +171,22 @@ class EphemeralWalletSkill(BaseSkill):
         now = _utc_now()
         session_id = f"ews_{uuid4().hex}"
         mock_mode = not self._wants_live(payload)
+        wallet_address = _MOCK_WALLET
+        signing = "mock"
+        if not mock_mode:
+            try:
+                live_signer = build_live_signer(self.credential("CDP_WALLET_SECRET"))
+                wallet_address = live_signer.wallet_address
+                signing = "eip3009"
+            except (ImportError, ValueError) as exc:
+                return self._error(
+                    "missing_config",
+                    str(exc),
+                    agent_hint=(
+                        "Set CDP_WALLET_SECRET to a dedicated agent wallet hex key "
+                        "and install eth_account via finance_ephemeral_wallet extra."
+                    ),
+                )
         session = {
             "session_id": session_id,
             "spend_cap_usd": float(spend_cap),
@@ -177,7 +196,7 @@ class EphemeralWalletSkill(BaseSkill):
             "expires_at": _iso(now + timedelta(seconds=int(ttl_seconds))),
             "network": network_alias,
             "network_caip2": network_caip2,
-            "wallet_address": _MOCK_WALLET,
+            "wallet_address": wallet_address,
             "revoked": False,
             "revoked_at": None,
             "payments": [],
@@ -185,10 +204,12 @@ class EphemeralWalletSkill(BaseSkill):
             "idempotency": {},
             "allowed_domains": allowed_domains,
             "policy_note": (
-                "spend_cap_usd / TTL / revoke are soft in-process policy in v0.1; "
-                "funded-to-cap enforcement lands with live settle."
+                "spend_cap_usd / TTL / revoke are soft in-process policy in v0.2; "
+                "live EIP-3009 signing uses CDP_WALLET_SECRET; funded-to-cap is "
+                "still the hard bound when the session wallet is funded to the cap."
             ),
             "settlement": "mock_x402" if mock_mode else "http_x402",
+            "signing": signing,
             "mock": mock_mode,
         }
 
@@ -231,9 +252,10 @@ class EphemeralWalletSkill(BaseSkill):
             "wallet_address": session["wallet_address"],
             "allowed_domains": allowed_domains,
             "settlement": session["settlement"],
+            "signing": signing,
             "agent_hint": (
-                "Pass session_id on later status/pay/revoke. "
-                "No secrets in this payload. Cap/TTL are soft policy until live settle."
+                "Pass session_id on later status/quote/pay/revoke. "
+                "No secrets in this payload. Cap/TTL remain soft policy."
             ),
         }
 
@@ -264,6 +286,73 @@ class EphemeralWalletSkill(BaseSkill):
             "agent_hint": (
                 "remaining_usd is a display counter for soft session policy; "
                 "do not treat it as a hard on-chain bound in v0.1."
+            ),
+        }
+
+    def _quote(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        session, err = self._load_session(payload)
+        if err is not None:
+            return err
+        assert session is not None
+
+        if session["revoked"]:
+            return self._error(
+                "revoked",
+                f"Session {session['session_id']} is revoked.",
+                session_id=session["session_id"],
+            )
+        if self._is_expired(session):
+            return self._error(
+                "expired",
+                f"Session {session['session_id']} expired at {session['expires_at']}.",
+                session_id=session["session_id"],
+            )
+
+        url = str(payload.get("url") or "").strip()
+        if not url:
+            return self._error(
+                "error",
+                "url is required for quote.",
+                session_id=session["session_id"],
+            )
+        allowed = session.get("allowed_domains") or []
+        ok, reason = is_safe_public_url(url, allowed_domains=allowed)
+        if not ok:
+            return self._error(
+                "ssrf_blocked",
+                reason,
+                session_id=session["session_id"],
+                agent_hint=(
+                    "Use a public https URL on an allowed domain. "
+                    "Private/loopback/metadata hosts are blocked."
+                ),
+            )
+
+        provider = self._resolve_provider(session)
+        try:
+            quote = provider.quote(url=url, network_caip2=str(session["network_caip2"]))
+        except X402Error as exc:
+            return self._error(
+                (
+                    "error"
+                    if exc.code not in {"expected_402", "network_mismatch"}
+                    else exc.code
+                ),
+                exc.message,
+                session_id=session["session_id"],
+            )
+        within_cap = (
+            float(quote["amount_usd"]) <= float(session["remaining_usd"]) + 1e-9
+        )
+        return {
+            "status": "quoted",
+            "session_id": session["session_id"],
+            "remaining_usd": session["remaining_usd"],
+            "within_cap": within_cap,
+            "quote": quote,
+            "agent_hint": (
+                "Dry-run only — no spend. Call pay with the same url to settle. "
+                "Halt if within_cap is false."
             ),
         }
 
@@ -480,7 +569,8 @@ class EphemeralWalletSkill(BaseSkill):
             return self._provider_override
         if session.get("mock", True):
             return MockX402Provider()
-        return HttpX402Provider()
+        signer = build_live_signer(self.credential("CDP_WALLET_SECRET"))
+        return HttpX402Provider(signer=signer)
 
     def _live_config_gate(self, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Live mode requires CDP env; mock mode does not."""
