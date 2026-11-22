@@ -140,7 +140,7 @@ Empty extras (`[]`) are intentional — always use the per-skill extra in docume
 
 | Extra | Purpose | Packages |
 | :--- | :--- | :--- |
-| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `biopython>=1.83`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
+| `all` | Deduped union of **all** bundled skill runtime deps (non-core) | `biopython>=1.83`, `eth_account`, `fastembed`, `google-genai`, `numpy`, `onnxruntime`, `pillow`, `pymupdf`, `python-pptx>=1.0.0`, `rembg>=2.0.0`, `trafilatura>=2.0.0`, `web3>=6.0.0` |
 | `agents` | Union of all agent SDK extras | `google-genai`, `anthropic`, `openai` |
 | `dev` | Clone-repo lint, test, typecheck, and security tools | `pytest`, `pytest-mock`, `pytest-asyncio`, `flake8`, `black`, `ruff`, `bandit`, `pip-audit`, `mypy` |
 
