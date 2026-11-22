@@ -98,11 +98,11 @@ class SyntheticGeneratorSkill(BaseSkill):
 
         try:
             if provider == "gemini":
-                raw_text = self._call_gemini(system_prompt, temperature, model_name)
+                text = self._call_gemini(system_prompt, temperature, model_name)
             elif provider == "anthropic":
-                raw_text = self._call_anthropic(system_prompt, temperature, model_name)
+                text = self._call_anthropic(system_prompt, temperature, model_name)
             else:
-                raw_text = self._call_ollama(system_prompt, temperature, model_name)
+                text = self._call_ollama(system_prompt, temperature, model_name)
         except Exception as e:
             return {
                 "status": "error",
@@ -111,7 +111,7 @@ class SyntheticGeneratorSkill(BaseSkill):
 
         samples = []
         try:
-            cleaned = raw_text.strip()
+            cleaned = text.strip()
             if "```json" in cleaned:
                 cleaned = cleaned.split("```json")[-1].split("```")[0].strip()
             elif "```" in cleaned:
@@ -126,7 +126,7 @@ class SyntheticGeneratorSkill(BaseSkill):
             return {
                 "status": "error",
                 "message": f"Parsing failed: {e}",
-                "raw_output": raw_text,
+                "raw_output": text,
             }
 
         all_text = " ".join([str(s) for s in samples])

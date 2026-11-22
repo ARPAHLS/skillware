@@ -225,6 +225,18 @@ class SkillLoader:
         Set ``execute_module=False`` for inspect-only loads (manifest, instructions,
         card, and optional requirement pre-flight) without executing ``skill.py``.
         """
+        skill_aliases = {
+            "optimization/prompt_rewriter": "optimization/prompt_compressor"
+        }
+
+        if skill_path in skill_aliases:
+            warnings.warn(
+                f"'{skill_path}' is deprecated; use '{skill_aliases[skill_path]}'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            skill_path = skill_aliases[skill_path]
+
         resolved_path = SkillLoader._resolve_skill_path(skill_path)
         skill_path = str(resolved_path)
 
@@ -331,7 +343,6 @@ class SkillLoader:
         parameters = SkillLoader._normalize_tool_parameters(
             manifest.get("parameters", {})
         )
-
         return {"name": name, "description": description, "input_schema": parameters}
 
     @staticmethod

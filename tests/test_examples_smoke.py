@@ -118,7 +118,19 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
     ),
     (
         "prompt_compression_demo.py",
-        ["Prompt Token Rewriter", "[RAW TEXT]:", "[COMPRESSED TEXT]:", "[REDUCTION]:"],
+        [
+            "Prompt Compressor",
+            "[TEXT]:",
+            "[COMPRESSED TEXT]:",
+            "[REDUCTION]:",
+            "[TOTAL TOKENS]:",
+            "[STRUCTURAL TOKENS]:",
+            "[SEMANTIC TOKENS]:",
+            "[INFORMATION DENSITY]:",
+            "[RULES BEFORE]",
+            "[RULES AFTER]",
+            "[RULE COUNT]:",
+        ],
     ),
     (
         "deceptive_ui_guard_demo.py",

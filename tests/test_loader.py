@@ -22,19 +22,21 @@ def test_load_skill_not_found():
 
 
 def test_load_skill_registry_has_manifest():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
-    assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
-    assert bundle["registry_id"] == "optimization/prompt_rewriter"
-    assert bundle["class"].__name__ == "PromptRewriter"
-    assert SkillLoader.get_skill_class(bundle) is bundle["class"]
+    old_bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    new_bundle = SkillLoader.load_skill("optimization/prompt_compressor")
+    assert new_bundle["manifest"].get("name") == old_bundle["manifest"].get("name")
+    assert new_bundle["manifest"].get("name") == "optimization/prompt_compressor"
+    assert new_bundle["registry_id"] == "optimization/prompt_compressor"
+    assert new_bundle["class"].__name__ == "PromptCompressor"
+    assert SkillLoader.get_skill_class(new_bundle) is new_bundle["class"]
 
 
 def test_load_skill_inspect_mode_skips_module_exec():
     bundle = SkillLoader.load_skill(
-        "optimization/prompt_rewriter",
+        "optimization/prompt_compressor",
         execute_module=False,
     )
-    assert bundle["manifest"].get("name") == "optimization/prompt_rewriter"
+    assert bundle["manifest"].get("name") == "optimization/prompt_compressor"
     assert bundle["instructions"]
     assert bundle["module"] is None
     assert bundle["class"] is None
@@ -169,9 +171,9 @@ def test_load_skill_accepts_satisfied_version_specifier(tmp_path, monkeypatch):
 
 
 def test_load_skill_class_is_instantiable():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    bundle = SkillLoader.load_skill("optimization/prompt_compressor")
     skill = bundle["class"]()
-    result = skill.execute({"raw_text": "hello world"})
+    result = skill.execute({"text": "hello world"})
     assert "error" not in result
 
 
@@ -587,14 +589,14 @@ def test_to_claude_tool():
 
     registry_bundle = {
         "manifest": {
-            "name": "optimization/prompt_rewriter",
+            "name": "optimization/prompt_compressor",
             "description": "desc",
             "parameters": {"type": "object", "properties": {}},
         }
     }
     assert (
         SkillLoader.to_claude_tool(registry_bundle)["name"]
-        == "optimization_prompt_rewriter"
+        == "optimization_prompt_compressor"
     )
 
 
@@ -697,7 +699,7 @@ def test_bedrock_tool_name_matches_openai_sanitization():
 
 
 def test_load_skill_normalizes_manifest_v2():
-    bundle = SkillLoader.load_skill("optimization/prompt_rewriter")
+    bundle = SkillLoader.load_skill("optimization/prompt_compressor")
     manifest = bundle["manifest"]
     assert "shape" in manifest
     assert "tier" in manifest

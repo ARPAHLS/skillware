@@ -120,19 +120,19 @@ for part in response.candidates[0].content.parts:
 
 ## 🔗 Skill Chaining (Middleware)
 
-Skillware's modular design allows treating skills as deterministic offline logic blocks. For example, you can seamlessly chain the **Prompt Token Rewriter** to optimize context before hitting the LLM:
+Skillware's modular design allows treating skills as deterministic offline logic blocks. For example, you can seamlessly chain the **Prompt Compressor** to optimize context before hitting the LLM:
 
 ```python
 # Load the middleware skill
-rewriter = SkillLoader.load_skill("optimization/prompt_rewriter")
+compressor = SkillLoader.load_skill("optimization/prompt_compressor")
 sys_prompt = "You are a very helpful assistant serving a bank..."
 
 # Use python logic offline before starting the chat session
-optimized_ctx_result = rewriter["class"]().execute({
-    "raw_text": sys_prompt,
-    "compression_aggression": "high"
+optimized_ctx_result = compressor["class"]().execute({
+    "text": sys_prompt,
+    "mode": "aggressive"
 })
-# Or: rewriter["module"].PromptRewriter().execute({...})
+# Or: compressor["module"].PromptCompressor().execute({...})
 
 response = client.models.generate_content(
     model='gemini-3.5-flash',

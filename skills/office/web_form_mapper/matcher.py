@@ -280,13 +280,13 @@ def load_curated_profile(
 
 def _extract_tokens(field: FormField) -> List[str]:
     """Extract individual words, bigrams, and normalized phrases from field metadata."""
-    raw_texts = [field.name, field.id, field.label, field.placeholder]
+    text = [field.name, field.id, field.label, field.placeholder]
     tokens: set[str] = set()
-    for text in raw_texts:
-        if not text:
+    for t in text:
+        if not t:
             continue
         # Split camelCase into words (e.g. txtLegalName -> txt_Legal_Name)
-        s = re.sub(r"([a-z])([A-Z])", r"\1_\2", text)
+        s = re.sub(r"([a-z])([A-Z])", r"\1_\2", t)
         parts = [p.lower() for p in re.split(r"[^a-zA-Z0-9]+", s) if p]
         for p in parts:
             tokens.add(p)

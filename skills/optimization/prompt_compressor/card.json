@@ -1,5 +1,5 @@
 {
-    "name": "Prompt Token Rewriter",
+    "name": "Prompt Compressor",
     "description": "Aggressively compresses prompts while retaining semantic meaning.",
     "issuer": {
         "name": "Ross Peili",
@@ -21,8 +21,8 @@
                 "label": "Original Tokens"
             },
             {
-                "key": "new_tokens",
-                "label": "New Tokens"
+                "key": "compressed_tokens",
+                "label": "Compressed Tokens"
             },
             {
                 "key": "compressed_text",
