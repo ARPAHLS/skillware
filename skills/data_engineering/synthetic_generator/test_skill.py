@@ -56,3 +56,21 @@ def test_execute_success(mocker, skill):
     assert result["samples_generated"] == 1
     assert "samples" in result
     assert result["samples"][0]["instruction"] == "x"
+
+
+def test_anthropic_default_model_is_served(mocker, skill):
+    # Anthropic retired claude-3-haiku-20240307 on 2026-04-20 (#510).
+    call = mocker.patch.object(
+        skill, "_call_anthropic", return_value='[{"instruction": "x"}]'
+    )
+
+    skill.execute(
+        {
+            "domain": "test domain",
+            "num_samples": 1,
+            "diversity_prompt": "be diverse",
+            "model_provider": "anthropic",
+        }
+    )
+
+    assert call.call_args.args[2] == "claude-haiku-5-5"

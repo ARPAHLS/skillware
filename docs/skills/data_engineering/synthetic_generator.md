@@ -4,7 +4,7 @@
 **Skill ID:** `data_engineering/synthetic_generator`
 **Issuer:** [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.1.1` — 9 Sep 2026
+- **Version**: `0.1.2` — 23 Nov 2026
 - **Tier**: `core`
 - **Shape**: `atomic`
 - **Target**: `software`
