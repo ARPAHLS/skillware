@@ -87,7 +87,7 @@ class SyntheticGeneratorSkill(BaseSkill):
             elif provider == "gemini":
                 model_name = "gemini-3.5-flash"
             elif provider == "anthropic":
-                model_name = "claude-3-haiku-20240307"
+                model_name = "claude-haiku-5-5"
 
         system_prompt = (
             f"You are a generator for domain: '{domain}'.\n"

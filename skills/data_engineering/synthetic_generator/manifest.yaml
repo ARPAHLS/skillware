@@ -1,5 +1,5 @@
 name: "data_engineering/synthetic_generator"
-version: "0.1.1"
+version: "0.1.2"
 tier: core
 shape: atomic
 target:
@@ -44,7 +44,7 @@ parameters:
       description: "Which LLM provider to use internally ('ollama', 'gemini', 'anthropic'). Default is 'ollama'."
     model_name:
       type: "string"
-      description: "Specific model name (e.g., 'llama3', 'gemini-3.5-flash', 'claude-3-haiku-20240307')."
+      description: "Specific model name (e.g., 'llama3', 'gemini-3.5-flash', 'claude-haiku-5-5')."
   required:
     - domain
     - num_samples

@@ -27,6 +27,7 @@ Contributors add user-facing entries under `[Unreleased]` in the same PR. Mainta
 
 - **Core adapters (`skillware/core/loader.py`):** Normalized empty or typeless manifest `parameters` to `{"type": "object", "properties": {}}` across `to_claude_tool`, `to_gemini_tool`, `to_openai_tool`, `to_deepseek_tool`, and `to_bedrock_tool` (preventing HTTP 400 errors on zero-parameter skills), and recursively uppercased `type` inside `array` `items` and `anyOf`/`oneOf` schemas in `to_gemini_tool()`.
 - **Examples (`examples/ollama_pdf_form_filler.py`):** Fixed `SkillLoader.to_prompt_mode()` typo to `SkillLoader.to_ollama_prompt()`.
+- **Skill (`data_engineering/synthetic_generator` v0.1.2):** The Anthropic default model is now `claude-haiku-5-5`; `claude-3-haiku-20240307` was retired on 2026-04-20, so runs without `model_name` failed ([#510](https://github.com/ARPAHLS/skillware/issues/510)).
 
 ## [0.6.2] - 2026-11-18
 
