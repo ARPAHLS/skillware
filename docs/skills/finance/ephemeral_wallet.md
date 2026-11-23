@@ -3,7 +3,7 @@
 **ID**: `finance/ephemeral_wallet`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.1.0` — 11 Nov 2026
+- **Version**: `0.2.0` — 22 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -12,14 +12,14 @@
 <!-- skill-intent:begin -->
 **Solves:** Spend-capped, short-lived agent payment sessions for x402 v2 HTTP micropayments from a dedicated agent wallet (not card PANs).
 **Works with:** Gemini, Claude, OpenAI, DeepSeek, Ollama, and Bedrock-compatible host loops.
-**Runtime:** Mock x402 handshake in CI; live HTTP settle needs `CDP_*`. Optional `EPHEMERAL_WALLET_SESSION_DIR` for JSONL durability.
+**Runtime:** Mock x402 handshake in CI; live EIP-3009 signing via `CDP_WALLET_SECRET` + `eth_account`. Optional `EPHEMERAL_WALLET_SESSION_DIR` for JSONL durability.
 <!-- skill-intent:end -->
 
 **Recommended install:** `pip install "skillware[finance_ephemeral_wallet]"`. See [Install extras](../../usage/install_extras.md).
 
 [Skill Library](../README.md) · [Finance hub](README.md) · [Glossary](../../glossary.md) · [Testing](../../TESTING.md)
 
-Thin **agent payment session** skill: `create_session` → `status` / `pay` / `revoke`. `pay` runs the x402 v2 HTTP handshake (402 → `PAYMENT-REQUIRED` → amount vs `remaining_usd` → `PAYMENT-SIGNATURE` → `PAYMENT-RESPONSE`), with SSRF/`allowed_domains`, CAIP-2 networks, and idempotency. CI uses an in-process mock handshake (no live chain). Cap / TTL / revoke are **soft in-process policy** until funded-to-cap enforcement.
+Thin **agent payment session** skill: `create_session` → `status` / `quote` / `pay` / `revoke`. `pay` runs the x402 v2 HTTP handshake; `quote` dry-runs the same 402 inspect without spending. Live mode signs EIP-3009 with `CDP_WALLET_SECRET`. CI uses an in-process mock handshake. Cap / TTL / revoke are soft unless the dedicated wallet is funded to the cap.
 
 ## Capabilities
 
@@ -27,6 +27,7 @@ Thin **agent payment session** skill: `create_session` → `status` / `pay` / `r
 |--------|-------------|
 | `create_session` | Open a session with soft `spend_cap_usd` + `ttl_seconds` + CAIP-2 network; returns `session_id` |
 | `status` | Remaining soft budget, expiry, revoke flag, last payment refs |
+| `quote` | Dry-run 402 inspect (amount/asset/network); no spend |
 | `pay` | x402 handshake for a URL; debit soft counter from server amount |
 | `revoke` | Expire the session; further `pay` fails closed |
 
@@ -36,9 +37,9 @@ Thin **agent payment session** skill: `create_session` → `status` / `pay` / `r
 | :--- | :--- | :--- |
 | `CDP_API_KEY_ID` | For live (PR2) | CDP auth |
 | `CDP_API_KEY_SECRET` | For live (PR2) | CDP auth |
-| `CDP_WALLET_SECRET` | For live (PR2) | Dedicated agent wallet secret |
+| `CDP_WALLET_SECRET` | For live | Dedicated agent wallet hex key for EIP-3009 |
 | `EPHEMERAL_WALLET_NETWORK` | No | Default `base-sepolia` (`eip155:84532`) |
-| `EPHEMERAL_WALLET_FACILITATOR_URL` | No | Reserved for facilitator overrides |
+| `EPHEMERAL_WALLET_FACILITATOR_URL` | No | Optional facilitator override |
 | `EPHEMERAL_WALLET_SESSION_DIR` | No | Append-only `sessions.jsonl` / `payments.jsonl` (fail closed if unwritable) |
 | `EPHEMERAL_WALLET_MOCK` | No | Default `1` (mock handshake). `0` / `live: true` requires `CDP_*` |
 
@@ -60,7 +61,7 @@ The skill lives in `skills/finance/ephemeral_wallet/`. Roles: [Skill anatomy](..
 
 ### Effect (`skill.py`)
 
-Session store + `MockX402Provider` / `HttpX402Provider` behind `x402_client.settle_x402`.
+Session store + `MockX402Provider` / `HttpX402Provider` behind `x402_client.settle_x402`; live `Eip3009ExactSigner` in `signers.py`.
 
 ### Directive (`instructions.md`)
 
@@ -267,8 +268,8 @@ Errors use structured `status` (`missing_config` | `expired` | `revoked` | `over
 ## Limitations
 
 - CI uses an in-process mock 402 handshake (no live Base / facilitator).
-- Cap / TTL / revoke are soft in-process policy until funded-to-cap.
-- Live HTTP path needs `CDP_*`; cryptographic CDP AgentKit signing can be hardened further.
+- Cap / TTL / revoke are soft unless the dedicated wallet is funded to the cap.
+- Live signing is EIP-3009 via `CDP_WALLET_SECRET` (hex key); full CDP SDK wallet UX can still deepen later.
 - Session memory is process-local unless `EPHEMERAL_WALLET_SESSION_DIR` is set.
 - Not Stripe Issuing / virtual-card PANs (deferred adapter).
 - Not a general EVM transfer/swap skill.
@@ -282,5 +283,6 @@ Commits that touched this skill bundle or its catalog page ([`finance/ephemeral_
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(finance): ephemeral_wallet v0.2 quote + EIP-3009 live sign (#41) | 22 Nov 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`5ab781d`](https://github.com/ARPAHLS/skillware/commit/5ab781d0f9) | feat(finance): add ephemeral_wallet v0.1 (#41, #272) (#475) | 18 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->

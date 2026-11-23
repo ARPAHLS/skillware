@@ -22,6 +22,7 @@ from x402_client import (  # noqa: E402
     ScriptedHttp,
     X402Error,
     build_mock_402_pair,
+    inspect_payment_required,
     settle_x402,
 )
 
@@ -48,6 +49,14 @@ class PaymentProvider(Protocol):
     ) -> Dict[str, Any]:
         """Return a payment receipt dict (no secrets). May raise X402Error."""
 
+    def quote(
+        self,
+        *,
+        url: str,
+        network_caip2: str,
+    ) -> Dict[str, Any]:
+        """Dry-run 402 inspect (no spend). May raise X402Error."""
+
 
 class MockX402Provider:
     """Offline stand-in that still exercises the x402 header handshake in-process."""
@@ -56,6 +65,22 @@ class MockX402Provider:
 
     def __init__(self, signer: Optional[PaymentSigner] = None):
         self._signer: PaymentSigner = signer or MockExactSigner()
+
+    def quote(self, *, url: str, network_caip2: str) -> Dict[str, Any]:
+        challenge, _success = build_mock_402_pair(
+            url=url,
+            amount_atomic="500000",
+            network_caip2=network_caip2,
+        )
+        http = ScriptedHttp([challenge])
+        quote = inspect_payment_required(
+            url=url,
+            session_caip2=network_caip2,
+            http_get=http.get,
+        )
+        quote["provider"] = self.name
+        quote["settlement"] = "mock_x402"
+        return quote
 
     def pay(
         self,
@@ -102,6 +127,7 @@ class MockX402Provider:
             "nonce": result.nonce,
             "provider": self.name,
             "settlement": "mock_x402",
+            "signing": "mock",
             "at": _utc_iso(),
             "session_id": session_id,
             "idempotency_key": idempotency_key,
@@ -123,6 +149,18 @@ class HttpX402Provider:
         self._signer: PaymentSigner = signer or MockExactSigner()
         self._http_get = http_get
         self._timeout_s = timeout_s
+
+    def quote(self, *, url: str, network_caip2: str) -> Dict[str, Any]:
+        http_get = self._http_get or self._requests_get
+        quote = inspect_payment_required(
+            url=url,
+            session_caip2=network_caip2,
+            http_get=http_get,
+            timeout_s=self._timeout_s,
+        )
+        quote["provider"] = self.name
+        quote["settlement"] = "http_x402"
+        return quote
 
     def pay(
         self,
@@ -148,6 +186,7 @@ class HttpX402Provider:
             idempotency_key=idempotency_key,
         )
         used_nonces.add(result.nonce)
+        signing = getattr(self._signer, "signing_mode", type(self._signer).__name__)
         return {
             "url": url,
             "amount_usd": result.amount_usd,
@@ -159,6 +198,7 @@ class HttpX402Provider:
             "nonce": result.nonce,
             "provider": self.name,
             "settlement": "http_x402",
+            "signing": signing,
             "at": _utc_iso(),
             "session_id": session_id,
             "idempotency_key": idempotency_key,

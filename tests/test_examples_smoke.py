@@ -65,6 +65,15 @@ LOCAL_EXECUTE_SMOKE_SCRIPTS: List[Tuple[str, List[str]]] = [
         ],
     ),
     (
+        "ephemeral_wallet_demo.py",
+        [
+            "finance/ephemeral_wallet demo",
+            "within_cap=True",
+            "idempotent_replay=True",
+            "Demo completed successfully.",
+        ],
+    ),
+    (
         "sanitize_input_chain_demo.py",
         [
             "sanitize_input chain demo",

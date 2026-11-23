@@ -113,7 +113,9 @@ defi = [
 
 dev_tools = []
 
-finance = []
+finance = [
+    "eth_account",
+]
 
 linguistics = []
 
@@ -189,7 +191,9 @@ defi_token_security_scanner = []
 
 dev_tools_issue_resolver = []
 
-finance_ephemeral_wallet = []
+finance_ephemeral_wallet = [
+    "eth_account",
+]
 
 finance_uk_companies_house_handler = []
 
@@ -235,6 +239,7 @@ wellness_mental_coach = [
 
 all = [
     "biopython>=1.83",
+    "eth_account",
     "fastembed",
     "google-genai",
     "numpy",
