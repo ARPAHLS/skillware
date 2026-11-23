@@ -22,6 +22,9 @@ Loading a skill runs its `skill.py` in your host process. Skillware implements a
 2. **Automated AST & Security Scanning:** Automated security gates in CI (`bandit`, `tests/test_security_audit.py`) prohibit dangerous execution primitives like `eval()`, `exec()`, `compile()`, and dynamic code generation across all bundled skill execution paths.
 3. **Dependency Auditing:** Dependencies are pinned and scanned against known vulnerability databases on every PR and release candidate (`pip-audit`).
 4. **Provenance & Review:** While skills execute in-process without OS-level sandboxes (like containers or WASM), trust is reinforced by strict human line-by-line review, provenance tracking, and explicit licensing.
+5. **Bundle Integrity Verification (`skillware doctor --verify`):** Location-independent SHA-256 bundle fingerprinting (`skillware/core/integrity.py`) compares checked-out skills against a committed `--lockfile`, failing closed in CI or production on any `drift`, `new`, or `missing` bundle files.
+6. **Host-Enforced Dispatch Audit Trail (`SkillContext`):** Optional `on_dispatch` telemetry and tamper-evident SHA-256 hash-chained JSONL logging (`audit_log_path`, `verify_audit_log()`) record every tool call, latency, and outcome at the framework boundary with recursive secret/PII redaction (`skillware/audit.py`).
+7. **Hardware Safety Gate (`allow_hardware_execution=False`):** `SkillContext` blocks `target: hardware` skills by default unless the operator explicitly opts in.
 
 Before loading external skills or designing host integrations, review the [Skill Trust Model](docs/security/skill-trust-model.md) (especially Section 10: *The Permissive Fortress Architecture*).
 

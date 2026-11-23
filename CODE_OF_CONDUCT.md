@@ -39,6 +39,8 @@ This Code of Conduct applies both within project spaces and in public spaces whe
 
 Human contributors and operators supervising **autonomous agents** or **AI-assisted tools** (Cursor, Copilot, Claude Code, and similar) must follow [CONTRIBUTING.md](CONTRIBUTING.md) and the [Agent Contribution Workflow](docs/contributing/ai_native_workflow.md).
 
+**Issue assignment before PRs:** Comment on the target issue to claim it and wait to be assigned by a maintainer before opening a pull request. Unsolicited or out-of-scope PRs on unclaimed issues may be closed without review to prevent duplicate work and scope drift.
+
 **Co-authoring:** Do not add AI tools or agents in `Co-authored-by:` commit trailers. Reserve co-author credits for **human** collaborators only. GitHub does not infer co-authors from normal commits; `Co-authored-by:` is added deliberately (web UI or commit message). Human pair or mob work should use that mechanism. AI assistance does not.
 
 **Skill contributors:** New skills must include **real issuer details** in `manifest.yaml` (`name`, `email`, and optional `github` / `org`) and matching attribution in skill docs and catalog entries. Placeholder or missing contact information is grounds for rejection. See [Issuer attribution](CONTRIBUTING.md#issuer-attribution) in [CONTRIBUTING.md](CONTRIBUTING.md) for the full checklist.

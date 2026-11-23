@@ -106,6 +106,7 @@ Skillware/
 │           ├── card.json       # Presentation: catalog / UI metadata
 │           └── test_skill.py   # Assurance (required for registry skills)
 ├── skillware/                  # Core Framework Package
+│   ├── audit.py                # Dispatch audit hook & SHA-256 hash-chained JSONL
 │   ├── cli.py                  # Command-line interface
 │   ├── context.py              # SkillContext — multi-skill registry host context
 │   ├── chains.py               # Named skill chain runner (run_chain, validate_chain)
@@ -113,6 +114,7 @@ Skillware/
 │       ├── base_skill.py       # Abstract Base Class for skills
 │       ├── chains_config.py    # chains: YAML parsing
 │       ├── env.py              # Environment Management
+│       ├── integrity.py        # Bundle fingerprint & lockfile verification
 │       └── loader.py           # Universal Skill Loader and Model Adapter
 ├── templates/                  # Boilerplate templates for new skills
 │   └── python_skill/           # Standard template with required files
@@ -239,7 +241,7 @@ More providers and patterns: [usage guides](docs/usage/README.md).
 | Topic | Links |
 | :--- | :--- |
 | **Introduction** | [Introduction](docs/introduction.md) · [Vision](docs/vision.md) · [Comparison](COMPARISON.md) |
-| **Usage guides** | [Skill Library](docs/skills/README.md) · [Category hubs](#supported-agent-skill-categories) · [Sitemap](docs/sitemap.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
+| **Usage guides** | [Skill Library](docs/skills/README.md) · [Category hubs](#supported-agent-skill-categories) · [Sitemap](docs/sitemap.md) · [Usage Guide](docs/usage/README.md) · [Skill chaining](docs/usage/skill_chaining.md) · [Dispatch audit trail](docs/usage/audit_trail.md) · [Gemini](docs/usage/gemini.md) · [Enterprise cloud](docs/usage/enterprise_cloud.md) · [OpenAI-compatible hosts](docs/usage/openai_compatible.md) · [Install extras](docs/usage/install_extras.md) · [Examples](examples/README.md) · [Agent Loops](docs/usage/agent_loops.md) · [API Keys](docs/usage/api_keys.md) · [CLI](docs/usage/cli.md) |
 | **Operator config** | [EVM operator config](docs/usage/evm_operator_config.md) · [Address book operator config](docs/usage/addressbook_operator_config.md) |
 | **Security** | [Skill trust model](docs/security/skill-trust-model.md) · [SECURITY.md](SECURITY.md) |
 | **Contributing** | [Contributing](CONTRIBUTING.md) · [Glossary](docs/glossary.md) · [Agent Native Workflow](docs/contributing/ai_native_workflow.md) · [Testing](docs/TESTING.md) · [Changelog](CHANGELOG.md) |
@@ -267,7 +269,7 @@ PyPI download counts measure **install activity** from public aggregators (inclu
 <a href="https://doi.org/10.5281/zenodo.21552745"><img src="https://img.shields.io/badge/DOI%20S-10.5281%2Fzenodo.21552745-DBD3DC?style=flat-square" alt="DOI 10.5281/zenodo.21552745"></a><br/>
 <a href="https://doi.org/10.5281/zenodo.23725543"><img src="https://img.shields.io/badge/DOI%20B-10.5281%2Fzenodo.23725543-D4E4F1?style=flat-square" alt="DOI 10.5281/zenodo.23725543"></a>
 
-If you use Skillware in research or products, please cite it using [CITATION.cff](https://github.com/ARPAHLS/skillware/blob/main/CITATION.cff) (GitHub Cite this repository) or the Zenodo concept DOI above (DOI S). That DOI is stable across releases. For reproducibility, also record the Skillware version you used (PyPI or Git tag, for example 0.6.1). For citing the paper, use the arxiv DOI above (DOI P).
+If you use Skillware in research or products, please cite it using [CITATION.cff](https://github.com/ARPAHLS/skillware/blob/main/CITATION.cff) (GitHub Cite this repository) or the Zenodo concept DOI above (DOI S). That DOI is stable across releases. For reproducibility, also record the Skillware version you used (PyPI or Git tag, for example 0.6.2). For citing the paper, use the arxiv DOI above (DOI P).
 
 ## Contact
 
