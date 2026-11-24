@@ -3,7 +3,7 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.2.3` — 24 Nov 2026
+- **Version**: `0.2.4` — 24 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -371,6 +371,12 @@ client_init = skill.execute({
 
 See [Address book operator config — Legal Profile](../../usage/addressbook_operator_config.md#legal-profile-multi-jurisdiction-form-autofill) for YAML schema and CLI setup (`skillware addressbook set-legal-profile`, `show --unmask`).
 
+### Compliance Filing Receipts & Post-Fill Verification (`v0.2.4`)
+
+- **Tamper-evident `filing_receipt`:** Every `fill` and `session_finalize` returns a `filing_receipt` (`schema_version: "skillware-pdf-receipt/1"`, `template_sha256`, `output_sha256`, `filled_count`, `skipped_count`, `flattened`, PII-redacted `redacted_fields`, and canonical SHA-256 `receipt_hash`). Pass `emit_receipt: true` to atomically persist `<output_path>.receipt.json` alongside the filled PDF.
+- **Post-fill binary readback (`post_fill_verification`):** Automatically re-opens the written PDF with PyMuPDF to confirm `pdf_valid: true`, `remaining_widget_count == 0` when `flatten: true`, and widget value readback accuracy when `flatten: false`.
+- **Encrypted & corrupt PDF guards:** Returns structured `encrypted_pdf_unsupported` and `corrupted_pdf` errors on password-protected or malformed files.
+
 ### Environment variables
 
 | Variable | Required | Description |
@@ -395,7 +401,8 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(pdf_form_filler,addressbook): v0.2.3 multi-jurisdiction `legal_profile` autofill, W-9 segmented TINs, CLI `set-legal-profile` / `show --unmask`, and audit PII redaction (#408) | 24 Nov 2026 | `0.2.3` | [@rosspeili](https://github.com/rosspeili) |
+| `TBD` | feat(pdf_form_filler): v0.2.4 SHA-256 compliance filing receipts (`emit_receipt`), post-fill binary readback, encrypted/corrupt PDF guards, and 6-provider + audit simulation crucible (#407) | 24 Nov 2026 | `0.2.4` | [@rosspeili](https://github.com/rosspeili) |
+| [`528ab8f`](https://github.com/ARPAHLS/skillware/commit/528ab8f26a66e01b112df446472cd016b707a477) | feat(pdf_form_filler,addressbook): v0.2.3 multi-jurisdiction `legal_profile` autofill, W-9 segmented TINs, CLI `set-legal-profile` / `show --unmask`, and audit PII redaction (#408) | 24 Nov 2026 | `0.2.3` | [@rosspeili](https://github.com/rosspeili) |
 | [`360353f`](https://github.com/ARPAHLS/skillware/commit/360353fdbc) | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) (#495) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`e66d3cd`](https://github.com/ARPAHLS/skillware/commit/e66d3cd282) | feat(pdf_form_filler): v0.2.1 file-backed interview sessions, PII masking, and e-sign rendering (#405) (#492) | 18 Nov 2026 | `0.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`9b05cc7`](https://github.com/ARPAHLS/skillware/commit/9b05cc74ff) | feat(pdf_form_filler): v0.2.0 curated tax/FATCA KB (W-8BEN, W-9, W-8BEN-E, 8966), section-chunked schemas, and PII redaction (#404) (#486) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |

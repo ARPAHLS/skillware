@@ -35,4 +35,5 @@ The `office/pdf_form_filler` skill provides deterministic inspection, validation
 - **Checkbox:** Boolean `true` or `false` (`capacity_to_sign` must be `true` on W-8BEN / W-8BEN-E).
 - **Date (`signature_mode: "auto_date"`):** Supply `"MM-DD-YYYY"`, or omit / pass `"auto"` to auto-fill today's UTC date.
 - **Radio Buttons:** Provide the exact `export_value` string (e.g., `"Choice1"`) or unambiguous option `label`.
-- **XFA Guard:** If `unsupported_xfa_form` is returned, inform the operator that dynamic XFA forms must be converted to static AcroForms first.
+- **XFA, Encrypted & Corrupt Guards:** If `unsupported_xfa_form`, `encrypted_pdf_unsupported`, or `corrupted_pdf` is returned, inform the operator clearly instead of retrying.
+- **Compliance Filing Receipts (`emit_receipt: true`):** Every `fill` and `session_finalize` returns a PII-redacted SHA-256 `filing_receipt` (`template_sha256`, `output_sha256`, `receipt_hash`) and `post_fill_verification` readback summary; pass `emit_receipt: true` to atomically write `<output_path>.receipt.json` alongside the PDF.

@@ -2,9 +2,16 @@
 # SPDX-License-Identifier: MIT
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
+import hashlib
+import json
+import os
+from pathlib import Path
 import re
+import time
 from typing import List, Optional, Dict, Any, Tuple, Union
+from uuid import uuid4
 
 import fitz  # PyMuPDF
 
@@ -554,3 +561,114 @@ def apply_edits(
     """Backward-compatible helper returning bytes directly."""
     pdf_out, _ = apply_edits_detailed(pdf_bytes, edits, flatten=flatten)
     return pdf_out
+
+
+def verify_filled_pdf(
+    filled_bytes: bytes,
+    *,
+    flattened: bool,
+    expected_native_edits: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Re-open filled PDF bytes with PyMuPDF to verify integrity, flattening, and widget readback."""
+    try:
+        doc = fitz.open(stream=filled_bytes, filetype="pdf")
+    except Exception as exc:
+        return {
+            "pdf_valid": False,
+            "error": str(exc),
+            "remaining_widget_count": -1,
+            "flattened_verified": False,
+            "readback_mismatches": [],
+        }
+
+    try:
+        page_count = len(doc)
+        widgets_by_name: Dict[str, Any] = {}
+        remaining = 0
+        for page in doc:
+            for w in page.widgets() or []:
+                remaining += 1
+                if w.field_name:
+                    widgets_by_name[w.field_name] = w.field_value
+    finally:
+        doc.close()
+
+    mismatches: List[Dict[str, Any]] = []
+    if not flattened and expected_native_edits:
+        for key, expected in expected_native_edits.items():
+            if key in widgets_by_name and isinstance(expected, str):
+                actual = str(widgets_by_name.get(key) or "")
+                if actual != expected:
+                    mismatches.append(
+                        {"field": key, "expected": expected, "actual": actual}
+                    )
+
+    return {
+        "pdf_valid": True,
+        "page_count": page_count,
+        "remaining_widget_count": remaining,
+        "flattened_verified": (remaining == 0) if flattened else True,
+        "readback_mismatches": mismatches,
+    }
+
+
+def build_filing_receipt(
+    *,
+    template_id: Optional[str],
+    template_bytes: bytes,
+    output_bytes: bytes,
+    output_path: str,
+    applied_fields: List[str],
+    redacted_edits: Dict[str, Any],
+    flattened: bool,
+    session_id: Optional[str] = None,
+    contact_applied: Optional[str] = None,
+    skipped_count: int = 0,
+) -> Dict[str, Any]:
+    """Build a tamper-evident SHA-256 compliance filing receipt (zero raw PII)."""
+    body: Dict[str, Any] = {
+        "schema_version": "skillware-pdf-receipt/1",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "template_id": template_id,
+        "template_sha256": hashlib.sha256(template_bytes).hexdigest(),
+        "output_sha256": hashlib.sha256(output_bytes).hexdigest(),
+        "output_path": str(output_path),
+        "session_id": session_id,
+        "contact_applied": contact_applied,
+        "filled_count": len(applied_fields),
+        "skipped_count": int(skipped_count),
+        "flattened": bool(flattened),
+        "redacted_fields": dict(redacted_edits),
+    }
+    canonical = json.dumps(
+        body, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str
+    )
+    body["receipt_hash"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return body
+
+
+def write_filing_receipt(output_path: str, receipt: Dict[str, Any]) -> str:
+    """Atomically write ``<output_path>.receipt.json`` alongside the filled PDF."""
+    target = Path(f"{output_path}.receipt.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    tmp = target.parent / f"{target.name}.{uuid4().hex[:8]}.tmp"
+    try:
+        tmp.write_text(
+            json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        for attempt in range(6):
+            try:
+                os.replace(tmp, target)
+                break
+            except PermissionError:
+                if attempt == 5:
+                    raise
+                time.sleep(0.015 * (attempt + 1))
+    except Exception:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+        raise
+    return str(target)
