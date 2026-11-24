@@ -39,6 +39,21 @@ _SENSITIVE_KEY_TOKENS = (
     "credential",
     "client_secret",
     "access_key",
+    "ssn",
+    "itin",
+    "ein",
+    "tin",
+    "tax_id",
+    "giin",
+    "lei",
+    "afm",
+    "utr",
+    "nino",
+    "tfn",
+    "passport",
+    "date_of_birth",
+    "dob",
+    "iban",
 )
 
 _SECRET_VALUE_PATTERNS = (

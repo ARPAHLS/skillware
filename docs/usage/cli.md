@@ -182,7 +182,7 @@ Brief `--help` topic index matches the table above. Each topic expands to the co
 | **[Theme](#skillware-theme)** | `theme`, interactive `config -> theme`, direct `theme <name>` |
 | **[Mail](#skillware-mail)** | `mail`, interactive mail submenu |
 | **[EVM](#skillware-evm)** | `evm`, `evm init`, `evm chains list`, `evm chain add`, `evm tokens list`, `evm token add`, `evm rpc enable`, `evm validate`, `evm open` |
-| **[Addressbook](#skillware-addressbook)** | `addressbook list`, `addressbook add`, `addressbook edit`, `addressbook set-wallet`, `addressbook open` |
+| **[Addressbook](#skillware-addressbook)** | `addressbook list`, `addressbook show [id] [--unmask] [--json]`, `addressbook add`, `addressbook edit`, `addressbook set-wallet`, `addressbook set-legal-profile`, `addressbook open` |
 | **[PDF](#skillware-pdf)** | `pdf init`, `pdf output-dir`, `pdf import`, `pdf status`, `pdf templates list`, `pdf map-generate`, `pdf inspect`, `pdf map-validate`, `pdf guide`, `pdf open` |
 | **[General](#interactive-menu)** | interactive menu, `--help`, `--version` |
 
@@ -573,6 +573,9 @@ Shared operator **identity directory** for mail and defi skills (`public_0x` EVM
     skillware addressbook add
     skillware addressbook edit john_doe
     skillware addressbook set-wallet john_doe 0x71C7656EC7ab08859a784ab83b021a667C1D9f9
+    skillware addressbook set-legal-profile me --type individual --self --citizenship GR --tax-country GR --tin 094123456 --tin-type AFM --dob 1990-05-15
+    skillware addressbook show me
+    skillware addressbook show me --unmask --json
     skillware addressbook remove john_doe --yes
     skillware addressbook validate
     skillware addressbook open

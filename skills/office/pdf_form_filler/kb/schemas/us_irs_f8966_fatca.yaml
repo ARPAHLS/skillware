@@ -3,6 +3,8 @@ title: "FATCA Report (IRS Form 8966)"
 revision: "Rev. 2024"
 jurisdiction: "US"
 category: "tax"
+entity_types:
+  - "entity"
 source_pdf: "templates/us_irs_f8966_fatca.pdf"
 pages: 2
 
@@ -16,6 +18,7 @@ sections:
         field_type: "text"
         page: 0
         label: "1. Filer ID Number / EIN"
+        profile_key: "tin.us_ein"
         required: false
         sensitive: true
 
@@ -24,6 +27,7 @@ sections:
         field_type: "text"
         page: 0
         label: "1. Name of filer"
+        profile_key: "legal_name"
         required: true
 
       - id: "filer_category_code"
@@ -38,6 +42,7 @@ sections:
         field_type: "text"
         page: 0
         label: "2. Number, street, and room or suite no."
+        profile_key: "residence_address.street_combined"
         required: true
 
       - id: "filer_city_town"
@@ -45,6 +50,7 @@ sections:
         field_type: "text"
         page: 0
         label: "3a. City or town"
+        profile_key: "residence_address.city"
         required: true
 
       - id: "filer_country"
@@ -52,6 +58,7 @@ sections:
         field_type: "text"
         page: 0
         label: "3b. State/Province and Country"
+        profile_key: "residence_address.country"
         required: true
 
       - id: "filer_postal_code"
@@ -59,6 +66,7 @@ sections:
         field_type: "text"
         page: 0
         label: "3c. Postal code"
+        profile_key: "residence_address.postal_code"
         required: false
 
   - id: "part_4_financial_information"

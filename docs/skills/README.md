@@ -13,7 +13,7 @@ Skills for document processing, email automation, and productivity.
 
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `workflow` | `0.2.2` (19 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction. |
+| **[PDF Form Filler](office/pdf_form_filler.md)** | `office/pdf_form_filler` | `workflow` | `0.2.3` (24 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Inspects, validates, and fills AcroForm PDFs using curated section-chunked templates (e.g., IRS W-8BEN) with PII redaction. |
 | **[Gmail Handler](office/gmail_handler.md)** | `office/gmail_handler` | `workflow` | `0.2.0` (19 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Gmail send, search, read, reply, and attachments via IMAP/SMTP with address book, signatures, and confirmation gates. |
 | **[Web Form Mapper](office/web_form_mapper.md)** | `office/web_form_mapper` | `workflow` | `0.1.0` (04 Oct 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministically maps identity profiles to HTML web forms and submits with CSRF preservation and confirmation gates. |
 

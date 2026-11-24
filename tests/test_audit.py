@@ -146,6 +146,37 @@ def test_secret_and_pii_redaction(tmp_path: Path) -> None:
     assert "my_secret_jwt_token" not in args["raw_text"]
 
 
+def test_tax_and_legal_pii_redaction_in_audit_log(tmp_path: Path) -> None:
+    events: List[Dict[str, Any]] = []
+    log_path = tmp_path / "pii_audit.jsonl"
+    ctx = SkillContext(
+        skills=["optimization/prompt_rewriter"],
+        on_dispatch=events.append,
+        audit_log_path=log_path,
+    )
+    ctx.execute(
+        "optimization/prompt_rewriter",
+        {
+            "raw_text": "test",
+            "compression_aggression": "low",
+            "values": {
+                "ssn_part1": "123",
+                "foreign_tin": "DE987654321",
+                "us_ein": "12-3456789",
+                "date_of_birth": "1990-05-15",
+                "gr_afm": "094123456",
+            },
+        },
+    )
+    vals = events[0]["args"]["values"]
+    for key in ("ssn_part1", "foreign_tin", "us_ein", "date_of_birth", "gr_afm"):
+        assert vals[key] == REDACTED
+    raw_log = log_path.read_text(encoding="utf-8")
+    assert "DE987654321" not in raw_log
+    assert "12-3456789" not in raw_log
+    assert verify_audit_log(log_path) is True
+
+
 @pytest.mark.asyncio
 async def test_concurrent_async_and_threaded_stress(tmp_path: Path) -> None:
     log_path = tmp_path / "stress.jsonl"

@@ -3,7 +3,7 @@
 **ID**: `office/pdf_form_filler`
 **Issuer**: [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.2.2` — 19 Nov 2026
+- **Version**: `0.2.3` — 24 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -340,6 +340,37 @@ skillware pdf map-validate ./my_forms/vendor_nda.pdf ./my_forms/vendor_nda.yaml
 
 Each `*.yaml` schema map defines top-level metadata (`form_id`, `template_id`, `title`, `source_pdf`, `pages`) and a `sections` list of fields (`id`, `pdf_field_name`, `field_type`, `page`, `label`, `required`, optional `sensitive: true` for PII, `export_value`, and `options` for radio/combobox widgets). When multi-part structural headings (such as `Part I` / `Part II` or `Section 1` / `Section 2`) appear on a page, `map-generate` automatically splits widgets into logical sections. Run `skillware pdf guide` for the full terminal quick-reference.
 
+### Address Book Legal Profile Autofill (`v0.2.3`)
+
+`session_init` optionally integrates with Skillware's shared operator address book (`addressbook.yaml`) via `use_profile: true` (defaults to the unique `is_self: true` contact) or `contact: "<id_or_alias>"` (for client/entity filing).
+
+- **100% additive and optional:** The `profile_key` and `entity_types` metadata added to `kb/schemas/*.yaml` are completely ignored when `use_profile` is omitted (`false`) and `contact` is not passed. Everyday users who fill forms manually without an `addressbook.yaml` experience zero change in behavior.
+- **Smart jurisdiction & format mapping:** Resolves multi-jurisdiction TINs (e.g. Greek AFM → W-8BEN `foreign_tin`), auto-slices US SSN/EIN into Form W-9's segmented boxes, expands ISO-2 country codes (`GR` → `Greece`), converts ISO-8601 `date_of_birth` to `MM-DD-YYYY`, and maps `authorized_signatory.name` to entity signature blocks (`W-8BEN-E`).
+- **Fail-closed safety guards:** Ambiguous contact aliases return `status: "needs_input"` (`error_code: "ambiguous_contact"`) with disambiguation candidates; applying an `individual` profile to an `entity` form (or vice versa) emits an `entity_type_mismatch` warning; manual `session_update` overrides are tracked and surfaced as non-mutating `profile_updates_suggested` on `session_finalize`.
+
+```python
+from skillware.core.loader import SkillLoader
+
+skill = SkillLoader.load_skill("office/pdf_form_filler")["class"]()
+
+# Self-filing W-8BEN from is_self: true contact in addressbook.yaml
+init = skill.execute({
+    "action": "session_init",
+    "template_id": "us_irs_w8ben",
+    "use_profile": True,
+})
+print(init["contact_applied"], init["autofilled_fields"])
+
+# Client W-9 filing with segmented EIN + entity classification checkbox
+client_init = skill.execute({
+    "action": "session_init",
+    "template_id": "us_irs_w9",
+    "contact": "acme_corp",
+})
+```
+
+See [Address book operator config — Legal Profile](../../usage/addressbook_operator_config.md#legal-profile-multi-jurisdiction-form-autofill) for YAML schema and CLI setup (`skillware addressbook set-legal-profile`, `show --unmask`).
+
 ### Environment variables
 
 | Variable | Required | Description |
@@ -364,6 +395,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| `TBD` | feat(pdf_form_filler,addressbook): v0.2.3 multi-jurisdiction `legal_profile` autofill, W-9 segmented TINs, CLI `set-legal-profile` / `show --unmask`, and audit PII redaction (#408) | 24 Nov 2026 | `0.2.3` | [@rosspeili](https://github.com/rosspeili) |
 | [`360353f`](https://github.com/ARPAHLS/skillware/commit/360353fdbc) | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) (#495) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`e66d3cd`](https://github.com/ARPAHLS/skillware/commit/e66d3cd282) | feat(pdf_form_filler): v0.2.1 file-backed interview sessions, PII masking, and e-sign rendering (#405) (#492) | 18 Nov 2026 | `0.2.1` | [@rosspeili](https://github.com/rosspeili) |
 | [`9b05cc7`](https://github.com/ARPAHLS/skillware/commit/9b05cc74ff) | feat(pdf_form_filler): v0.2.0 curated tax/FATCA KB (W-8BEN, W-9, W-8BEN-E, 8966), section-chunked schemas, and PII redaction (#404) (#486) | 18 Nov 2026 | `0.2.0` | [@rosspeili](https://github.com/rosspeili) |

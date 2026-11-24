@@ -477,6 +477,15 @@ def write_addressbook_yaml(path: Path, data: Dict[str, Any]) -> None:
         yaml.safe_dump(data, sort_keys=False, default_flow_style=False),
         encoding="utf-8",
     )
+    contacts = data.get("contacts")
+    has_legal_profile = isinstance(contacts, Mapping) and any(
+        isinstance(c, Mapping) and c.get("legal_profile") for c in contacts.values()
+    )
+    if has_legal_profile and os.name == "posix":
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
 
 
 def normalize_contact_public_0x(raw: str) -> str:
@@ -609,6 +618,56 @@ def update_addressbook_contact(
 def set_addressbook_wallet(path: Path, contact_id: str, wallet_0x: str) -> None:
     """Attach or update ``public_0x`` on a contact."""
     update_addressbook_contact(path, contact_id, {"public_0x": wallet_0x})
+
+
+def set_addressbook_legal_profile(
+    path: Path,
+    contact_id: str,
+    legal_profile: Mapping[str, Any],
+    *,
+    is_self: Optional[bool] = None,
+    merge: bool = True,
+) -> Dict[str, Any]:
+    """Attach or update ``legal_profile`` (and optional ``is_self``) on a contact."""
+    from skillware.core.legal_profile import validate_legal_profile
+
+    cid = (contact_id or "").strip()
+    if not cid:
+        raise ValueError("contact_id is required")
+    data = load_addressbook_yaml(path)
+    contacts = data.get("contacts")
+    if not isinstance(contacts, dict) or cid not in contacts:
+        raise KeyError(f"Contact '{cid}' not found in {path}")
+    entry = dict(contacts[cid])
+    existing_lp = entry.get("legal_profile")
+    merged_lp: Dict[str, Any] = (
+        dict(existing_lp) if (merge and isinstance(existing_lp, Mapping)) else {}
+    )
+    for k, v in legal_profile.items():
+        if isinstance(v, Mapping) and isinstance(merged_lp.get(k), Mapping):
+            nested = dict(merged_lp[k])
+            nested.update(v)
+            merged_lp[k] = nested
+        else:
+            merged_lp[k] = v
+
+    errs = validate_legal_profile(cid, merged_lp)
+    if errs:
+        raise ValueError("; ".join(errs))
+
+    entry["legal_profile"] = merged_lp
+    if is_self is True:
+        for other_id, other in contacts.items():
+            if other_id != cid and isinstance(other, dict) and other.get("is_self"):
+                other.pop("is_self", None)
+        entry["is_self"] = True
+    elif is_self is False:
+        entry.pop("is_self", None)
+
+    contacts[cid] = entry
+    data["contacts"] = contacts
+    write_addressbook_yaml(path, data)
+    return entry
 
 
 def delete_addressbook_contact(path: Path, contact_id: str) -> None:
@@ -876,6 +935,20 @@ def validate_addressbook_data(data: Mapping[str, Any]) -> List[str]:
                 normalize_contact_public_0x(str(wallet))
             except (ValueError, ImportError) as exc:
                 errors.append(f"contacts.{contact_id} has invalid public_0x: {exc}")
+
+        if "is_self" in contact and not isinstance(contact.get("is_self"), bool):
+            errors.append(f"contacts.{contact_id}.is_self must be a boolean")
+
+        if "legal_profile" in contact and contact.get("legal_profile") is not None:
+            from skillware.core.legal_profile import validate_legal_profile
+
+            errors.extend(
+                validate_legal_profile(str(contact_id), contact.get("legal_profile"))
+            )
+
+    from skillware.core.legal_profile import validate_is_self_uniqueness
+
+    errors.extend(validate_is_self_uniqueness(contacts))
 
     return errors
 

@@ -618,6 +618,50 @@ def _is_sensitive_label(label: str, field_id: str, native_name: str = "") -> boo
     return any(kw in haystack for kw in _PII_KEYWORDS)
 
 
+def _infer_profile_key(
+    label: str, field_id: str, native_name: str = ""
+) -> Optional[str]:
+    """Infer a standard ``addressbook.yaml`` ``legal_profile`` key from field metadata."""
+    haystack = f"{label} {field_id} {native_name}".lower()
+    if any(
+        k in haystack for k in ("date of birth", "date_of_birth", "dob", "birth date")
+    ):
+        return "date_of_birth"
+    if any(k in haystack for k in ("citizenship", "nationality")):
+        return "citizenship"
+    if any(k in haystack for k in ("foreign tax", "foreign_tin", "ftin")):
+        return "tin.foreign"
+    if "giin" in haystack:
+        return "tin.giin"
+    if any(k in haystack for k in ("ein", "employer identification")):
+        return "tin.us_ein"
+    if any(k in haystack for k in ("ssn", "social security", "itin", "u.s. taxpayer")):
+        return "tin.us"
+    if any(k in haystack for k in ("tax id", "tax_id", "tin", "afm", "vat")):
+        return "tin.local"
+    if any(k in haystack for k in ("city", "state", "postal", "zip")) and any(
+        k in haystack for k in ("city", "postal", "zip")
+    ):
+        return "residence_address.city_state_postal"
+    if any(
+        k in haystack
+        for k in ("street", "permanent residence address", "address_street")
+    ):
+        return "residence_address.street"
+    if "country" in haystack and "citizen" not in haystack:
+        return "residence_address.country"
+    if any(
+        k in haystack
+        for k in ("beneficial owner", "legal name", "legal_name", "organization_name")
+    ):
+        return "legal_name"
+    if "email" in haystack:
+        return "email"
+    if "phone" in haystack or "telephone" in haystack:
+        return "phone"
+    return None
+
+
 def inspect_pdf(pdf_path: Path) -> Dict[str, Any]:
     """
     Inspect a single PDF file and return its XFA status, widgets, and radio groups.
@@ -832,6 +876,10 @@ def generate_schema_map(
 
                 if _is_sensitive_label(primary_label, sem_id, native_name):
                     field_entry["sensitive"] = True
+
+                inferred_pk = _infer_profile_key(primary_label, sem_id, native_name)
+                if inferred_pk:
+                    field_entry["profile_key"] = inferred_pk
 
                 if schema_type == "checkbox":
                     states = _widget_button_states(widget)

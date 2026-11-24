@@ -413,3 +413,124 @@ def test_cli_batch_import_auto_map_to_skill_fill_simulation(
     out_doc.close()
     assert vals["emp_name"] == "Elena Papadopoulos"
     assert vals["emp_ssn"] == "999-88-7766"
+
+
+def test_legal_profile_multi_entity_batch_with_audit_trail_simulation(tmp_path):
+    """Stress simulation: multi-entity/multi-jurisdiction autofill through SkillContext audit log."""
+    import yaml
+    from skillware import SkillContext, verify_audit_log
+
+    ab_path = tmp_path / "addressbook.yaml"
+    contacts = {}
+    for i in range(5):
+        contacts[f"founder_{i}"] = {
+            "display_name": f"Founder {i} Müller",
+            "emails": [f"f{i}@example.com"],
+            "legal_profile": {
+                "type": "individual",
+                "citizenship": "DE" if i % 2 == 0 else "GR",
+                "date_of_birth": f"198{i}-04-1{i}",
+                "tax_residency": [
+                    {
+                        "country": "DE" if i % 2 == 0 else "GR",
+                        "tin": f"99900011{i}",
+                        "tin_type": "StNr" if i % 2 == 0 else "AFM",
+                    }
+                ],
+                "residence_address": {
+                    "street": f"{10 + i} Main Str",
+                    "city": "Berlin" if i % 2 == 0 else "Athens",
+                    "postal_code": f"1011{i}",
+                    "country": "DE" if i % 2 == 0 else "GR",
+                },
+            },
+        }
+        contacts[f"corp_{i}"] = {
+            "display_name": f"HoldCo {i} Ltd",
+            "emails": [f"c{i}@corp.example"],
+            "legal_profile": {
+                "type": "entity",
+                "tax_ids": {"US_EIN": f"1{i}-345678{i}"},
+                "company_registration": {
+                    "jurisdiction": "GB",
+                    "entity_classification": "c_corp",
+                },
+                "authorized_signatory": {"name": f"Director {i}", "title": "CEO"},
+                "residence_address": {
+                    "street": f"{i}0 Bishopsgate",
+                    "city": "London",
+                    "postal_code": "EC2N 4AG",
+                    "country": "GB",
+                },
+            },
+        }
+    ab_path.write_text(
+        yaml.safe_dump({"contacts": contacts, "org_domains": {}}, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    audit_log = tmp_path / "pdf_audit.jsonl"
+    sdir = tmp_path / "sessions"
+    ctx = SkillContext(
+        skills=["office/pdf_form_filler"],
+        audit_log_path=audit_log,
+    )
+
+    for i in range(5):
+        init_ind = ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_init",
+                "template_id": "us_irs_w8ben",
+                "contact": f"founder_{i}",
+                "addressbook_path": str(ab_path),
+                "session_dir": str(sdir),
+            },
+        )
+        assert init_ind["status"] == "ok"
+        assert init_ind["autofilled_count"] >= 5
+
+        ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_update",
+                "session_id": init_ind["session_id"],
+                "session_dir": str(sdir),
+                "values": {
+                    "signer_name": f"Founder {i} Müller",
+                    "foreign_tin": f"99900011{i}",
+                },
+            },
+        )
+        fin = ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_finalize",
+                "session_id": init_ind["session_id"],
+                "session_dir": str(sdir),
+                "output_path": str(tmp_path / f"w8_{i}.pdf"),
+                "confirmed": True,
+                "flatten": True,
+            },
+        )
+        assert fin["status"] == "success"
+
+        init_corp = ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_init",
+                "template_id": "us_irs_w9",
+                "contact": f"corp_{i}",
+                "addressbook_path": str(ab_path),
+                "session_dir": str(sdir),
+            },
+        )
+        assert init_corp["status"] == "ok"
+        assert {"ein_part1", "ein_part2", "tax_class_c_corp"}.issubset(
+            set(init_corp["autofilled_fields"])
+        )
+
+    assert verify_audit_log(audit_log) is True
+    raw_audit = audit_log.read_text(encoding="utf-8")
+    for i in range(5):
+        assert f"99900011{i}" not in raw_audit
