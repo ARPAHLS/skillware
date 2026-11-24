@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.2.2
+version: 0.2.3
 tier: core
 shape: workflow
 target:
@@ -103,6 +103,16 @@ parameters:
     session_dir:
       type: string
       description: "Optional override directory for file-backed session JSON files."
+    use_profile:
+      type: boolean
+      default: false
+      description: "If true in 'session_init', pre-fill matching schema profile_key fields from addressbook.yaml (defaults to is_self: true contact unless 'contact' is specified)."
+    contact:
+      type: string
+      description: "Optional contact ID, display name, or alias in addressbook.yaml to pre-fill in 'session_init' (implicitly enables profile autofill)."
+    addressbook_path:
+      type: string
+      description: "Optional override path to addressbook.yaml for 'session_init' profile autofill."
   required: []
 outputs:
   type: object

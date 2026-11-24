@@ -223,6 +223,7 @@ def get_template_schema(
         "revision": matched_schema.get("revision"),
         "jurisdiction": matched_schema.get("jurisdiction"),
         "category": matched_schema.get("category"),
+        "entity_types": matched_schema.get("entity_types"),
         "pages": matched_schema.get("pages"),
         "tier": matched_schema.get("_tier"),
         "sections_index": section_index,

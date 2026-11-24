@@ -3,6 +3,9 @@ title: "Request for Taxpayer Identification Number and Certification (Form W-9)"
 revision: "Rev. March 2024"
 jurisdiction: "US"
 category: "tax"
+entity_types:
+  - "individual"
+  - "entity"
 source_pdf: "templates/us_irs_w9.pdf"
 pages: 6
 
@@ -17,6 +20,7 @@ sections:
         page: 0
         label: "1. Name of entity/individual"
         description: "Name as shown on your income tax return."
+        profile_key: "legal_name"
         required: true
 
       - id: "business_name"
@@ -24,6 +28,7 @@ sections:
         field_type: "text"
         page: 0
         label: "2. Business name/disregarded entity name, if different from above"
+        profile_key: "business_name"
         required: false
 
       - id: "tax_class_individual"
@@ -31,6 +36,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. Individual/sole proprietor"
+        profile_key: "entity_classification.individual"
         required: false
         export_value: "1"
 
@@ -39,6 +45,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. C Corporation"
+        profile_key: "entity_classification.c_corp"
         required: false
         export_value: "2"
 
@@ -47,6 +54,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. S Corporation"
+        profile_key: "entity_classification.s_corp"
         required: false
         export_value: "3"
 
@@ -55,6 +63,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. Partnership"
+        profile_key: "entity_classification.partnership"
         required: false
         export_value: "4"
 
@@ -63,6 +72,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. Trust/estate"
+        profile_key: "entity_classification.trust_estate"
         required: false
         export_value: "5"
 
@@ -71,6 +81,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "3a. Limited liability company (LLC)"
+        profile_key: "entity_classification.llc"
         required: false
         export_value: "6"
 
@@ -123,6 +134,7 @@ sections:
         field_type: "text"
         page: 0
         label: "5. Address (number, street, and apt. or suite no.)"
+        profile_key: "residence_address.street_combined"
         required: true
 
       - id: "address_city_state_zip"
@@ -130,6 +142,7 @@ sections:
         field_type: "text"
         page: 0
         label: "6. City, state, and ZIP code"
+        profile_key: "residence_address.city_state_postal"
         required: true
 
       - id: "account_numbers"
@@ -155,6 +168,7 @@ sections:
         field_type: "text"
         page: 0
         label: "SSN (first 3 digits)"
+        profile_key: "tin.us_ssn.part1"
         required: false
         sensitive: true
 
@@ -163,6 +177,7 @@ sections:
         field_type: "text"
         page: 0
         label: "SSN (middle 2 digits)"
+        profile_key: "tin.us_ssn.part2"
         required: false
         sensitive: true
 
@@ -171,6 +186,7 @@ sections:
         field_type: "text"
         page: 0
         label: "SSN (last 4 digits)"
+        profile_key: "tin.us_ssn.part3"
         required: false
         sensitive: true
 
@@ -179,6 +195,7 @@ sections:
         field_type: "text"
         page: 0
         label: "EIN (first 2 digits)"
+        profile_key: "tin.us_ein.part1"
         required: false
         sensitive: true
 
@@ -187,6 +204,7 @@ sections:
         field_type: "text"
         page: 0
         label: "EIN (last 7 digits)"
+        profile_key: "tin.us_ein.part2"
         required: false
         sensitive: true
 

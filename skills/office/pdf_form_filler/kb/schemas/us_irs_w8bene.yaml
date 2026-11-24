@@ -3,6 +3,8 @@ title: "Certificate of Status of Beneficial Owner for United States Tax Withhold
 revision: "Rev. October 2021"
 jurisdiction: "US"
 category: "tax"
+entity_types:
+  - "entity"
 source_pdf: "templates/us_irs_w8bene.pdf"
 pages: 8
 
@@ -16,6 +18,7 @@ sections:
         field_type: "text"
         page: 0
         label: "1. Name of organization that is the beneficial owner"
+        profile_key: "legal_name"
         required: true
 
       - id: "country_of_incorporation"
@@ -23,6 +26,7 @@ sections:
         field_type: "text"
         page: 0
         label: "2. Country of incorporation or organization"
+        profile_key: "jurisdiction_of_incorporation"
         required: true
 
       - id: "disregarded_entity_name"
@@ -37,6 +41,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "4. Chapter 3 Status: Corporation"
+        profile_key: "entity_classification.corporation"
         required: false
         export_value: "1"
 
@@ -45,6 +50,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "4. Chapter 3 Status: Partnership"
+        profile_key: "entity_classification.partnership"
         required: false
         export_value: "5"
 
@@ -53,6 +59,7 @@ sections:
         field_type: "checkbox"
         page: 0
         label: "4. Chapter 3 Status: Foreign Government - Controlled Entity"
+        profile_key: "entity_classification.government"
         required: false
         export_value: "9"
 
@@ -81,6 +88,7 @@ sections:
         field_type: "text"
         page: 7
         label: "Print Name"
+        profile_key: "authorized_signatory.name"
         signature_mode: "typed_e_sign"
         required: true
 

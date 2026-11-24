@@ -24,9 +24,11 @@ The `office/pdf_form_filler` skill provides deterministic inspection, validation
 
 #### Path C: Multi-Turn Conversational Interview (`session_init` → `session_finalize`)
 1. **`session_init`:** Pass `template_id` (or `pdf_path`) to start a file-backed session (`session_id`).
-2. **`session_update`:** Collect fields section-by-section without overwhelming the user. Pass `values`, `skip_fields` (if user opts out), or `defer_fields` (if user needs to look something up — marked `to_revise`).
+   - **Address book `legal_profile` autofill (optional):** Pass `use_profile: true` to pre-fill from the operator's `is_self: true` contact in `addressbook.yaml`, or pass `contact: "<id_or_alias>"` to pre-fill for a client/entity (e.g., `"acme_corp"`). Omit both for a plain manual interview.
+   - **Guards:** If `error_code: "ambiguous_contact"` is returned, show the `candidates` and ask the user to pick an exact `contact_id`. If `warnings` contains `entity_type_mismatch`, alert the user before filling.
+2. **`session_update`:** Collect remaining missing fields section-by-section without overwhelming the user. Pass `values`, `skip_fields` (if user opts out), or `defer_fields` (if user needs to look something up — marked `to_revise`). Users can override any autofilled field at any time.
 3. **`session_preview`:** Present the PII-masked `summary_table` to the user before finalizing.
-4. **`session_finalize`:** Only after explicit user approval, pass `confirmed: true` (defaults to `flatten: true`, stamps `auto_date`, and formats `typed_e_sign` as `"/s/ Name"`).
+4. **`session_finalize`:** Only after explicit user approval, pass `confirmed: true` (defaults to `flatten: true`, stamps `auto_date`, and formats `typed_e_sign` as `"/s/ Name"`). If `profile_updates_suggested` is returned (because the user overrode an autofilled field), ask if they want to update `addressbook.yaml` via `skillware addressbook set-legal-profile`.
 
 ### Field Type & Signing Guidance
 - **Text:** Plain string values.

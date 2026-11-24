@@ -3210,7 +3210,42 @@ def main() -> None:
         help="Shared operator address book (mail, defi, identity).",
     )
     addressbook_sub = addressbook_parser.add_subparsers(dest="addressbook_action")
-    addressbook_sub.add_parser("show", help="Show resolved path and contact count.")
+    ab_show = addressbook_sub.add_parser(
+        "show", help="Show resolved path/count or inspect one contact (masked PII)."
+    )
+    ab_show.add_argument("contact_id", nargs="?", default=None)
+    ab_show.add_argument(
+        "--unmask",
+        action="store_true",
+        help="Reveal masked tax IDs and birthdates.",
+    )
+    ab_show.add_argument("--json", action="store_true", dest="json_output")
+    ab_lp = addressbook_sub.add_parser(
+        "set-legal-profile",
+        help="Attach or update legal_profile fields on a contact.",
+    )
+    ab_lp.add_argument("contact_id")
+    ab_lp.add_argument(
+        "--type", dest="profile_type", choices=["individual", "entity"], default=None
+    )
+    ab_lp.add_argument("--self", dest="is_self", action="store_true", default=None)
+    ab_lp.add_argument("--citizenship", default=None)
+    ab_lp.add_argument("--tax-country", dest="tax_country", default=None)
+    ab_lp.add_argument("--tin", default=None)
+    ab_lp.add_argument("--tin-type", dest="tin_type", default=None)
+    ab_lp.add_argument("--ein", default=None)
+    ab_lp.add_argument("--ssn", default=None)
+    ab_lp.add_argument("--giin", default=None)
+    ab_lp.add_argument("--lei", default=None)
+    ab_lp.add_argument("--dob", default=None)
+    ab_lp.add_argument("--street", default=None)
+    ab_lp.add_argument("--city", default=None)
+    ab_lp.add_argument("--state", default=None)
+    ab_lp.add_argument("--postal", default=None)
+    ab_lp.add_argument("--country", default=None)
+    ab_lp.add_argument("--entity-class", dest="entity_class", default=None)
+    ab_lp.add_argument("--signatory-name", dest="signatory_name", default=None)
+    ab_lp.add_argument("--signatory-title", dest="signatory_title", default=None)
     ab_init = addressbook_sub.add_parser("init", help="Create template address book.")
     ab_init.add_argument("--path", type=Path, default=None)
     ab_init.add_argument("--force", action="store_true")
@@ -3813,6 +3848,34 @@ def main() -> None:
             kwargs["path"] = getattr(args, "path", None)
         elif action == "open":
             kwargs["open_dir"] = getattr(args, "dir", False)
+        elif action == "show":
+            kwargs["contact_id"] = getattr(args, "contact_id", None)
+            kwargs["unmask"] = getattr(args, "unmask", False)
+            kwargs["json_output"] = getattr(args, "json_output", False)
+        elif action == "set-legal-profile":
+            for attr in (
+                "contact_id",
+                "profile_type",
+                "is_self",
+                "citizenship",
+                "tax_country",
+                "tin",
+                "tin_type",
+                "ein",
+                "ssn",
+                "giin",
+                "lei",
+                "dob",
+                "street",
+                "city",
+                "state",
+                "postal",
+                "country",
+                "entity_class",
+                "signatory_name",
+                "signatory_title",
+            ):
+                kwargs[attr] = getattr(args, attr, None)
         raise SystemExit(cmd_addressbook_dispatch(action, "run", **kwargs))
     elif args.command == "theme":
         raise SystemExit(cmd_theme(theme_name=getattr(args, "name", None)))

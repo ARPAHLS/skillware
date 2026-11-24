@@ -105,6 +105,7 @@ def build_session_fields_from_schema(schema: Dict[str, Any]) -> List[Dict[str, A
                     "signature_mode": f.get("signature_mode"),
                     "date_format": f.get("date_format"),
                     "options": f.get("options"),
+                    "profile_key": f.get("profile_key"),
                 }
             )
     return out

@@ -118,6 +118,7 @@ class PDFFormFillerSkill(BaseSkill):
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(config)
+        self._session_dirs: Dict[str, Path] = {}
 
     @property
     def manifest(self) -> Dict[str, Any]:
@@ -514,8 +515,17 @@ class PDFFormFillerSkill(BaseSkill):
     # ------------------------------------------------------------------
 
     def _sessions_dir(self, params: Dict[str, Any]) -> Path:
+        explicit = params.get("session_dir")
+        if explicit:
+            return resolve_sessions_dir(
+                session_dir=explicit,
+                env_sessions_dir=self.credential("PDF_SESSIONS_DIR"),
+            )
+        sid = params.get("session_id")
+        if sid and str(sid) in self._session_dirs:
+            return self._session_dirs[str(sid)]
         return resolve_sessions_dir(
-            session_dir=params.get("session_dir"),
+            session_dir=None,
             env_sessions_dir=self.credential("PDF_SESSIONS_DIR"),
         )
 
@@ -588,17 +598,92 @@ class PDFFormFillerSkill(BaseSkill):
             ]
             sections_index = []
 
+        init_sdir = self._sessions_dir(params)
         record = create_session_record(
             template_id=str(template_id) if template_id else None,
             pdf_path=str(pdf_path),
             schema_path=str(schema_path) if schema_path else None,
             fields_meta=fields_meta,
             sections_index=sections_index,
-            sessions_dir=self._sessions_dir(params),
+            sessions_dir=init_sdir,
             ttl_seconds=ttl_seconds,
         )
+        self._session_dirs[record["session_id"]] = init_sdir
+
+        contact_query = params.get("contact")
+        use_profile = bool(params.get("use_profile", False)) or bool(contact_query)
+        autofilled_fields: list[str] = []
+        profile_warnings: list[str] = []
+        contact_applied: Optional[str] = None
+
+        if use_profile:
+            ab_result = self._resolve_contact_for_profile(
+                contact_query=str(contact_query).strip() if contact_query else None,
+                addressbook_path=params.get("addressbook_path"),
+            )
+            if ab_result.get("status") == "needs_input":
+                return ab_result
+            if ab_result.get("warning"):
+                profile_warnings.append(str(ab_result["warning"]))
+            resolved_contact = ab_result.get("contact")
+            resolved_cid = ab_result.get("contact_id")
+            if isinstance(resolved_contact, dict) and resolved_cid:
+                display = str(resolved_contact.get("display_name") or resolved_cid)
+                contact_applied = f"{resolved_cid} ({display})"
+                lp = resolved_contact.get("legal_profile")
+                lp_type = (
+                    str(lp.get("type") or "").strip().lower()
+                    if isinstance(lp, dict)
+                    else ""
+                )
+                expected_types = (
+                    [str(t).strip().lower() for t in (schema.get("entity_types") or [])]
+                    if isinstance(schema, dict)
+                    else []
+                )
+                if lp_type and expected_types and lp_type not in expected_types:
+                    profile_warnings.append(
+                        f"entity_type_mismatch: contact '{resolved_cid}' has legal_profile.type={lp_type!r}, "
+                        f"but template expects {expected_types}."
+                    )
+
+                from skillware.core.legal_profile import resolve_profile_field
+
+                form_jurisdiction = (
+                    str(schema.get("jurisdiction") or "")
+                    if isinstance(schema, dict)
+                    else None
+                )
+                now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                states = record.setdefault("field_states", {})
+                for f in fields_meta:
+                    pkey = f.get("profile_key")
+                    if not pkey:
+                        continue
+                    val = resolve_profile_field(
+                        resolved_contact,
+                        str(pkey),
+                        form_jurisdiction=form_jurisdiction or None,
+                        date_format=f.get("date_format"),
+                    )
+                    if val is None or val == "":
+                        continue
+                    fid = f["id"]
+                    states[fid] = {
+                        "status": "filled",
+                        "value": val,
+                        "source": f"addressbook:{resolved_cid}:{pkey}",
+                        "autofilled_value": val,
+                        "updated_at": now_iso,
+                    }
+                    autofilled_fields.append(fid)
+
+                record["contact_applied"] = contact_applied
+                record["contact_id"] = resolved_cid
+                save_session_record(record, self._sessions_dir(params))
+
         progress_info = compute_session_progress(record)
-        return {
+        resp: Dict[str, Any] = {
             "status": "ok",
             "session_id": record["session_id"],
             "template_id": record["template_id"],
@@ -606,6 +691,101 @@ class PDFFormFillerSkill(BaseSkill):
             "sections_index": sections_index,
             **progress_info,
         }
+        if use_profile:
+            resp["contact_applied"] = contact_applied
+            resp["autofilled_count"] = len(autofilled_fields)
+            resp["autofilled_fields"] = autofilled_fields
+            if profile_warnings:
+                resp["warnings"] = profile_warnings
+        return resp
+
+    def _resolve_contact_for_profile(
+        self,
+        *,
+        contact_query: Optional[str],
+        addressbook_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Resolve an addressbook contact for ``session_init`` (fail-closed on ambiguity)."""
+        from skillware.core.legal_profile import find_self_contact
+        from skillware.core.mail_config import (
+            contact_recipient_candidate,
+            find_contacts_by_query,
+            load_addressbook_yaml,
+            load_merged_mail_settings,
+            resolve_addressbook_path,
+        )
+
+        if addressbook_path and str(addressbook_path).strip():
+            ab_path = Path(str(addressbook_path).strip()).expanduser()
+        else:
+            mail = load_merged_mail_settings(refresh=True)
+            ab_path = resolve_addressbook_path(mail=mail)
+
+        if not ab_path.is_file():
+            return {
+                "status": "ok",
+                "warning": f"addressbook_not_found: {ab_path} does not exist; proceeding without profile autofill.",
+            }
+
+        data = load_addressbook_yaml(ab_path)
+        contacts = data.get("contacts")
+        if not isinstance(contacts, dict) or not contacts:
+            return {
+                "status": "ok",
+                "warning": "addressbook_empty: no contacts found; proceeding without profile autofill.",
+            }
+
+        if contact_query:
+            if contact_query in contacts and isinstance(contacts[contact_query], dict):
+                return {
+                    "status": "ok",
+                    "contact_id": contact_query,
+                    "contact": dict(contacts[contact_query]),
+                }
+            matches = find_contacts_by_query(data, contact_query)
+            if len(matches) > 1:
+                return {
+                    "status": "needs_input",
+                    "error_code": "ambiguous_contact",
+                    "candidates": [
+                        contact_recipient_candidate(cid, cdict)
+                        for cid, cdict in matches
+                    ],
+                    "message": (
+                        f"Contact query '{contact_query}' matched multiple contacts. "
+                        "Specify an exact contact_id to avoid misfiling."
+                    ),
+                }
+            if len(matches) == 1:
+                cid, cdict = matches[0]
+                return {
+                    "status": "ok",
+                    "contact_id": cid,
+                    "contact": dict(cdict),
+                }
+            return {
+                "status": "ok",
+                "warning": f"contact_not_found: '{contact_query}' was not found in {ab_path}.",
+            }
+
+        found = find_self_contact(data)
+        if not found:
+            return {
+                "status": "ok",
+                "warning": "self_contact_not_found: no contact marked is_self: true (or 'me') in addressbook.yaml.",
+            }
+        cid, cdict = found
+        if not isinstance(cdict.get("legal_profile"), dict):
+            return {
+                "status": "ok",
+                "contact_id": cid,
+                "contact": cdict,
+                "warning": (
+                    f"legal_profile_missing: contact '{cid}' has no legal_profile; "
+                    "using display_name/email fallbacks only."
+                ),
+            }
+        return {"status": "ok", "contact_id": cid, "contact": cdict}
 
     def _action_session_update(self, params: Dict[str, Any]) -> Dict[str, Any]:
         session_id = params.get("session_id")
@@ -666,7 +846,16 @@ class PDFFormFillerSkill(BaseSkill):
                         "status": "error",
                         "message": f"Unknown field '{fid}' for session '{session_id}'.",
                     }
-                states[fid] = {"status": "filled", "value": val, "updated_at": now_iso}
+                prev = states.get(fid) if isinstance(states.get(fid), dict) else {}
+                new_state: Dict[str, Any] = {
+                    "status": "filled",
+                    "value": val,
+                    "updated_at": now_iso,
+                }
+                if "autofilled_value" in prev:
+                    new_state["autofilled_value"] = prev["autofilled_value"]
+                    new_state["source"] = "user_override"
+                states[fid] = new_state
 
         for fid in skip_fields:
             if fid not in meta_by_id:
@@ -860,7 +1049,35 @@ class PDFFormFillerSkill(BaseSkill):
         record["output_path"] = output_path
         save_session_record(record, sdir)
 
-        return {
+        profile_updates_suggested: list[Dict[str, Any]] = []
+        if record.get("contact_id"):
+            for f in record.get("fields_meta") or []:
+                fid = f["id"]
+                pkey = f.get("profile_key")
+                st_obj = states.get(fid) or {}
+                if (
+                    pkey
+                    and st_obj.get("status") == "filled"
+                    and "autofilled_value" in st_obj
+                    and st_obj.get("value") != st_obj.get("autofilled_value")
+                ):
+                    is_sens = bool(f.get("sensitive"))
+                    profile_updates_suggested.append(
+                        {
+                            "field_id": fid,
+                            "profile_key": pkey,
+                            "old_value": (
+                                "***REDACTED***"
+                                if is_sens
+                                else st_obj.get("autofilled_value")
+                            ),
+                            "new_value": (
+                                "***REDACTED***" if is_sens else st_obj.get("value")
+                            ),
+                        }
+                    )
+
+        resp: Dict[str, Any] = {
             "status": "success",
             "session_id": record["session_id"],
             "output_path": output_path,
@@ -868,3 +1085,8 @@ class PDFFormFillerSkill(BaseSkill):
             "flattened": flatten,
             "message": f"Successfully finalized session and filled {len(applied_fields)} fields.",
         }
+        if record.get("contact_applied"):
+            resp["contact_applied"] = record["contact_applied"]
+        if profile_updates_suggested:
+            resp["profile_updates_suggested"] = profile_updates_suggested
+        return resp

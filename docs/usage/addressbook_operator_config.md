@@ -132,6 +132,8 @@ Full command list: [`skillware addressbook`](cli.md#skillware-addressbook). Inte
 | `skillware addressbook add` | Wizard or flags (`--name`, `--email`, `--wallet`, …) |
 | `skillware addressbook edit <id>` | Update fields on existing contact |
 | `skillware addressbook set-wallet <id> <0x…>` | Attach or update `public_0x` |
+| `skillware addressbook set-legal-profile <id> [...]` | Attach or update multi-jurisdiction `legal_profile` (`--type`, `--self`, `--citizenship`, `--tax-country`, `--tin`, `--ein`, `--ssn`, `--giin`, `--lei`, `--dob`, address, signatory) |
+| `skillware addressbook show <id> [--unmask] [--json]` | Inspect one contact with tax IDs and birthdates masked by default (`--unmask` reveals plaintext) |
 | `skillware addressbook remove <id> --yes` | Delete contact |
 | `skillware addressbook validate` | Schema and address checks |
 | `skillware addressbook open` / `open --dir` | Open file or folder in OS file manager |
@@ -187,6 +189,73 @@ Skills should use these helpers rather than duplicating per-bundle `data/address
 Multi-skill recipe (pay on-chain, email receipt): [`examples/pay_and_notify_demo.py`](../../examples/pay_and_notify_demo.py) — edit `CONTACT_QUERY`, `AMOUNT_ETH`, and related constants; prerequisites listed in the script docstring.
 
 When adding a new skill that resolves people by name, import `mail_config` and link back to this guide from the skill catalog page.
+
+---
+
+## Legal Profile (Multi-Jurisdiction Form Autofill)
+
+Contacts in `addressbook.yaml` may carry an optional `is_self: true` marker (at most one primary operator contact) and a `legal_profile` block for deterministic compliance/tax form pre-filling (`office/pdf_form_filler` v0.2.3+).
+
+- **Zero field duplication:** `legal_name` falls back to `display_name`, `business_name` falls back to `org`, and `email` falls back to `emails[0]`.
+- **Multi-jurisdiction tax identifiers:** Store ordered `tax_residency` entries (`country` as ISO-3166-1 alpha-2, `tin`, optional `tin_type` such as `AFM`, `UTR`, `NINO`, `StNr`, `TFN`, `SIN`) plus optional typed `tax_ids` (`US_SSN`, `US_ITIN`, `US_EIN`, `EU_VAT`, `GIIN`, `LEI`), `company_registration`, and `authorized_signatory` for entity forms.
+- **Canonical storage, form-aware formatting:** Dates are stored as ISO-8601 (`YYYY-MM-DD`) and formatted automatically per target form (`MM-DD-YYYY` on US IRS W-8BEN, `DD/MM/YYYY` on UK/EU forms). Country codes like `GR` expand to `Greece` on forms requiring full country names. US SSNs/EINs auto-slice into Form W-9's segmented boxes (`ssn_part1..3`, `ein_part1..2`).
+- **Privacy & masking:** On POSIX systems, writing an `addressbook.yaml` with `legal_profile` data enforces `chmod 600`. `skillware addressbook list` never displays raw TINs, and `skillware addressbook show <id>` masks sensitive tax IDs and birthdates by default (`--unmask` reveals plaintext).
+
+```yaml
+contacts:
+  me:
+    display_name: Nikos Papadopoulos
+    is_self: true
+    emails:
+      - nikos@example.com
+    legal_profile:
+      type: individual
+      citizenship: GR
+      date_of_birth: "1990-05-15"
+      tax_residency:
+        - country: GR
+          tin: "094123456"
+          tin_type: AFM
+      residence_address:
+        street: "10 Ermou St"
+        city: Athens
+        state_province: Attica
+        postal_code: "10563"
+        country: GR
+
+  acme_corp:
+    display_name: Acme Ventures Inc
+    org: Acme Group
+    emails:
+      - tax@acme.example
+    aliases:
+      - Acme
+    legal_profile:
+      type: entity
+      tax_ids:
+        US_EIN: "12-3456789"
+        GIIN: "ABCDEF.12345.LE.123"
+      company_registration:
+        jurisdiction: US
+        entity_classification: c_corp
+      authorized_signatory:
+        name: Alice Director
+        title: CFO
+      residence_address:
+        street: "100 Market St"
+        city: Wilmington
+        state_province: DE
+        postal_code: "19801"
+        country: US
+```
+
+Set up or inspect profiles via CLI:
+
+```bash
+skillware addressbook set-legal-profile me --type individual --self --citizenship GR --tax-country GR --tin 094123456 --tin-type AFM --dob 1990-05-15 --street "10 Ermou St" --city Athens --postal 10563 --country GR
+skillware addressbook show me
+skillware addressbook show me --unmask --json
+```
 
 ---
 

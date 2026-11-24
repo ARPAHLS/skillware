@@ -3,6 +3,8 @@ title: "Certificate of Foreign Status of Beneficial Owner for United States Tax 
 revision: "Rev. October 2021"
 jurisdiction: "US"
 category: "tax"
+entity_types:
+  - "individual"
 source_pdf: "templates/us_irs_w8ben.pdf"
 pages: 1
 
@@ -17,6 +19,7 @@ sections:
         page: 0
         label: "1. Name of individual who is the beneficial owner"
         description: "Legal full name as registered for tax purposes."
+        profile_key: "legal_name"
         required: true
 
       - id: "country_of_citizenship"
@@ -25,6 +28,7 @@ sections:
         page: 0
         label: "2. Country of citizenship"
         description: "Full country name. Do not abbreviate."
+        profile_key: "citizenship"
         required: true
 
       - id: "permanent_residence_street"
@@ -33,6 +37,7 @@ sections:
         page: 0
         label: "3. Permanent residence address (street, apt. or suite no., or rural route)"
         description: "Street address. Do not use a P.O. box or in-care-of address."
+        profile_key: "residence_address.street_combined"
         required: true
 
       - id: "permanent_residence_city_state_postal"
@@ -41,6 +46,7 @@ sections:
         page: 0
         label: "3. City or town, state or province, and postal code"
         description: "Include postal code where appropriate."
+        profile_key: "residence_address.city_state_postal"
         required: true
 
       - id: "permanent_residence_country"
@@ -49,6 +55,7 @@ sections:
         page: 0
         label: "3. Country"
         description: "Country of permanent residence. Do not abbreviate."
+        profile_key: "residence_address.country"
         required: true
 
       - id: "mailing_street"
@@ -57,6 +64,7 @@ sections:
         page: 0
         label: "4. Mailing address (if different from above)"
         description: "Optional mailing street address."
+        profile_key: "mailing_address.street_combined"
         required: false
 
       - id: "mailing_city_state_postal"
@@ -65,6 +73,7 @@ sections:
         page: 0
         label: "4. Mailing city or town, state or province, and postal code"
         description: "Optional mailing city/state/postal code."
+        profile_key: "mailing_address.city_state_postal"
         required: false
 
       - id: "mailing_country"
@@ -73,6 +82,7 @@ sections:
         page: 0
         label: "4. Mailing country"
         description: "Optional mailing country."
+        profile_key: "mailing_address.country"
         required: false
 
       - id: "us_tin"
@@ -81,6 +91,7 @@ sections:
         page: 0
         label: "5. U.S. taxpayer identification number (SSN or ITIN), if required"
         description: "U.S. SSN or ITIN if required by IRS instructions."
+        profile_key: "tin.us"
         required: false
         sensitive: true
 
@@ -90,6 +101,7 @@ sections:
         page: 0
         label: "6a. Foreign tax identifying number"
         description: "Tax ID issued by the beneficial owner's jurisdiction of tax residence."
+        profile_key: "tin.foreign"
         required: false
         sensitive: true
 
@@ -116,6 +128,8 @@ sections:
         page: 0
         label: "8. Date of birth (MM-DD-YYYY)"
         description: "Date of birth in MM-DD-YYYY format."
+        date_format: "MM-DD-YYYY"
+        profile_key: "date_of_birth"
         required: false
         sensitive: true
         date_format: "MM-DD-YYYY"

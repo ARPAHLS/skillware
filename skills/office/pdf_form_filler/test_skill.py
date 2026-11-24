@@ -101,8 +101,8 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert manifest["name"] == "office/pdf_form_filler"
-    assert skill_manifest["version"] == "0.2.2"
-    assert manifest["version"] == "0.2.2"
+    assert skill_manifest["version"] == "0.2.3"
+    assert manifest["version"] == "0.2.3"
     assert "pymupdf" in manifest.get("requirements", [])
     assert "anthropic" not in manifest.get("requirements", [])
 
@@ -944,3 +944,177 @@ def test_session_expiry_and_invalid_id_fail_closed(skill, tmp_path):
     )
     assert expired["status"] == "error"
     assert expired["error_code"] == "session_expired"
+
+
+def test_legal_profile_self_and_entity_autofill_override_and_guards(skill, tmp_path):
+    """Test #408: self-filing W-8BEN, client W-9/W-8BEN-E, override diff, ambiguity, mismatch."""
+    ab_path = tmp_path / "addressbook.yaml"
+    ab_data = {
+        "contacts": {
+            "me": {
+                "display_name": "Nikos Papadopoulos",
+                "is_self": True,
+                "emails": ["nikos@example.com"],
+                "legal_profile": {
+                    "type": "individual",
+                    "citizenship": "GR",
+                    "date_of_birth": "1990-05-15",
+                    "tax_residency": [
+                        {"country": "GR", "tin": "094123456", "tin_type": "AFM"}
+                    ],
+                    "residence_address": {
+                        "street": "10 Ermou St",
+                        "city": "Athens",
+                        "state_province": "Attica",
+                        "postal_code": "10563",
+                        "country": "GR",
+                    },
+                },
+            },
+            "acme_us": {
+                "display_name": "Acme Ventures Inc",
+                "org": "Acme Group",
+                "emails": ["tax@acme.example"],
+                "aliases": ["Acme"],
+                "legal_profile": {
+                    "type": "entity",
+                    "tax_ids": {"US_EIN": "12-3456789"},
+                    "company_registration": {
+                        "jurisdiction": "US",
+                        "entity_classification": "c_corp",
+                    },
+                    "authorized_signatory": {
+                        "name": "Alice Director",
+                        "title": "CFO",
+                    },
+                    "residence_address": {
+                        "street": "100 Market St",
+                        "city": "Wilmington",
+                        "state_province": "DE",
+                        "postal_code": "19801",
+                        "country": "US",
+                    },
+                },
+            },
+            "acme_uk": {
+                "display_name": "Acme UK Ltd",
+                "emails": ["uk@acme.example"],
+                "aliases": ["Acme"],
+            },
+        },
+        "org_domains": {},
+    }
+    ab_path.write_text(yaml.safe_dump(ab_data, sort_keys=False), encoding="utf-8")
+    sdir = tmp_path / "sessions"
+
+    # 1. Self-filing W-8BEN: Greek AFM -> foreign_tin, GR -> Greece, ISO DOB -> MM-DD-YYYY
+    init_w8 = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8ben",
+            "use_profile": True,
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        }
+    )
+    assert init_w8["status"] == "ok"
+    assert init_w8["contact_applied"] == "me (Nikos Papadopoulos)"
+    assert "foreign_tin" in init_w8["autofilled_fields"]
+    assert "date_of_birth" in init_w8["autofilled_fields"]
+
+    # Preview masks sensitive foreign_tin and DOB
+    prev = skill.execute(
+        {
+            "action": "session_preview",
+            "session_id": init_w8["session_id"],
+            "session_dir": str(sdir),
+        }
+    )
+    assert prev["summary_table"]["6a. Foreign tax identifying number"] == "***3456"
+    assert prev["summary_table"]["2. Country of citizenship"] == "Greece"
+
+    # Override street address + add signer_name, then finalize -> profile_updates_suggested
+    skill.execute(
+        {
+            "action": "session_update",
+            "session_id": init_w8["session_id"],
+            "session_dir": str(sdir),
+            "values": {
+                "permanent_residence_street": "22 Syntagma Sq",
+                "signer_name": "Nikos Papadopoulos",
+            },
+        }
+    )
+    fin = skill.execute(
+        {
+            "action": "session_finalize",
+            "session_id": init_w8["session_id"],
+            "session_dir": str(sdir),
+            "output_path": str(tmp_path / "w8_out.pdf"),
+            "confirmed": True,
+        }
+    )
+    assert fin["status"] == "success"
+    assert fin["contact_applied"] == "me (Nikos Papadopoulos)"
+    assert any(
+        u["field_id"] == "permanent_residence_street"
+        and u["old_value"] == "10 Ermou St"
+        and u["new_value"] == "22 Syntagma Sq"
+        for u in fin.get("profile_updates_suggested", [])
+    )
+
+    # 2. Client W-9 filing: segmented EIN + c_corp checkbox
+    init_w9 = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w9",
+            "contact": "acme_us",
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        }
+    )
+    assert init_w9["status"] == "ok"
+    assert {"legal_name", "ein_part1", "ein_part2", "tax_class_c_corp"}.issubset(
+        set(init_w9["autofilled_fields"])
+    )
+
+    # 3. Client W-8BEN-E filing: authorized_signatory.name -> signer_name
+    init_w8e = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8bene",
+            "contact": "acme_us",
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        }
+    )
+    assert init_w8e["status"] == "ok"
+    assert {"organization_name", "chapter3_corporation", "signer_name"}.issubset(
+        set(init_w8e["autofilled_fields"])
+    )
+
+    # 4. Entity-type mismatch warning: individual 'me' on entity form 'us_irs_w8bene'
+    mismatch = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8bene",
+            "use_profile": True,
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        }
+    )
+    assert any("entity_type_mismatch" in w for w in mismatch.get("warnings", []))
+
+    # 5. Fail-closed on ambiguous contact alias ("Acme" matches acme_us & acme_uk)
+    ambig = skill.execute(
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w9",
+            "contact": "Acme",
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        }
+    )
+    assert ambig["status"] == "needs_input"
+    assert ambig["error_code"] == "ambiguous_contact"
+    assert len(ambig["candidates"]) == 2
