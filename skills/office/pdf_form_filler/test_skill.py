@@ -101,8 +101,8 @@ def test_skill_manifest_consistency(skill, manifest):
     skill_manifest = skill.manifest
     assert skill_manifest["name"] == manifest["name"]
     assert manifest["name"] == "office/pdf_form_filler"
-    assert skill_manifest["version"] == "0.2.3"
-    assert manifest["version"] == "0.2.3"
+    assert skill_manifest["version"] == "0.2.4"
+    assert manifest["version"] == "0.2.4"
     assert "pymupdf" in manifest.get("requirements", [])
     assert "anthropic" not in manifest.get("requirements", [])
 
@@ -1118,3 +1118,102 @@ def test_legal_profile_self_and_entity_autofill_override_and_guards(skill, tmp_p
     assert ambig["status"] == "needs_input"
     assert ambig["error_code"] == "ambiguous_contact"
     assert len(ambig["candidates"]) == 2
+
+
+def test_filing_receipt_post_fill_readback_and_encrypted_corrupt_guards(
+    skill, tmp_path
+):
+    """Test #407: SHA-256 filing_receipt, emit_receipt, post_fill_verification, encrypted/corrupt/Unicode."""
+    import hashlib
+    import json
+
+    # 1. Corrupted PDF guard
+    bad_pdf = tmp_path / "corrupt.pdf"
+    bad_pdf.write_bytes(b"NOT_A_VALID_PDF_HEADER_12345")
+    corrupt_res = skill.execute({"action": "inspect", "pdf_path": str(bad_pdf)})
+    assert corrupt_res["status"] == "error"
+    assert corrupt_res["error_code"] == "corrupted_pdf"
+
+    # 2. Encrypted / password-protected PDF guard
+    enc_pdf = tmp_path / "encrypted.pdf"
+    doc = fitz.open()
+    doc.new_page()
+    doc.save(
+        str(enc_pdf),
+        encryption=fitz.PDF_ENCRYPT_AES_256,
+        user_pw="secret123",
+        owner_pw="owner123",
+    )
+    doc.close()
+    enc_res = skill.execute({"action": "inspect", "pdf_path": str(enc_pdf)})
+    assert enc_res["status"] == "error"
+    assert enc_res["error_code"] == "encrypted_pdf_unsupported"
+    # Verify fill, validate, and session_init also fail closed on encrypted PDFs
+    for act in ("validate", "fill", "session_init"):
+        r = skill.execute({"action": act, "pdf_path": str(enc_pdf), "edits": {}})
+        assert r["status"] == "error"
+        assert r["error_code"] == "encrypted_pdf_unsupported"
+
+    # 3. Fill with emit_receipt=True + Unicode entity name + flatten=True + SHA-256 verification
+    out_flat = tmp_path / "w8_unicode_flat.pdf"
+    fill_flat = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8ben",
+            "edits": {
+                "beneficial_owner_name": "Müller & Söhne — Νίκος",
+                "country_of_citizenship": "Germany",
+                "permanent_residence_street": "Friedrichstraße 42",
+                "permanent_residence_city_state_postal": "Berlin 10117",
+                "permanent_residence_country": "Germany",
+                "foreign_tin": "DE998877665",
+                "capacity_to_sign": True,
+                "signer_name": "Müller & Söhne",
+            },
+            "output_path": str(out_flat),
+            "confirmed": True,
+            "flatten": True,
+            "emit_receipt": True,
+        }
+    )
+    assert fill_flat["status"] == "success"
+    assert fill_flat["post_fill_verification"]["pdf_valid"] is True
+    assert fill_flat["post_fill_verification"]["flattened_verified"] is True
+    assert fill_flat["post_fill_verification"]["remaining_widget_count"] == 0
+
+    receipt = fill_flat["filing_receipt"]
+    assert receipt["schema_version"] == "skillware-pdf-receipt/1"
+    assert receipt["output_sha256"] == hashlib.sha256(out_flat.read_bytes()).hexdigest()
+    assert len(receipt["template_sha256"]) == 64
+    assert len(receipt["receipt_hash"]) == 64
+    # Sensitive TIN must be masked in receipt and on disk
+    assert "DE998877665" not in json.dumps(receipt)
+    receipt_file = tmp_path / "w8_unicode_flat.pdf.receipt.json"
+    assert receipt_file.is_file()
+    assert fill_flat["receipt_path"] == str(receipt_file)
+    assert "DE998877665" not in receipt_file.read_text(encoding="utf-8")
+
+    # 4. Unflattened post_fill_verification verifies widget readback match
+    out_unflat = tmp_path / "w8_unflat.pdf"
+    fill_unflat = skill.execute(
+        {
+            "action": "fill",
+            "template_id": "us_irs_w8ben",
+            "edits": {
+                "beneficial_owner_name": "Alice Smith",
+                "country_of_citizenship": "Greece",
+                "permanent_residence_street": "10 Ermou St",
+                "permanent_residence_city_state_postal": "Athens 10563",
+                "permanent_residence_country": "Greece",
+                "capacity_to_sign": True,
+                "signer_name": "Alice Smith",
+            },
+            "output_path": str(out_unflat),
+            "confirmed": True,
+            "flatten": False,
+        }
+    )
+    assert fill_unflat["status"] == "success"
+    assert fill_unflat["post_fill_verification"]["pdf_valid"] is True
+    assert fill_unflat["post_fill_verification"]["remaining_widget_count"] > 0
+    assert fill_unflat["post_fill_verification"]["readback_mismatches"] == []

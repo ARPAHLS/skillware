@@ -1,5 +1,5 @@
 name: office/pdf_form_filler
-version: 0.2.3
+version: 0.2.4
 tier: core
 shape: workflow
 target:
@@ -113,6 +113,10 @@ parameters:
     addressbook_path:
       type: string
       description: "Optional override path to addressbook.yaml for 'session_init' profile autofill."
+    emit_receipt:
+      type: boolean
+      default: false
+      description: "If true on 'fill' or 'session_finalize', atomically writes a PII-redacted SHA-256 compliance receipt to '<output_path>.receipt.json'."
   required: []
 outputs:
   type: object
@@ -164,6 +168,29 @@ outputs:
     flattened:
       type: boolean
       description: "Whether interactive form widgets were permanently baked/flattened."
+    filing_receipt:
+      type: object
+      description: "Tamper-evident SHA-256 compliance receipt (template_sha256, output_sha256, receipt_hash, redacted_fields)."
+    post_fill_verification:
+      type: object
+      description: "Binary readback verification summary (pdf_valid, remaining_widget_count, flattened_verified, readback_mismatches)."
+    receipt_path:
+      type: string
+      description: "Path to '<output_path>.receipt.json' when emit_receipt=true."
+    contact_applied:
+      type: string
+      description: "Resolved addressbook contact identifier applied during session_init."
+    autofilled_count:
+      type: integer
+      description: "Number of schema fields pre-filled from legal_profile during session_init."
+    autofilled_fields:
+      type: array
+      items:
+        type: string
+      description: "Field IDs pre-filled from legal_profile during session_init."
+    profile_updates_suggested:
+      type: array
+      description: "Non-mutating list of profile_key overrides detected on session_finalize."
 env_vars:
   PDF_TEMPLATES_DIR:
     description: "Optional directory overriding bundled/user/project PDF form templates and YAML schemas."

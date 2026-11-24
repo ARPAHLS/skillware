@@ -1,7 +1,7 @@
 # Copyright (c) 2026 ARPA Hellenic Logical Systems
 # SPDX-License-Identifier: MIT
 
-"""Multi-turn simulation and stress tests for office/pdf_form_filler (v0.2.0 W-8BEN)."""
+"""Multi-turn simulation and stress tests for office/pdf_form_filler (v0.2.4)."""
 
 import os
 import fitz
@@ -534,3 +534,175 @@ def test_legal_profile_multi_entity_batch_with_audit_trail_simulation(tmp_path):
     raw_audit = audit_log.read_text(encoding="utf-8")
     for i in range(5):
         assert f"99900011{i}" not in raw_audit
+
+
+def test_six_provider_adapter_and_audit_crucible_with_receipts(tmp_path):
+    """#407 Milestone Crucible: all 6 SkillLoader adapters + full session + receipt + audit chain."""
+    from concurrent.futures import ThreadPoolExecutor
+    import hashlib
+    import json
+    from pathlib import Path
+    import yaml
+
+    from skillware import SkillContext, verify_audit_log
+    from skillware.core.loader import SkillLoader
+
+    bundle = SkillLoader.load_skill("office/pdf_form_filler")
+    # 1. Verify all 6 provider adapters serialize cleanly without mutating manifest
+    before_manifest = json.dumps(bundle["manifest"], sort_keys=True)
+    for fn in (
+        SkillLoader.to_openai_tool,
+        SkillLoader.to_claude_tool,
+        SkillLoader.to_deepseek_tool,
+        SkillLoader.to_bedrock_tool,
+    ):
+        schema_obj = fn(bundle)
+        assert json.dumps(schema_obj)
+    assert SkillLoader.to_gemini_tool(bundle) is not None
+    assert "office/pdf_form_filler" in SkillLoader.to_ollama_prompt(bundle)
+    assert json.dumps(bundle["manifest"], sort_keys=True) == before_manifest
+
+    # 2. Cross-skill KYB entity -> addressbook -> W-8BEN-E -> emit_receipt + SkillContext audit
+    ab_path = tmp_path / "kyb_addressbook.yaml"
+    ab_path.write_text(
+        yaml.safe_dump(
+            {
+                "contacts": {
+                    "kyb_entity": {
+                        "display_name": "Hellenic Maritime Holdings Ltd",
+                        "emails": ["compliance@hellenic.example"],
+                        "legal_profile": {
+                            "type": "entity",
+                            "tax_ids": {"US_EIN": "98-7654321"},
+                            "company_registration": {
+                                "jurisdiction": "GB",
+                                "number": "09876543",
+                                "entity_classification": "corporation",
+                            },
+                            "authorized_signatory": {
+                                "name": "Eleni Georgiou",
+                                "title": "Managing Director",
+                            },
+                            "residence_address": {
+                                "street": "15 Bishopsgate",
+                                "city": "London",
+                                "postal_code": "EC2N 3AR",
+                                "country": "GB",
+                            },
+                        },
+                    }
+                },
+                "org_domains": {},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    audit_log = tmp_path / "milestone_audit.jsonl"
+    sdir = tmp_path / "sessions"
+    ctx = SkillContext(skills=["office/pdf_form_filler"], audit_log_path=audit_log)
+
+    init_res = ctx.execute(
+        "office/pdf_form_filler",
+        {
+            "action": "session_init",
+            "template_id": "us_irs_w8bene",
+            "contact": "kyb_entity",
+            "addressbook_path": str(ab_path),
+            "session_dir": str(sdir),
+        },
+    )
+    sid = init_res["session_id"]
+    assert {"organization_name", "chapter3_corporation", "signer_name"}.issubset(
+        set(init_res["autofilled_fields"])
+    )
+
+    # Mark capacity_to_sign to_revise, then resolve, then test confirmation gate, then finalize
+    ctx.execute(
+        "office/pdf_form_filler",
+        {
+            "action": "session_update",
+            "session_id": sid,
+            "defer_fields": {"capacity_to_sign": "confirming board resolution"},
+        },
+    )
+    ctx.execute(
+        "office/pdf_form_filler",
+        {
+            "action": "session_update",
+            "session_id": sid,
+            "values": {"capacity_to_sign": True},
+        },
+    )
+    unconfirmed = ctx.execute(
+        "office/pdf_form_filler",
+        {"action": "session_finalize", "session_id": sid, "confirmed": False},
+    )
+    assert unconfirmed["status"] == "needs_input"
+    assert unconfirmed["error_code"] == "confirmation_required"
+
+    out_pdf = tmp_path / "kyb_w8bene.pdf"
+    finalized = ctx.execute(
+        "office/pdf_form_filler",
+        {
+            "action": "session_finalize",
+            "session_id": sid,
+            "output_path": str(out_pdf),
+            "confirmed": True,
+            "flatten": True,
+            "emit_receipt": True,
+        },
+    )
+    assert finalized["status"] == "success"
+    assert finalized["post_fill_verification"]["flattened_verified"] is True
+    assert (
+        finalized["filing_receipt"]["output_sha256"]
+        == hashlib.sha256(out_pdf.read_bytes()).hexdigest()
+    )
+    assert Path(finalized["receipt_path"]).is_file()
+    assert verify_audit_log(audit_log) is True
+    assert "98-7654321" not in audit_log.read_text(encoding="utf-8")
+
+    # 3. Concurrent multi-thread stress test (8 parallel sessions with receipts)
+    def _run_worker(idx: int) -> bool:
+        w_init = ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_init",
+                "template_id": "us_irs_w8bene",
+                "contact": "kyb_entity",
+                "addressbook_path": str(ab_path),
+                "session_dir": str(sdir),
+            },
+        )
+        ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_update",
+                "session_id": w_init["session_id"],
+                "values": {"capacity_to_sign": True},
+            },
+        )
+        w_out = tmp_path / f"worker_{idx}.pdf"
+        w_fin = ctx.execute(
+            "office/pdf_form_filler",
+            {
+                "action": "session_finalize",
+                "session_id": w_init["session_id"],
+                "output_path": str(w_out),
+                "confirmed": True,
+                "flatten": True,
+                "emit_receipt": True,
+            },
+        )
+        return (
+            w_fin["status"] == "success"
+            and w_fin["post_fill_verification"]["flattened_verified"] is True
+            and Path(w_fin["receipt_path"]).is_file()
+        )
+
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        outcomes = list(pool.map(_run_worker, range(8)))
+    assert all(outcomes)
+    assert verify_audit_log(audit_log) is True

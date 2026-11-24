@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import re
+import time
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
@@ -50,7 +51,14 @@ def _atomic_write_json(target_path: Path, payload: Dict[str, Any]) -> None:
     tmp_path = target_path.parent / f"{target_path.name}.{uuid4().hex[:8]}.tmp"
     try:
         tmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        os.replace(tmp_path, target_path)
+        for attempt in range(6):
+            try:
+                os.replace(tmp_path, target_path)
+                break
+            except PermissionError:
+                if attempt == 5:
+                    raise
+                time.sleep(0.015 * (attempt + 1))
     except Exception:
         if tmp_path.exists():
             try:

@@ -16,9 +16,12 @@ try:
         FieldEdit,
         apply_edits,
         apply_edits_detailed,
+        build_filing_receipt,
         detect_form_fields,
         is_xfa_form,
         validate_edits,
+        verify_filled_pdf,
+        write_filing_receipt,
     )
     from .kb.registry import (
         build_default_output_path,
@@ -43,9 +46,12 @@ except (ImportError, ValueError):
             FieldEdit,
             apply_edits,
             apply_edits_detailed,
+            build_filing_receipt,
             detect_form_fields,
             is_xfa_form,
             validate_edits,
+            verify_filled_pdf,
+            write_filing_receipt,
         )
         from skills.office.pdf_form_filler.kb.registry import (
             build_default_output_path,
@@ -83,7 +89,10 @@ except (ImportError, ValueError):
         detect_form_fields = _utils_module.detect_form_fields
         apply_edits = _utils_module.apply_edits
         apply_edits_detailed = _utils_module.apply_edits_detailed
+        build_filing_receipt = _utils_module.build_filing_receipt
         validate_edits = _utils_module.validate_edits
+        verify_filled_pdf = _utils_module.verify_filled_pdf
+        write_filing_receipt = _utils_module.write_filing_receipt
         is_xfa_form = _utils_module.is_xfa_form
         FieldEdit = _utils_module.FieldEdit
 
@@ -269,6 +278,10 @@ class PDFFormFillerSkill(BaseSkill):
                 "message": f"Failed to read PDF file '{pdf_path}': {str(e)}",
             }
 
+        guard = self._check_pdf_usable(pdf_bytes)
+        if guard is not None:
+            return guard
+
         if action == "inspect":
             return self._action_inspect(pdf_bytes, pdf_path)
 
@@ -304,6 +317,7 @@ class PDFFormFillerSkill(BaseSkill):
             schema=schema,
             template_id=str(template_id) if template_id else None,
             auto_date=bool(params.get("auto_date", True)),
+            emit_receipt=bool(params.get("emit_receipt", False)),
         )
 
     def _action_list_templates(
@@ -341,14 +355,27 @@ class PDFFormFillerSkill(BaseSkill):
         public_data = {k: v for k, v in data.items() if not k.startswith("_")}
         return {"status": "ok", **public_data}
 
-    def _action_inspect(self, pdf_bytes: bytes, pdf_path: str) -> Dict[str, Any]:
-        """Inspect PDF form fields with early XFA dynamic form detection."""
+    @staticmethod
+    def _check_pdf_usable(pdf_bytes: bytes) -> Optional[Dict[str, Any]]:
+        """Fail closed on corrupted, encrypted, or dynamic XFA PDFs."""
         try:
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         except Exception as exc:
-            return {"status": "error", "message": f"Invalid PDF format: {str(exc)}"}
-
+            return {
+                "status": "error",
+                "error_code": "corrupted_pdf",
+                "message": f"Invalid or corrupted PDF format: {str(exc)}",
+            }
         try:
+            if getattr(doc, "needs_pass", False):
+                return {
+                    "status": "error",
+                    "error_code": "encrypted_pdf_unsupported",
+                    "message": (
+                        "Password-protected or encrypted PDFs are not supported. "
+                        "Decrypt the document before inspection or filling."
+                    ),
+                }
             if is_xfa_form(doc):
                 return {
                     "status": "error",
@@ -359,6 +386,17 @@ class PDFFormFillerSkill(BaseSkill):
                         "before filling."
                     ),
                 }
+        finally:
+            doc.close()
+        return None
+
+    def _action_inspect(self, pdf_bytes: bytes, pdf_path: str) -> Dict[str, Any]:
+        """Inspect PDF form fields with early encrypted, corrupt, and XFA guards."""
+        guard = self._check_pdf_usable(pdf_bytes)
+        if guard is not None:
+            return guard
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        try:
             page_count = len(doc)
         finally:
             doc.close()
@@ -382,6 +420,9 @@ class PDFFormFillerSkill(BaseSkill):
         check_required: bool = False,
     ) -> Dict[str, Any]:
         """Validate proposed field edits without writing to disk."""
+        guard = self._check_pdf_usable(pdf_bytes)
+        if guard is not None:
+            return guard
         if schema is not None:
             mapped, sensitive_keys, schema_errors = map_edits_with_schema(
                 schema, edits, auto_date=auto_date, check_required=check_required
@@ -413,8 +454,12 @@ class PDFFormFillerSkill(BaseSkill):
         schema: Optional[Dict[str, Any]] = None,
         template_id: Optional[str] = None,
         auto_date: bool = True,
+        emit_receipt: bool = False,
     ) -> Dict[str, Any]:
         """Fill form fields with safety confirmation gate, PII redaction, and optional flattening."""
+        guard = self._check_pdf_usable(pdf_bytes)
+        if guard is not None:
+            return guard
         sensitive_keys: set[str] = set()
         mapped_edits = edits
 
@@ -502,13 +547,35 @@ class PDFFormFillerSkill(BaseSkill):
                 "message": f"Failed to write output PDF '{output_path}': {str(e)}",
             }
 
-        return {
+        redacted_for_receipt = (
+            redact_sensitive_edits(edits, sensitive_keys) if sensitive_keys else edits
+        )
+        post_verify = verify_filled_pdf(
+            filled_bytes,
+            flattened=flatten,
+            expected_native_edits=mapped_edits if not flatten else None,
+        )
+        filing_receipt = build_filing_receipt(
+            template_id=template_id,
+            template_bytes=pdf_bytes,
+            output_bytes=filled_bytes,
+            output_path=output_path,
+            applied_fields=applied_fields,
+            redacted_edits=redacted_for_receipt,
+            flattened=flatten,
+        )
+        resp: Dict[str, Any] = {
             "status": "success",
             "output_path": output_path,
             "filled_fields": applied_fields,
             "message": f"Successfully filled {len(applied_fields)} fields.",
             "flattened": flatten,
+            "post_fill_verification": post_verify,
+            "filing_receipt": filing_receipt,
         }
+        if emit_receipt:
+            resp["receipt_path"] = write_filing_receipt(output_path, filing_receipt)
+        return resp
 
     # ------------------------------------------------------------------
     # Conversational Interview Session State Machine (#405)
@@ -580,6 +647,9 @@ class PDFFormFillerSkill(BaseSkill):
             ]
         else:
             pdf_bytes = Path(str(pdf_path)).read_bytes()
+            guard = self._check_pdf_usable(pdf_bytes)
+            if guard is not None:
+                return guard
             detected = detect_form_fields(pdf_bytes)
             fields_meta = [
                 {
@@ -1077,14 +1147,49 @@ class PDFFormFillerSkill(BaseSkill):
                         }
                     )
 
+        sensitive_fids = {
+            f["id"] for f in (record.get("fields_meta") or []) if f.get("sensitive")
+        }
+        skipped_count = sum(
+            1
+            for st_obj in states.values()
+            if isinstance(st_obj, dict) and st_obj.get("status") == "skipped"
+        )
+        redacted_semantic = (
+            redact_sensitive_edits(semantic_edits, sensitive_fids)
+            if sensitive_fids
+            else semantic_edits
+        )
+        post_verify = verify_filled_pdf(
+            filled_bytes,
+            flattened=flatten,
+            expected_native_edits=native_edits if not flatten else None,
+        )
+        filing_receipt = build_filing_receipt(
+            template_id=record.get("template_id"),
+            template_bytes=pdf_bytes,
+            output_bytes=filled_bytes,
+            output_path=output_path,
+            applied_fields=applied_fields,
+            redacted_edits=redacted_semantic,
+            flattened=flatten,
+            session_id=record["session_id"],
+            contact_applied=record.get("contact_applied"),
+            skipped_count=skipped_count,
+        )
+
         resp: Dict[str, Any] = {
             "status": "success",
             "session_id": record["session_id"],
             "output_path": output_path,
             "filled_fields": applied_fields,
             "flattened": flatten,
+            "post_fill_verification": post_verify,
+            "filing_receipt": filing_receipt,
             "message": f"Successfully finalized session and filled {len(applied_fields)} fields.",
         }
+        if bool(params.get("emit_receipt", False)):
+            resp["receipt_path"] = write_filing_receipt(output_path, filing_receipt)
         if record.get("contact_applied"):
             resp["contact_applied"] = record["contact_applied"]
         if profile_updates_suggested:
