@@ -8,7 +8,7 @@ You are equipped with the `finance/ephemeral_wallet` skill. Use it for **spend-c
 * When the host must revoke or inspect remaining soft budget mid-loop.
 
 ## How to call
-1. **`create_session`** — optional `spend_cap_usd`, `ttl_seconds`, `network` (alias or CAIP-2 like `eip155:84532`), `allowed_domains`, `live`. Keep `session_id`.
+1. **`create_session`** — optional `spend_cap_usd`, `ttl_seconds`, `network` (built-in alias, operator `evm.yaml` chain name, or CAIP-2 like `eip155:84532`), `allowed_domains`, `live`. Keep `session_id`.
 2. **`status`** — pass `session_id`; read `remaining_usd`, `expires_at`, `revoked`, `last_payment`.
 3. **`quote`** — pass `session_id` + `url`; dry-run 402 inspect (price/asset/network) with **no spend**. Gate on `within_cap`.
 4. **`pay`** — pass `session_id`, `url`, optional `amount_usd` max, optional `idempotency_key`. Skill runs 402 → `PAYMENT-REQUIRED` → amount check → `PAYMENT-SIGNATURE` → `PAYMENT-RESPONSE`.

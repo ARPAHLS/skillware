@@ -17,6 +17,8 @@ if _PKG_DIR not in sys.path:
 
 from networks import normalize_network  # noqa: E402
 
+from skillware.core.evm_config import normalize_evm_address  # noqa: E402
+
 _EIP712_TYPES = {
     "EIP712Domain": [
         {"name": "name", "type": "string"},
@@ -51,6 +53,41 @@ def _normalize_private_key(raw: str) -> str:
         raise ValueError("CDP_WALLET_SECRET must be a 32-byte hex private key.")
     int(key, 16)  # validate hex
     return key
+
+
+def _checksum_address(raw: str, *, field: str) -> str:
+    """Validate an EVM address; prefer EIP-55 checksumming.
+
+    Order: ``normalize_evm_address`` (web3) → ``eth_utils.to_checksum_address``
+    (available with ``eth_account``) → raw ``0x`` + 40-hex validation.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        raise ValueError(f"{field} is required.")
+    try:
+        return normalize_evm_address(text)
+    except ImportError:
+        pass
+    except ValueError as exc:
+        raise ValueError(f"Invalid EVM address for {field}: {exc}") from exc
+    try:
+        from eth_utils import to_checksum_address
+
+        return to_checksum_address(text)
+    except ImportError:
+        pass
+    except ValueError as exc:
+        raise ValueError(f"Invalid EVM address for {field}: {exc}") from exc
+    lowered = text.lower()
+    if not (
+        lowered.startswith("0x")
+        and len(lowered) == 42
+        and all(c in "0123456789abcdef" for c in lowered[2:])
+    ):
+        raise ValueError(
+            f"Invalid EVM address for {field}: {raw!r}. Expected 0x plus 40 hex chars."
+        )
+    return text
 
 
 class Eip3009ExactSigner:
@@ -91,10 +128,13 @@ class Eip3009ExactSigner:
             )
 
         chain_id = _caip2_chain_id(str(accepted.get("network") or ""))
-        asset = str(accepted.get("asset") or "").strip()
-        pay_to = str(accepted.get("payTo") or "").strip()
-        if not asset or not pay_to:
-            raise ValueError("accepted.asset and accepted.payTo are required.")
+        asset = _checksum_address(
+            str(accepted.get("asset") or ""), field="accepted.asset"
+        )
+        pay_to = _checksum_address(
+            str(accepted.get("payTo") or ""), field="accepted.payTo"
+        )
+        from_addr = _checksum_address(self.wallet_address, field="wallet")
 
         amount = int(str(accepted.get("amount")))
         timeout = int(accepted.get("maxTimeoutSeconds") or 60)
@@ -103,7 +143,7 @@ class Eip3009ExactSigner:
         nonce_bytes = bytes.fromhex(nonce_hex[2:])
 
         authorization_wire = {
-            "from": self.wallet_address,
+            "from": from_addr,
             "to": pay_to,
             "value": str(amount),
             "validAfter": "0",
@@ -120,7 +160,7 @@ class Eip3009ExactSigner:
                 "verifyingContract": asset,
             },
             "message": {
-                "from": self.wallet_address,
+                "from": from_addr,
                 "to": pay_to,
                 "value": amount,
                 "validAfter": 0,

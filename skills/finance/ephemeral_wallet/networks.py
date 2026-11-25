@@ -7,6 +7,13 @@ from __future__ import annotations
 
 from typing import Dict, Optional, Tuple
 
+from skillware.core.evm_config import (
+    list_configured_chains,
+    load_merged_evm_config,
+    resolve_chain,
+)
+
+# Built-in x402 defaults (aliases not necessarily present in evm_defaults.yaml).
 # Alias (lowercase) → CAIP-2
 _ALIAS_TO_CAIP2: Dict[str, str] = {
     "base-sepolia": "eip155:84532",
@@ -28,8 +35,69 @@ _CAIP2_TO_ALIAS: Dict[str, str] = {
 }
 
 
+def _positive_chain_id(raw: object) -> Optional[int]:
+    """Return a positive int chain id, or None (rejects bool / non-positive)."""
+    if raw is None or isinstance(raw, bool):
+        return None
+    try:
+        cid = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if cid <= 0:
+        return None
+    return cid
+
+
+def _valid_eip155_reference(reference: str) -> bool:
+    """CAIP-2 ``eip155:[1-9][0-9]*`` — digits only, no leading zeros, positive."""
+    return bool(reference) and reference.isdigit() and int(reference) > 0
+
+
+def _caip2_from_chain_cfg(name: str, cfg: dict) -> Optional[Tuple[str, str]]:
+    cid = _positive_chain_id(cfg.get("chain_id"))
+    if cid is None:
+        return None
+    return name, f"eip155:{cid}"
+
+
+def _from_evm_alias(alias: str) -> Optional[Tuple[str, str]]:
+    """Map an operator ``evm.yaml`` chain name to ``(alias, caip2)``."""
+    candidates = [alias]
+    if "-" in alias:
+        candidates.append(alias.replace("-", "_"))
+    elif "_" in alias:
+        candidates.append(alias.replace("_", "-"))
+    for key in candidates:
+        try:
+            cfg = resolve_chain(key, require_enabled=False)
+        except ValueError:
+            continue
+        mapped = _caip2_from_chain_cfg(key, cfg)
+        if mapped is not None:
+            return mapped
+    return None
+
+
+def _alias_from_evm_chain_id(reference: str) -> Optional[str]:
+    if not _valid_eip155_reference(reference):
+        return None
+    target = int(reference)
+    merged = load_merged_evm_config()
+    for name, cfg in list_configured_chains(merged, enabled_only=False):
+        cid = _positive_chain_id(cfg.get("chain_id"))
+        if cid is not None and cid == target:
+            return name
+    return None
+
+
 def normalize_network(value: str) -> Tuple[str, str]:
     """Return ``(alias, caip2)`` for a friendly alias or CAIP-2 id.
+
+    Resolution order:
+    1. Built-in x402 aliases (e.g. ``base-sepolia``).
+    2. Already-CAIP-2 (``eip155:N`` / ``solana:…``), with optional reverse
+       alias from operator ``evm.yaml`` when ``eip155:N`` matches a chain_id.
+    3. Operator chain names via ``resolve_chain`` (custom ``evm.yaml`` entries).
 
     Raises ``ValueError`` when the identifier is unknown.
     """
@@ -44,12 +112,34 @@ def normalize_network(value: str) -> Tuple[str, str]:
     if ":" in raw:
         namespace, _, reference = raw.partition(":")
         caip2 = f"{namespace.lower()}:{reference}"
-        if caip2 in _CAIP2_TO_ALIAS or namespace.lower() in {"eip155", "solana"}:
-            alias = _CAIP2_TO_ALIAS.get(caip2, caip2)
-            return alias, caip2
+        if caip2 in _CAIP2_TO_ALIAS:
+            return _CAIP2_TO_ALIAS[caip2], caip2
+        if namespace.lower() == "eip155":
+            if not _valid_eip155_reference(reference):
+                raise ValueError(
+                    f"Unknown network {value!r}. Use a friendly alias "
+                    f"(e.g. base-sepolia), an evm.yaml chain name, or "
+                    f"CAIP-2 (e.g. eip155:84532)."
+                )
+            caip2 = f"eip155:{int(reference)}"
+            evm_alias = _alias_from_evm_chain_id(reference)
+            if evm_alias:
+                return evm_alias, caip2
+            return caip2, caip2
+        if namespace.lower() == "solana":
+            return caip2, caip2
+        raise ValueError(
+            f"Unknown network {value!r}. Use a friendly alias "
+            f"(e.g. base-sepolia), an evm.yaml chain name, or "
+            f"CAIP-2 (e.g. eip155:84532)."
+        )
+    evm_mapped = _from_evm_alias(lowered)
+    if evm_mapped is not None:
+        return evm_mapped
     raise ValueError(
         f"Unknown network {value!r}. Use a friendly alias "
-        f"(e.g. base-sepolia) or CAIP-2 (e.g. eip155:84532)."
+        f"(e.g. base-sepolia), an evm.yaml chain name, or "
+        f"CAIP-2 (e.g. eip155:84532)."
     )
 
 

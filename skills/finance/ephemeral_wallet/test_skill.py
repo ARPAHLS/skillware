@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 ARPA Hellenic Logical Systems
 
-"""Tests for finance/ephemeral_wallet (#41 / #475)."""
+"""Tests for finance/ephemeral_wallet (#41 / #475 / #516)."""
 
 from __future__ import annotations
 
@@ -13,6 +13,8 @@ from typing import Any, Dict
 import pytest
 import yaml
 
+from skillware.core.config import GLOBAL_CONFIG_DIR_ENV, clear_config_cache
+from skillware.core.evm_config import clear_evm_config_cache
 from skills.finance.ephemeral_wallet.networks import normalize_network
 from skills.finance.ephemeral_wallet.providers import (
     HttpX402Provider,
@@ -54,7 +56,7 @@ def test_manifest_contract():
     with manifest_path.open(encoding="utf-8") as handle:
         manifest = yaml.safe_load(handle)
     assert skill.manifest["name"] == manifest["name"] == "finance/ephemeral_wallet"
-    assert skill.manifest["version"] == "0.2.0"
+    assert skill.manifest["version"] == "0.2.1"
     assert "requests" in skill.manifest["requirements"]
     assert "eth_account" in skill.manifest["requirements"]
     assert "quote" in skill.manifest["parameters"]["properties"]["action"]["enum"]
@@ -68,6 +70,135 @@ def test_network_caip2_aliases():
     alias2, caip22 = normalize_network("eip155:84532")
     assert caip22 == "eip155:84532"
     assert alias2 == "base-sepolia"
+
+
+def test_network_resolves_custom_evm_yaml_chain(tmp_path, monkeypatch):
+    clear_config_cache()
+    clear_evm_config_cache()
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(config_dir))
+    (config_dir / "evm.yaml").write_text(
+        """
+version: 1
+chains:
+  custom_pay_l2:
+    enabled: false
+    chain_id: 424242
+    rpc_env: CUSTOM_PAY_L2_RPC_URL
+    native_symbol: eth
+    native_decimals: 18
+""",
+        encoding="utf-8",
+    )
+    clear_evm_config_cache()
+    try:
+        alias, caip2 = normalize_network("custom_pay_l2")
+        assert alias == "custom_pay_l2"
+        assert caip2 == "eip155:424242"
+        alias2, caip22 = normalize_network("eip155:424242")
+        assert caip22 == "eip155:424242"
+        assert alias2 == "custom_pay_l2"
+    finally:
+        clear_config_cache()
+        clear_evm_config_cache()
+
+
+def test_network_rejects_invalid_eip155_references():
+    for bad in ("eip155:0", "eip155:-1", "eip155: 84532 ", "eip155:", "eip155:abc"):
+        with pytest.raises(ValueError):
+            normalize_network(bad)
+
+
+def test_network_rejects_boolean_chain_id(tmp_path, monkeypatch):
+    clear_config_cache()
+    clear_evm_config_cache()
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(config_dir))
+    (config_dir / "evm.yaml").write_text(
+        """
+version: 1
+chains:
+  bool_chain:
+    enabled: true
+    chain_id: true
+    rpc_env: BOOL_RPC_URL
+    native_symbol: eth
+    native_decimals: 18
+""",
+        encoding="utf-8",
+    )
+    clear_evm_config_cache()
+    try:
+        with pytest.raises(ValueError):
+            normalize_network("bool_chain")
+    finally:
+        clear_config_cache()
+        clear_evm_config_cache()
+
+
+def test_create_session_quote_custom_evm_yaml_chain(tmp_path, monkeypatch, skill):
+    clear_config_cache()
+    clear_evm_config_cache()
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(config_dir))
+    (config_dir / "evm.yaml").write_text(
+        """
+version: 1
+chains:
+  custom_pay_l2:
+    enabled: false
+    chain_id: 424242
+    rpc_env: CUSTOM_PAY_L2_RPC_URL
+    native_symbol: eth
+    native_decimals: 18
+""",
+        encoding="utf-8",
+    )
+    clear_evm_config_cache()
+    try:
+        created = skill.execute(
+            {
+                "action": "create_session",
+                "spend_cap_usd": 5.0,
+                "ttl_seconds": 3600,
+                "network": "custom_pay_l2",
+            }
+        )
+        assert created["status"] == "ready"
+        assert created["network_caip2"] == "eip155:424242"
+        quoted = skill.execute(
+            {
+                "action": "quote",
+                "session_id": created["session_id"],
+                "url": "https://api.example.com/custom",
+            }
+        )
+        assert quoted["status"] == "quoted"
+        assert quoted["quote"]["network"] == "eip155:424242"
+        assert quoted["within_cap"] is True
+        paid = skill.execute(
+            {
+                "action": "pay",
+                "session_id": created["session_id"],
+                "url": "https://api.example.com/custom",
+                "amount_usd": 1.0,
+            }
+        )
+        assert paid["status"] == "confirmed"
+        assert paid["payment"]["network"] == "eip155:424242"
+    finally:
+        clear_config_cache()
+        clear_evm_config_cache()
+
+
+def test_network_bundled_evm_alias_via_resolve_chain():
+    """Bundled defaults (e.g. arbitrum) map even when not in the x402 builtin table."""
+    alias, caip2 = normalize_network("arbitrum")
+    assert alias == "arbitrum"
+    assert caip2 == "eip155:42161"
 
 
 def test_create_status_pay_revoke_happy_path(skill):
@@ -333,17 +464,20 @@ def test_quote_dry_run_no_spend(skill):
 def test_eip3009_signer_produces_recoverable_signature():
     from eth_account import Account
     from eth_account.messages import encode_typed_data
+    from eth_utils import to_checksum_address
 
     from skills.finance.ephemeral_wallet.signers import Eip3009ExactSigner
 
     acct = Account.create()
     signer = Eip3009ExactSigner(acct.key.hex())
+    asset_lower = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    pay_to_lower = "0x209693bc6afc0c5328ba36faf03c514ef312287c"
     accepted = {
         "scheme": "exact",
         "network": "eip155:84532",
         "amount": "10000",
-        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-        "payTo": "0x209693Bc6afc0C5328bA36FaF03C514EF312287C",
+        "asset": asset_lower,
+        "payTo": pay_to_lower,
         "maxTimeoutSeconds": 60,
         "extra": {"name": "USDC", "version": "2"},
     }
@@ -351,6 +485,7 @@ def test_eip3009_signer_produces_recoverable_signature():
         accepted=accepted, resource={"url": "https://api.example.com/x"}, extensions={}
     )
     auth = payload["authorization"]
+    assert auth["to"] == to_checksum_address(pay_to_lower)
     typed = {
         "types": {
             "EIP712Domain": [
@@ -373,7 +508,7 @@ def test_eip3009_signer_produces_recoverable_signature():
             "name": "USDC",
             "version": "2",
             "chainId": 84532,
-            "verifyingContract": accepted["asset"],
+            "verifyingContract": to_checksum_address(asset_lower),
         },
         "message": {
             "from": auth["from"],
@@ -388,6 +523,55 @@ def test_eip3009_signer_produces_recoverable_signature():
         encode_typed_data(full_message=typed), signature=payload["signature"]
     )
     assert recovered == acct.address
+
+
+def test_checksum_address_rejects_invalid_and_normalizes(monkeypatch):
+    from eth_utils import to_checksum_address
+
+    from skills.finance.ephemeral_wallet import signers as signers_mod
+
+    lower = "0x036cbd53842c5426634e7929541ec2318f3dcf7e"
+    assert signers_mod._checksum_address(lower, field="asset") == to_checksum_address(
+        lower
+    )
+
+    for bad in ("0x123", "not-an-address", "", "   "):
+        with pytest.raises(ValueError):
+            signers_mod._checksum_address(bad, field="accepted.asset")
+
+    def _raise_import(_raw: str) -> str:
+        raise ImportError("web3 missing")
+
+    monkeypatch.setattr(signers_mod, "normalize_evm_address", _raise_import)
+    assert signers_mod._checksum_address(lower, field="asset") == to_checksum_address(
+        lower
+    )
+
+
+def test_eip3009_signer_rejects_invalid_addresses():
+    from eth_account import Account
+
+    from skills.finance.ephemeral_wallet.signers import Eip3009ExactSigner
+
+    signer = Eip3009ExactSigner(Account.create().key.hex())
+    base = {
+        "scheme": "exact",
+        "network": "eip155:84532",
+        "amount": "10000",
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "payTo": "0x209693Bc6afc0C5328bA36FaF03C514EF312287C",
+        "maxTimeoutSeconds": 60,
+        "extra": {"name": "USDC", "version": "2"},
+    }
+    for field, bad in (("asset", "0x123"), ("payTo", "not-an-address"), ("asset", "")):
+        accepted = dict(base)
+        accepted[field] = bad
+        with pytest.raises(ValueError):
+            signer.sign_exact(
+                accepted=accepted,
+                resource={"url": "https://api.example.com/x"},
+                extensions={},
+            )
 
 
 def test_provider_injection_sanitizes_secrets():
