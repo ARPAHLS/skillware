@@ -34,7 +34,7 @@ Tools for financial analysis, blockchain interaction, and regulatory compliance.
 
 | Skill | ID | Shape | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[Ephemeral Wallet](finance/ephemeral_wallet.md)** | `finance/ephemeral_wallet` | `workflow` | `0.2.0` (22 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Spend-capped x402 v2 sessions with quote, EIP-3009 live sign, CAIP-2, SSRF/allowlist. |
+| **[Ephemeral Wallet](finance/ephemeral_wallet.md)** | `finance/ephemeral_wallet` | `workflow` | `0.2.1` (25 Nov 2026) | [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS)) | Spend-capped x402 v2 sessions with quote, EIP-3009 live sign, CAIP-2 (+ `evm.yaml`), SSRF/allowlist. |
 | **[Wallet Screening](finance/wallet_screening.md)** | `finance/wallet_screening` | `workflow` | `2.1.0` (1 Nov 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | Comprehensive risk assessment for Ethereum wallets. Checks sanctions lists (OFAC, FBI) and identifies interactions with malicious contracts (Mixers, Scams). Schema v2 verdicts, hop-1 exposure, offline-direct and optional live providers. |
 | **[UK Companies House Handler](finance/uk_companies_house_handler.md)** | `finance/uk_companies_house_handler` | `workflow` | `2.0.0` (19 Nov 2026) | [@Areen-09](https://github.com/Areen-09) ([@ARPAHLS](https://github.com/ARPAHLS)) | Deterministic UK Companies House API handler: company search, officers with deterministic role/name filtering, PSC, charges, insolvency, filing history/item lookup, 1-hop officer appointments, Document API discover/pick/download, and turn-by-turn pipeline orchestration. |
 

@@ -1,5 +1,5 @@
 name: finance/ephemeral_wallet
-version: 0.2.0
+version: 0.2.1
 tier: core
 shape: workflow
 target:
@@ -14,7 +14,8 @@ description: |
   Spend-capped, short-lived agent payment sessions for x402 v2 HTTP micropayments
   using a dedicated CDP-style wallet. create_session / status / quote / pay / revoke
   with 402 handshake, EIP-3009 live signing via CDP_WALLET_SECRET, SSRF guards,
-  CAIP-2 networks, and idempotency. Mock HTTP in CI.
+  CAIP-2 networks (built-in aliases + operator evm.yaml via resolve_chain), and
+  idempotency. Mock HTTP in CI.
 short_description: "x402 v2 sessions with quote, EIP-3009 live sign, SSRF + CAIP-2."
 category: finance
 issuer:
@@ -43,8 +44,8 @@ parameters:
     network:
       type: string
       description: >
-        Settlement network alias or CAIP-2 (create_session). Default base-sepolia
-        → eip155:84532.
+        Settlement network: built-in alias, operator evm.yaml chain name, or
+        CAIP-2 (create_session). Default base-sepolia → eip155:84532.
     allowed_domains:
       type: array
       description: "Optional hostname allowlist for pay URLs (create_session)."

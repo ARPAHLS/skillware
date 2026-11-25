@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 ARPA Hellenic Logical Systems
 
-"""Tests for finance/ephemeral_wallet (#41 / #475)."""
+"""Tests for finance/ephemeral_wallet (#41 / #475 / #516)."""
 
 from __future__ import annotations
 
@@ -13,6 +13,8 @@ from typing import Any, Dict
 import pytest
 import yaml
 
+from skillware.core.config import GLOBAL_CONFIG_DIR_ENV, clear_config_cache
+from skillware.core.evm_config import clear_evm_config_cache
 from skills.finance.ephemeral_wallet.networks import normalize_network
 from skills.finance.ephemeral_wallet.providers import (
     HttpX402Provider,
@@ -54,7 +56,7 @@ def test_manifest_contract():
     with manifest_path.open(encoding="utf-8") as handle:
         manifest = yaml.safe_load(handle)
     assert skill.manifest["name"] == manifest["name"] == "finance/ephemeral_wallet"
-    assert skill.manifest["version"] == "0.2.0"
+    assert skill.manifest["version"] == "0.2.1"
     assert "requests" in skill.manifest["requirements"]
     assert "eth_account" in skill.manifest["requirements"]
     assert "quote" in skill.manifest["parameters"]["properties"]["action"]["enum"]
@@ -68,6 +70,43 @@ def test_network_caip2_aliases():
     alias2, caip22 = normalize_network("eip155:84532")
     assert caip22 == "eip155:84532"
     assert alias2 == "base-sepolia"
+
+
+def test_network_resolves_custom_evm_yaml_chain(tmp_path, monkeypatch):
+    clear_config_cache()
+    clear_evm_config_cache()
+    config_dir = tmp_path / "cfg"
+    config_dir.mkdir()
+    monkeypatch.setenv(GLOBAL_CONFIG_DIR_ENV, str(config_dir))
+    (config_dir / "evm.yaml").write_text(
+        """
+version: 1
+chains:
+  custom_pay_l2:
+    enabled: false
+    chain_id: 424242
+    rpc_env: CUSTOM_PAY_L2_RPC_URL
+    native_symbol: eth
+    native_decimals: 18
+""",
+        encoding="utf-8",
+    )
+    clear_evm_config_cache()
+    alias, caip2 = normalize_network("custom_pay_l2")
+    assert alias == "custom_pay_l2"
+    assert caip2 == "eip155:424242"
+    alias2, caip22 = normalize_network("eip155:424242")
+    assert caip22 == "eip155:424242"
+    assert alias2 == "custom_pay_l2"
+    clear_config_cache()
+    clear_evm_config_cache()
+
+
+def test_network_bundled_evm_alias_via_resolve_chain():
+    """Bundled defaults (e.g. arbitrum) map even when not in the x402 builtin table."""
+    alias, caip2 = normalize_network("arbitrum")
+    assert alias == "arbitrum"
+    assert caip2 == "eip155:42161"
 
 
 def test_create_status_pay_revoke_happy_path(skill):

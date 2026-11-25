@@ -3,7 +3,7 @@
 **ID**: `finance/ephemeral_wallet`  
 **Issuer**: [@Hendobox](https://github.com/Hendobox) ([@ARPAHLS](https://github.com/ARPAHLS))
 <!-- skill-doc-meta:begin -->
-- **Version**: `0.2.0` — 22 Nov 2026
+- **Version**: `0.2.1` — 25 Nov 2026
 - **Tier**: `core`
 - **Shape**: `workflow`
 - **Target**: `software`
@@ -50,7 +50,7 @@ Non-secret defaults: `config.yaml.example` (`default_spend_cap_usd`, `default_tt
 - Pass **`session_id`** from `create_session` on every later call (host-held across turns).
 - **`status` other than `ready` / `confirmed`**: halt automated spend (`ssrf_blocked`, `over_cap`, `replay`, …).
 - **`remaining_usd`**: display counter — not a hard on-chain bound in v0.1. Server atomic amount is checked before signing.
-- Networks: friendly aliases or CAIP-2 (`base-sepolia` ↔ `eip155:84532`).
+- Networks: built-in aliases, operator `evm.yaml` chain names via `resolve_chain`, or CAIP-2 (`base-sepolia` ↔ `eip155:84532`).
 - **Never** echo private keys, CDP secrets, or PANs/CVVs.
 - Boundary: x402 session pay only — swaps/transfers → `defi/evm_tx_handler`.
 - Why not Issuing/PANs in v1: secret risk + KYC; x402 + CDP is the locked open path (#41 / #272).
@@ -61,7 +61,7 @@ The skill lives in `skills/finance/ephemeral_wallet/`. Roles: [Skill anatomy](..
 
 ### Effect (`skill.py`)
 
-Session store + `MockX402Provider` / `HttpX402Provider` behind `x402_client.settle_x402`; live `Eip3009ExactSigner` in `signers.py`.
+Session store + `MockX402Provider` / `HttpX402Provider` behind `x402_client.settle_x402`; live `Eip3009ExactSigner` in `signers.py`. Networks resolve via built-in aliases and `evm_config.resolve_chain`.
 
 ### Directive (`instructions.md`)
 
@@ -283,6 +283,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/ephemeral_
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
+| | feat(finance): ephemeral_wallet resolve CAIP-2 via evm_config (#516) | 25 Nov 2026 | `0.2.1` | [@Hendobox](https://github.com/Hendobox) |
 | [`29b0815`](https://github.com/ARPAHLS/skillware/commit/29b0815f2470614d79809024a5401370073400e3) | feat(finance): ephemeral_wallet v0.2 quote + EIP-3009 live sign (#41) | 22 Nov 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`5ab781d`](https://github.com/ARPAHLS/skillware/commit/5ab781d0f9) | feat(finance): add ephemeral_wallet v0.1 (#41, #272) (#475) | 18 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->
