@@ -56,26 +56,38 @@ def _normalize_private_key(raw: str) -> str:
 
 
 def _checksum_address(raw: str, *, field: str) -> str:
-    """Validate an EVM address; prefer EIP-55 via ``normalize_evm_address``."""
+    """Validate an EVM address; prefer EIP-55 checksumming.
+
+    Order: ``normalize_evm_address`` (web3) → ``eth_utils.to_checksum_address``
+    (available with ``eth_account``) → raw ``0x`` + 40-hex validation.
+    """
     text = str(raw or "").strip()
     if not text:
         raise ValueError(f"{field} is required.")
     try:
         return normalize_evm_address(text)
     except ImportError:
-        # web3 optional — live path still has eth_account; accept 0x+40 hex.
-        lowered = text.lower()
-        if not (
-            lowered.startswith("0x")
-            and len(lowered) == 42
-            and all(c in "0123456789abcdef" for c in lowered[2:])
-        ):
-            raise ValueError(
-                f"Invalid EVM address for {field}: {raw!r}. Expected 0x plus 40 hex chars."
-            ) from None
-        return text
+        pass
     except ValueError as exc:
         raise ValueError(f"Invalid EVM address for {field}: {exc}") from exc
+    try:
+        from eth_utils import to_checksum_address
+
+        return to_checksum_address(text)
+    except ImportError:
+        pass
+    except ValueError as exc:
+        raise ValueError(f"Invalid EVM address for {field}: {exc}") from exc
+    lowered = text.lower()
+    if not (
+        lowered.startswith("0x")
+        and len(lowered) == 42
+        and all(c in "0123456789abcdef" for c in lowered[2:])
+    ):
+        raise ValueError(
+            f"Invalid EVM address for {field}: {raw!r}. Expected 0x plus 40 hex chars."
+        )
+    return text
 
 
 class Eip3009ExactSigner:

@@ -35,13 +35,27 @@ _CAIP2_TO_ALIAS: Dict[str, str] = {
 }
 
 
-def _caip2_from_chain_cfg(name: str, cfg: dict) -> Optional[Tuple[str, str]]:
-    chain_id = cfg.get("chain_id")
-    if chain_id is None:
+def _positive_chain_id(raw: object) -> Optional[int]:
+    """Return a positive int chain id, or None (rejects bool / non-positive)."""
+    if raw is None or isinstance(raw, bool):
         return None
     try:
-        cid = int(chain_id)
+        cid = int(raw)
     except (TypeError, ValueError):
+        return None
+    if cid <= 0:
+        return None
+    return cid
+
+
+def _valid_eip155_reference(reference: str) -> bool:
+    """CAIP-2 ``eip155:[1-9][0-9]*`` — digits only, no leading zeros, positive."""
+    return bool(reference) and reference.isdigit() and int(reference) > 0
+
+
+def _caip2_from_chain_cfg(name: str, cfg: dict) -> Optional[Tuple[str, str]]:
+    cid = _positive_chain_id(cfg.get("chain_id"))
+    if cid is None:
         return None
     return name, f"eip155:{cid}"
 
@@ -65,17 +79,14 @@ def _from_evm_alias(alias: str) -> Optional[Tuple[str, str]]:
 
 
 def _alias_from_evm_chain_id(reference: str) -> Optional[str]:
-    try:
-        target = int(reference)
-    except (TypeError, ValueError):
+    if not _valid_eip155_reference(reference):
         return None
+    target = int(reference)
     merged = load_merged_evm_config()
     for name, cfg in list_configured_chains(merged, enabled_only=False):
-        try:
-            if int(cfg.get("chain_id")) == target:
-                return name
-        except (TypeError, ValueError):
-            continue
+        cid = _positive_chain_id(cfg.get("chain_id"))
+        if cid is not None and cid == target:
+            return name
     return None
 
 
@@ -104,17 +115,16 @@ def normalize_network(value: str) -> Tuple[str, str]:
         if caip2 in _CAIP2_TO_ALIAS:
             return _CAIP2_TO_ALIAS[caip2], caip2
         if namespace.lower() == "eip155":
-            evm_alias = _alias_from_evm_chain_id(reference)
-            if evm_alias:
-                return evm_alias, caip2
-            try:
-                int(reference)
-            except (TypeError, ValueError) as exc:
+            if not _valid_eip155_reference(reference):
                 raise ValueError(
                     f"Unknown network {value!r}. Use a friendly alias "
                     f"(e.g. base-sepolia), an evm.yaml chain name, or "
                     f"CAIP-2 (e.g. eip155:84532)."
-                ) from exc
+                )
+            caip2 = f"eip155:{int(reference)}"
+            evm_alias = _alias_from_evm_chain_id(reference)
+            if evm_alias:
+                return evm_alias, caip2
             return caip2, caip2
         if namespace.lower() == "solana":
             return caip2, caip2
