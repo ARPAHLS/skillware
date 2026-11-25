@@ -283,7 +283,7 @@ Commits that touched this skill bundle or its catalog page ([`finance/ephemeral_
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(finance): ephemeral_wallet resolve CAIP-2 via evm_config (#516) | 25 Nov 2026 | `0.2.1` | [@Hendobox](https://github.com/Hendobox) |
+| [`4aa047a`](https://github.com/ARPAHLS/skillware/commit/4aa047ae1fa0ce44d28a768ccaf2d70e6b11ec30) | feat(finance): ephemeral_wallet resolve CAIP-2 via evm_config (#516) | 25 Nov 2026 | `0.2.1` | [@Hendobox](https://github.com/Hendobox) |
 | [`29b0815`](https://github.com/ARPAHLS/skillware/commit/29b0815f2470614d79809024a5401370073400e3) | feat(finance): ephemeral_wallet v0.2 quote + EIP-3009 live sign (#41) | 22 Nov 2026 | `0.2.0` | [@Hendobox](https://github.com/Hendobox) |
 | [`5ab781d`](https://github.com/ARPAHLS/skillware/commit/5ab781d0f9) | feat(finance): add ephemeral_wallet v0.1 (#41, #272) (#475) | 18 Nov 2026 | `0.1.0` | [@Hendobox](https://github.com/Hendobox) |
 <!-- skill-history:end -->

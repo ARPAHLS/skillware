@@ -401,7 +401,7 @@ Commits that touched this skill bundle or its catalog page ([`office/pdf_form_fi
 
 | Commit | Description | Date | Version | Contributors |
 | :--- | :--- | :--- | :--- | :--- |
-| `TBD` | feat(pdf_form_filler): v0.2.4 SHA-256 compliance filing receipts (`emit_receipt`), post-fill binary readback, encrypted/corrupt PDF guards, and 6-provider + audit simulation crucible (#407) | 24 Nov 2026 | `0.2.4` | [@rosspeili](https://github.com/rosspeili) |
+| [`1f9a27a`](https://github.com/ARPAHLS/skillware/commit/1f9a27a4847618fb3de407a2fb2604ecbded6e97) | feat(pdf_form_filler): v0.2.4 SHA-256 compliance filing receipts (`emit_receipt`), post-fill binary readback, encrypted/corrupt PDF guards, and 6-provider + audit simulation crucible (#407) | 24 Nov 2026 | `0.2.4` | [@rosspeili](https://github.com/rosspeili) |
 | [`528ab8f`](https://github.com/ARPAHLS/skillware/commit/528ab8f26a66e01b112df446472cd016b707a477) | feat(pdf_form_filler,addressbook): v0.2.3 multi-jurisdiction `legal_profile` autofill, W-9 segmented TINs, CLI `set-legal-profile` / `show --unmask`, and audit PII redaction (#408) | 24 Nov 2026 | `0.2.3` | [@rosspeili](https://github.com/rosspeili) |
 | [`360353f`](https://github.com/ARPAHLS/skillware/commit/360353fdbc) | feat(cli,pdf_form_filler): v0.2.2 `skillware pdf` CLI tooling, configurable `pdf.output_dir`/`PDF_OUTPUT_DIR`, `status --json`, multi-section auto-mapping, and XFA/schema validation (#406) (#495) | 19 Nov 2026 | `0.2.2` | [@rosspeili](https://github.com/rosspeili) |
 | [`e66d3cd`](https://github.com/ARPAHLS/skillware/commit/e66d3cd282) | feat(pdf_form_filler): v0.2.1 file-backed interview sessions, PII masking, and e-sign rendering (#405) (#492) | 18 Nov 2026 | `0.2.1` | [@rosspeili](https://github.com/rosspeili) |
