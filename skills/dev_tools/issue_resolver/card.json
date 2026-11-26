@@ -1,6 +1,6 @@
 {
     "name": "Issue Resolver",
-    "description": "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, parses caller-fetched ISSUE_RESOLVER.md profiles into provenance-labelled context, and provides sequential stage checklists with verify, commit, and pull request gates.",
+    "description": "Guides an agent through resolving a GitHub issue on any repository: validates the issue URL, extracts structured caller-fetched ISSUE_RESOLVER.md context, and provides sequential stage checklists with additive repository verification guidance and universal gates.",
     "issuer": {
         "name": "Ross Peili",
         "email": "vpeilivanidis@gmail.com",
@@ -39,6 +39,34 @@
             {
                 "key": "profile_context.authority.classification",
                 "label": "Profile Authority"
+            },
+            {
+                "key": "profile_context.parse_status",
+                "label": "Profile Parse"
+            },
+            {
+                "key": "profile_applied",
+                "label": "Profile Applied"
+            },
+            {
+                "key": "valid",
+                "label": "Structurally Complete"
+            },
+            {
+                "key": "byte_size",
+                "label": "Profile Bytes"
+            },
+            {
+                "key": "recognized_headings",
+                "label": "Recognized Headings"
+            },
+            {
+                "key": "missing_recommended_headings",
+                "label": "Missing Recommended Headings"
+            },
+            {
+                "key": "syntax_issues",
+                "label": "Structural Diagnostics"
             }
         ]
     }

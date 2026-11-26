@@ -10,7 +10,7 @@ This hub is the documentation landing page for Skillware **dev tools** agent ski
 
 | Skill | ID | Version | Issuer | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | `0.3.0` (3 Aug 2026) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
+| **[Issue Resolver](issue_resolver.md)** | `dev_tools/issue_resolver` | `0.4.0` (unreleased) | [@rosspeili](https://github.com/rosspeili) ([@ARPAHLS](https://github.com/ARPAHLS)) | GitHub issue URL prep, optional caller-fetched repository profiles, nine-stage agent workflow, conditional verify/commit gates, and commit-message validation. |
 
 ## Typical host pipelines
 
